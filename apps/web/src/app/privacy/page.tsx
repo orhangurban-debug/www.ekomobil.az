@@ -43,6 +43,7 @@ export default function PrivacyPage() {
             <li>Alıcı-satıcı əlaqəsinin təmin edilməsi</li>
             <li>Platformanın təhlükəsizliyi və sui-istifadənin qarşısının alınması</li>
             <li>Analitika və xidmətin təkmilləşdirilməsi</li>
+            <li>Auksion risk skoru, bidder uyğunluğu və dispute audit izinin saxlanılması</li>
           </ul>
         </section>
 
@@ -55,11 +56,24 @@ export default function PrivacyPage() {
             <li>Qanuni tələb və ya məhkəmə qərarı ilə</li>
             <li>Dövlət orqanlarının sorğularına cavab olaraq</li>
             <li>İstifadəçinin açıq razılığı ilə (məsələn, satıcı ilə əlaqə üçün telefon/email)</li>
+            <li>Auksion qalibi müəyyən edildikdən sonra satışın tamamlanması üçün qarşı tərəflə zəruri əlaqə məlumatlarının paylaşılması</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">4. Cookie və texnologiyalar</h2>
+          <h2 className="text-xl font-semibold text-slate-900">4. Auksion və ödəniş məlumatları</h2>
+          <p className="mt-3">
+            Auksion iştirakında bid tarixçəsi, cihaz və risk siqnalları, bidder uyğunluğu, no-show qeydləri,
+            xidmət haqları və success fee invoice kimi platforma gəlirləri ilə bağlı əməliyyat məlumatları saxlanıla bilər.
+          </p>
+          <p className="mt-3">
+            EkoMobil avtomobilin əsas satış ödənişini qəbul etmədiyi üçün alıcı ilə satıcı arasında birbaşa tamamlanan
+            əsas alış məbləği platformanın ödəniş sistemi daxilində saxlanılmır.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-slate-900">5. Cookie və texnologiyalar</h2>
           <p className="mt-3">
             Platforma sessiya idarəetməsi, avtorizasiya və istifadə təcrübəsi üçün cookie və yerli saxlama 
             (localStorage) istifadə edir. Zəruri cookie-lər xidmətin işləməsi üçün tələb olunur.
@@ -67,7 +81,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">5. Məlumatların qorunması</h2>
+          <h2 className="text-xl font-semibold text-slate-900">6. Məlumatların qorunması</h2>
           <p className="mt-3">
             Şifrələr hash edilmiş formada saxlanılır. Məlumatlar təhlükəsiz serverlərdə və 
             şəbəkə protokolları ilə ötürülür. Müntəzəm təhlükəsizlik yoxlamaları həyata keçirilir.
@@ -75,7 +89,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">6. İstifadəçi hüquqları</h2>
+          <h2 className="text-xl font-semibold text-slate-900">7. İstifadəçi hüquqları</h2>
           <p className="mt-3">
             İstifadəçilər öz məlumatlarına daxil olmaq, düzəliş etmək və ya silmək tələb edə bilər. 
             Hesab silinməsi üçün <a href="mailto:info@ekomobil.az" className="text-brand-600 hover:underline">info@ekomobil.az</a> ünvanına müraciət edin.
@@ -83,7 +97,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">7. Dəyişikliklər</h2>
+          <h2 className="text-xl font-semibold text-slate-900">8. Dəyişikliklər</h2>
           <p className="mt-3">
             Məxfilik siyasəti dəyişdikdə bu səhifədə yenilənəcək. 
             Əhəmiyyətli dəyişikliklər haqqında email vasitəsilə xəbərdar edə bilərik.

@@ -1,28 +1,29 @@
 import { NextResponse } from "next/server";
-import { finalizeListingPlanPayment } from "@/server/payment-store";
-
-function toInternalStatus(status: string | null): "succeeded" | "failed" | "cancelled" {
-  const normalized = status?.toLowerCase();
-  if (normalized === "ok" || normalized === "success" || normalized === "succeeded") {
-    return "succeeded";
-  }
-  if (normalized === "cancel" || normalized === "cancelled") {
-    return "cancelled";
-  }
-  return "failed";
-}
+import { finalizeListingPlanPayment, getListingPlanPayment } from "@/server/payment-store";
+import { resolveKapitalBankPaymentStatus, verifyKapitalBankCallbackPlaceholder } from "@/server/payments/kapital-bank-callback";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
+  verifyKapitalBankCallbackPlaceholder({
+    signature: url.searchParams.get("signature")
+  });
   const paymentId = url.searchParams.get("paymentId");
   if (!paymentId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
+  const payment = await getListingPlanPayment(paymentId);
+  if (!payment) {
+    return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
+  }
+  const resolved = await resolveKapitalBankPaymentStatus({
+    fallbackStatus: url.searchParams.get("status"),
+    providerPayload: payment.providerPayload
+  });
 
   const result = await finalizeListingPlanPayment({
     paymentId,
-    status: toInternalStatus(url.searchParams.get("status")),
-    providerReference: url.searchParams.get("reference") ?? undefined
+    status: resolved.status,
+    providerReference: resolved.providerReference ?? url.searchParams.get("reference") ?? undefined
   });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
@@ -41,15 +42,28 @@ export async function POST(req: Request) {
     paymentId?: string;
     status?: string;
     reference?: string;
+    signature?: string;
   };
+  verifyKapitalBankCallbackPlaceholder({
+    body,
+    signature: body.signature ?? null
+  });
   if (!body.paymentId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
+  const payment = await getListingPlanPayment(body.paymentId);
+  if (!payment) {
+    return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
+  }
+  const resolved = await resolveKapitalBankPaymentStatus({
+    fallbackStatus: body.status ?? null,
+    providerPayload: payment.providerPayload
+  });
 
   const result = await finalizeListingPlanPayment({
     paymentId: body.paymentId,
-    status: toInternalStatus(body.status ?? null),
-    providerReference: body.reference
+    status: resolved.status,
+    providerReference: resolved.providerReference ?? body.reference
   });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });

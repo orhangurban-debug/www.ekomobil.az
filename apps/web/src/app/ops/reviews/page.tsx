@@ -39,9 +39,14 @@ export default async function ReviewQueuePage() {
           <h1 className="text-2xl font-bold text-slate-900">Manual Baxış Növbəsi</h1>
           <p className="text-slate-500 mt-1">Yüksək risk etibarı əl ilə yoxlama tələb edir</p>
         </div>
-        {openCount > 0 && (
-          <span className="badge-warning text-sm px-3 py-1">{openCount} açıq case</span>
-        )}
+        <div className="flex items-center gap-3">
+          {openCount > 0 && (
+            <span className="badge-warning text-sm px-3 py-1">{openCount} açıq case</span>
+          )}
+          <Link href="/ops/auctions" className="btn-secondary">
+            Auction Ops
+          </Link>
+        </div>
       </div>
 
       {items.length === 0 ? (

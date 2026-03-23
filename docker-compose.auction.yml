@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ekomobil
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ekomobil-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ekomobil"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ekomobil-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  auction-api:
+    build:
+      context: /Users/orkhangurban/ekomobil.az/services/auction-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ekomobil?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      APP_URL: http://localhost:3000
+      AUCTION_API_ALLOWED_ORIGINS: http://localhost:3000
+      AUCTION_API_INTERNAL_SECRET: replace-with-shared-secret
+      AUCTION_API_PORT: 4001
+      AUCTION_API_PG_POOL_MAX: 20
+      AUCTION_SSE_HEARTBEAT_MS: 15000
+      AUCTION_ANTI_SNIPING_WINDOW_MS: 300000
+      AUCTION_ANTI_SNIPING_EXTENSION_MS: 120000
+      AUCTION_STREAM_HISTORY_LIMIT: 50
+    ports:
+      - "4001:4001"
+
+volumes:
+  ekomobil-postgres-data:
+  ekomobil-redis-data:

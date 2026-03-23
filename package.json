@@ -2,13 +2,18 @@
   "name": "ekomobil-platform",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "services/*"
   ],
   "scripts": {
     "dev": "npm run dev:web",
     "dev:clean": "npm run dev:clean --workspace @ekomobil/web",
     "dev:web": "npm run dev --workspace @ekomobil/web",
+    "dev:auction": "npm run dev --workspace auction-api",
+    "compose:auction": "docker compose -f docker-compose.auction.yml up -d",
+    "compose:auction:down": "docker compose -f docker-compose.auction.yml down",
     "build:web": "npm run build --workspace @ekomobil/web",
+    "build:auction": "npm run build --workspace auction-api",
     "lint:web": "npm run lint --workspace @ekomobil/web"
   }
 }

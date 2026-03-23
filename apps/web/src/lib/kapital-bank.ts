@@ -10,6 +10,7 @@ export interface KapitalBankConfig {
   password?: string;
   secret?: string;
   publicBaseUrl?: string;
+  apiBaseUrl?: string;
 }
 
 export function getKapitalBankConfig(): KapitalBankConfig {
@@ -20,7 +21,8 @@ export function getKapitalBankConfig(): KapitalBankConfig {
     username: process.env.KAPITAL_BANK_USERNAME,
     password: process.env.KAPITAL_BANK_PASSWORD,
     secret: process.env.KAPITAL_BANK_SECRET,
-    publicBaseUrl: process.env.NEXT_PUBLIC_APP_URL
+    publicBaseUrl: process.env.NEXT_PUBLIC_APP_URL,
+    apiBaseUrl: process.env.KAPITAL_BANK_API_BASE_URL
   };
 }
 
@@ -36,12 +38,21 @@ export function isKapitalBankLiveReady(config = getKapitalBankConfig()): boolean
   );
 }
 
-export function getKapitalBankCheckoutUrl(paymentId: string, config = getKapitalBankConfig()): string {
+export function getKapitalBankApiBaseUrl(config = getKapitalBankConfig()): string {
+  return (config.apiBaseUrl?.replace(/\/$/, "") || "https://e-commerce.kapitalbank.az");
+}
+
+export function getKapitalBankAppUrl(pathname: string, config = getKapitalBankConfig()): string {
   const baseUrl = config.publicBaseUrl?.replace(/\/$/, "");
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
   if (baseUrl) {
-    return `${baseUrl}/payments/listing-plan/${paymentId}`;
+    return `${baseUrl}${normalizedPath}`;
   }
-  return `/payments/listing-plan/${paymentId}`;
+  return normalizedPath;
+}
+
+export function getKapitalBankCheckoutUrl(paymentId: string, config = getKapitalBankConfig()): string {
+  return getKapitalBankAppUrl(`/payments/listing-plan/${paymentId}`, config);
 }
 
 export function getKapitalBankStatusLabel(payment: ListingPlanPaymentRecord): string {

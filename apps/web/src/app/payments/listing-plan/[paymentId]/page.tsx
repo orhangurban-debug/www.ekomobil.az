@@ -41,6 +41,10 @@ export default async function ListingPlanPaymentPage({
             <dd className="mt-1 font-medium text-slate-900">{getKapitalBankStatusLabel(payment)}</dd>
           </div>
           <div>
+            <dt className="text-slate-500">Provider rejimi</dt>
+            <dd className="mt-1 font-medium text-slate-900">{payment.providerMode ?? config.mode}</dd>
+          </div>
+          <div>
             <dt className="text-slate-500">Plan</dt>
             <dd className="mt-1 font-medium text-slate-900">{plan?.nameAz ?? payment.planType}</dd>
           </div>
@@ -49,6 +53,12 @@ export default async function ListingPlanPaymentPage({
             <dd className="mt-1 font-medium text-slate-900">{payment.amountAzn} ₼</dd>
           </div>
         </dl>
+
+        {payment.providerPayload && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Hosted redirect konteksti hazırlanıb. `liveReady`: {payment.providerPayload.liveReady ? "bəli" : "xeyr"}.
+          </div>
+        )}
 
         {query.status && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

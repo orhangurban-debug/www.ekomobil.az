@@ -33,6 +33,10 @@ export default function TermsPage() {
             Alıcı ilə satıcı arasında bağlanan müqavilələr birbaşa tərəflər arasında bağlanır. 
             Platforma bu müqavilələrin tərəfi deyil və məsuliyyət daşımır.
           </p>
+          <p className="mt-3">
+            EkoMobil satıcı, alıcı, agent, komisyonçu və ya escrow xidməti göstərən maliyyə vasitəçisi kimi çıxış etmir.
+            Platforma avtomobilin əsas satış məbləğini qəbul etmir, saxlamır və tərəflər arasında bölüşdürmür.
+          </p>
         </section>
 
         <section>
@@ -52,10 +56,29 @@ export default function TermsPage() {
             Tövsiyə olunur: ödənişi yalnız fiziki görüşdə və avtomobili yoxladıqdan sonra edin. 
             Bank köçürməsi və ya rəsmi qəbz əsasında ödəniş təhlükəsizlik üçün tövsiyə olunur.
           </p>
+          <p className="mt-3">
+            Platforma yalnız öz xidmət haqlarını, məsələn elan planı, auksion lot haqqı, bidder deposit, no-show cəriməsi
+            və ya satıcı success fee invoice kimi ödənişləri qəbul edə bilər. Avtomobilin əsas alış qiyməti
+            birbaşa alıcı ilə satıcı arasında tamamlanmalıdır.
+          </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">5. Etibar və yoxlama</h2>
+          <h2 className="text-xl font-semibold text-slate-900">5. Auksion qaydalarının hüquqi çərçivəsi</h2>
+          <p className="mt-3">
+            EkoMobil auksion modulu yalnız alıcı və satıcını bir araya gətirən rəqəmsal infrastruktur, elan,
+            moderasiya, bildiriş və qayda mühərriki təqdim edir. Hərracın nəticəsində yaranan əsas satış münasibəti
+            tərəflər arasında formalaşır.
+          </p>
+          <p className="mt-3">
+            Qalib təklif hüquqi və ya məhsul qaydaları baxımından bağlayıcı hesab edilə bilər, lakin avtomobilin
+            tam ödənişinin qəbulu, təhvil-təslim, notariat əməliyyatları və mülkiyyət keçidi tərəflərin öz aralarında
+            həll etdiyi prosesdir. Platforma yalnız öz xidmət haqları və intizam ödənişləri üzrə tərəfdir.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-slate-900">6. Etibar və yoxlama</h2>
           <p className="mt-3">
             EkoMobil VIN yoxlaması, yürüş uyğunluğu və satıcı doğrulaması kimi etibar siqnalları təqdim edir. 
             Bu məlumatlar köməkçi xarakter daşıyır və tam zəmanət vermir. 
@@ -64,15 +87,20 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">6. Məsuliyyətin məhdudlaşdırılması</h2>
+          <h2 className="text-xl font-semibold text-slate-900">7. Məsuliyyətin məhdudlaşdırılması</h2>
           <p className="mt-3">
             Platforma elanların dəqiqliyinə, satıcıların etibarlılığına və alıcı-satıcı mübahisələrinə görə 
             birbaşa məsuliyyət daşımır. İstifadəçilər öz riskləri ilə əməliyyatlar həyata keçirirlər.
           </p>
+          <p className="mt-3">
+            Platforma avtomobilin texniki vəziyyəti, real bazar dəyəri, tərəflərin öhdəliklərini yerinə yetirməsi,
+            əsas satış ödənişinin icrası və ya mülkiyyət keçidinin hüquqi nəticələri üçün zəmanət vermir.
+            EkoMobil tərəfindən göstərilən trust siqnalları və moderasiya qərarları köməkçi xarakter daşıyır.
+          </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">7. Dəyişikliklər</h2>
+          <h2 className="text-xl font-semibold text-slate-900">8. Dəyişikliklər</h2>
           <p className="mt-3">
             EkoMobil bu şərtləri əvvəlcədən xəbərdar etməklə dəyişə bilər. 
             Dəyişikliklər saytda dərc edildikdən sonra qüvvəyə minir.
@@ -80,7 +108,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">8. Əlaqə</h2>
+          <h2 className="text-xl font-semibold text-slate-900">9. Əlaqə</h2>
           <p className="mt-3">
             Suallarınız üçün: <a href="mailto:info@ekomobil.az" className="text-brand-600 hover:underline">info@ekomobil.az</a>
           </p>

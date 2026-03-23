@@ -38,7 +38,12 @@ export default async function AnalyticsMonitorPage() {
           <h1 className="text-2xl font-bold text-slate-900">Analytics Monitor</h1>
           <p className="text-slate-500 mt-1">North Star və əməliyyat event axını</p>
         </div>
-        <span className="badge-neutral text-sm px-3 py-1">{events.length} event</span>
+        <div className="flex items-center gap-3">
+          <span className="badge-neutral text-sm px-3 py-1">{events.length} event</span>
+          <Link href="/ops/auctions" className="btn-secondary">
+            Auction Ops
+          </Link>
+        </div>
       </div>
 
       {events.length === 0 ? (

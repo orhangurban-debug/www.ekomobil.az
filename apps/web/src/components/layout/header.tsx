@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 
+const GLOBAL_NOTICE_VERSION = "v2";
+const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE_VERSION}`;
+
 const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
   { href: "/auction", label: "Auksion", live: true },
@@ -17,11 +20,49 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
 export function Header({ userEmail, userRole }: { userEmail?: string; userRole?: string }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [noticeVisible, setNoticeVisible] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1";
+  });
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
+  function hideNotice() {
+    setNoticeVisible(false);
+    window.localStorage.setItem(GLOBAL_NOTICE_STORAGE_KEY, "1");
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-soft-brown bg-white">
+      {noticeVisible && (
+        <div className="border-b border-amber-300/60 bg-gradient-to-r from-amber-50 to-orange-50">
+          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-900 sm:px-6 lg:px-8">
+            <p className="leading-5">
+              <span className="font-semibold">Diqqət:</span> Platforma hələ tam aktiv deyil. Yanlış əməliyyatların
+              qarşısını almaq üçün qeydiyyat, ödəniş və auksion funksiyaları mərhələli şəkildə açılır. Zəhmət olmasa
+              hələ ödəniş etməyin —{" "}
+              <span className="font-semibold">EkoMobil tezliklə tam istifadəyə veriləcək.</span>{" "}
+              Yeniliklər üçün{" "}
+              <Link href="/pricing" className="font-semibold underline decoration-dotted underline-offset-2">
+                Qiymətlər
+              </Link>{" "}
+              və{" "}
+              <Link href="/terms" className="font-semibold underline decoration-dotted underline-offset-2">
+                Şərtlər
+              </Link>{" "}
+              səhifələrini izləyin.
+            </p>
+            <button
+              type="button"
+              onClick={hideNotice}
+              aria-label="Bildirişi bağla"
+              className="shrink-0 rounded-md border border-amber-400/50 bg-white/70 px-2 py-0.5 text-[11px] font-semibold text-amber-900 transition hover:bg-white"
+            >
+              Bağla
+            </button>
+          </div>
+        </div>
+      )}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo – Eko #3E2F28, Mobil #0891B2 */}
         <Link href="/" className="flex items-center gap-2 group">

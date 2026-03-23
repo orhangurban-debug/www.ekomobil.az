@@ -211,6 +211,12 @@ export default function PublishPage() {
           <p className="mt-2 text-slate-500">Avtomobilinizi etibarlı alıcılara çatdırın</p>
         </div>
 
+        <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
+          Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
+          <a href="/auction/sell" className="font-semibold text-[#0891B2] hover:underline">Auksion lotu yarat</a>{" "}
+          axınından istifadə edin. Auksionda əsas satış ödənişi platformadan keçmir.
+        </div>
+
         <StepIndicator current={step} />
 
         {!result ? (
