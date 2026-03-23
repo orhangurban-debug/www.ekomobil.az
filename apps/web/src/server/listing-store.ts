@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { demoListings, demoListingsDetailed } from "@/lib/demo-marketplace";
-import { ListingDetail, ListingQuery, ListingQueryResult, ListingSummary, PriceInsight } from "@/lib/marketplace-types";
+import { ListingDetail, ListingQuery, ListingQueryResult, ListingStatus, ListingSummary, PriceInsight } from "@/lib/marketplace-types";
 import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 
@@ -408,6 +408,7 @@ export async function createListingRecord(input: {
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
+  status?: ListingStatus;
   planType?: PlanType;
   trust: {
     trustScore: number;
@@ -424,6 +425,7 @@ export async function createListingRecord(input: {
   const pool = getPgPool();
   const client = await pool.connect();
 
+  const status = input.status ?? "active";
   const planType = input.planType ?? "free";
   const planExpiresAt = calculatePlanExpiry(planType);
 
@@ -436,7 +438,7 @@ export async function createListingRecord(input: {
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
           mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'active', $16, $17)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       `,
       [
         id,
@@ -454,6 +456,7 @@ export async function createListingRecord(input: {
         input.transmission,
         input.vin,
         input.sellerType,
+        status,
         planType,
         planExpiresAt
       ]
@@ -573,6 +576,7 @@ export function createListingFallback(input: {
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
+  status?: ListingStatus;
   planType?: PlanType;
   trust: {
     trustScore: number;
@@ -586,6 +590,7 @@ export function createListingFallback(input: {
   };
 }): { id: string } {
   const id = randomUUID();
+  const status = input.status ?? "active";
   const planType = input.planType ?? "free";
   const planExpiresAt = calculatePlanExpiry(planType);
   const item: ListingDetail = {
@@ -601,7 +606,7 @@ export function createListingFallback(input: {
     make: input.make,
     model: input.model,
     vin: input.vin,
-    status: "active",
+    status,
     sellerType: input.sellerType,
     ownerUserId: input.ownerUserId,
     dealerProfileId: input.dealerProfileId,
@@ -626,24 +631,19 @@ export function createListingFallback(input: {
   return { id };
 }
 
-export async function updateListingPlan(
+async function resolveListingOwnership(
   listingId: string,
-  userId: string,
-  planType: PlanType
-): Promise<{ ok: boolean; error?: string }> {
-  if (planType === "free") {
-    return { ok: false, error: "Plan upgrade tələb olunur (standard və ya vip)" };
-  }
-
+  userId: string
+): Promise<{ listing: { status: ListingStatus; dealerProfileId?: string; ownerUserId?: string } | null; isOwner: boolean }> {
   try {
     await ensureSeedData();
     const pool = getPgPool();
-    const check = await pool.query<{ owner_user_id: string | null; dealer_profile_id: string | null }>(
-      `SELECT owner_user_id, dealer_profile_id FROM listings WHERE id = $1`,
+    const check = await pool.query<{ owner_user_id: string | null; dealer_profile_id: string | null; status: string }>(
+      `SELECT owner_user_id, dealer_profile_id, status FROM listings WHERE id = $1`,
       [listingId]
     );
     const row = check.rows[0];
-    if (!row) return { ok: false, error: "Elan tapılmadı" };
+    if (!row) return { listing: null, isOwner: false };
 
     const isOwner = row.owner_user_id === userId;
     const isDealerOwner = row.dealer_profile_id
@@ -656,17 +656,80 @@ export async function updateListingPlan(
         })()
       : false;
 
-    if (!isOwner && !isDealerOwner) {
-      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
-    }
+    return {
+      listing: {
+        status: row.status as ListingStatus,
+        ownerUserId: row.owner_user_id ?? undefined,
+        dealerProfileId: row.dealer_profile_id ?? undefined
+      },
+      isOwner: isOwner || isDealerOwner
+    };
+  } catch {
+    const listing = getCreatedListings().find((item) => item.id === listingId) ?? null;
+    if (!listing) return { listing: null, isOwner: false };
+    const isOwner = listing.ownerUserId === userId;
+    return { listing, isOwner };
+  }
+}
 
+export async function validateListingOwnership(
+  listingId: string,
+  userId: string
+): Promise<{ ok: boolean; error?: string; status?: ListingStatus }> {
+  const { listing, isOwner } = await resolveListingOwnership(listingId, userId);
+  if (!listing) return { ok: false, error: "Elan tapılmadı" };
+  if (!isOwner) {
+    return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
+  }
+  return { ok: true, status: listing.status };
+}
+
+export async function applyListingPlanForOwner(
+  listingId: string,
+  userId: string,
+  planType: PlanType,
+  options?: { activate?: boolean }
+): Promise<{ ok: boolean; error?: string }> {
+  if (planType === "free") {
+    return { ok: false, error: "Plan upgrade tələb olunur (standard və ya vip)" };
+  }
+
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
     const planExpiresAt = calculatePlanExpiry(planType);
     await pool.query(
-      `UPDATE listings SET plan_type = $1, plan_expires_at = $2, updated_at = NOW() WHERE id = $3`,
-      [planType, planExpiresAt, listingId]
+      `UPDATE listings
+       SET plan_type = $1,
+           plan_expires_at = $2,
+           status = CASE WHEN $4 THEN 'active' ELSE status END,
+           updated_at = NOW()
+       WHERE id = $3`,
+      [planType, planExpiresAt, listingId, options?.activate === true]
     );
     return { ok: true };
-  } catch (e) {
-    return { ok: false, error: "Xəta baş verdi" };
+  } catch {
+    const listing = getCreatedListings().find((item) => item.id === listingId);
+    if (!listing) return { ok: false, error: "Elan tapılmadı" };
+    if (listing.ownerUserId !== userId) {
+      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
+    }
+    const planExpiresAt = calculatePlanExpiry(planType);
+    listing.planType = planType;
+    listing.planExpiresAt = planExpiresAt.toISOString();
+    if (options?.activate) listing.status = "active";
+    listing.updatedAt = new Date().toISOString();
+    return { ok: true };
   }
+}
+
+export async function updateListingPlan(
+  listingId: string,
+  userId: string,
+  planType: PlanType
+): Promise<{ ok: boolean; error?: string }> {
+  return applyListingPlanForOwner(listingId, userId, planType);
 }

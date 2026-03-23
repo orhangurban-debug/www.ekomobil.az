@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
-import { updateListingPlan } from "@/server/listing-store";
 import { type PlanType } from "@/lib/listing-plans";
 
 export async function PATCH(
@@ -8,6 +7,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: listingId } = await params;
+  void listingId;
   const user = await getServerSessionUser();
   if (!user) {
     return NextResponse.json({ ok: false, error: "Daxil olmalısınız" }, { status: 401 });
@@ -22,13 +22,11 @@ export async function PATCH(
     );
   }
 
-  const result = await updateListingPlan(listingId, user.id, planType);
-  if (!result.ok) {
-    return NextResponse.json(
-      { ok: false, error: result.error },
-      { status: result.error?.includes("tapılmadı") ? 404 : 403 }
-    );
-  }
-
-  return NextResponse.json({ ok: true, planType });
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Paid plan dəyişiklikləri artıq ödəniş axını üzərindən idarə olunur."
+    },
+    { status: 409 }
+  );
 }

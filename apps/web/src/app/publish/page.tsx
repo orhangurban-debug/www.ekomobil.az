@@ -155,12 +155,50 @@ export default function PublishPage() {
         })
       });
 
-      const createPayload = (await createResponse.json()) as { ok: boolean; id?: string };
+      const createPayload = (await createResponse.json()) as {
+        ok: boolean;
+        id?: string;
+        error?: string;
+        errors?: string[];
+        paymentRequired?: boolean;
+      };
       if (createPayload.ok && createPayload.id) {
+        if (createPayload.paymentRequired) {
+          const paymentResponse = await fetch("/api/payments/listing-plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              listingId: createPayload.id,
+              planType,
+              source: "publish"
+            })
+          });
+          const paymentPayload = (await paymentResponse.json()) as {
+            ok: boolean;
+            error?: string;
+            checkoutUrl?: string;
+          };
+          if (paymentPayload.ok && paymentPayload.checkoutUrl) {
+            router.push(paymentPayload.checkoutUrl);
+            router.refresh();
+            return;
+          }
+          setResult({
+            ok: false,
+            errors: [paymentPayload.error || "Ödəniş axını başladılmadı."]
+          });
+          setSubmitting(false);
+          return;
+        }
+
         router.push(`/listings/${createPayload.id}`);
         router.refresh();
         return;
       }
+      setResult({
+        ok: false,
+        errors: createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]
+      });
     }
     setSubmitting(false);
   }
@@ -317,6 +355,11 @@ export default function PublishPage() {
               <div className="card p-8 space-y-6">
                 <h2 className="text-lg font-semibold text-slate-900">Elan planı</h2>
                 <p className="text-sm text-slate-500">Elanınızın necə görünməsini seçin</p>
+                {planType !== "free" && (
+                  <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
+                    Paid plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, sonra Kapital Bank ödəniş axını tamamlanandan sonra aktivləşir.
+                  </div>
+                )}
 
                 <div className="grid gap-4">
                   {LISTING_PLANS.map((plan) => (
@@ -401,7 +444,7 @@ export default function PublishPage() {
                         </svg>
                         Yoxlanılır...
                       </>
-                    ) : "Elan yerləşdir"}
+                    ) : planType === "free" ? "Elan yerləşdir" : "Ödənişə keç"}
                   </button>
                 </div>
               </div>

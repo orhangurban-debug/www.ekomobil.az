@@ -35,15 +35,15 @@ export function BoostListingButton({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/listings/${listingId}/plan`, {
-        method: "PATCH",
+      const res = await fetch("/api/payments/listing-plan", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planType })
+        body: JSON.stringify({ listingId, planType, source: "boost" })
       });
-      const data = (await res.json()) as { ok: boolean; error?: string };
-      if (data.ok) {
+      const data = (await res.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+      if (data.ok && data.checkoutUrl) {
         setOpen(false);
-        router.refresh();
+        router.push(data.checkoutUrl);
       } else {
         setError(data.error || "Xəta baş verdi");
       }

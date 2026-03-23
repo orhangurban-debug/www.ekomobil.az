@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
+import { isPaidPlan } from "@/lib/listing-plans";
 import { createListingFallback, createListingRecord, listListings } from "@/server/listing-store";
 
 export async function GET(req: Request) {
@@ -48,6 +49,13 @@ export async function POST(req: Request) {
   }
 
   const sessionUser = await getServerSessionUser();
+  const requestedPlanType = payload.planType ?? "free";
+  if (isPaidPlan(requestedPlanType) && !sessionUser) {
+    return NextResponse.json(
+      { ok: false, error: "Paid plan seçimi üçün əvvəlcə daxil olun." },
+      { status: 401 }
+    );
+  }
 
   const trustSignals = buildTrustSignals({
     vehicle: payload.vehicle,
@@ -72,7 +80,8 @@ export async function POST(req: Request) {
     transmission: payload.transmission || "Avtomat",
     vin: payload.vehicle.vin,
     sellerType: payload.sellerType || "private",
-    planType: payload.planType ?? "free",
+    planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
+    status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",
@@ -87,9 +96,22 @@ export async function POST(req: Request) {
 
   try {
     const created = await createListingRecord(createInput);
-    return NextResponse.json({ ok: true, id: created.id, trustScore });
+    return NextResponse.json({
+      ok: true,
+      id: created.id,
+      trustScore,
+      paymentRequired: isPaidPlan(requestedPlanType),
+      requestedPlanType
+    });
   } catch {
     const created = createListingFallback(createInput);
-    return NextResponse.json({ ok: true, id: created.id, trustScore, fallback: true });
+    return NextResponse.json({
+      ok: true,
+      id: created.id,
+      trustScore,
+      fallback: true,
+      paymentRequired: isPaidPlan(requestedPlanType),
+      requestedPlanType
+    });
   }
 }

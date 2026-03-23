@@ -2,10 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "env": {
-    "DATABASE_URL": "@ekomobil_database_url",
-    "AUTH_SECRET": "@ekomobil_auth_secret",
-    "GEMINI_API_KEY": "@ekomobil_gemini_api_key"
-  }
+  "buildCommand": "npm run build"
 }

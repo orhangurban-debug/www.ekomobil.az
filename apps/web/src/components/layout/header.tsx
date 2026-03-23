@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 
-const navLinks = [
+const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
+  { href: "/auction", label: "Auksion", live: true },
   { href: "/publish", label: "Elan yerləşdir" },
   { href: "/pricing", label: "Qiymətlər" },
   { href: "/dealer", label: "Salon paneli" },
@@ -40,12 +41,15 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${
                 pathname === link.href
                   ? "bg-[#0891B2]/10 text-[#0891B2]"
                   : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
               }`}
             >
+              {link.live && (
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+              )}
               {link.label}
             </Link>
           ))}
@@ -124,10 +128,13 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className={`rounded-lg px-4 py-2.5 text-sm font-medium ${
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium ${
                   pathname === link.href ? "bg-[#0891B2]/10 text-[#0891B2]" : "text-[#3E2F28] hover:bg-[#E5D3B3]/30"
                 }`}
               >
+                {link.live && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                )}
                 {link.label}
               </Link>
             ))}

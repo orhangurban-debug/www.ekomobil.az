@@ -53,6 +53,10 @@ export function getPlanById(id: PlanType): ListingPlan | undefined {
   return LISTING_PLANS.find((p) => p.id === id);
 }
 
+export function isPaidPlan(planType: PlanType): boolean {
+  return planType !== "free";
+}
+
 export function calculatePlanExpiry(planType: PlanType): Date {
   const plan = getPlanById(planType);
   const days = plan?.durationDays ?? 30;

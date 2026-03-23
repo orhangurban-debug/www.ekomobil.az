@@ -47,8 +47,8 @@ export function verifyPassword(password: string, stored: string): boolean {
 }
 
 export async function authenticateUserFromStore(email: string, password: string): Promise<UserRecord | null> {
-  await ensureSeedData();
   try {
+    await ensureSeedData();
     const pool = getPgPool();
     const result = await pool.query<{
       id: string;

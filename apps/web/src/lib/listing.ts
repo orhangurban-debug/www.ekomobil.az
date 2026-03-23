@@ -20,17 +20,42 @@ export interface ListingValidationResult {
 
 export function validateListingInput(input: ListingInput): ListingValidationResult {
   const errors: string[] = [];
+  const title = input?.title?.trim() ?? "";
+  const city = input?.city?.trim() ?? "";
+  const vin = input?.vehicle?.vin?.trim() ?? "";
+  const declaredMileageKm = input?.vehicle?.declaredMileageKm;
+  const year = input?.vehicle?.year;
+  const priceAzn = input?.priceAzn;
 
-  if (!input.title.trim()) errors.push("Title is required.");
-  if (input.priceAzn <= 0) errors.push("Price must be greater than 0.");
-  if (!input.city.trim()) errors.push("City is required.");
-  if (!input.vehicle.vin.trim()) errors.push("VIN is required.");
-  if (input.vehicle.declaredMileageKm < 0) errors.push("Mileage cannot be negative.");
-  if (input.vehicle.year < 1950 || input.vehicle.year > new Date().getFullYear() + 1) {
+  if (!title) errors.push("Title is required.");
+  if (typeof priceAzn !== "number" || Number.isNaN(priceAzn) || priceAzn <= 0) {
+    errors.push("Price must be greater than 0.");
+  }
+  if (!city) errors.push("City is required.");
+  if (!vin) errors.push("VIN is required.");
+  if (typeof declaredMileageKm !== "number" || Number.isNaN(declaredMileageKm)) {
+    errors.push("Mileage is required.");
+  } else if (declaredMileageKm < 0) {
+    errors.push("Mileage cannot be negative.");
+  }
+  if (typeof year !== "number" || Number.isNaN(year) || year < 1950 || year > new Date().getFullYear() + 1) {
     errors.push("Vehicle year is out of allowed range.");
   }
 
-  const mediaResult = validateMediaProtocol(input.mediaProtocol);
+  const mediaResult = validateMediaProtocol(
+    input?.mediaProtocol ?? {
+      imageCount: 0,
+      engineVideoDurationSec: 0,
+      hasFrontAngle: false,
+      hasRearAngle: false,
+      hasLeftSide: false,
+      hasRightSide: false,
+      hasDashboard: false,
+      hasInterior: false,
+      hasOdometer: false,
+      hasTrunk: false
+    }
+  );
   errors.push(...mediaResult.missingRequirements);
 
   return {
