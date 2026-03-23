@@ -1,0 +1,14 @@
+{
+  "name": "ekomobil-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:web",
+    "dev:clean": "npm run dev:clean --workspace @ekomobil/web",
+    "dev:web": "npm run dev --workspace @ekomobil/web",
+    "build:web": "npm run build --workspace @ekomobil/web",
+    "lint:web": "npm run lint --workspace @ekomobil/web"
+  }
+}

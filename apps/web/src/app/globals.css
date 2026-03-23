@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/**
+ * EkoMobil rəng sistemi – docs/COLOR_SYSTEM.md
+ * Deep Base: #3E2F28 | Ocean Teal: #0891B2 | Soft Brown: #E5D3B3 | Clean Space: #FFFFFF
+ */
+@theme {
+  --color-deep-base: #3e2f28;
+  --color-soft-brown: #e5d3b3;
+  --color-ocean-teal-500: #0891b2;
+  --color-ocean-teal-600: #0e7490;
+  --color-ocean-teal-700: #155e75;
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #0891b2;
+  --color-brand-600: #0e7490;
+  --color-brand-700: #155e75;
+  --color-brand-800: #164e63;
+  --color-brand-900: #164e63;
+
+  --shadow-card: 0 1px 3px 0 rgba(0,0,0,.08), 0 4px 16px 0 rgba(0,0,0,.06);
+  --shadow-card-hover: 0 4px 6px 0 rgba(0,0,0,.08), 0 12px 32px 0 rgba(0,0,0,.1);
+}
+
+@layer base {
+  html {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    background-color: var(--color-brand-600);
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+    transition: background-color 0.15s, transform 0.1s;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background-color: var(--color-brand-700); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-soft-brown);
+    background-color: #ffffff;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+    transition: background-color 0.15s, border-color 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-secondary:hover { background-color: #fef9f3; border-color: #E5D3B3; }
+
+  .card {
+    border-radius: 1rem;
+    background-color: #ffffff;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--color-soft-brown);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .card:hover { box-shadow: var(--shadow-card-hover); border-color: #d4c4a8; }
+
+  .badge-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    background-color: #ecfeff;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-ocean-teal-700);
+  }
+
+  .badge-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    background-color: #fffbeb;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #92400e;
+  }
+
+  .badge-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    background-color: #fef2f2;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #991b1b;
+  }
+
+  .badge-neutral {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    background-color: #f1f5f9;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .input-field {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: #0f172a;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.04);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-field::placeholder { color: #94a3b8; }
+  .input-field:focus {
+    border-color: var(--color-ocean-teal-500);
+    box-shadow: 0 0 0 3px rgba(8,145,178,0.15);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+  }
+
+  .section-subtitle {
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+}

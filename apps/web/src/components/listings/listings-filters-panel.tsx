@@ -1,0 +1,318 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { SaveSearchButton } from "@/components/user/save-search-button";
+import {
+  CAR_MAKES,
+  AZERBAIJAN_CITIES,
+  BODY_TYPES,
+  FUEL_TYPES,
+  TRANSMISSIONS,
+  DRIVE_TYPES,
+  COLORS,
+  CONDITIONS
+} from "@/lib/car-data";
+
+interface QueryState {
+  city?: string;
+  make?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minYear?: number;
+  maxYear?: number;
+  minMileage?: number;
+  maxMileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  driveType?: string;
+  color?: string;
+  condition?: string;
+  sellerType?: "private" | "dealer";
+  vinVerified?: boolean;
+  sellerVerified?: boolean;
+  sort?: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
+}
+
+function buildUrl(query: QueryState) {
+  const params = new URLSearchParams();
+  if (query.city && query.city !== "Hamısı") params.set("city", query.city);
+  if (query.make && query.make !== "Hamısı") params.set("make", query.make);
+  if (query.search) params.set("q", query.search);
+  if (query.minPrice) params.set("minPrice", String(query.minPrice));
+  if (query.maxPrice) params.set("maxPrice", String(query.maxPrice));
+  if (query.minYear) params.set("minYear", String(query.minYear));
+  if (query.maxYear) params.set("maxYear", String(query.maxYear));
+  if (query.minMileage) params.set("minMileage", String(query.minMileage));
+  if (query.maxMileage) params.set("maxMileage", String(query.maxMileage));
+  if (query.fuelType) params.set("fuelType", query.fuelType);
+  if (query.transmission) params.set("transmission", query.transmission);
+  if (query.bodyType) params.set("bodyType", query.bodyType);
+  if (query.driveType) params.set("driveType", query.driveType);
+  if (query.color) params.set("color", query.color);
+  if (query.condition) params.set("condition", query.condition);
+  if (query.sellerType) params.set("sellerType", query.sellerType);
+  if (query.vinVerified) params.set("vinVerified", "1");
+  if (query.sellerVerified) params.set("sellerVerified", "1");
+  if (query.sort) params.set("sort", query.sort);
+  const search = params.toString();
+  return search ? `/listings?${search}` : "/listings";
+}
+
+export function ListingsFiltersPanel({
+  initialQuery,
+  sortOptions
+}: {
+  initialQuery: QueryState;
+  sortOptions: Array<{ value: QueryState["sort"]; label: string }>;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState<QueryState>({
+    city: initialQuery.city ?? "Hamısı",
+    make: initialQuery.make ?? "Hamısı",
+    search: initialQuery.search ?? "",
+    minPrice: initialQuery.minPrice,
+    maxPrice: initialQuery.maxPrice,
+    minYear: initialQuery.minYear,
+    maxYear: initialQuery.maxYear,
+    minMileage: initialQuery.minMileage,
+    maxMileage: initialQuery.maxMileage,
+    fuelType: initialQuery.fuelType,
+    transmission: initialQuery.transmission,
+    bodyType: initialQuery.bodyType,
+    driveType: initialQuery.driveType,
+    color: initialQuery.color,
+    condition: initialQuery.condition,
+    sellerType: initialQuery.sellerType,
+    vinVerified: initialQuery.vinVerified,
+    sellerVerified: initialQuery.sellerVerified,
+    sort: initialQuery.sort ?? "recent"
+  });
+
+  const activeCount = useMemo(
+    () =>
+      [
+        query.city && query.city !== "Hamısı",
+        query.make && query.make !== "Hamısı",
+        query.search,
+        query.minPrice,
+        query.maxPrice,
+        query.minYear,
+        query.maxYear,
+        query.minMileage,
+        query.maxMileage,
+        query.fuelType,
+        query.transmission,
+        query.bodyType,
+        query.driveType,
+        query.color,
+        query.condition,
+        query.sellerType,
+        query.vinVerified,
+        query.sellerVerified
+      ].filter(Boolean).length,
+    [query]
+  );
+
+  function apply(nextQuery = query) {
+    router.push(buildUrl(nextQuery));
+    setOpen(false);
+  }
+
+  function reset() {
+    const nextQuery: QueryState = { city: "Hamısı", make: "Hamısı", sort: "recent" };
+    setQuery(nextQuery);
+    router.push("/listings");
+    setOpen(false);
+  }
+
+  const panel = (
+    <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+      <div>
+        <label className="label">Axtarış</label>
+        <input
+          className="input-field"
+          value={query.search ?? ""}
+          onChange={(e) => setQuery((prev) => ({ ...prev, search: e.target.value }))}
+          placeholder="Marka, model və ya VIN"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="label">Şəhər</label>
+          <select className="input-field" value={query.city ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, city: e.target.value }))}>
+            <option value="Hamısı">Hamısı</option>
+            {AZERBAIJAN_CITIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Marka</label>
+          <select className="input-field" value={query.make ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, make: e.target.value }))}>
+            <option value="Hamısı">Hamısı</option>
+            {CAR_MAKES.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="label">Min ₼</label>
+          <input className="input-field" type="number" value={query.minPrice ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minPrice: e.target.value ? Number(e.target.value) : undefined }))} placeholder="0" />
+        </div>
+        <div>
+          <label className="label">Max ₼</label>
+          <input className="input-field" type="number" value={query.maxPrice ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxPrice: e.target.value ? Number(e.target.value) : undefined }))} placeholder="100000" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="label">Min il</label>
+          <input className="input-field" type="number" value={query.minYear ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minYear: e.target.value ? Number(e.target.value) : undefined }))} placeholder="2000" />
+        </div>
+        <div>
+          <label className="label">Max il</label>
+          <input className="input-field" type="number" value={query.maxYear ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxYear: e.target.value ? Number(e.target.value) : undefined }))} placeholder="2025" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="label">Min yürüş (km)</label>
+          <input className="input-field" type="number" value={query.minMileage ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minMileage: e.target.value ? Number(e.target.value) : undefined }))} placeholder="0" />
+        </div>
+        <div>
+          <label className="label">Max yürüş (km)</label>
+          <input className="input-field" type="number" value={query.maxMileage ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxMileage: e.target.value ? Number(e.target.value) : undefined }))} placeholder="300000" />
+        </div>
+      </div>
+
+      <div>
+        <label className="label">Yanacaq növü</label>
+        <select className="input-field" value={query.fuelType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, fuelType: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {FUEL_TYPES.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Ötürücü qutsu</label>
+        <select className="input-field" value={query.transmission ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, transmission: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {TRANSMISSIONS.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Ban növü</label>
+        <select className="input-field" value={query.bodyType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, bodyType: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {BODY_TYPES.map((b) => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Ötürmə</label>
+        <select className="input-field" value={query.driveType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, driveType: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {DRIVE_TYPES.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Rəng</label>
+        <select className="input-field" value={query.color ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, color: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {COLORS.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Vəziyyət</label>
+        <select className="input-field" value={query.condition ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, condition: e.target.value || undefined }))}>
+          <option value="">Hamısı</option>
+          {CONDITIONS.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="label">Satıcı tipi</label>
+        <select className="input-field" value={query.sellerType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, sellerType: (e.target.value || undefined) as "private" | "dealer" | undefined }))}>
+          <option value="">Hamısı</option>
+          <option value="private">Fərdi</option>
+          <option value="dealer">Diler</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="label">Sıralama</label>
+        <select className="input-field" value={query.sort ?? "recent"} onChange={(e) => {
+          const nextQuery = { ...query, sort: e.target.value as QueryState["sort"] };
+          setQuery(nextQuery);
+          apply(nextQuery);
+        }}>
+          {sortOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-2 border-t border-slate-100 pt-3">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={query.vinVerified ?? false} onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))} />
+          VIN doğrulanmış
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={query.sellerVerified ?? false} onChange={(e) => setQuery((prev) => ({ ...prev, sellerVerified: e.target.checked || undefined }))} />
+          Satıcı doğrulanmış
+        </label>
+      </div>
+
+      <div className="flex gap-2">
+        <button type="button" className="btn-secondary flex-1" onClick={reset}>Sıfırla</button>
+        <button type="button" className="btn-primary flex-1" onClick={() => apply()}>Tətbiq et</button>
+      </div>
+
+      <div className="hidden pt-2 lg:block">
+        <SaveSearchButton queryParams={query} />
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <div className="mb-4 flex items-center gap-2 lg:hidden">
+        <button onClick={() => setOpen(true)} className="btn-secondary text-sm">
+          Filterlər {activeCount > 0 ? `(${activeCount})` : ""}
+        </button>
+        <SaveSearchButton queryParams={query} />
+      </div>
+
+      <div className="hidden lg:block card p-5">{panel}</div>
+
+      {open && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden">
+          <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white p-5 max-h-[90vh] overflow-y-auto">
+            <div className="mb-4 flex items-center justify-between sticky top-0 bg-white pb-2">
+              <h2 className="font-semibold text-slate-900">Filterlər</h2>
+              <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
+            </div>
+            {panel}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

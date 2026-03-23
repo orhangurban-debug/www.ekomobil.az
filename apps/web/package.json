@@ -1,0 +1,34 @@
+{
+  "name": "@ekomobil/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "WATCHPACK_POLLING=true next dev",
+    "dev:clean": "node ./scripts/dev-clean.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "db:migrate": "node --env-file=.env ./scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@google/genai": "^1.45.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/typography": "^0.5.19",
+    "autoprefixer": "^10.4.27",
+    "next": "latest",
+    "pg": "latest",
+    "postcss": "^8.4.31",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwindcss": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/pg": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "typescript": "latest"
+  }
+}
