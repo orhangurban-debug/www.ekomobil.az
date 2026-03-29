@@ -16,6 +16,9 @@
     "build:auction": "npm run build --workspace auction-api",
     "lint:web": "npm run lint --workspace @ekomobil/web",
     "db:migrate": "npm run db:migrate --workspace @ekomobil/web",
-    "deploy:prep": "node scripts/deploy-prep.mjs"
+    "deploy:prep": "node scripts/deploy-prep.mjs",
+    "loadtest:browse": "k6 run scripts/load-tests/k6/browse.js",
+    "loadtest:mixed": "k6 run scripts/load-tests/k6/mixed-users.js",
+    "loadtest:bids": "k6 run scripts/load-tests/k6/hot-auction-bids.js"
   }
 }
