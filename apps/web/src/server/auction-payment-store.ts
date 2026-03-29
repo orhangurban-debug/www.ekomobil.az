@@ -1,10 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { AUCTION_FEES, calcSellerCommission } from "@/lib/auction-fees";
+import {
+  calcSellerCommission,
+  getLotListingFeeAzn,
+  getNoShowPenaltyAzn,
+  getSellerBreachPenaltyAzn
+} from "@/lib/auction-fees";
 import {
   type AuctionDepositRecord,
   type AuctionFinancialEventRecord,
   type AuctionParticipantRecord
 } from "@/lib/auction";
+import type { ListingKind } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
 import {
@@ -15,6 +21,7 @@ import {
 } from "@/server/auction-memory";
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
 import { getAuctionListing, recordAuctionAuditLog, resolveAuctionActivationStatus } from "@/server/auction-store";
+import { getListingDetail } from "@/server/listing-store";
 
 interface AuctionFinancialEventRow {
   id: string;
@@ -92,16 +99,20 @@ function mapDepositRow(row: AuctionDepositRow): AuctionDepositRecord {
   };
 }
 
-function getServicePaymentAmount(eventType: AuctionFinancialEventRecord["eventType"], hammerPriceAzn?: number): number {
+function getServicePaymentAmount(
+  eventType: AuctionFinancialEventRecord["eventType"],
+  feeProfile: ListingKind,
+  hammerPriceAzn?: number
+): number {
   switch (eventType) {
     case "lot_fee":
-      return AUCTION_FEES.LOT_LISTING_FEE_AZN;
+      return getLotListingFeeAzn(feeProfile);
     case "no_show_penalty":
-      return AUCTION_FEES.NO_SHOW_PENALTY_AZN;
+      return getNoShowPenaltyAzn(feeProfile);
     case "seller_breach_penalty":
-      return AUCTION_FEES.SELLER_BREACH_PENALTY_AZN;
+      return getSellerBreachPenaltyAzn(feeProfile);
     case "seller_success_fee":
-      return calcSellerCommission(hammerPriceAzn ?? 0);
+      return calcSellerCommission(hammerPriceAzn ?? 0, feeProfile);
     case "seller_performance_bond":
       return 0;
     case "bidder_deposit":
@@ -117,6 +128,13 @@ export async function createAuctionServicePayment(input: {
 }): Promise<{ ok: true; payment: AuctionFinancialEventRecord } | { ok: false; error: string }> {
   const auction = await getAuctionListing(input.auctionId);
   if (!auction) return { ok: false, error: "Auksion tapılmadı" };
+  let feeProfile: ListingKind = "vehicle";
+  try {
+    const listing = await getListingDetail(auction.listingId);
+    feeProfile = listing?.listingKind === "part" ? "part" : "vehicle";
+  } catch {
+    // Fee profile defaults to vehicle in degraded mode.
+  }
 
   const winnerUserId = auction.winnerUserId ?? auction.currentBidderUserId;
   let chargedUserId: string | undefined;
@@ -154,7 +172,11 @@ export async function createAuctionServicePayment(input: {
     return { ok: false, error: "Naməlum ödəniş növü" };
   }
 
-  const amountAzn = getServicePaymentAmount(input.eventType, auction.currentBidAzn ?? auction.startingBidAzn);
+  const amountAzn = getServicePaymentAmount(
+    input.eventType,
+    feeProfile,
+    auction.currentBidAzn ?? auction.startingBidAzn
+  );
   const resolvedAmountAzn =
     input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;
   const id = randomUUID();

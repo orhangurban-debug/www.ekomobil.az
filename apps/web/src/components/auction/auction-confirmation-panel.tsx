@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuctionStatus } from "@/lib/auction";
-import { AUCTION_FEES } from "@/lib/auction-fees";
+import { getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
 
 export function AuctionConfirmationPanel({
   auctionId,
@@ -108,9 +108,10 @@ export function AuctionConfirmationPanel({
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <p className="font-medium">Satıcı öhdəliyi pozulması qeydə alınıb.</p>
           <p className="mt-2 text-amber-900/90">
-            Aşağıdakı düymə ilə platforma xidmət cəriməsi ({AUCTION_FEES.SELLER_BREACH_PENALTY_AZN} ₼) üçün ödəniş səhifəsi
-            yaradılır. Ödənişi hüquqi olaraq <strong>satıcı</strong> etməlidir; checkout linkini satıcı ilə paylaşa bilərsiniz.
-            Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
+            Aşağıdakı düymə ilə platforma xidmət cəriməsi (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼, avtomobil üçün{" "}
+            {getSellerBreachPenaltyAzn("vehicle")} ₼) üçün ödəniş səhifəsi yaradılır. Ödənişi hüquqi olaraq{" "}
+            <strong>satıcı</strong> etməlidir; checkout linkini satıcı ilə paylaşa bilərsiniz. Bu cərimə avtomobilin alış
+            qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
           </p>
           <button
             type="button"
@@ -127,9 +128,10 @@ export function AuctionConfirmationPanel({
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <p className="font-medium">Alıcı no-show qeydə alınıb.</p>
           <p className="mt-2 text-amber-900/90">
-            Aşağıdakı düymə ilə platforma no-show cəriməsi ({AUCTION_FEES.NO_SHOW_PENALTY_AZN} ₼) üçün ödəniş səhifəsi
-            yaradılır. Ödənişi hüquqi olaraq <strong>qalib alıcı</strong> etməlidir; checkout linkini alıcı ilə paylaşa bilərsiniz.
-            Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
+            Aşağıdakı düymə ilə platforma no-show cəriməsi (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün{" "}
+            {getNoShowPenaltyAzn("vehicle")} ₼) üçün ödəniş səhifəsi yaradılır. Ödənişi hüquqi olaraq <strong>qalib alıcı</strong>{" "}
+            etməlidir; checkout linkini alıcı ilə paylaşa bilərsiniz. Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma
+            qaydalarına görə intizam ödənişidir.
           </p>
           <button
             type="button"

@@ -1,44 +1,85 @@
+import type { ListingKind } from "@/lib/marketplace-types";
+
 /**
  * EkoMobil Auksion haqq strukturu
  *
  * Satıcıya tətbiq olunan:
- *  - LOT_LISTING_FEE_AZN: hər lot üçün sabit ödəniş (VIN yoxlama daxil)
- *  - SELLER_COMMISSION_RATE: uğurlu satışda müqavilə məbləğindən faiz
- *  - SELLER_COMMISSION_CAP_AZN: komisyonun maksimal hədi
+ *  - listing kind üzrə lot fee (vehicle/part)
+ *  - listing kind üzrə uğurlu satış komisyonu (faiz + min/max)
  *
  * Alıcıya tətbiq olunan:
  *  - BUYER_PREMIUM_RATE: opsional (pilot mərhələdə 0)
  *
  * Cərimə (platforma xidmət haqqı — avtomobilin əsas qiyməti deyil):
- *  - NO_SHOW_PENALTY_AZN: qalib alıcı SLA daxilində öhdəliyini yerinə yetirmədikdə
- *  - SELLER_BREACH_PENALTY_AZN: satıcı qalib təklifdən sonra satışı rədd etdikdə / öhdəliyini pozduqda
+ *  - listing kind üzrə no-show/seller-breach
  */
 export const AUCTION_FEES = {
-  LOT_LISTING_FEE_AZN: 20,
-  SELLER_COMMISSION_RATE: 0.015,    // 1.5%
-  SELLER_COMMISSION_CAP_AZN: 300,
+  LOT_LISTING_FEE_VEHICLE_AZN: 25,
+  LOT_LISTING_FEE_PART_AZN: 3,
+  SELLER_COMMISSION_VEHICLE_RATE: 0.012, // 1.2%
+  SELLER_COMMISSION_VEHICLE_MIN_AZN: 25,
+  SELLER_COMMISSION_VEHICLE_CAP_AZN: 700,
+  SELLER_COMMISSION_PART_RATE: 0.03, // 3%
+  SELLER_COMMISSION_PART_MIN_AZN: 2,
+  SELLER_COMMISSION_PART_CAP_AZN: 40,
   BUYER_PREMIUM_RATE: 0,            // pilot mərhələdə pulsuz
   HIGH_VALUE_LOT_THRESHOLD_AZN: 50000,
   SELLER_PERFORMANCE_BOND_RATE: 0.02,
   SELLER_PERFORMANCE_BOND_MIN_AZN: 500,
-  NO_SHOW_PENALTY_AZN: 50,
-  SELLER_BREACH_PENALTY_AZN: 50,
+  NO_SHOW_PENALTY_VEHICLE_AZN: 80,
+  NO_SHOW_PENALTY_PART_AZN: 15,
+  SELLER_BREACH_PENALTY_VEHICLE_AZN: 80,
+  SELLER_BREACH_PENALTY_PART_AZN: 15,
 } as const;
 
 export type AuctionFees = typeof AUCTION_FEES;
+export type AuctionFeeProfile = ListingKind;
+
+function normalizeKind(kind?: ListingKind): AuctionFeeProfile {
+  return kind === "part" ? "part" : "vehicle";
+}
+
+export function getLotListingFeeAzn(kind?: ListingKind): number {
+  return normalizeKind(kind) === "part"
+    ? AUCTION_FEES.LOT_LISTING_FEE_PART_AZN
+    : AUCTION_FEES.LOT_LISTING_FEE_VEHICLE_AZN;
+}
 
 /** Satıcının ödəyəcəyi komisyon məbləğini hesabla */
-export function calcSellerCommission(salePriceAzn: number): number {
-  const raw = salePriceAzn * AUCTION_FEES.SELLER_COMMISSION_RATE;
-  return Math.min(raw, AUCTION_FEES.SELLER_COMMISSION_CAP_AZN);
+export function calcSellerCommission(salePriceAzn: number, kind?: ListingKind): number {
+  const safeSalePrice = Number.isFinite(salePriceAzn) && salePriceAzn > 0 ? salePriceAzn : 0;
+  if (normalizeKind(kind) === "part") {
+    const raw = Math.round(safeSalePrice * AUCTION_FEES.SELLER_COMMISSION_PART_RATE);
+    return Math.max(
+      AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN,
+      Math.min(raw, AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN)
+    );
+  }
+  const raw = Math.round(safeSalePrice * AUCTION_FEES.SELLER_COMMISSION_VEHICLE_RATE);
+  return Math.max(
+    AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN,
+    Math.min(raw, AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN)
+  );
 }
 
 /** Satıcının ümumi xərci: lot fee + komisyon */
-export function calcTotalSellerCost(salePriceAzn: number): number {
-  return AUCTION_FEES.LOT_LISTING_FEE_AZN + calcSellerCommission(salePriceAzn);
+export function calcTotalSellerCost(salePriceAzn: number, kind?: ListingKind): number {
+  return getLotListingFeeAzn(kind) + calcSellerCommission(salePriceAzn, kind);
 }
 
 export function calcSellerPerformanceBond(basePriceAzn: number): number {
   const raw = Math.round(basePriceAzn * AUCTION_FEES.SELLER_PERFORMANCE_BOND_RATE);
   return Math.max(raw, AUCTION_FEES.SELLER_PERFORMANCE_BOND_MIN_AZN);
+}
+
+export function getNoShowPenaltyAzn(kind?: ListingKind): number {
+  return normalizeKind(kind) === "part"
+    ? AUCTION_FEES.NO_SHOW_PENALTY_PART_AZN
+    : AUCTION_FEES.NO_SHOW_PENALTY_VEHICLE_AZN;
+}
+
+export function getSellerBreachPenaltyAzn(kind?: ListingKind): number {
+  return normalizeKind(kind) === "part"
+    ? AUCTION_FEES.SELLER_BREACH_PENALTY_PART_AZN
+    : AUCTION_FEES.SELLER_BREACH_PENALTY_VEHICLE_AZN;
 }

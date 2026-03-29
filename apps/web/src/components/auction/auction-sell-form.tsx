@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUCTION_FEES, calcSellerPerformanceBond } from "@/lib/auction-fees";
+import { AUCTION_FEES, calcSellerPerformanceBond, getLotListingFeeAzn } from "@/lib/auction-fees";
 
 interface SellableListing {
   id: string;
@@ -53,6 +53,7 @@ export function AuctionSellForm({
   );
   const isHighValue = Boolean(selected && selected.priceAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN);
   const suggestedSellerBond = selected ? calcSellerPerformanceBond(selected.priceAzn) : 0;
+  const listingFeeAzn = getLotListingFeeAzn(selected?.listingKind);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -315,7 +316,8 @@ export function AuctionSellForm({
 
       <div className="rounded-xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
         Avtomobilin əsas satış ödənişi EkoMobil üzərindən keçmir. Qalib alıcı əsas məbləği birbaşa satıcıya ödəyir.
-        Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq.
+        Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq ({listingFeeAzn.toLocaleString("az-AZ")} ₼).
+        Alıcı iştirak etməzsə lot satışsız bağlanır və satış komisyonu tutulmur.
       </div>
 
       <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">

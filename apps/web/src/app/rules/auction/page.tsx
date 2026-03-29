@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AUCTION_FEES } from "@/lib/auction-fees";
+import { getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
 
 export const metadata = {
   title: "Auksion çərçivəsi | EkoMobil",
@@ -38,15 +38,12 @@ export default function AuctionFrameworkPage() {
         <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
           <h2 className="text-xl font-semibold text-slate-900">Platformanın rolu və məsuliyyətin həddi</h2>
           <p className="mt-3">
-            EkoMobil auksionda <strong>texniki infrastruktur</strong> (elan/lot, təklif emalı, bildirişlər, ödəniş linkləri
-            üzrə platforma xidmət haqları) təqdim edir. Avtomobilin əsas alış məbləği platformada saxlanmır, saxlanılmır və
-            tərəflər arasında bölüşdürülmür.
+            EkoMobil auksion üçün sistemi verir: lot, təkliflər, bildirişlər və platforma haqqı ödəniş linkləri.
+            Avtomobilin və ya hissənin əsas satış pulu platformadan keçmir.
           </p>
           <p className="mt-3">
-            Alıcı ilə satıcı arasında bağlanan hər hansı razılaşma birbaşa onların öhdəliyindədir. Platforma bu razılaşmanın
-            icrasına, avtomobilin vəziyyətinə, ödənişin vaxtında edilməsinə və ya mübahisələrə görə{" "}
-            <strong>məsuliyyət daşımır</strong>. Moderasiya, trust siqnalları və ops baxışı kömək xarakteri daşıyır, tam
-            zəmanət deyil.
+            Alıcı və satıcı arasındakı razılaşma birbaşa onların öhdəliyidir. Moderasiya və ops dəstəyi var, amma bu tam
+            hüquqi zəmanət deyil.
           </p>
         </section>
 
@@ -64,22 +61,24 @@ export default function AuctionFrameworkPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900">Lot yaratma axını (satıcı)</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
-            <li>
-              Standart elan yaradılır: tam avtomobil üçün VIN, satıcı və media yoxlamaları; hissə üçün satıcı + media.
-            </li>
-            <li>Lot parametrləri (başlanğıc, rezerv, vaxt, opsional bidder deposit) təyin edilir.</li>
-            <li>Satıcı öhdəlik bəndlərini qəbul edir və lot haqqı ödənilir; moderasiya/aktivasiya qaydalarına uyğun olaraq lot canlıya çıxır.</li>
-            <li>Hərrac bitdikdən sonra satıcı qalib alıcı ilə off-platform satış addımlarını razılaşdırır və təsdiq ekranında nəticəni qeyd edir.</li>
+            <li>Elan hazır olur: avtomobildə VIN + satıcı + media, hissədə satıcı + media.</li>
+            <li>Lot parametrləri seçilir (başlanğıc qiymət, vaxt, istəyə görə rezerv/deposit).</li>
+            <li>Lot haqqı ödənir və lot canlıya çıxır.</li>
+            <li>Auksion bitəndən sonra nəticə təsdiq edilir.</li>
           </ol>
+          <p className="mt-3 text-sm text-slate-600">
+            Qeyd: ayrıca "sorğu topla sonra auksionu başlat" mərhələsi məcburi deyil. Satıcı birbaşa lot yarada bilər; alıcı
+            iştirak etməzsə lot satışsız bağlanır və yalnız lot haqqı tətbiq olunur.
+          </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold text-slate-900">Təklif vermə (alıcı)</h2>
           <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Hesab və lot üçün tələb olunan doğrulamalar (məsələn telefon, deposit) yerinə yetirilməlidir.</li>
-            <li>Təklif vermə auksion qaydalarının və şərtlərin qəbulu ilə bağlıdır.</li>
-            <li>Saxta və ya manipulyativ təklif qadağandır; hesab məhdudlaşdırıla bilər.</li>
-            <li>Qalib olduqda razılaşdırılmış çərçivədə satıcı ilə əlaqə və əsas ödəniş off-platform aparılmalıdır.</li>
+            <li>Tələb olunan doğrulamalar tamamlanır (məsələn telefon/deposit).</li>
+            <li>Təklif verilir və qaydalar qəbul edilir.</li>
+            <li>Saxta və manipulyativ təklif qadağandır.</li>
+            <li>Qalib olduqda əsas ödəniş satıcıya birbaşa edilir.</li>
           </ul>
         </section>
 
@@ -95,12 +94,14 @@ export default function AuctionFrameworkPage() {
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>
               <strong>Alıcı no-show:</strong> qalib alıcı müəyyən edilmiş davranışı pozduqda satıcı no-show bildirişi edə bilər;
-              platforma no-show cəriməsi ({AUCTION_FEES.NO_SHOW_PENALTY_AZN} ₼) üzrə ödəniş axını təsdiq ekranından başladılır.
+              platforma no-show cəriməsi (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün {getNoShowPenaltyAzn("vehicle")} ₼)
+              üzrə ödəniş axını təsdiq ekranından başladılır.
             </li>
             <li>
               <strong>Satıcı öhdəliyinin pozulması:</strong> qalib alıcı satıcının satışı rədd etdiyini və ya öhdəliyini pozduğunu
-              qeyd edə bilər; status yenilənir və satıcıya aid platforma cəriməsi ({AUCTION_FEES.SELLER_BREACH_PENALTY_AZN} ₼)
-              üçün checkout təsdiq ekranından yaradılır (ödənişi satıcı etməlidir).
+              qeyd edə bilər; status yenilənir və satıcıya aid platforma cəriməsi (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼,
+              avtomobil üçün {getSellerBreachPenaltyAzn("vehicle")} ₼) üçün checkout təsdiq ekranından yaradılır
+              (ödənişi satıcı etməlidir).
             </li>
             <li>
               <strong>Mübahisə:</strong> tərəflərdən biri mübahisə bildirdikdə iş ops/hüquq proseduruna keçə bilər; platforma

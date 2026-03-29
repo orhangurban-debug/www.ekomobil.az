@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { LISTING_PLANS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { AUCTION_FEES } from "@/lib/auction-fees";
+import {
+  AUCTION_FEES,
+  calcSellerCommission,
+  calcTotalSellerCost,
+  getLotListingFeeAzn,
+  getNoShowPenaltyAzn,
+  getSellerBreachPenaltyAzn
+} from "@/lib/auction-fees";
 
 function CheckIcon() {
   return (
@@ -234,18 +241,32 @@ export default function PricingPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                label: "Lot yerləşdirmə",
-                value: `${AUCTION_FEES.LOT_LISTING_FEE_AZN} ₼`,
+                label: "Lot yerləşdirmə (avtomobil)",
+                value: `${getLotListingFeeAzn("vehicle")} ₼`,
                 who: "Satıcı ödəyir",
-                desc: "VIN yoxlama + ekspertiza daxil",
+                desc: "VIN yoxlama + ekspertiza axını üçün",
                 color: "bg-[#0891B2]/10 text-[#0891B2]"
               },
               {
-                label: "Satış komisyonu",
-                value: `${(AUCTION_FEES.SELLER_COMMISSION_RATE * 100).toFixed(1)}%`,
+                label: "Lot yerləşdirmə (hissə)",
+                value: `${getLotListingFeeAzn("part")} ₼`,
+                who: "Satıcı ödəyir",
+                desc: "Hissə elanları üçün aşağı giriş xərcı",
+                color: "bg-fuchsia-500/10 text-fuchsia-700"
+              },
+              {
+                label: "Satış komisyonu (avtomobil)",
+                value: `${(AUCTION_FEES.SELLER_COMMISSION_VEHICLE_RATE * 100).toFixed(1)}%`,
                 who: "Satıcıdan — uğurlu satışda",
-                desc: `Maksimum ${AUCTION_FEES.SELLER_COMMISSION_CAP_AZN} ₼`,
+                desc: `Min ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`,
                 color: "bg-emerald-500/10 text-emerald-700"
+              },
+              {
+                label: "Satış komisyonu (hissə)",
+                value: `${(AUCTION_FEES.SELLER_COMMISSION_PART_RATE * 100).toFixed(1)}%`,
+                who: "Satıcıdan — uğurlu satışda",
+                desc: `Min ${AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN} ₼`,
+                color: "bg-violet-500/10 text-violet-700"
               },
               {
                 label: "Alıcı premium",
@@ -256,16 +277,16 @@ export default function PricingPage() {
               },
               {
                 label: "No-show cəriməsi",
-                value: `${AUCTION_FEES.NO_SHOW_PENALTY_AZN} ₼`,
+                value: `${getNoShowPenaltyAzn("part")}–${getNoShowPenaltyAzn("vehicle")} ₼`,
                 who: "Qalib alıcı — platforma intizam haqqı",
-                desc: "Qaydalara uyğun no-show qeydindən sonra; depozit tətbiq olunarsa qaydalar üzrə hesablanır",
+                desc: "Lot növünə görə dəyişir (hissə/avtomobil)",
                 color: "bg-rose-500/10 text-rose-600"
               },
               {
                 label: "Satıcı pozuntusu",
-                value: `${AUCTION_FEES.SELLER_BREACH_PENALTY_AZN} ₼`,
+                value: `${getSellerBreachPenaltyAzn("part")}–${getSellerBreachPenaltyAzn("vehicle")} ₼`,
                 who: "Satıcı — platforma intizam haqqı",
-                desc: "Qalib alıcının satıcı öhdəliyinin pozulması bildirdiyi hallarda (əsas avtomobil qiyməti deyil)",
+                desc: "Lot növünə görə dəyişir (hissə/avtomobil)",
                 color: "bg-amber-500/10 text-amber-800"
               }
             ].map((item) => (
@@ -283,14 +304,32 @@ export default function PricingPage() {
           {/* Example calculation */}
           <div className="mt-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6">
             <h3 className="font-semibold text-slate-900">Nümunə hesab</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              BMW X5 — satış qiyməti <strong>72,000 ₼</strong>
-            </p>
             <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
               {[
-                { label: "Lot yerləşdirmə", value: `${AUCTION_FEES.LOT_LISTING_FEE_AZN} ₼` },
-                { label: "Komisyon (1.5% × 72,000)", value: `${Math.min(72000 * 0.015, AUCTION_FEES.SELLER_COMMISSION_CAP_AZN).toLocaleString("az-AZ")} ₼` },
-                { label: "Satıcının cəmi xərci", value: `${(AUCTION_FEES.LOT_LISTING_FEE_AZN + Math.min(72000 * 0.015, AUCTION_FEES.SELLER_COMMISSION_CAP_AZN)).toLocaleString("az-AZ")} ₼` }
+                {
+                  label: "Hissə (300 ₼): lot",
+                  value: `${getLotListingFeeAzn("part").toLocaleString("az-AZ")} ₼`
+                },
+                {
+                  label: "Hissə (300 ₼): komisyon",
+                  value: `${calcSellerCommission(300, "part").toLocaleString("az-AZ")} ₼`
+                },
+                {
+                  label: "Hissə (300 ₼): cəmi",
+                  value: `${calcTotalSellerCost(300, "part").toLocaleString("az-AZ")} ₼`
+                },
+                {
+                  label: "Avtomobil (70,000 ₼): lot",
+                  value: `${getLotListingFeeAzn("vehicle").toLocaleString("az-AZ")} ₼`
+                },
+                {
+                  label: "Avtomobil (70,000 ₼): komisyon",
+                  value: `${calcSellerCommission(70000, "vehicle").toLocaleString("az-AZ")} ₼`
+                },
+                {
+                  label: "Avtomobil (70,000 ₼): cəmi",
+                  value: `${calcTotalSellerCost(70000, "vehicle").toLocaleString("az-AZ")} ₼`
+                }
               ].map((row) => (
                 <div key={row.label} className="rounded-xl bg-white p-3">
                   <div className="text-xs text-slate-400">{row.label}</div>
@@ -336,27 +375,35 @@ export default function PricingPage() {
             {[
               {
                 q: "Elan planı bitəndən sonra nə baş verir?",
-                a: "Elan 30 gün sonra arxivlənir. Sistemimizdən bildiriş alaraq eyni qiymətlə uzada bilərsiniz."
+                a: "Elan 30 gündən sonra arxivə düşür. İstəsəniz bir kliklə yenidən aktiv edə bilərsiniz."
               },
               {
                 q: "Salon abunəsini istənilən vaxt ləğv edə bilərəmmi?",
-                a: "Bəli. Aylıq abunə növbəti ay üçün avtomatik uzadılmır — istənilən vaxt ləğv edə bilərsiniz."
+                a: "Bəli. İstənilən vaxt dayandıra bilərsiniz."
               },
               {
                 q: "Auksion lotunu uduzsam lot haqqı geri qaytarılırmı?",
-                a: "Lot haqqı (20 ₼) VIN yoxlaması və ekspertiza xərclərini ödəyir. Satış baş tutmasa belə bu ödəniş geri qaytarılmır. Komisyon isə yalnız uğurlu satışda tutulur."
+                a: "Xeyr. Lot haqqı geri qaytarılmır. Komisyon isə yalnız satış olarsa tutulur."
+              },
+              {
+                q: "Auksiona alıcı qatılmasa nə olur?",
+                a: "Auksion bitir, qalib olmazsa satış olmamış sayılır. Lot qalır, komisyon tutulmur."
+              },
+              {
+                q: "Satış alınmasa eyni elanla yenidən auksion aça bilərəm?",
+                a: "Bəli. Eyni elanla yeni lot yaradıb yenidən auksion aça bilərsiniz."
               },
               {
                 q: "Avtomobilin əsas ödənişini EkoMobil qəbul edirmi?",
-                a: "Xeyr. EkoMobil yalnız platforma xidmət haqlarını qəbul edir. Avtomobilin əsas satış məbləği birbaşa alıcı ilə satıcı arasında ödənilir."
+                a: "Xeyr. EkoMobil yalnız platforma haqqını alır. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir."
               },
               {
                 q: "Satıcı uduşdan sonra satmaqdan imtina edərsə?",
-                a: "Bu, tərəflər arası öhdəlik məsələsidir. Platformada qalib alıcı satıcı öhdəliyinin pozulmasını qeyd edə bilər; qaydalara uyğun platforma intizam ödənişi və ops baxışı tətbiq oluna bilər. Əsas avtomobil pulu hələ də platformada saxlanmır."
+                a: "Alıcı bunu sistemdə 'satıcı öhdəliyini pozdu' kimi qeyd edə bilər. Qaydalara görə intizam ödənişi və ops baxışı tətbiq oluna bilər."
               },
               {
                 q: "Dealer Pro planında VIN kredit nədir?",
-                a: "Hər kredit bir avtomobilin rəsmi mənbədən VIN sorğusunu əhatə edir. Pro planda aylıq 5 pulsuz kredit daxildir; əlavə kredit 3 ₼/ədəd."
+                a: "Hər kredit 1 VIN yoxlamasıdır. Pro planda aylıq 5 pulsuz kredit var, əlavə kredit 3 ₼/ədəd."
               }
             ].map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">
