@@ -7,6 +7,7 @@ export function KycReviewActions({ userId }: { userId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState<"approved" | "rejected" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState("");
 
   async function send(decision: "approved" | "rejected") {
     setLoading(decision);
@@ -14,7 +15,7 @@ export function KycReviewActions({ userId }: { userId: string }) {
     const res = await fetch(`/api/ops/kyc/${userId}/review`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ decision })
+      body: JSON.stringify({ decision, note: note.trim() || undefined })
     });
     const payload = (await res.json()) as { ok: boolean; error?: string };
     if (!payload.ok) {
@@ -27,6 +28,12 @@ export function KycReviewActions({ userId }: { userId: string }) {
 
   return (
     <div className="flex flex-col gap-2">
+      <textarea
+        className="min-h-[64px] rounded-md border border-slate-200 px-2.5 py-2 text-xs text-slate-700 focus:border-brand-500 focus:outline-none"
+        placeholder="Ops qeydi (opsional)"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+      />
       <div className="flex items-center gap-2">
         <button
           type="button"
