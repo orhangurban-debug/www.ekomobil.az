@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { OpsDocumentReviewButtons } from "@/components/auction/ops-document-review-buttons";
+import { AUCTION_DOCUMENT_TYPE_LABELS } from "@/lib/auction-documents";
 import { requirePageRoles } from "@/lib/rbac";
 import { getAuctionServiceTelemetry, listAuctionAuditLogs, listAuctionOpsCases } from "@/server/auction-ops-store";
+import { listPendingAuctionDocuments } from "@/server/auction-document-store";
 
 function CaseBadge({ code }: { code: string }) {
   if (code === "DISPUTE") return <span className="badge-danger">Dispute</span>;
@@ -23,10 +26,11 @@ export default async function AuctionOpsPage() {
     );
   }
 
-  const [cases, auditLogs, telemetry] = await Promise.all([
+  const [cases, auditLogs, telemetry, pendingDocs] = await Promise.all([
     listAuctionOpsCases(),
     listAuctionAuditLogs(80),
-    getAuctionServiceTelemetry()
+    getAuctionServiceTelemetry(),
+    listPendingAuctionDocuments(50)
   ]);
 
   return (
@@ -57,6 +61,47 @@ export default async function AuctionOpsPage() {
           <div className="text-xs uppercase tracking-wider text-slate-400">Lock wait avg</div>
           <div className="mt-2 text-2xl font-bold text-slate-900">{telemetry.metrics?.bids?.lockWait?.avg ?? 0} ms</div>
         </div>
+      </section>
+
+      <section className="card mb-6 overflow-hidden">
+        <div className="border-b border-slate-100 px-6 py-4">
+          <h2 className="font-semibold text-slate-900">Lot sənədləri — yoxlama gözləyir</h2>
+          <p className="mt-1 text-xs text-slate-500">Satıcı yükləyib; ops təsdiqi / rəddi</p>
+        </div>
+        {pendingDocs.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-slate-500">Gözləmədə sənəd yoxdur.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-6 py-3 text-left">Lot</th>
+                  <th className="px-6 py-3 text-left">Növ</th>
+                  <th className="px-6 py-3 text-left">Fayl</th>
+                  <th className="px-6 py-3 text-left">Əməliyyat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pendingDocs.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{doc.titleSnapshot}</div>
+                      <div className="font-mono text-xs text-slate-400">{doc.auctionId}</div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">{AUCTION_DOCUMENT_TYPE_LABELS[doc.docType]}</td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-[200px] truncate text-slate-700">{doc.originalFilename}</div>
+                      <div className="text-xs text-slate-400">{(doc.byteSize / 1024).toFixed(1)} KB</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <OpsDocumentReviewButtons docId={doc.id} auctionId={doc.auctionId} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">

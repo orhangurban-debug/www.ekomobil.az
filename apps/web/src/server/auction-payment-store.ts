@@ -98,6 +98,8 @@ function getServicePaymentAmount(eventType: AuctionFinancialEventRecord["eventTy
       return AUCTION_FEES.LOT_LISTING_FEE_AZN;
     case "no_show_penalty":
       return AUCTION_FEES.NO_SHOW_PENALTY_AZN;
+    case "seller_breach_penalty":
+      return AUCTION_FEES.SELLER_BREACH_PENALTY_AZN;
     case "seller_success_fee":
       return calcSellerCommission(hammerPriceAzn ?? 0);
     case "bidder_deposit":
@@ -125,10 +127,21 @@ export async function createAuctionServicePayment(input: {
       return { ok: false, error: "Success fee yalnız təsdiqlənmiş satışdan sonra yaradıla bilər" };
     }
     chargedUserId = auction.sellerUserId;
-  } else {
+  } else if (input.eventType === "no_show_penalty") {
     if (auction.sellerUserId !== input.actorUserId) return { ok: false, error: "No-show cəriməsini yalnız satıcı başladır" };
+    if (auction.status !== "no_show") {
+      return { ok: false, error: "No-show statusu qeydə alınmayıb" };
+    }
     if (!winnerUserId) return { ok: false, error: "Qalib alıcı tapılmadı" };
     chargedUserId = winnerUserId;
+  } else if (input.eventType === "seller_breach_penalty") {
+    if (winnerUserId !== input.actorUserId) return { ok: false, error: "Bu cərimə invoicesunu yalnız qalib alıcı yarada bilər" };
+    if (auction.status !== "seller_breach") {
+      return { ok: false, error: "Satıcı öhdəliyi pozulması qeydə alınmayıb" };
+    }
+    chargedUserId = auction.sellerUserId;
+  } else {
+    return { ok: false, error: "Naməlum ödəniş növü" };
   }
 
   const amountAzn = getServicePaymentAmount(input.eventType, auction.currentBidAzn ?? auction.startingBidAzn);

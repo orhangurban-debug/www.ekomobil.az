@@ -11,6 +11,7 @@ export type AuctionStatus =
   | "completed"
   | "not_met_reserve"
   | "no_show"
+  | "seller_breach"
   | "cancelled"
   | "disputed";
 
@@ -33,6 +34,7 @@ export type AuctionOutcomeStatus =
   | "seller_confirmed"
   | "completed"
   | "no_show"
+  | "seller_breach"
   | "cancelled"
   | "disputed";
 
@@ -40,6 +42,7 @@ export type AuctionFinancialEventType =
   | "lot_fee"
   | "bidder_deposit"
   | "no_show_penalty"
+  | "seller_breach_penalty"
   | "seller_success_fee";
 
 export interface AuctionListingRecord {
@@ -172,6 +175,7 @@ export function getAuctionStatusLabel(status: AuctionStatus): string {
     completed: "Tamamlandı",
     not_met_reserve: "Rezerv qarşılanmadı",
     no_show: "No-show",
+    seller_breach: "Satıcı öhdəliyi pozuldu",
     cancelled: "Ləğv edildi",
     disputed: "Mübahisəli"
   };

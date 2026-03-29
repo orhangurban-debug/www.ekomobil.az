@@ -2,25 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getAuctionDeposit } from "@/server/auction-payment-store";
+import { signInternalCallback } from "@/server/payments/kapital-bank-callback";
 
 function getStatusLabel(status: string): string {
   switch (status) {
-    case "held":
-      return "Deposit təsdiqləndi";
-    case "failed":
-      return "Deposit uğursuz oldu";
-    case "cancelled":
-      return "Deposit ləğv edildi";
-    case "redirect_ready":
-      return "Checkout hazırdır";
-    default:
-      return "Deposit gözlənilir";
+    case "held": return "Deposit təsdiqləndi";
+    case "failed": return "Deposit uğursuz oldu";
+    case "cancelled": return "Deposit ləğv edildi";
+    case "redirect_ready": return "Checkout hazırdır";
+    default: return "Deposit gözlənilir";
   }
 }
 
 export default async function AuctionDepositPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: Promise<{ depositId: string }>;
   searchParams: Promise<{ status?: string }>;
@@ -32,6 +28,9 @@ export default async function AuctionDepositPage({
 
   const config = getKapitalBankConfig();
   const isLiveReady = isKapitalBankLiveReady(config);
+
+  const mockSuccessSig = signInternalCallback(deposit.id, "succeeded");
+  const mockFailSig = signInternalCallback(deposit.id, "failed");
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
@@ -67,12 +66,6 @@ export default async function AuctionDepositPage({
           </div>
         </dl>
 
-        {deposit.providerPayload && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Hosted redirect konteksti hazırlanıb. `liveReady`: {deposit.providerPayload.liveReady ? "bəli" : "xeyr"}.
-          </div>
-        )}
-
         {query.status && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Son cavab: {query.status}
@@ -93,17 +86,19 @@ export default async function AuctionDepositPage({
             {config.mode === "mock" ? (
               <>
                 <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-                  `KAPITAL_BANK_MODE=mock` aktivdir. Aşağıdakı düymələr test məqsədi ilə deposit nəticəsini simulyasiya edir.
+                  <code>KAPITAL_BANK_MODE=mock</code> aktivdir. Düymələr test üçün deposit nəticəsini simulyasiya edir.
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <form action={`/api/payments/auction-deposit/${deposit.id}/mock`} method="post" className="flex-1">
                     <input type="hidden" name="status" value="succeeded" />
+                    <input type="hidden" name="signature" value={mockSuccessSig} />
                     <button type="submit" className="btn-primary w-full justify-center">
                       Mock success
                     </button>
                   </form>
                   <form action={`/api/payments/auction-deposit/${deposit.id}/mock`} method="post" className="flex-1">
                     <input type="hidden" name="status" value="failed" />
+                    <input type="hidden" name="signature" value={mockFailSig} />
                     <button type="submit" className="btn-secondary w-full justify-center">
                       Mock fail
                     </button>

@@ -9,3 +9,5 @@ yarn-error.log*
 pnpm-debug.log*
 apps/web/.next
 apps/web/.env
+.auction-documents
+apps/web/.auction-documents

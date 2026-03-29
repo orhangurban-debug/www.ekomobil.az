@@ -2,38 +2,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getAuctionServicePayment } from "@/server/auction-payment-store";
+import { signInternalCallback } from "@/server/payments/kapital-bank-callback";
 
 function getStatusLabel(status: string): string {
   switch (status) {
-    case "succeeded":
-      return "Ödəniş təsdiqləndi";
-    case "failed":
-      return "Ödəniş uğursuz oldu";
-    case "cancelled":
-      return "Ödəniş ləğv edildi";
-    case "redirect_ready":
-      return "Checkout hazırdır";
-    default:
-      return "Ödəniş gözlənilir";
+    case "succeeded": return "Ödəniş təsdiqləndi";
+    case "failed": return "Ödəniş uğursuz oldu";
+    case "cancelled": return "Ödəniş ləğv edildi";
+    case "redirect_ready": return "Checkout hazırdır";
+    default: return "Ödəniş gözlənilir";
   }
 }
 
 function getEventLabel(eventType: string): string {
   switch (eventType) {
-    case "lot_fee":
-      return "Auksion lot haqqı";
-    case "seller_success_fee":
-      return "Success fee invoice";
-    case "no_show_penalty":
-      return "No-show cəriməsi";
-    default:
-      return eventType;
+    case "lot_fee": return "Auksion lot haqqı";
+    case "seller_success_fee": return "Success fee invoice";
+    case "no_show_penalty": return "No-show cəriməsi";
+    case "seller_breach_penalty": return "Satıcı öhdəliyi pozulması — platforma cəriməsi";
+    default: return eventType;
   }
 }
 
 export default async function AuctionServicePaymentPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: Promise<{ paymentId: string }>;
   searchParams: Promise<{ status?: string }>;
@@ -45,6 +38,10 @@ export default async function AuctionServicePaymentPage({
 
   const config = getKapitalBankConfig();
   const isLiveReady = isKapitalBankLiveReady(config);
+
+  // Pre-compute signed mock tokens server-side (never expose in client JS)
+  const mockSuccessSig = signInternalCallback(payment.id, "succeeded");
+  const mockFailSig = signInternalCallback(payment.id, "failed");
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
@@ -80,12 +77,6 @@ export default async function AuctionServicePaymentPage({
           </div>
         </dl>
 
-        {payment.providerPayload && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Hosted redirect konteksti hazırlanıb. `liveReady`: {payment.providerPayload.liveReady ? "bəli" : "xeyr"}.
-          </div>
-        )}
-
         {query.status && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Son cavab: {query.status}
@@ -106,17 +97,19 @@ export default async function AuctionServicePaymentPage({
             {config.mode === "mock" ? (
               <>
                 <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-                  `KAPITAL_BANK_MODE=mock` aktivdir. Aşağıdakı düymələr test məqsədi ilə callback nəticəsini simulyasiya edir.
+                  <code>KAPITAL_BANK_MODE=mock</code> aktivdir. Düymələr test üçün callback nəticəsini simulyasiya edir.
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <form action={`/api/payments/auction-service/${payment.id}/mock`} method="post" className="flex-1">
                     <input type="hidden" name="status" value="succeeded" />
+                    <input type="hidden" name="signature" value={mockSuccessSig} />
                     <button type="submit" className="btn-primary w-full justify-center">
                       Mock success
                     </button>
                   </form>
                   <form action={`/api/payments/auction-service/${payment.id}/mock`} method="post" className="flex-1">
                     <input type="hidden" name="status" value="failed" />
+                    <input type="hidden" name="signature" value={mockFailSig} />
                     <button type="submit" className="btn-secondary w-full justify-center">
                       Mock fail
                     </button>
@@ -125,7 +118,7 @@ export default async function AuctionServicePaymentPage({
               </>
             ) : isLiveReady ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                Real Kapital Bank redirect və request signing bu skeleton-un növbəti mərhələsində qoşulacaq.
+                Real Kapital Bank redirect bu skeleton-un növbəti mərhələsində qoşulacaq.
               </div>
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

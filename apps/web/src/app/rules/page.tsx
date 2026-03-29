@@ -48,6 +48,13 @@ export default function RulesPage() {
 
         <section>
           <h2 className="text-xl font-semibold text-slate-900">Auksion qaydaları</h2>
+          <p className="mt-3">
+            Ətraflı öhdəlik cədvəli, mərhələli inkişaf planı və platforma məsuliyyətinin həddi üçün{" "}
+            <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
+              Auksion çərçivəsi
+            </Link>{" "}
+            səhifəsinə baxın.
+          </p>
           <ul className="mt-3 list-disc pl-6 space-y-2">
             <li>Auksion lotu yalnız moderasiyadan və trust checklist-dən keçdikdən sonra canlıya çıxarıla bilər.</li>
             <li>Təklif vermək üçün təsdiqlənmiş hesab və telefon doğrulaması tələb oluna bilər.</li>

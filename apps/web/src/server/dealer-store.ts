@@ -89,6 +89,7 @@ export async function getDealerDashboard(userId: string): Promise<{
       owner_user_id: string | null;
       dealer_profile_id: string | null;
       plan_type: string | null;
+      listing_kind: string | null;
       created_at: Date;
       updated_at: Date;
       trust_score: number | null;
@@ -100,7 +101,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.plan_type, l.created_at, l.updated_at,
+          l.plan_type, l.listing_kind, l.created_at, l.updated_at,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
@@ -142,6 +143,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         ownerUserId: row.owner_user_id ?? undefined,
         dealerProfileId: row.dealer_profile_id ?? undefined,
         planType: (row.plan_type as ListingSummary["planType"]) ?? "free",
+        listingKind: row.listing_kind === "part" ? "part" : "vehicle",
         createdAt: row.created_at.toISOString(),
         updatedAt: row.updated_at.toISOString(),
         trustScore: row.trust_score ?? 50,

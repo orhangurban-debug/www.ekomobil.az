@@ -75,6 +75,20 @@ export default function TermsPage() {
             tam ödənişinin qəbulu, təhvil-təslim, notariat əməliyyatları və mülkiyyət keçidi tərəflərin öz aralarında
             həll etdiyi prosesdir. Platforma yalnız öz xidmət haqları və intizam ödənişləri üzrə tərəfdir.
           </p>
+          <p className="mt-3">
+            Satıcı və alıcı auksion iştirakı zamanı öz öhdəliklərini bilir və qəbul edir. Tərəflər arasında yaranan
+            hər hansı mübahisə, gecikmiş ödəniş, təhvilin pozulması və ya elan məlumatının uyğunsuzluğu üzrə məsuliyyət
+            birbaşa həmin tərəflərə aiddir; EkoMobil bu məsələlərdə vasitəçi və ya zəmanətçi kimi çıxış etmir. İstisna
+            yalnız platformanın birbaşa təqdim etdiyi ödəniş xidməti (məsələn lot haqqı, qaydalarda göstərilən intizam
+            cərimələri) ilə məhdudlaşır.
+          </p>
+          <p className="mt-3">
+            Strukturlaşdırılmış auksion təsviri və mərhələli inkişaf planı saytın{" "}
+            <Link href="/rules/auction" className="text-brand-600 hover:underline">
+              Auksion çərçivəsi
+            </Link>{" "}
+            səhifəsində dərc olunur.
+          </p>
         </section>
 
         <section>

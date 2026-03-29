@@ -9,6 +9,7 @@ import {
   fetchAuctionState,
   subscribeAuctionStream
 } from "@/lib/auction-realtime";
+import { AuctionBidderRulesAckLine, useAuctionBidderRulesAck } from "@/components/auction/auction-bidder-rules-ack";
 
 function useCountdown(endAt?: string) {
   const [parts, setParts] = useState({ total: 0, h: 0, m: 0, s: 0 });
@@ -115,6 +116,7 @@ export default function AuctionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { acknowledged: bidderRulesAck, setAcknowledged: setBidderRulesAck } = useAuctionBidderRulesAck();
 
   useEffect(() => {
     let cancelled = false;
@@ -202,6 +204,10 @@ export default function AuctionPage() {
 
   async function submitBid() {
     if (!activeLot) return;
+    if (!bidderRulesAck) {
+      setError("Təklif verməzdən əvvəl auksion qaydalarını qəbul edin.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     setMessage(null);
@@ -372,6 +378,10 @@ export default function AuctionPage() {
                   ))}
                 </div>
 
+                <div className="mt-4">
+                  <AuctionBidderRulesAckLine acknowledged={bidderRulesAck} onChange={setBidderRulesAck} />
+                </div>
+
                 {activeTab === "bid" ? (
                   <div className="mt-4 space-y-3">
                     <div>
@@ -386,7 +396,12 @@ export default function AuctionPage() {
                         className="input-field text-base"
                       />
                     </div>
-                    <button type="button" onClick={() => void submitBid()} disabled={!bidAmount || submitting} className="btn-primary w-full py-3 text-base disabled:opacity-50">
+                    <button
+                      type="button"
+                      onClick={() => void submitBid()}
+                      disabled={!bidAmount || submitting || !bidderRulesAck}
+                      className="btn-primary w-full py-3 text-base disabled:opacity-50"
+                    >
                       {submitting ? "Göndərilir..." : "Təklif ver"}
                     </button>
                   </div>
@@ -406,7 +421,12 @@ export default function AuctionPage() {
                     <div className="rounded-xl bg-[#0891B2]/5 p-3 text-xs text-[#0891B2] ring-1 ring-[#0891B2]/15">
                       İlk bid minimum məbləğlə göndərilir, maksimal limit isə serverə saxlanılır.
                     </div>
-                    <button type="button" onClick={() => void submitBid()} disabled={!autoBidMax || submitting} className="btn-primary w-full py-3 text-base disabled:opacity-50">
+                    <button
+                      type="button"
+                      onClick={() => void submitBid()}
+                      disabled={!autoBidMax || submitting || !bidderRulesAck}
+                      className="btn-primary w-full py-3 text-base disabled:opacity-50"
+                    >
                       {submitting ? "Göndərilir..." : "Auto-Bid aktiv et"}
                     </button>
                   </div>
@@ -417,11 +437,18 @@ export default function AuctionPage() {
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <h4 className="mb-3 text-sm font-semibold text-slate-900">EkoMobil Zəmanəti</h4>
+                <h4 className="mb-3 text-sm font-semibold text-slate-900">Texniki təminat və məsuliyyət</h4>
                 <div className="space-y-2.5 text-xs text-slate-600">
-                  <div>Atomik bid transaction və advisory lock eyni lot üçün yarış vəziyyətini bağlayır.</div>
-                  <div>Realtime stream watcher-ləri DB polling olmadan yeniləyir.</div>
-                  <div>Əsas satış ödənişi birbaşa satıcı ilə alıcı arasında tamamlanır.</div>
+                  <div>Təkliflər serverdə ardıcıl emal olunur; eyni lot üzrə eyni anda bir yazma yolu tətbiq olunur.</div>
+                  <div>Lot və təkliflər real vaxt axını ilə yenilənə bilər.</div>
+                  <div>
+                    Avtomobilin alışı, ödənişi və təhvil-təslim birbaşa alıcı ilə satıcı arasındadır. EkoMobil bu əməliyyatlara
+                    görə tərəf deyil və məsuliyyət daşımır — təfərrüatlar{" "}
+                    <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
+                      Auksion çərçivəsi
+                    </Link>
+                    -dədir.
+                  </div>
                 </div>
               </div>
 

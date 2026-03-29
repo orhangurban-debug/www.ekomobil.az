@@ -41,3 +41,15 @@ export function validateMediaProtocol(input: MediaProtocolInput): MediaProtocolR
     missingRequirements
   };
 }
+
+/** Avtomobil hissəsi elanları üçün — tam avtomobil media protokolu tətbiq olunmur */
+export function validatePartListingMediaProtocol(input: MediaProtocolInput): MediaProtocolResult {
+  const missingRequirements: string[] = [];
+  if (input.imageCount < 4) {
+    missingRequirements.push("Hissə üçün ən azı 4 şəkil tələb olunur.");
+  }
+  return {
+    isComplete: missingRequirements.length === 0,
+    missingRequirements
+  };
+}

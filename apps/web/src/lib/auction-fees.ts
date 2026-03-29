@@ -9,8 +9,9 @@
  * Alıcıya tətbiq olunan:
  *  - BUYER_PREMIUM_RATE: opsional (pilot mərhələdə 0)
  *
- * Cərimə:
- *  - NO_SHOW_PENALTY_AZN: udub ödəməyən alıcıya
+ * Cərimə (platforma xidmət haqqı — avtomobilin əsas qiyməti deyil):
+ *  - NO_SHOW_PENALTY_AZN: qalib alıcı SLA daxilində öhdəliyini yerinə yetirmədikdə
+ *  - SELLER_BREACH_PENALTY_AZN: satıcı qalib təklifdən sonra satışı rədd etdikdə / öhdəliyini pozduqda
  */
 export const AUCTION_FEES = {
   LOT_LISTING_FEE_AZN: 20,
@@ -18,6 +19,7 @@ export const AUCTION_FEES = {
   SELLER_COMMISSION_CAP_AZN: 300,
   BUYER_PREMIUM_RATE: 0,            // pilot mərhələdə pulsuz
   NO_SHOW_PENALTY_AZN: 50,
+  SELLER_BREACH_PENALTY_AZN: 50,
 } as const;
 
 export type AuctionFees = typeof AUCTION_FEES;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -8,6 +9,7 @@ interface SellableListing {
   title: string;
   priceAzn: number;
   status: string;
+  listingKind: "vehicle" | "part";
   vinVerified: boolean;
   sellerVerified: boolean;
   mediaComplete: boolean;
@@ -22,8 +24,15 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
   const [endsAt, setEndsAt] = useState("");
   const [depositRequired, setDepositRequired] = useState(false);
   const [depositAmountAzn, setDepositAmountAzn] = useState("");
+  const [ackMarketplace, setAckMarketplace] = useState(false);
+  const [ackOffPlatform, setAckOffPlatform] = useState(false);
+  const [ackFees, setAckFees] = useState(false);
+  const [ackNoLiability, setAckNoLiability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [postCreate, setPostCreate] = useState<{ auctionId: string; checkoutUrl: string } | null>(null);
+
+  const sellerAckComplete = ackMarketplace && ackOffPlatform && ackFees && ackNoLiability;
 
   const selected = useMemo(
     () => listings.find((item) => item.id === listingId) ?? listings[0],
@@ -33,6 +42,10 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
+    if (!sellerAckComplete) {
+      setError("Lot yaratmaq üçün aşağıdakı bütün öhdəlik bəndlərini qəbul edin.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -78,7 +91,8 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
       return;
     }
 
-    router.push(paymentPayload.checkoutUrl);
+    setPostCreate({ auctionId: createPayload.auction.id, checkoutUrl: paymentPayload.checkoutUrl });
+    setSubmitting(false);
     router.refresh();
   }
 
@@ -89,6 +103,38 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
         <p className="mt-2 text-sm text-slate-500">
           Auksion üçün əvvəlcə VIN, satıcı və media yoxlamasını keçmiş bir elanınız olmalıdır.
         </p>
+      </div>
+    );
+  }
+
+  if (postCreate) {
+    return (
+      <div className="space-y-6 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Lot yaradıldı</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Lot haqqı ödənilməmiş auksion aktivləşmir. İstəsəniz əvvəlcə sənədləri yükləyin, sonra ödənişə keçin.
+          </p>
+          <p className="mt-1 font-mono text-xs text-slate-500">ID: {postCreate.auctionId}</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href={`/auction/${postCreate.auctionId}/documents`}
+            className="btn-primary justify-center text-center"
+          >
+            Sənədləri yüklə
+          </Link>
+          <button
+            type="button"
+            className="btn-secondary justify-center"
+            onClick={() => router.push(postCreate.checkoutUrl)}
+          >
+            Lot haqqına keç
+          </button>
+          <button type="button" className="btn-secondary justify-center text-slate-500" onClick={() => setPostCreate(null)}>
+            Geri (formaya)
+          </button>
+        </div>
       </div>
     );
   }
@@ -113,7 +159,11 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
             Başlanğıc bid: {selected.priceAzn.toLocaleString("az-AZ")} ₼
           </div>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className={selected.vinVerified ? "badge-verified" : "badge-warning"}>VIN</span>
+            {selected.listingKind === "part" ? (
+              <span className="badge-verified">Hissə</span>
+            ) : (
+              <span className={selected.vinVerified ? "badge-verified" : "badge-warning"}>VIN</span>
+            )}
             <span className={selected.sellerVerified ? "badge-verified" : "badge-warning"}>Satıcı</span>
             <span className={selected.mediaComplete ? "badge-verified" : "badge-warning"}>Media</span>
           </div>
@@ -178,13 +228,67 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
         Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq.
       </div>
 
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+        <div className="text-sm font-semibold text-slate-900">Satıcı öhdəlik bəndləri</div>
+        <p className="text-xs text-slate-600">
+          Ətraflı axın və mərhələlər:{" "}
+          <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
+            Auksion çərçivəsi
+          </Link>
+        </p>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={ackMarketplace}
+            onChange={(e) => setAckMarketplace(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
+          />
+          <span>
+            Elanın və lotun məlumatlarının düzgünlüyünə görə məsuliyyət daşıyıram; saxta və ya aldadıcı məlumat verməyəcəyəm.
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={ackOffPlatform}
+            onChange={(e) => setAckOffPlatform(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
+          />
+          <span>
+            Qalib təklif qəbul edildikdən sonra satışı razılaşdırılmış müddət və üsulla tamamlamağı öhdəmə götürürəm; əsas ödəniş
+            platformada saxlanmır.
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={ackFees}
+            onChange={(e) => setAckFees(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
+          />
+          <span>Lot haqqı, uğurlu satışda komisyon və qaydalarda göstərilən intizam ödənişləri ilə razıyam.</span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={ackNoLiability}
+            onChange={(e) => setAckNoLiability(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
+          />
+          <span>
+            Anlayıram ki, alıcı ilə aramda yaranan mübahisə, ödəniş və ya təhvil məsələlərində EkoMobil tərəf deyil və bu
+            məsələlərə görə məsuliyyət daşımır.
+          </span>
+        </label>
+      </div>
+
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
+      <button type="submit" disabled={submitting || !sellerAckComplete} className="btn-primary w-full justify-center disabled:opacity-50">
         {submitting ? "Hazırlanır..." : "Lot yarat və lot haqqına keç"}
       </button>
     </form>

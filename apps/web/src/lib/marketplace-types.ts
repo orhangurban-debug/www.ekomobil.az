@@ -3,6 +3,7 @@ export type SellerType = "private" | "dealer";
 export type PlanType = "free" | "standard" | "vip";
 export type PriceInsight = "below_market" | "market_rate" | "above_market";
 export type MileageFlagSeverity = "info" | "warning" | "high_risk";
+export type ListingKind = "vehicle" | "part";
 
 export interface ListingRecord {
   id: string;
@@ -25,6 +26,8 @@ export interface ListingRecord {
   driveType?: string;
   color?: string;
   condition?: string;
+  /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
+  listingKind?: ListingKind;
   planType?: PlanType;
   planExpiresAt?: string;
   createdAt: string;

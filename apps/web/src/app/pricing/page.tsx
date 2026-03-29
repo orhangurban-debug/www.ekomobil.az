@@ -231,7 +231,7 @@ export default function PricingPage() {
           </div>
 
           {/* Fee cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 label: "Lot yerləşdirmə",
@@ -257,9 +257,16 @@ export default function PricingPage() {
               {
                 label: "No-show cəriməsi",
                 value: `${AUCTION_FEES.NO_SHOW_PENALTY_AZN} ₼`,
-                who: "Alıcıdan — 48 saat ərzində ödəməyəndə",
-                desc: "Yatırılmış depozitdən tutulur",
+                who: "Qalib alıcı — platforma intizam haqqı",
+                desc: "Qaydalara uyğun no-show qeydindən sonra; depozit tətbiq olunarsa qaydalar üzrə hesablanır",
                 color: "bg-rose-500/10 text-rose-600"
+              },
+              {
+                label: "Satıcı pozuntusu",
+                value: `${AUCTION_FEES.SELLER_BREACH_PENALTY_AZN} ₼`,
+                who: "Satıcı — platforma intizam haqqı",
+                desc: "Qalib alıcının satıcı öhdəliyinin pozulması bildirdiyi hallarda (əsas avtomobil qiyməti deyil)",
+                color: "bg-amber-500/10 text-amber-800"
               }
             ].map((item) => (
               <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -342,6 +349,10 @@ export default function PricingPage() {
               {
                 q: "Avtomobilin əsas ödənişini EkoMobil qəbul edirmi?",
                 a: "Xeyr. EkoMobil yalnız platforma xidmət haqlarını qəbul edir. Avtomobilin əsas satış məbləği birbaşa alıcı ilə satıcı arasında ödənilir."
+              },
+              {
+                q: "Satıcı uduşdan sonra satmaqdan imtina edərsə?",
+                a: "Bu, tərəflər arası öhdəlik məsələsidir. Platformada qalib alıcı satıcı öhdəliyinin pozulmasını qeyd edə bilər; qaydalara uyğun platforma intizam ödənişi və ops baxışı tətbiq oluna bilər. Əsas avtomobil pulu hələ də platformada saxlanmır."
               },
               {
                 q: "Dealer Pro planında VIN kredit nədir?",

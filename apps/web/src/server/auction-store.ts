@@ -5,6 +5,7 @@ import {
   type AuctionStatus,
   resolveAuctionBidIncrement
 } from "@/lib/auction";
+import type { ListingDetail } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { getListingDetail, validateListingOwnership } from "@/server/listing-store";
 import {
@@ -13,6 +14,16 @@ import {
   getAuctionOutcomesMemory
 } from "@/server/auction-memory";
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
+
+export function meetsAuctionListingTrustGate(
+  listing: Pick<ListingDetail, "listingKind" | "vinVerified" | "sellerVerified" | "mediaComplete">
+): boolean {
+  const kind = listing.listingKind ?? "vehicle";
+  if (kind === "part") {
+    return Boolean(listing.sellerVerified && listing.mediaComplete);
+  }
+  return Boolean(listing.vinVerified && listing.sellerVerified && listing.mediaComplete);
+}
 
 interface AuctionListingRow {
   id: string;
@@ -160,8 +171,14 @@ export async function createAuctionListing(input: {
 
   const listing = await getListingDetail(input.listingId);
   if (!listing) return { ok: false, error: "Elan tapılmadı" };
-  if (!listing.vinVerified || !listing.sellerVerified || !listing.mediaComplete) {
-    return { ok: false, error: "Auksion üçün VIN, satıcı və media yoxlaması tam olmalıdır" };
+  if (!meetsAuctionListingTrustGate(listing)) {
+    return {
+      ok: false,
+      error:
+        (listing.listingKind ?? "vehicle") === "part"
+          ? "Hissə elanı üçün satıcı doğrulaması və media checklist tam olmalıdır"
+          : "Auksion üçün VIN, satıcı və media yoxlaması tam olmalıdır"
+    };
   }
 
   const startsAt = input.startsAt ? new Date(input.startsAt) : new Date();
@@ -345,7 +362,7 @@ export async function confirmAuctionSale(input: {
   auctionId: string;
   actorUserId: string;
   actorRole: "buyer" | "seller";
-  outcome: "confirmed" | "no_show" | "disputed";
+  outcome: "confirmed" | "no_show" | "seller_breach" | "disputed";
   note?: string;
 }): Promise<{ ok: boolean; error?: string; auction?: AuctionListingRecord; outcome?: AuctionOutcomeRecord }> {
   const auction = await getAuctionListing(input.auctionId);
@@ -371,8 +388,21 @@ export async function confirmAuctionSale(input: {
     nextStatus = "disputed";
     disputeReason = input.note ?? "İstifadəçi tərəfindən dispute yaradıldı";
   } else if (input.outcome === "no_show") {
+    if (input.actorRole !== "seller") {
+      return { ok: false, error: "No-show yalnız satıcı tərəfindən qeydə alına bilər" };
+    }
     nextStatus = "no_show";
     noShowReportedAt = now.toISOString();
+  } else if (input.outcome === "seller_breach") {
+    if (input.actorRole !== "buyer") {
+      return { ok: false, error: "Satıcı öhdəliyinin pozulması yalnız qalib alıcı tərəfindən qeydə alına bilər" };
+    }
+    const preBreach: AuctionStatus[] = ["ended_pending_confirmation", "buyer_confirmed", "seller_confirmed"];
+    if (!preBreach.includes(auction.status)) {
+      return { ok: false, error: "Bu auksion statusunda satıcı öhdəliyi qeydi mümkün deyil" };
+    }
+    nextStatus = "seller_breach";
+    disputeReason = input.note ?? "Qalib alıcı satıcının satış öhdəliyini pozduğunu bildirir";
   } else if (input.actorRole === "buyer") {
     buyerConfirmedAt = now.toISOString();
     nextStatus = auction.sellerConfirmedAt ? "completed" : "buyer_confirmed";
@@ -415,13 +445,15 @@ export async function confirmAuctionSale(input: {
           ? "completed"
           : nextStatus === "no_show"
             ? "no_show"
-            : nextStatus === "disputed"
-              ? "disputed"
-              : nextStatus === "buyer_confirmed"
-                ? "buyer_confirmed"
-                : nextStatus === "seller_confirmed"
-                  ? "seller_confirmed"
-                  : "ended_pending_confirmation",
+            : nextStatus === "seller_breach"
+              ? "seller_breach"
+              : nextStatus === "disputed"
+                ? "disputed"
+                : nextStatus === "buyer_confirmed"
+                  ? "buyer_confirmed"
+                  : nextStatus === "seller_confirmed"
+                    ? "seller_confirmed"
+                    : "ended_pending_confirmation",
       note: input.note
     });
     await recordAuctionAuditLog({
@@ -451,13 +483,15 @@ export async function confirmAuctionSale(input: {
           ? "completed"
           : nextStatus === "no_show"
             ? "no_show"
-            : nextStatus === "disputed"
-              ? "disputed"
-              : nextStatus === "buyer_confirmed"
-                ? "buyer_confirmed"
-                : nextStatus === "seller_confirmed"
-                  ? "seller_confirmed"
-                  : "ended_pending_confirmation",
+            : nextStatus === "seller_breach"
+              ? "seller_breach"
+              : nextStatus === "disputed"
+                ? "disputed"
+                : nextStatus === "buyer_confirmed"
+                  ? "buyer_confirmed"
+                  : nextStatus === "seller_confirmed"
+                    ? "seller_confirmed"
+                    : "ended_pending_confirmation",
       note: input.note
     });
     await recordAuctionAuditLog({

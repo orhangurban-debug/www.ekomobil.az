@@ -1,5 +1,21 @@
-import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
+import {
+  MediaProtocolInput,
+  validateMediaProtocol,
+  validatePartListingMediaProtocol
+} from "@/lib/media-protocol";
 import { MileageEvent, VehicleIdentity } from "@/lib/vehicle";
+
+export interface PartListingPublishInput {
+  listingKind: "part";
+  title: string;
+  description?: string;
+  priceAzn: number;
+  city: string;
+  partCategory?: string;
+  partName?: string;
+  sellerVerified: boolean;
+  mediaProtocol: MediaProtocolInput;
+}
 
 export interface ListingInput {
   title: string;
@@ -43,6 +59,41 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
   }
 
   const mediaResult = validateMediaProtocol(
+    input?.mediaProtocol ?? {
+      imageCount: 0,
+      engineVideoDurationSec: 0,
+      hasFrontAngle: false,
+      hasRearAngle: false,
+      hasLeftSide: false,
+      hasRightSide: false,
+      hasDashboard: false,
+      hasInterior: false,
+      hasOdometer: false,
+      hasTrunk: false
+    }
+  );
+  errors.push(...mediaResult.missingRequirements);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    mediaComplete: mediaResult.isComplete
+  };
+}
+
+export function validatePartListingInput(input: PartListingPublishInput): ListingValidationResult {
+  const errors: string[] = [];
+  const title = input?.title?.trim() ?? "";
+  const city = input?.city?.trim() ?? "";
+  const priceAzn = input?.priceAzn;
+
+  if (!title) errors.push("Başlıq tələb olunur.");
+  if (typeof priceAzn !== "number" || Number.isNaN(priceAzn) || priceAzn <= 0) {
+    errors.push("Qiymət 0-dan böyük olmalıdır.");
+  }
+  if (!city) errors.push("Şəhər tələb olunur.");
+
+  const mediaResult = validatePartListingMediaProtocol(
     input?.mediaProtocol ?? {
       imageCount: 0,
       engineVideoDurationSec: 0,

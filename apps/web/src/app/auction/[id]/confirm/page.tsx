@@ -62,6 +62,7 @@ export default async function AuctionConfirmPage({
         <div className="mt-6">
           <AuctionConfirmationPanel
             auctionId={auction.id}
+            auctionStatus={auction.status}
             canActAsBuyer={canActAsBuyer}
             canActAsSeller={canActAsSeller}
           />

@@ -9,6 +9,7 @@ export type AuctionStatus =
   | "completed"
   | "not_met_reserve"
   | "no_show"
+  | "seller_breach"
   | "cancelled"
   | "disputed";
 

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
 import { confirmAuctionSale } from "@/server/auction-store";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { confirmSaleSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
 export async function POST(
   req: Request,
@@ -13,22 +15,41 @@ export async function POST(
   }
 
   const { id } = await context.params;
-  const body = (await req.json().catch(() => ({}))) as {
-    actorRole?: "buyer" | "seller";
-    outcome?: "confirmed" | "no_show" | "disputed";
-    note?: string;
-  };
 
-  if (!body.actorRole || !body.outcome) {
-    return NextResponse.json({ ok: false, error: "actorRole və outcome tələb olunur" }, { status: 400 });
+  if (!id || !/^[0-9a-f-]{36}$/.test(id)) {
+    return NextResponse.json({ ok: false, error: "Keçərsiz auksion ID" }, { status: 400 });
+  }
+
+  // Rate limit: 10 confirmation actions per hour per user
+  const ip = getClientIp(req);
+  const limit = await checkRateLimit(`confirm-sale:${user.id}:${ip}`, 10, 60);
+  if (!limit.ok) {
+    return rateLimitResponse(300);
+  }
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "Yanlış sorğu formatı." }, { status: 400 });
+  }
+
+  let parsed;
+  try {
+    parsed = parseOrThrow(confirmSaleSchema, body);
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof ValidationError ? err.message : "Giriş məlumatları yanlışdır." },
+      { status: 400 }
+    );
   }
 
   const result = await confirmAuctionSale({
     auctionId: id,
     actorUserId: user.id,
-    actorRole: body.actorRole,
-    outcome: body.outcome,
-    note: body.note
+    actorRole: parsed.actorRole,
+    outcome: parsed.outcome,
+    note: parsed.note,
   });
 
   if (!result.ok) {
@@ -42,15 +63,15 @@ export async function POST(
       payload: {
         auction: result.auction,
         outcome: result.outcome,
-        actorRole: body.actorRole,
-        action: body.outcome
-      }
+        actorRole: parsed.actorRole,
+        action: parsed.outcome,
+      },
     }).catch(() => undefined);
   }
 
   return NextResponse.json({
     ok: true,
     auction: result.auction,
-    outcome: result.outcome
+    outcome: result.outcome,
   });
 }

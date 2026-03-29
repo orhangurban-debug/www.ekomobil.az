@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
-import { ListingInput, validateListingInput } from "@/lib/listing";
+import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
 import { isPaidPlan } from "@/lib/listing-plans";
 import { createListingFallback, createListingRecord, listListings } from "@/server/listing-store";
+import type { VehicleIdentity } from "@/lib/vehicle";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -35,21 +36,23 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const payload = (await req.json()) as ListingInput & {
-    description?: string;
-    fuelType?: string;
-    transmission?: string;
-    sellerType?: "private" | "dealer";
-    planType?: "free" | "standard" | "vip";
-  };
-
-  const validation = validateListingInput(payload);
-  if (!validation.isValid) {
-    return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
-  }
+  const payload = (await req.json()) as
+    | (ListingInput & {
+        description?: string;
+        fuelType?: string;
+        transmission?: string;
+        sellerType?: "private" | "dealer";
+        planType?: "free" | "standard" | "vip";
+      })
+    | (PartListingPublishInput & {
+        description?: string;
+        sellerType?: "private" | "dealer";
+        planType?: "free" | "standard" | "vip";
+      });
 
   const sessionUser = await getServerSessionUser();
-  const requestedPlanType = payload.planType ?? "free";
+  const requestedPlanType = (payload as { planType?: "free" | "standard" | "vip" }).planType ?? "free";
+
   if (isPaidPlan(requestedPlanType) && !sessionUser) {
     return NextResponse.json(
       { ok: false, error: "Paid plan seçimi üçün əvvəlcə daxil olun." },
@@ -57,31 +60,127 @@ export async function POST(req: Request) {
     );
   }
 
+  if ("listingKind" in payload && payload.listingKind === "part") {
+    const partPayload = payload as PartListingPublishInput & {
+      description?: string;
+      sellerType?: "private" | "dealer";
+      planType?: "free" | "standard" | "vip";
+    };
+    const validation = validatePartListingInput(partPayload);
+    if (!validation.isValid) {
+      return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
+    }
+
+    const category = partPayload.partCategory?.trim() || "Avtomobil hissəsi";
+    const partLine = partPayload.partName?.trim() || "Ümumi";
+    const dummyVehicle: VehicleIdentity = {
+      vin: "PARTS-NOVIN",
+      make: category,
+      model: partLine,
+      year: new Date().getFullYear(),
+      declaredMileageKm: 0
+    };
+
+    const trustSignals = buildTrustSignals({
+      vehicle: dummyVehicle,
+      vinVerified: false,
+      sellerVerified: partPayload.sellerVerified,
+      mediaComplete: validation.mediaComplete
+    });
+    const trustScore = estimateTrustScore(trustSignals);
+
+    const createInput = {
+      ownerUserId: sessionUser?.id,
+      title: partPayload.title.trim(),
+      description: partPayload.description?.trim() || "",
+      make: category,
+      model: partLine,
+      year: new Date().getFullYear(),
+      city: partPayload.city.trim(),
+      priceAzn: partPayload.priceAzn,
+      mileageKm: 0,
+      fuelType: "Digər",
+      transmission: "—",
+      vin: "PARTS-NOVIN",
+      sellerType: partPayload.sellerType || "private",
+      planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
+      status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
+      listingKind: "part" as const,
+      trust: {
+        trustScore,
+        vinVerified: false,
+        sellerVerified: trustSignals.sellerVerified,
+        mediaComplete: trustSignals.mediaComplete,
+        mileageFlagSeverity: trustSignals.mileageFlag?.severity,
+        mileageFlagMessage: trustSignals.mileageFlag?.message,
+        serviceHistorySummary: "Hissə elanı — VIN tətbiq olunmur",
+        riskSummary: "Media və satıcı siqnalları yoxlanıb"
+      }
+    };
+
+    try {
+      const created = await createListingRecord(createInput);
+      return NextResponse.json({
+        ok: true,
+        id: created.id,
+        trustScore,
+        listingKind: "part",
+        paymentRequired: isPaidPlan(requestedPlanType),
+        requestedPlanType
+      });
+    } catch {
+      const created = createListingFallback(createInput);
+      return NextResponse.json({
+        ok: true,
+        id: created.id,
+        trustScore,
+        fallback: true,
+        listingKind: "part",
+        paymentRequired: isPaidPlan(requestedPlanType),
+        requestedPlanType
+      });
+    }
+  }
+
+  const vehiclePayload = payload as ListingInput & {
+    description?: string;
+    fuelType?: string;
+    transmission?: string;
+    sellerType?: "private" | "dealer";
+    planType?: "free" | "standard" | "vip";
+  };
+
+  const validation = validateListingInput(vehiclePayload);
+  if (!validation.isValid) {
+    return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
+  }
+
   const trustSignals = buildTrustSignals({
-    vehicle: payload.vehicle,
-    vinVerified: payload.vinVerified,
-    sellerVerified: payload.sellerVerified,
+    vehicle: vehiclePayload.vehicle,
+    vinVerified: vehiclePayload.vinVerified,
+    sellerVerified: vehiclePayload.sellerVerified,
     mediaComplete: validation.mediaComplete,
-    latestMileageEvent: payload.latestMileageEvent
+    latestMileageEvent: vehiclePayload.latestMileageEvent
   });
 
   const trustScore = estimateTrustScore(trustSignals);
   const createInput = {
     ownerUserId: sessionUser?.id,
-    title: payload.title,
-    description: payload.description?.trim() || "",
-    make: payload.vehicle.make,
-    model: payload.vehicle.model,
-    year: payload.vehicle.year,
-    city: payload.city,
-    priceAzn: payload.priceAzn,
-    mileageKm: payload.vehicle.declaredMileageKm,
-    fuelType: payload.fuelType || "Benzin",
-    transmission: payload.transmission || "Avtomat",
-    vin: payload.vehicle.vin,
-    sellerType: payload.sellerType || "private",
+    title: vehiclePayload.title,
+    description: vehiclePayload.description?.trim() || "",
+    make: vehiclePayload.vehicle.make,
+    model: vehiclePayload.vehicle.model,
+    year: vehiclePayload.vehicle.year,
+    city: vehiclePayload.city,
+    priceAzn: vehiclePayload.priceAzn,
+    mileageKm: vehiclePayload.vehicle.declaredMileageKm,
+    fuelType: vehiclePayload.fuelType || "Benzin",
+    transmission: vehiclePayload.transmission || "Avtomat",
+    vin: vehiclePayload.vehicle.vin,
+    sellerType: vehiclePayload.sellerType || "private",
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
     status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
+    listingKind: "vehicle" as const,
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",

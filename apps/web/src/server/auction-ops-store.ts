@@ -117,7 +117,7 @@ export async function listAuctionOpsCases(): Promise<AuctionOpsCase[]> {
       pool.query<AuctionOpsListingRow>(
         `SELECT id, title_snapshot, status, updated_at, created_at, dispute_reason
          FROM auction_listings
-         WHERE status IN ('no_show', 'disputed', 'ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed')
+         WHERE status IN ('no_show', 'seller_breach', 'disputed', 'ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed')
          ORDER BY updated_at DESC
          LIMIT 30`
       ),
@@ -137,13 +137,22 @@ export async function listAuctionOpsCases(): Promise<AuctionOpsCase[]> {
       auctionId: row.id,
       titleSnapshot: row.title_snapshot,
       status: row.status,
-      reasonCode: row.status === "disputed" ? "DISPUTE" : row.status === "no_show" ? "NO_SHOW" : "OUTCOME_REVIEW",
+      reasonCode:
+        row.status === "disputed"
+          ? "DISPUTE"
+          : row.status === "no_show"
+            ? "NO_SHOW"
+            : row.status === "seller_breach"
+              ? "SELLER_BREACH"
+              : "OUTCOME_REVIEW",
       message:
         row.status === "disputed"
           ? row.dispute_reason ?? "Tərəflər arasında mübahisə bildirildi"
           : row.status === "no_show"
             ? "Qalib tərəf SLA daxilində növbəti addımı tamamlamadı"
-            : "Buyer/seller confirmation hələ tam bağlanmayıb",
+            : row.status === "seller_breach"
+              ? row.dispute_reason ?? "Satıcı öhdəliyinin pozulması qeydə alınıb"
+              : "Buyer/seller confirmation hələ tam bağlanmayıb",
       createdAt: row.updated_at.toISOString(),
       slaDueAt: new Date(row.updated_at.getTime() + 24 * 60 * 60 * 1000).toISOString()
     }));
@@ -163,18 +172,29 @@ export async function listAuctionOpsCases(): Promise<AuctionOpsCase[]> {
     assertAuctionMemoryFallbackAllowed(error);
     const auctions = getAuctionListingsMemory();
     const openCases = auctions
-      .filter((item) => ["no_show", "disputed", "ended_pending_confirmation", "buyer_confirmed", "seller_confirmed"].includes(item.status))
+      .filter((item) =>
+        ["no_show", "seller_breach", "disputed", "ended_pending_confirmation", "buyer_confirmed", "seller_confirmed"].includes(item.status)
+      )
       .map((item) => ({
         auctionId: item.id,
         titleSnapshot: item.titleSnapshot,
         status: item.status,
-        reasonCode: item.status === "disputed" ? "DISPUTE" : item.status === "no_show" ? "NO_SHOW" : "OUTCOME_REVIEW",
+        reasonCode:
+          item.status === "disputed"
+            ? "DISPUTE"
+            : item.status === "no_show"
+              ? "NO_SHOW"
+              : item.status === "seller_breach"
+                ? "SELLER_BREACH"
+                : "OUTCOME_REVIEW",
         message:
           item.status === "disputed"
             ? item.disputeReason ?? "Tərəflər arasında mübahisə bildirildi"
             : item.status === "no_show"
               ? "Qalib tərəf SLA daxilində növbəti addımı tamamlamadı"
-              : "Buyer/seller confirmation hələ tam bağlanmayıb",
+              : item.status === "seller_breach"
+                ? item.disputeReason ?? "Satıcı öhdəliyinin pozulması qeydə alınıb"
+                : "Buyer/seller confirmation hələ tam bağlanmayıb",
         createdAt: item.updatedAt,
         slaDueAt: new Date(new Date(item.updatedAt).getTime() + 24 * 60 * 60 * 1000).toISOString()
       }));

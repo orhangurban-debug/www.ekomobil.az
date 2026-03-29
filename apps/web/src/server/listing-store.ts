@@ -1,7 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { demoListings, demoListingsDetailed } from "@/lib/demo-marketplace";
-import { ListingDetail, ListingQuery, ListingQueryResult, ListingStatus, ListingSummary, PriceInsight } from "@/lib/marketplace-types";
+import {
+  ListingDetail,
+  ListingKind,
+  ListingQuery,
+  ListingQueryResult,
+  ListingStatus,
+  ListingSummary,
+  PriceInsight
+} from "@/lib/marketplace-types";
 import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 
@@ -51,6 +59,7 @@ interface ListingRow {
   service_history_summary?: string | null;
   risk_summary?: string | null;
   last_verified_at?: Date | null;
+  listing_kind?: string | null;
 }
 
 interface ServiceRecordRow {
@@ -89,6 +98,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     driveType: row.drive_type ?? undefined,
     color: row.color ?? undefined,
     condition: row.condition ?? undefined,
+    listingKind: row.listing_kind === "part" ? "part" : "vehicle",
     planType: (row.plan_type as PlanType) ?? "free",
     planExpiresAt: row.plan_expires_at?.toISOString(),
     createdAt: row.created_at.toISOString(),
@@ -287,6 +297,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
+          l.listing_kind,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -335,6 +346,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
+          l.listing_kind,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -410,6 +422,7 @@ export async function createListingRecord(input: {
   sellerType: "private" | "dealer";
   status?: ListingStatus;
   planType?: PlanType;
+  listingKind?: ListingKind;
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -436,9 +449,9 @@ export async function createListingRecord(input: {
       `
         INSERT INTO listings (
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
-          mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at
+          mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       `,
       [
         id,
@@ -458,7 +471,8 @@ export async function createListingRecord(input: {
         input.sellerType,
         status,
         planType,
-        planExpiresAt
+        planExpiresAt,
+        input.listingKind ?? "vehicle"
       ]
     );
 
@@ -504,6 +518,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
+          l.listing_kind,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -536,6 +551,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
+          l.listing_kind,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -578,6 +594,7 @@ export function createListingFallback(input: {
   sellerType: "private" | "dealer";
   status?: ListingStatus;
   planType?: PlanType;
+  listingKind?: ListingKind;
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -595,6 +612,7 @@ export function createListingFallback(input: {
   const planExpiresAt = calculatePlanExpiry(planType);
   const item: ListingDetail = {
     id,
+    listingKind: input.listingKind ?? "vehicle",
     title: input.title,
     description: input.description,
     priceAzn: input.priceAzn,

@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { AuctionStatus } from "@/lib/auction";
+import { AUCTION_FEES } from "@/lib/auction-fees";
 
 export function AuctionConfirmationPanel({
   auctionId,
+  auctionStatus,
   canActAsBuyer,
   canActAsSeller
 }: {
   auctionId: string;
+  auctionStatus: AuctionStatus;
   canActAsBuyer: boolean;
   canActAsSeller: boolean;
 }) {
@@ -17,7 +21,9 @@ export function AuctionConfirmationPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function submit(actorRole: "buyer" | "seller", outcome: "confirmed" | "no_show" | "disputed") {
+  const settlementOpen = ["ended_pending_confirmation", "buyer_confirmed", "seller_confirmed"].includes(auctionStatus);
+
+  async function submit(actorRole: "buyer" | "seller", outcome: "confirmed" | "no_show" | "seller_breach" | "disputed") {
     setLoadingAction(`${actorRole}-${outcome}`);
     setMessage(null);
     setError(null);
@@ -32,7 +38,9 @@ export function AuctionConfirmationPanel({
             ? "Əməliyyat off-platform tamamlandı"
             : outcome === "no_show"
               ? "Qalib tərəf SLA daxilində növbəti addımı tamamlamadı"
-              : "Tərəflər arasında mübahisə yarandı"
+              : outcome === "seller_breach"
+                ? "Satıcı qalib təklifdən sonra satış öhdəliyini yerinə yetirmədi"
+                : "Tərəflər arasında mübahisə yarandı"
       })
     });
     const payload = (await response.json()) as { ok: boolean; error?: string };
@@ -46,6 +54,44 @@ export function AuctionConfirmationPanel({
     router.refresh();
   }
 
+  async function startSellerBreachPenaltyCheckout() {
+    setLoadingAction("seller-breach-payment");
+    setMessage(null);
+    setError(null);
+    const response = await fetch("/api/payments/auction-seller-breach", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auctionId })
+    });
+    const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+    if (!payload.ok || !payload.checkoutUrl) {
+      setError(payload.error || "Checkout yaradıla bilmədi.");
+      setLoadingAction(null);
+      return;
+    }
+    setLoadingAction(null);
+    router.push(payload.checkoutUrl);
+  }
+
+  async function startNoShowPenaltyCheckout() {
+    setLoadingAction("no-show-payment");
+    setMessage(null);
+    setError(null);
+    const response = await fetch("/api/payments/auction-no-show", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auctionId })
+    });
+    const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+    if (!payload.ok || !payload.checkoutUrl) {
+      setError(payload.error || "Checkout yaradıla bilmədi.");
+      setLoadingAction(null);
+      return;
+    }
+    setLoadingAction(null);
+    router.push(payload.checkoutUrl);
+  }
+
   if (!canActAsBuyer && !canActAsSeller) {
     return null;
   }
@@ -55,51 +101,106 @@ export function AuctionConfirmationPanel({
       <h2 className="text-lg font-semibold text-slate-900">Satış nəticəsini təsdiqlə</h2>
       <p className="mt-2 text-sm text-slate-500">
         Burada əsas satış ödənişi deyil, yalnız satış nəticəsi qeyd olunur. Avtomobilin tam məbləği birbaşa tərəflər arasında ödənir.
+        EkoMobil bu prosesə görə tərəflər arası mübahisələrdə məsuliyyət daşımır.
       </p>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {canActAsBuyer && (
-          <>
-            <button
-              type="button"
-              onClick={() => submit("buyer", "confirmed")}
-              disabled={Boolean(loadingAction)}
-              className="btn-primary justify-center"
-            >
-              {loadingAction === "buyer-confirmed" ? "Göndərilir..." : "Alıcı kimi təsdiqlə"}
-            </button>
-            <button
-              type="button"
-              onClick={() => submit("buyer", "disputed")}
-              disabled={Boolean(loadingAction)}
-              className="btn-secondary justify-center"
-            >
-              Mübahisə bildir
-            </button>
-          </>
-        )}
+      {auctionStatus === "seller_breach" && canActAsBuyer && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-medium">Satıcı öhdəliyi pozulması qeydə alınıb.</p>
+          <p className="mt-2 text-amber-900/90">
+            Aşağıdakı düymə ilə platforma xidmət cəriməsi ({AUCTION_FEES.SELLER_BREACH_PENALTY_AZN} ₼) üçün ödəniş səhifəsi
+            yaradılır. Ödənişi hüquqi olaraq <strong>satıcı</strong> etməlidir; checkout linkini satıcı ilə paylaşa bilərsiniz.
+            Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
+          </p>
+          <button
+            type="button"
+            onClick={() => void startSellerBreachPenaltyCheckout()}
+            disabled={Boolean(loadingAction)}
+            className="btn-primary mt-4 w-full justify-center sm:w-auto"
+          >
+            {loadingAction === "seller-breach-payment" ? "Hazırlanır..." : "Satıcı cəriməsi üçün checkout"}
+          </button>
+        </div>
+      )}
 
-        {canActAsSeller && (
-          <>
-            <button
-              type="button"
-              onClick={() => submit("seller", "confirmed")}
-              disabled={Boolean(loadingAction)}
-              className="btn-primary justify-center"
-            >
-              {loadingAction === "seller-confirmed" ? "Göndərilir..." : "Satıcı kimi təsdiqlə"}
-            </button>
-            <button
-              type="button"
-              onClick={() => submit("seller", "no_show")}
-              disabled={Boolean(loadingAction)}
-              className="btn-secondary justify-center"
-            >
-              No-show bildir
-            </button>
-          </>
-        )}
-      </div>
+      {auctionStatus === "no_show" && canActAsSeller && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-medium">Alıcı no-show qeydə alınıb.</p>
+          <p className="mt-2 text-amber-900/90">
+            Aşağıdakı düymə ilə platforma no-show cəriməsi ({AUCTION_FEES.NO_SHOW_PENALTY_AZN} ₼) üçün ödəniş səhifəsi
+            yaradılır. Ödənişi hüquqi olaraq <strong>qalib alıcı</strong> etməlidir; checkout linkini alıcı ilə paylaşa bilərsiniz.
+            Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
+          </p>
+          <button
+            type="button"
+            onClick={() => void startNoShowPenaltyCheckout()}
+            disabled={Boolean(loadingAction)}
+            className="btn-primary mt-4 w-full justify-center sm:w-auto"
+          >
+            {loadingAction === "no-show-payment" ? "Hazırlanır..." : "No-show cəriməsi üçün checkout"}
+          </button>
+        </div>
+      )}
+
+      {settlementOpen && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {canActAsBuyer && (
+            <>
+              <button
+                type="button"
+                onClick={() => submit("buyer", "confirmed")}
+                disabled={Boolean(loadingAction)}
+                className="btn-primary justify-center"
+              >
+                {loadingAction === "buyer-confirmed" ? "Göndərilir..." : "Alıcı kimi təsdiqlə"}
+              </button>
+              <button
+                type="button"
+                onClick={() => submit("buyer", "disputed")}
+                disabled={Boolean(loadingAction)}
+                className="btn-secondary justify-center"
+              >
+                Mübahisə bildir
+              </button>
+              <button
+                type="button"
+                onClick={() => submit("buyer", "seller_breach")}
+                disabled={Boolean(loadingAction)}
+                className="btn-secondary justify-center sm:col-span-2 border-amber-300 text-amber-900 hover:bg-amber-50"
+              >
+                {loadingAction === "buyer-seller_breach" ? "Göndərilir..." : "Satıcı satış öhdəliyini pozub"}
+              </button>
+            </>
+          )}
+
+          {canActAsSeller && (
+            <>
+              <button
+                type="button"
+                onClick={() => submit("seller", "confirmed")}
+                disabled={Boolean(loadingAction)}
+                className="btn-primary justify-center"
+              >
+                {loadingAction === "seller-confirmed" ? "Göndərilir..." : "Satıcı kimi təsdiqlə"}
+              </button>
+              <button
+                type="button"
+                onClick={() => submit("seller", "no_show")}
+                disabled={Boolean(loadingAction)}
+                className="btn-secondary justify-center"
+              >
+                Alıcı no-show bildir
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {!settlementOpen && auctionStatus !== "seller_breach" && auctionStatus !== "no_show" && (canActAsBuyer || canActAsSeller) && (
+        <p className="mt-4 text-sm text-slate-500">
+          Bu auksion üçün təsdiq pəncərəsi bağlanıb. Əlavə əməliyyat yoxdursa, ops və ya dəstək ilə əlaqə saxlayın.
+        </p>
+      )}
 
       {message && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
