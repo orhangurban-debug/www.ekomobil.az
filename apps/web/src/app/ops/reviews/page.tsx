@@ -1,6 +1,8 @@
 import { listManualReviews } from "@/server/review-store";
 import { requirePageRoles } from "@/lib/rbac";
 import Link from "next/link";
+import { listPendingDeepKyc } from "@/server/user-kyc-store";
+import { KycReviewActions } from "@/components/ops/kyc-review-actions";
 
 function SeverityBadge({ code }: { code: string }) {
   if (code.includes("HIGH_RISK")) return <span className="badge-danger">Yüksək risk</span>;
@@ -30,6 +32,7 @@ export default async function ReviewQueuePage() {
   }
 
   const items = await listManualReviews();
+  const pendingDeepKyc = await listPendingDeepKyc(40);
   const openCount = items.filter((i) => i.status === "open" || i.status === "in_review").length;
 
   return (
@@ -96,6 +99,52 @@ export default async function ReviewQueuePage() {
           </div>
         </div>
       )}
+
+      <div className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Deep KYC review növbəsi</h2>
+          <span className="text-xs text-slate-500">{pendingDeepKyc.length} müraciət</span>
+        </div>
+        {pendingDeepKyc.length === 0 ? (
+          <div className="card p-8 text-center text-sm text-slate-500">Hazırda deep KYC review gözləyən müraciət yoxdur.</div>
+        ) : (
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th className="px-6 py-3 text-left">İstifadəçi</th>
+                    <th className="px-6 py-3 text-left">Hüquqi ad</th>
+                    <th className="px-6 py-3 text-left">ID son 4</th>
+                    <th className="px-6 py-3 text-left">Sənəd ref</th>
+                    <th className="px-6 py-3 text-left">Göndərilib</th>
+                    <th className="px-6 py-3 text-left">Əməliyyat</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pendingDeepKyc.map((item) => (
+                    <tr key={item.userId} className="hover:bg-slate-50 transition">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-slate-900">{item.userEmail ?? item.userId}</div>
+                        <div className="mt-1 font-mono text-xs text-slate-400">{item.userId}</div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-700">{item.legalName ?? "-"}</td>
+                      <td className="px-6 py-4 font-mono text-slate-700">{item.nationalIdLast4 ?? "-"}</td>
+                      <td className="px-6 py-4 text-slate-700">{item.documentRef ?? "-"}</td>
+                      <td className="px-6 py-4 text-slate-500">
+                        {item.submittedAt ? new Date(item.submittedAt).toLocaleString("az-AZ") : "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <KycReviewActions userId={item.userId} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

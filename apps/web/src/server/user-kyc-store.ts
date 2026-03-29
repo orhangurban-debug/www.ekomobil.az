@@ -31,6 +31,10 @@ export interface UserKycProfile {
   updatedAt: string;
 }
 
+export interface PendingDeepKycRecord extends UserKycProfile {
+  userEmail?: string;
+}
+
 function mapRow(row: UserKycRow): UserKycProfile {
   return {
     userId: row.user_id,
@@ -113,4 +117,24 @@ export async function reviewDeepKyc(input: {
     [input.userId, input.decision, input.reviewerUserId, input.note ?? null]
   );
   return result.rows[0] ? mapRow(result.rows[0]) : null;
+}
+
+export async function listPendingDeepKyc(limit = 30): Promise<PendingDeepKycRecord[]> {
+  const safeLimit = Math.max(1, Math.min(100, limit));
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<UserKycRow & { email: string }>(
+      `SELECT k.*, u.email
+       FROM user_kyc_profiles k
+       JOIN users u ON u.id = k.user_id
+       WHERE k.kyc_level = 'deep'
+         AND k.status = 'submitted'
+       ORDER BY k.submitted_at DESC NULLS LAST, k.updated_at DESC
+       LIMIT $1`,
+      [safeLimit]
+    );
+    return result.rows.map((row) => ({ ...mapRow(row), userEmail: row.email }));
+  } catch {
+    return [];
+  }
 }
