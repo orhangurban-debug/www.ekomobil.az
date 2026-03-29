@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { AUCTION_FEES, calcSellerPerformanceBond } from "@/lib/auction-fees";
 import {
   type AuctionListingRecord,
   type AuctionOutcomeRecord,
@@ -8,6 +9,7 @@ import {
 import type { ListingDetail } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { getListingDetail, validateListingOwnership } from "@/server/listing-store";
+import { getDeepKycStatus } from "@/server/user-kyc-store";
 import {
   getAuctionAuditLogsMemory,
   getAuctionListingsMemory,
@@ -44,6 +46,8 @@ interface AuctionListingRow {
   status: string;
   deposit_required: boolean;
   deposit_amount_azn: number | null;
+  seller_bond_required: boolean;
+  seller_bond_amount_azn: number | null;
   winner_user_id: string | null;
   buyer_confirmed_at: Date | null;
   seller_confirmed_at: Date | null;
@@ -90,6 +94,8 @@ function mapAuctionRow(row: AuctionListingRow): AuctionListingRecord {
     status: row.status as AuctionStatus,
     depositRequired: row.deposit_required,
     depositAmountAzn: row.deposit_amount_azn ?? undefined,
+    sellerBondRequired: row.seller_bond_required,
+    sellerBondAmountAzn: row.seller_bond_amount_azn ?? undefined,
     winnerUserId: row.winner_user_id ?? undefined,
     buyerConfirmedAt: row.buyer_confirmed_at?.toISOString(),
     sellerConfirmedAt: row.seller_confirmed_at?.toISOString(),
@@ -165,6 +171,8 @@ export async function createAuctionListing(input: {
   endsAt?: string;
   depositRequired?: boolean;
   depositAmountAzn?: number;
+  sellerBondRequired?: boolean;
+  sellerBondAmountAzn?: number;
 }): Promise<{ ok: true; auction: AuctionListingRecord } | { ok: false; error: string }> {
   const ownership = await validateListingOwnership(input.listingId, input.sellerUserId);
   if (!ownership.ok) return { ok: false, error: ownership.error ?? "Elan tapılmadı" };
@@ -188,6 +196,24 @@ export async function createAuctionListing(input: {
   }
 
   const startingBidAzn = input.startingBidAzn ?? listing.priceAzn;
+  const deepKycStatus = await getDeepKycStatus(input.sellerUserId);
+  const isHighValueLot = startingBidAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN;
+  const sellerDeepKycApproved = deepKycStatus === "approved";
+  const suggestedSellerBond = calcSellerPerformanceBond(startingBidAzn);
+  const sellerBondRequired = Boolean(input.sellerBondRequired);
+  const sellerBondAmountAzn = input.sellerBondAmountAzn ?? suggestedSellerBond;
+
+  if (isHighValueLot && !sellerDeepKycApproved && !sellerBondRequired) {
+    return {
+      ok: false,
+      error:
+        "Yüksək dəyərli lot üçün ya dərin KYC təsdiqi olmalıdır, ya da satıcı performans bond aktiv edilməlidir."
+    };
+  }
+  if (sellerBondRequired && (!sellerBondAmountAzn || sellerBondAmountAzn <= 0)) {
+    return { ok: false, error: "Satıcı bond məbləği düzgün deyil" };
+  }
+
   const minimumIncrementAzn = resolveAuctionBidIncrement(startingBidAzn);
   const id = randomUUID();
   const status: AuctionStatus = "draft";
@@ -198,9 +224,9 @@ export async function createAuctionListing(input: {
       `INSERT INTO auction_listings (
          id, listing_id, seller_user_id, seller_dealer_profile_id, mode, settlement_model, title_snapshot,
          starting_bid_azn, reserve_price_azn, buy_now_price_azn, minimum_increment_azn,
-         starts_at, ends_at, status, deposit_required, deposit_amount_azn
+         starts_at, ends_at, status, deposit_required, deposit_amount_azn, seller_bond_required, seller_bond_amount_azn
        )
-       VALUES ($1, $2, $3, $4, $5, 'off_platform_direct', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       VALUES ($1, $2, $3, $4, $5, 'off_platform_direct', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING *`,
       [
         id,
@@ -217,7 +243,9 @@ export async function createAuctionListing(input: {
         endsAt,
         status,
         input.depositRequired ?? false,
-        input.depositAmountAzn ?? null
+        input.depositAmountAzn ?? null,
+        sellerBondRequired,
+        sellerBondRequired ? sellerBondAmountAzn : null
       ]
     );
     await recordAuctionAuditLog({
@@ -253,6 +281,8 @@ export async function createAuctionListing(input: {
       status,
       depositRequired: input.depositRequired ?? false,
       depositAmountAzn: input.depositAmountAzn,
+      sellerBondRequired,
+      sellerBondAmountAzn: sellerBondRequired ? sellerBondAmountAzn : undefined,
       createdAt: nowIso,
       updatedAt: nowIso
     };

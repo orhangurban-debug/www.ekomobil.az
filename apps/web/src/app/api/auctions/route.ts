@@ -61,6 +61,8 @@ export async function POST(req: Request) {
     endsAt: parsed.endsAt,
     depositRequired: parsed.depositRequired,
     depositAmountAzn: parsed.depositAmountAzn,
+    sellerBondRequired: parsed.sellerBondRequired,
+    sellerBondAmountAzn: parsed.sellerBondAmountAzn,
   });
 
   if (!result.ok) {

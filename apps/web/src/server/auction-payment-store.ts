@@ -102,6 +102,8 @@ function getServicePaymentAmount(eventType: AuctionFinancialEventRecord["eventTy
       return AUCTION_FEES.SELLER_BREACH_PENALTY_AZN;
     case "seller_success_fee":
       return calcSellerCommission(hammerPriceAzn ?? 0);
+    case "seller_performance_bond":
+      return 0;
     case "bidder_deposit":
       return 0;
   }
@@ -120,6 +122,14 @@ export async function createAuctionServicePayment(input: {
   let chargedUserId: string | undefined;
   if (input.eventType === "lot_fee") {
     if (auction.sellerUserId !== input.actorUserId) return { ok: false, error: "Lot haqqını yalnız satıcı yarada bilər" };
+    chargedUserId = auction.sellerUserId;
+  } else if (input.eventType === "seller_performance_bond") {
+    if (auction.sellerUserId !== input.actorUserId) {
+      return { ok: false, error: "Satıcı bond checkout-u yalnız satıcı yarada bilər" };
+    }
+    if (!auction.sellerBondRequired || !auction.sellerBondAmountAzn) {
+      return { ok: false, error: "Bu lot üçün satıcı bond tələb olunmur" };
+    }
     chargedUserId = auction.sellerUserId;
   } else if (input.eventType === "seller_success_fee") {
     if (auction.sellerUserId !== input.actorUserId) return { ok: false, error: "Success fee invoice yalnız satıcı üçün yaradıla bilər" };
@@ -145,10 +155,12 @@ export async function createAuctionServicePayment(input: {
   }
 
   const amountAzn = getServicePaymentAmount(input.eventType, auction.currentBidAzn ?? auction.startingBidAzn);
+  const resolvedAmountAzn =
+    input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;
   const id = randomUUID();
   const session = await prepareKapitalBankCheckoutSession({
     internalPaymentId: id,
-    amountAzn,
+    amountAzn: resolvedAmountAzn,
     description: `Auction ${input.eventType} payment`,
     checkoutPagePath: `/payments/auction-service/${id}`,
     callbackPath: "/api/payments/auction-service/callback",
@@ -170,7 +182,7 @@ export async function createAuctionServicePayment(input: {
         input.auctionId,
         chargedUserId ?? null,
         input.eventType,
-        amountAzn,
+        resolvedAmountAzn,
         session.checkoutUrl,
         session.providerMode,
         session.checkoutStrategy,
@@ -182,7 +194,7 @@ export async function createAuctionServicePayment(input: {
       auctionId: input.auctionId,
       actorUserId: input.actorUserId,
       actionType: `payment_${input.eventType}_created`,
-      detail: `${input.eventType} created for ${amountAzn} AZN`
+      detail: `${input.eventType} created for ${resolvedAmountAzn} AZN`
     });
     return { ok: true, payment: mapFinancialEventRow(result.rows[0]) };
   } catch (error) {
@@ -193,7 +205,7 @@ export async function createAuctionServicePayment(input: {
       auctionId: input.auctionId,
       userId: chargedUserId,
       eventType: input.eventType,
-      amountAzn,
+      amountAzn: resolvedAmountAzn,
       provider: "kapital_bank",
       status: "redirect_ready",
       checkoutUrl: session.checkoutUrl,
@@ -209,7 +221,7 @@ export async function createAuctionServicePayment(input: {
       auctionId: input.auctionId,
       actorUserId: input.actorUserId,
       actionType: `payment_${input.eventType}_created`,
-      detail: `${input.eventType} created for ${amountAzn} AZN`
+      detail: `${input.eventType} created for ${resolvedAmountAzn} AZN`
     });
     return { ok: true, payment };
   }
@@ -268,7 +280,33 @@ export async function finalizeAuctionServicePayment(input: {
   if (input.status === "succeeded" && updated.eventType === "lot_fee") {
     const auction = await getAuctionListing(updated.auctionId);
     if (auction) {
-      const nextStatus = resolveAuctionActivationStatus(new Date(auction.startsAt), new Date(auction.endsAt));
+      // For high-value lots with seller performance bond requirement,
+      // activation happens only after BOTH lot fee and seller bond succeed.
+      let canActivate = true;
+      if (auction.sellerBondRequired) {
+        try {
+          const bondResult = await getPgPool().query<{ c: string }>(
+            `SELECT COUNT(*)::text AS c
+             FROM auction_financial_events
+             WHERE auction_id = $1
+               AND event_type = 'seller_performance_bond'
+               AND status = 'succeeded'`,
+            [auction.id]
+          );
+          canActivate = Number(bondResult.rows[0]?.c ?? 0) > 0;
+        } catch (error) {
+          assertAuctionMemoryFallbackAllowed(error);
+          canActivate = getAuctionFinancialEventsMemory().some(
+            (entry) =>
+              entry.auctionId === auction.id &&
+              entry.eventType === "seller_performance_bond" &&
+              entry.status === "succeeded"
+          );
+        }
+      }
+      const nextStatus = canActivate
+        ? resolveAuctionActivationStatus(new Date(auction.startsAt), new Date(auction.endsAt))
+        : "draft";
       try {
         await getPgPool().query(
           `UPDATE auction_listings SET status = $2, updated_at = NOW() WHERE id = $1`,
@@ -280,6 +318,45 @@ export async function finalizeAuctionServicePayment(input: {
         if (item) {
           item.status = nextStatus;
           item.updatedAt = new Date().toISOString();
+        }
+      }
+    }
+  }
+
+  if (input.status === "succeeded" && updated.eventType === "seller_performance_bond") {
+    const auction = await getAuctionListing(updated.auctionId);
+    if (auction) {
+      let lotFeeSucceeded = false;
+      try {
+        const lotResult = await getPgPool().query<{ c: string }>(
+          `SELECT COUNT(*)::text AS c
+           FROM auction_financial_events
+           WHERE auction_id = $1
+             AND event_type = 'lot_fee'
+             AND status = 'succeeded'`,
+          [auction.id]
+        );
+        lotFeeSucceeded = Number(lotResult.rows[0]?.c ?? 0) > 0;
+      } catch (error) {
+        assertAuctionMemoryFallbackAllowed(error);
+        lotFeeSucceeded = getAuctionFinancialEventsMemory().some(
+          (entry) => entry.auctionId === auction.id && entry.eventType === "lot_fee" && entry.status === "succeeded"
+        );
+      }
+      if (lotFeeSucceeded) {
+        const nextStatus = resolveAuctionActivationStatus(new Date(auction.startsAt), new Date(auction.endsAt));
+        try {
+          await getPgPool().query(
+            `UPDATE auction_listings SET status = $2, updated_at = NOW() WHERE id = $1`,
+            [auction.id, nextStatus]
+          );
+        } catch (error) {
+          assertAuctionMemoryFallbackAllowed(error);
+          const item = getAuctionListingsMemory().find((entry) => entry.id === auction.id);
+          if (item) {
+            item.status = nextStatus;
+            item.updatedAt = new Date().toISOString();
+          }
         }
       }
     }

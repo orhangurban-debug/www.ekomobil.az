@@ -3,6 +3,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { AuctionSellForm } from "@/components/auction/auction-sell-form";
 import { meetsAuctionListingTrustGate } from "@/server/auction-store";
 import { listListingsForUser } from "@/server/listing-store";
+import { getDeepKycStatus } from "@/server/user-kyc-store";
 
 export default async function AuctionSellPage() {
   const user = await getServerSessionUser();
@@ -29,6 +30,8 @@ export default async function AuctionSellPage() {
   const listingKinds = new Set(listings.map((item) => item.listingKind ?? "vehicle"));
   const checklistVehicle = listingKinds.has("vehicle");
   const checklistPart = listingKinds.has("part");
+  const deepKycStatus = await getDeepKycStatus(user.id);
+  const deepKycApproved = deepKycStatus === "approved";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -64,6 +67,7 @@ export default async function AuctionSellPage() {
         )}
         <ul className="mt-3 list-disc space-y-1 pl-5">
           <li>Lot haqqı ödənmədən hərrac aktivləşmir</li>
+          <li>Yüksək dəyərli lotlarda deep KYC və ya satıcı performans bond tələb oluna bilər</li>
         </ul>
       </div>
 
@@ -92,6 +96,7 @@ export default async function AuctionSellPage() {
       </div>
 
       <AuctionSellForm
+        deepKycApproved={deepKycApproved}
         listings={listings.map((item) => ({
           id: item.id,
           title: item.title,

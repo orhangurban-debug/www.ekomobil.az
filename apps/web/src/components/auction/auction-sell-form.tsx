@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AUCTION_FEES, calcSellerPerformanceBond } from "@/lib/auction-fees";
 
 interface SellableListing {
   id: string;
@@ -15,7 +16,13 @@ interface SellableListing {
   mediaComplete: boolean;
 }
 
-export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
+export function AuctionSellForm({
+  listings,
+  deepKycApproved
+}: {
+  listings: SellableListing[];
+  deepKycApproved: boolean;
+}) {
   const router = useRouter();
   const [listingId, setListingId] = useState(listings[0]?.id ?? "");
   const [reservePriceAzn, setReservePriceAzn] = useState("");
@@ -24,13 +31,19 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
   const [endsAt, setEndsAt] = useState("");
   const [depositRequired, setDepositRequired] = useState(false);
   const [depositAmountAzn, setDepositAmountAzn] = useState("");
+  const [sellerBondRequired, setSellerBondRequired] = useState(false);
+  const [sellerBondAmountAzn, setSellerBondAmountAzn] = useState("");
   const [ackMarketplace, setAckMarketplace] = useState(false);
   const [ackOffPlatform, setAckOffPlatform] = useState(false);
   const [ackFees, setAckFees] = useState(false);
   const [ackNoLiability, setAckNoLiability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [postCreate, setPostCreate] = useState<{ auctionId: string; checkoutUrl: string } | null>(null);
+  const [postCreate, setPostCreate] = useState<{
+    auctionId: string;
+    lotCheckoutUrl: string;
+    bondCheckoutUrl?: string;
+  } | null>(null);
 
   const sellerAckComplete = ackMarketplace && ackOffPlatform && ackFees && ackNoLiability;
 
@@ -38,12 +51,18 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
     () => listings.find((item) => item.id === listingId) ?? listings[0],
     [listingId, listings]
   );
+  const isHighValue = Boolean(selected && selected.priceAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN);
+  const suggestedSellerBond = selected ? calcSellerPerformanceBond(selected.priceAzn) : 0;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
     if (!sellerAckComplete) {
       setError("Lot yaratmaq üçün aşağıdakı bütün öhdəlik bəndlərini qəbul edin.");
+      return;
+    }
+    if (isHighValue && !sellerBondRequired && !deepKycApproved) {
+      setError("Yüksək dəyərli lot üçün deep KYC yoxdursa satıcı bond aktiv edilməlidir.");
       return;
     }
     setSubmitting(true);
@@ -61,7 +80,11 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
         startsAt: startsAt || undefined,
         endsAt: endsAt || undefined,
         depositRequired,
-        depositAmountAzn: depositRequired && depositAmountAzn ? Number(depositAmountAzn) : undefined
+        depositAmountAzn: depositRequired && depositAmountAzn ? Number(depositAmountAzn) : undefined,
+        sellerBondRequired,
+        sellerBondAmountAzn: sellerBondRequired
+          ? Number(sellerBondAmountAzn || suggestedSellerBond)
+          : undefined
       })
     });
     const createPayload = (await createResponse.json()) as {
@@ -80,18 +103,42 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ auctionId: createPayload.auction.id })
     });
-    const paymentPayload = (await paymentResponse.json()) as {
+    const lotPaymentPayload = (await paymentResponse.json()) as {
       ok: boolean;
       error?: string;
       checkoutUrl?: string;
     };
-    if (!paymentPayload.ok || !paymentPayload.checkoutUrl) {
-      setError(paymentPayload.error || "Lot haqqı üçün checkout açıla bilmədi.");
+    if (!lotPaymentPayload.ok || !lotPaymentPayload.checkoutUrl) {
+      setError(lotPaymentPayload.error || "Lot haqqı üçün checkout açıla bilmədi.");
       setSubmitting(false);
       return;
     }
 
-    setPostCreate({ auctionId: createPayload.auction.id, checkoutUrl: paymentPayload.checkoutUrl });
+    let bondCheckoutUrl: string | undefined;
+    if (sellerBondRequired) {
+      const bondResponse = await fetch("/api/payments/auction-seller-bond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auctionId: createPayload.auction.id })
+      });
+      const bondPayload = (await bondResponse.json()) as {
+        ok: boolean;
+        error?: string;
+        checkoutUrl?: string;
+      };
+      if (!bondPayload.ok || !bondPayload.checkoutUrl) {
+        setError(bondPayload.error || "Satıcı bond checkout açıla bilmədi.");
+        setSubmitting(false);
+        return;
+      }
+      bondCheckoutUrl = bondPayload.checkoutUrl;
+    }
+
+    setPostCreate({
+      auctionId: createPayload.auction.id,
+      lotCheckoutUrl: lotPaymentPayload.checkoutUrl,
+      bondCheckoutUrl
+    });
     setSubmitting(false);
     router.refresh();
   }
@@ -127,10 +174,19 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
           <button
             type="button"
             className="btn-secondary justify-center"
-            onClick={() => router.push(postCreate.checkoutUrl)}
+            onClick={() => router.push(postCreate.lotCheckoutUrl)}
           >
             Lot haqqına keç
           </button>
+          {postCreate.bondCheckoutUrl && (
+            <button
+              type="button"
+              className="btn-secondary justify-center"
+              onClick={() => router.push(postCreate.bondCheckoutUrl!)}
+            >
+              Satıcı bond checkout
+            </button>
+          )}
           <button type="button" className="btn-secondary justify-center text-slate-500" onClick={() => setPostCreate(null)}>
             Geri (formaya)
           </button>
@@ -218,6 +274,40 @@ export function AuctionSellForm({ listings }: { listings: SellableListing[] }) {
               value={depositAmountAzn}
               onChange={(e) => setDepositAmountAzn(e.target.value)}
               placeholder="Məs: 500"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-slate-200 p-4">
+        <label className="flex items-center gap-3 text-sm font-medium text-slate-900">
+          <input
+            type="checkbox"
+            checked={sellerBondRequired}
+            onChange={(e) => {
+              setSellerBondRequired(e.target.checked);
+              if (e.target.checked && !sellerBondAmountAzn && suggestedSellerBond > 0) {
+                setSellerBondAmountAzn(String(suggestedSellerBond));
+              }
+            }}
+          />
+          Yüksək dəyərli lot üçün satıcı performans bond aktiv et
+        </label>
+        {isHighValue && (
+          <p className="mt-2 text-xs text-amber-700">
+            Bu lot yüksək dəyərli sayılır ({AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN.toLocaleString("az-AZ")} ₼+).
+            {deepKycApproved ? " Deep KYC təsdiqiniz var, bond opsionaldır." : " Deep KYC yoxdursa bond tələb olunur."}
+          </p>
+        )}
+        {sellerBondRequired && (
+          <div className="mt-3">
+            <label className="label">Satıcı bond məbləği (₼)</label>
+            <input
+              type="number"
+              className="input-field"
+              value={sellerBondAmountAzn}
+              onChange={(e) => setSellerBondAmountAzn(e.target.value)}
+              placeholder={`Məs: ${suggestedSellerBond || 1000}`}
             />
           </div>
         )}

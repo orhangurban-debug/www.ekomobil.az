@@ -4,6 +4,7 @@ import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
+import { getUserKycProfile } from "@/server/user-kyc-store";
 
 export default async function ProfilePage() {
   const user = await getServerSessionUser();
@@ -13,6 +14,7 @@ export default async function ProfilePage() {
   const favorites = await listUserFavorites(user.id);
   const savedSearches = await listSavedSearches(user.id);
   const myListings = await listListingsForUser(user.id);
+  const deepKyc = await getUserKycProfile(user.id);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -50,7 +52,24 @@ export default async function ProfilePage() {
                 <dt className="text-xs uppercase tracking-wider text-slate-400">Telefon</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-900">{profile?.phone || "Qeyd olunmayıb"}</dd>
               </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-slate-400">Deep KYC</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">
+                  {deepKyc?.status === "approved"
+                    ? "Təsdiqlənib"
+                    : deepKyc?.status === "submitted"
+                      ? "Yoxlamada"
+                      : deepKyc?.status === "rejected"
+                        ? "Rədd edilib"
+                        : "Göndərilməyib"}
+                </dd>
+              </div>
             </dl>
+            <div className="mt-4">
+              <Link href="/me/kyc" className="btn-secondary text-sm">
+                Deep KYC səhifəsi
+              </Link>
+            </div>
           </section>
 
           <section className="card p-6">

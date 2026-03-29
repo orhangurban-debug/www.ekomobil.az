@@ -67,6 +67,8 @@ export const createAuctionSchema = z
       .optional(),
     depositRequired: z.boolean().optional(),
     depositAmountAzn: aznAmountSchema.optional(),
+    sellerBondRequired: z.boolean().optional(),
+    sellerBondAmountAzn: aznAmountSchema.optional()
   })
   .refine(
     (data) =>
@@ -79,6 +81,10 @@ export const createAuctionSchema = z
       !data.startingBidAzn ||
       data.reservePriceAzn >= data.startingBidAzn,
     { message: "Rezerv qiyməti başlanğıc qiymətdən böyük olmalıdır" }
+  )
+  .refine(
+    (data) => !data.sellerBondRequired || !!data.sellerBondAmountAzn,
+    { message: "Satıcı bond aktivdirsə, bond məbləği daxil edilməlidir" }
   );
 
 // ─── Bid ──────────────────────────────────────────────────────────────────────
@@ -104,6 +110,21 @@ export const confirmSaleSchema = z.object({
 export const auctionPaymentSchema = z.object({
   auctionId: uuidSchema,
   note: z.string().max(500).optional(),
+});
+
+export const deepKycSubmitSchema = z.object({
+  legalName: z.string().trim().min(3, "Hüquqi ad ən az 3 simvol olmalıdır").max(120, "Hüquqi ad çox uzundur"),
+  nationalIdLast4: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{4}$/, "Ş/V nömrəsinin son 4 rəqəmini daxil edin"),
+  documentRef: z.string().trim().max(500, "Sənəd istinadı çox uzundur").optional(),
+});
+
+export const deepKycReviewSchema = z.object({
+  userId: uuidSchema,
+  decision: z.enum(["approved", "rejected"]),
+  note: z.string().trim().max(500, "Qeyd çox uzundur").optional(),
 });
 
 // ─── File upload ──────────────────────────────────────────────────────────────

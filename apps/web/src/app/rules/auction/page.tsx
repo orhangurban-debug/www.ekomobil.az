@@ -142,7 +142,7 @@ export default function AuctionFrameworkPage() {
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-700">
                 <li>SLA taymerləri və avtomatik xatırlatmalar (cron + ops audit) — təsdiq və intizam ödənişi addımları üçün.</li>
                 <li>Mübahisə kartında sübut yükləmə (tərəflər və ops üçün) — tətbiq olunur.</li>
-                <li>Yüksək dəyərli lotlar üçün opsional satıcı performans depoziti və dərin KYC axını.</li>
+                <li>Yüksək dəyərli lotlar üçün satıcı performans bond + deep KYC axını — tətbiq olunur (ops review ilə).</li>
               </ul>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4">

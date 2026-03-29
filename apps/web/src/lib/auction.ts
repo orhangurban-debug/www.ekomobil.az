@@ -41,6 +41,7 @@ export type AuctionOutcomeStatus =
 export type AuctionFinancialEventType =
   | "lot_fee"
   | "bidder_deposit"
+  | "seller_performance_bond"
   | "no_show_penalty"
   | "seller_breach_penalty"
   | "seller_success_fee";
@@ -64,6 +65,8 @@ export interface AuctionListingRecord {
   status: AuctionStatus;
   depositRequired: boolean;
   depositAmountAzn?: number;
+  sellerBondRequired: boolean;
+  sellerBondAmountAzn?: number;
   winnerUserId?: string;
   buyerConfirmedAt?: string;
   sellerConfirmedAt?: string;
