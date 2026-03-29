@@ -4,6 +4,7 @@ import { AUCTION_DOCUMENT_TYPE_LABELS } from "@/lib/auction-documents";
 import { requirePageRoles } from "@/lib/rbac";
 import { getAuctionServiceTelemetry, listAuctionAuditLogs, listAuctionOpsCases } from "@/server/auction-ops-store";
 import { listPendingAuctionDocuments, listDisputeEvidence } from "@/server/auction-document-store";
+import { listRecentAuctionSlaReminders } from "@/server/auction-sla-reminder-store";
 import { getPgPool } from "@/lib/postgres";
 
 function CaseBadge({ code }: { code: string }) {
@@ -34,11 +35,12 @@ export default async function AuctionOpsPage() {
   );
   const disputedIds = disputedResult.rows.map((r) => r.id);
 
-  const [cases, auditLogs, telemetry, pendingDocs, ...disputeEvidenceLists] = await Promise.all([
+  const [cases, auditLogs, telemetry, pendingDocs, slaReminders, ...disputeEvidenceLists] = await Promise.all([
     listAuctionOpsCases(),
     listAuctionAuditLogs(80),
     getAuctionServiceTelemetry(),
     listPendingAuctionDocuments(50),
+    listRecentAuctionSlaReminders(20),
     ...disputedIds.map((id) => listDisputeEvidence(id)),
   ]);
 
@@ -116,6 +118,58 @@ export default async function AuctionOpsPage() {
                     <td className="px-6 py-4">
                       <OpsDocumentReviewButtons docId={doc.id} auctionId={doc.auctionId} />
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="card mb-6 overflow-hidden">
+        <div className="border-b border-slate-100 px-6 py-4">
+          <h2 className="font-semibold text-slate-900">SLA xatırlatmalar (auto)</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Cron hər 10 dəqiqədə SLA yaxınlaşan və keçən case-lər üçün audit xatırlatma yaradır.
+          </p>
+        </div>
+        {slaReminders.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-slate-500">Hələ SLA xatırlatma qeydi yoxdur.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <tr>
+                  <th className="px-6 py-3 text-left">Lot</th>
+                  <th className="px-6 py-3 text-left">Tip</th>
+                  <th className="px-6 py-3 text-left">Səviyyə</th>
+                  <th className="px-6 py-3 text-left">Due at</th>
+                  <th className="px-6 py-3 text-left">Mesaj</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {slaReminders.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{item.titleSnapshot ?? item.auctionId}</div>
+                      <div className="mt-1 font-mono text-xs text-slate-400">{item.auctionId}</div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">
+                      {item.reminderType === "confirmation_step" ? "Təsdiq addımı" : "İntizam ödənişi"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={
+                          item.severity === "overdue"
+                            ? "inline-flex rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700"
+                            : "inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700"
+                        }
+                      >
+                        {item.severity === "overdue" ? "Gecikib" : "Yaxınlaşır"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{new Date(item.dueAt).toLocaleString("az-AZ")}</td>
+                    <td className="px-6 py-4 text-slate-600">{item.message}</td>
                   </tr>
                 ))}
               </tbody>
