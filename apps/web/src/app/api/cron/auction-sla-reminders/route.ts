@@ -3,21 +3,18 @@ import { runAuctionSlaReminderSweep } from "@/server/auction-sla-reminder-store"
 
 function isAuthorizedCronRequest(req: Request): boolean {
   const configuredSecret = process.env.CRON_SECRET?.trim();
-  if (configuredSecret) {
-    const authHeader = req.headers.get("authorization")?.trim() ?? "";
-    return authHeader === `Bearer ${configuredSecret}`;
-  }
-
-  // Fallback for environments where only Vercel cron header is available.
-  // In production, set CRON_SECRET for stronger protection.
-  const vercelCronHeader = req.headers.get("x-vercel-cron");
-  if (vercelCronHeader === "1") return true;
-
-  // Local development convenience.
-  return process.env.NODE_ENV !== "production";
+  if (!configuredSecret) return process.env.NODE_ENV !== "production";
+  const authHeader = req.headers.get("authorization")?.trim() ?? "";
+  return authHeader === `Bearer ${configuredSecret}`;
 }
 
 export async function GET(req: Request) {
+  if (process.env.NODE_ENV === "production" && !process.env.CRON_SECRET?.trim()) {
+    return NextResponse.json(
+      { ok: false, error: "CRON_SECRET is not configured for production" },
+      { status: 500 }
+    );
+  }
   if (!isAuthorizedCronRequest(req)) {
     return NextResponse.json({ ok: false, error: "Unauthorized cron request" }, { status: 401 });
   }
