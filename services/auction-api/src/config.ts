@@ -22,7 +22,8 @@ function requireEnv(name: string): string {
 
 export const config = {
   env: process.env.NODE_ENV ?? "development",
-  port: readInt("AUCTION_API_PORT", 4001),
+  // Cloud runtimes (Railway/Render/Fly) usually inject PORT.
+  port: readInt("PORT", readInt("AUCTION_API_PORT", 4001)),
   host: process.env.AUCTION_API_HOST ?? "0.0.0.0",
   databaseUrl: requireEnv("DATABASE_URL"),
   pgPoolMax: readInt("AUCTION_API_PG_POOL_MAX", 20),
