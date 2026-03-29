@@ -1,25 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuctionConfirmationPanel } from "@/components/auction/auction-confirmation-panel";
+import { DisputeEvidenceManager } from "@/components/auction/dispute-evidence-manager";
 import { getServerSessionUser } from "@/lib/auth";
 import { getAuctionStatusLabel } from "@/lib/auction";
 import { getAuctionListingForRead } from "@/server/auction-read-model";
 
 export default async function AuctionConfirmPage({
-  params
+  params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const [auction, user] = await Promise.all([
     getAuctionListingForRead(id),
-    getServerSessionUser()
+    getServerSessionUser(),
   ]);
   if (!auction) notFound();
 
   const winnerUserId = auction.winnerUserId ?? auction.currentBidderUserId;
   const canActAsBuyer = Boolean(user && winnerUserId && user.id === winnerUserId);
   const canActAsSeller = Boolean(user && user.id === auction.sellerUserId);
+  const isDisputed = auction.status === "disputed";
+
+  const uploaderRole = canActAsBuyer ? "buyer" : canActAsSeller ? "seller" : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -28,8 +32,8 @@ export default async function AuctionConfirmPage({
           <p className="text-sm font-medium text-brand-600">Post-auction settlement</p>
           <h1 className="mt-2 text-3xl font-bold text-slate-900">Satış nəticəsini təsdiqlə</h1>
           <p className="mt-3 text-sm leading-6 text-slate-500">
-            Bu ekran avtomobilin tam ödənişini qəbul etmir. Burada yalnız alıcı və satıcı off-platform satışın
-            nəticəsini qeyd edir. Platforma yalnız öz xidmət haqları üzrə tərəfdir.
+            Bu ekran avtomobilin tam ödənişini qəbul etmir. Burada yalnız alıcı və satıcı off-platform
+            satışın nəticəsini qeyd edir. Platforma yalnız öz xidmət haqları üzrə tərəfdir.
           </p>
         </div>
 
@@ -55,8 +59,8 @@ export default async function AuctionConfirmPage({
         </dl>
 
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Əsas satış ödənişi bank köçürməsi, notariat və ya tərəflərin razılaşdığı birbaşa üsulla tamamlanmalıdır.
-          EkoMobil bu məbləği qəbul etmir və saxlamır.
+          Əsas satış ödənişi bank köçürməsi, notariat və ya tərəflərin razılaşdığı birbaşa üsulla
+          tamamlanmalıdır. EkoMobil bu məbləği qəbul etmir və saxlamır.
         </div>
 
         <div className="mt-6">
@@ -67,6 +71,21 @@ export default async function AuctionConfirmPage({
             canActAsSeller={canActAsSeller}
           />
         </div>
+
+        {/* Dispute evidence section — visible only when disputed and user is a party */}
+        {isDisputed && uploaderRole && (
+          <div className="mt-8">
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+              <p className="font-semibold">Mübahisə açıqdır</p>
+              <p className="mt-1 text-red-800">
+                Aşağıdan mübahisənizi dəstəkləyən sübut faylları (foto, PDF, mesaj ekranı s.) yükləyin.
+                Ops komandası hər iki tərəfin sübutlarını nəzərdən keçirəcək.
+              </p>
+            </div>
+            <h2 className="mb-4 text-base font-semibold text-slate-900">Mübahisə sübutları</h2>
+            <DisputeEvidenceManager auctionId={auction.id} uploaderRole={uploaderRole} />
+          </div>
+        )}
 
         {!canActAsBuyer && !canActAsSeller && (
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">

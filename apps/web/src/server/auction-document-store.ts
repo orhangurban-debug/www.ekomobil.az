@@ -5,7 +5,8 @@ import {
   AUCTION_DOCUMENT_MAX_PER_LOT,
   AUCTION_DOCUMENT_TYPES,
   type AuctionDocumentType,
-  type AuctionListingDocumentRecord
+  type AuctionListingDocumentRecord,
+  type DisputeUploaderRole,
 } from "@/lib/auction-documents";
 import { getPgPool } from "@/lib/postgres";
 import {
@@ -18,6 +19,7 @@ interface DocumentRow {
   id: string;
   auction_id: string;
   uploaded_by_user_id: string;
+  uploader_role: string | null;
   doc_type: string;
   status: string;
   original_filename: string;
@@ -37,6 +39,7 @@ function mapRow(row: DocumentRow): AuctionListingDocumentRecord {
     id: row.id,
     auctionId: row.auction_id,
     uploadedByUserId: row.uploaded_by_user_id,
+    uploaderRole: (row.uploader_role as DisputeUploaderRole) ?? undefined,
     docType: row.doc_type as AuctionDocumentType,
     status: row.status as AuctionListingDocumentRecord["status"],
     originalFilename: row.original_filename,
@@ -224,6 +227,116 @@ export async function reviewAuctionListingDocument(input: {
   });
 
   return { ok: true, document: updated };
+}
+
+/**
+ * Upload dispute evidence — allowed for both buyer and seller when auction is `disputed`.
+ * Ops can view; no approve/reject needed (evidence is informational for ops review).
+ */
+export async function uploadDisputeEvidence(input: {
+  auctionId: string;
+  actorUserId: string;
+  uploaderRole: DisputeUploaderRole;
+  originalFilename: string;
+  mimeType: string;
+  buffer: Buffer;
+}): Promise<{ ok: true; document: AuctionListingDocumentRecord } | { ok: false; error: string }> {
+  if (!AUCTION_DOCUMENT_ALLOWED_MIMES.has(input.mimeType)) {
+    return { ok: false, error: "Yalnız PDF, JPEG, PNG və WebP qəbul olunur" };
+  }
+  if (input.buffer.length > AUCTION_DOCUMENT_MAX_BYTES) {
+    return { ok: false, error: `Fayl çox böyükdür (maks. ${AUCTION_DOCUMENT_MAX_BYTES / (1024 * 1024)} MB)` };
+  }
+
+  const auction = await getAuctionListing(input.auctionId);
+  if (!auction) return { ok: false, error: "Auksion tapılmadı" };
+  if (auction.status !== "disputed") {
+    return { ok: false, error: "Sübut yalnız mübahisə statusunda yüklənə bilər" };
+  }
+
+  const winnerUserId = auction.winnerUserId ?? auction.currentBidderUserId;
+  const isSeller = auction.sellerUserId === input.actorUserId;
+  const isBuyer = winnerUserId && winnerUserId === input.actorUserId;
+  if (!isSeller && !isBuyer) {
+    return { ok: false, error: "Yalnız bu auksionda satıcı və ya qalib alıcı sübut yükləyə bilər" };
+  }
+
+  // Double-check role consistency
+  const expectedRole: DisputeUploaderRole = isSeller ? "seller" : "buyer";
+  if (input.uploaderRole !== expectedRole) {
+    return { ok: false, error: "Rol uyğunsuzluğu aşkarlandı" };
+  }
+
+  // Limit: 10 dispute evidence files per side
+  const pool = getPgPool();
+  const countResult = await pool.query<{ n: string }>(
+    `SELECT COUNT(*)::text AS n FROM auction_listing_documents
+     WHERE auction_id = $1 AND doc_type = 'dispute_evidence' AND uploaded_by_user_id = $2`,
+    [input.auctionId, input.actorUserId]
+  );
+  if (Number(countResult.rows[0]?.n ?? 0) >= 10) {
+    return { ok: false, error: "Hər tərəf ən çox 10 sübut faylı yükləyə bilər" };
+  }
+
+  const id = randomUUID();
+  let persisted: { storageBackend: AuctionListingDocumentRecord["storageBackend"]; storageRef: string };
+  try {
+    persisted = await persistAuctionDocumentFile({
+      auctionId: input.auctionId,
+      documentId: id,
+      originalFilename: input.originalFilename,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Fayl saxlanılmadı" };
+  }
+
+  const result = await pool.query<DocumentRow>(
+    `INSERT INTO auction_listing_documents (
+       id, auction_id, uploaded_by_user_id, uploader_role, doc_type, status,
+       original_filename, mime_type, byte_size, storage_backend, storage_ref
+     )
+     VALUES ($1, $2, $3, $4, 'dispute_evidence', 'approved', $5, $6, $7, $8, $9)
+     RETURNING *`,
+    [
+      id,
+      input.auctionId,
+      input.actorUserId,
+      input.uploaderRole,
+      input.originalFilename,
+      input.mimeType,
+      input.buffer.length,
+      persisted.storageBackend,
+      persisted.storageRef,
+    ]
+  );
+
+  const inserted = result.rows[0];
+  if (!inserted) return { ok: false, error: "Sənəd qeydə alınmadı" };
+
+  await recordAuctionAuditLog({
+    auctionId: input.auctionId,
+    actorUserId: input.actorUserId,
+    actionType: "dispute_evidence_uploaded",
+    detail: `${input.uploaderRole}: ${input.originalFilename}`,
+  });
+
+  return { ok: true, document: mapRow(inserted) };
+}
+
+/** List all dispute evidence files for an auction */
+export async function listDisputeEvidence(
+  auctionId: string
+): Promise<AuctionListingDocumentRecord[]> {
+  const pool = getPgPool();
+  const result = await pool.query<DocumentRow>(
+    `SELECT * FROM auction_listing_documents
+     WHERE auction_id = $1 AND doc_type = 'dispute_evidence'
+     ORDER BY uploader_role ASC, created_at ASC`,
+    [auctionId]
+  );
+  return result.rows.map(mapRow);
 }
 
 export type PendingAuctionDocumentRow = AuctionListingDocumentRecord & { titleSnapshot: string };

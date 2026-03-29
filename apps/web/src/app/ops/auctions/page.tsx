@@ -3,7 +3,8 @@ import { OpsDocumentReviewButtons } from "@/components/auction/ops-document-revi
 import { AUCTION_DOCUMENT_TYPE_LABELS } from "@/lib/auction-documents";
 import { requirePageRoles } from "@/lib/rbac";
 import { getAuctionServiceTelemetry, listAuctionAuditLogs, listAuctionOpsCases } from "@/server/auction-ops-store";
-import { listPendingAuctionDocuments } from "@/server/auction-document-store";
+import { listPendingAuctionDocuments, listDisputeEvidence } from "@/server/auction-document-store";
+import { getPgPool } from "@/lib/postgres";
 
 function CaseBadge({ code }: { code: string }) {
   if (code === "DISPUTE") return <span className="badge-danger">Dispute</span>;
@@ -26,12 +27,31 @@ export default async function AuctionOpsPage() {
     );
   }
 
-  const [cases, auditLogs, telemetry, pendingDocs] = await Promise.all([
+  // Load disputed auction IDs to fetch their evidence counts
+  const pool = getPgPool();
+  const disputedResult = await pool.query<{ id: string }>(
+    `SELECT id FROM auction_listings WHERE status = 'disputed' ORDER BY updated_at DESC LIMIT 20`
+  );
+  const disputedIds = disputedResult.rows.map((r) => r.id);
+
+  const [cases, auditLogs, telemetry, pendingDocs, ...disputeEvidenceLists] = await Promise.all([
     listAuctionOpsCases(),
     listAuctionAuditLogs(80),
     getAuctionServiceTelemetry(),
-    listPendingAuctionDocuments(50)
+    listPendingAuctionDocuments(50),
+    ...disputedIds.map((id) => listDisputeEvidence(id)),
   ]);
+
+  // Map: auctionId -> { buyer: n, seller: n }
+  const disputeEvidenceCounts: Record<string, { buyer: number; seller: number; total: number }> = {};
+  disputedIds.forEach((id, i) => {
+    const evList = disputeEvidenceLists[i] ?? [];
+    disputeEvidenceCounts[id] = {
+      buyer: evList.filter((d) => d.uploaderRole === "buyer").length,
+      seller: evList.filter((d) => d.uploaderRole === "seller").length,
+      total: evList.length,
+    };
+  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -119,25 +139,54 @@ export default async function AuctionOpsPage() {
                     <th className="px-6 py-3 text-left">Lot</th>
                     <th className="px-6 py-3 text-left">Səbəb</th>
                     <th className="px-6 py-3 text-left">Mesaj</th>
+                    <th className="px-6 py-3 text-left">Sübutlar</th>
                     <th className="px-6 py-3 text-left">SLA</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {cases.map((item) => (
-                    <tr key={`${item.auctionId}-${item.reasonCode}`} className="hover:bg-slate-50 transition">
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-900">{item.titleSnapshot}</div>
-                        <div className="mt-1 font-mono text-xs text-slate-400">{item.auctionId}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <CaseBadge code={item.reasonCode} />
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">{item.message}</td>
-                      <td className="px-6 py-4 text-slate-500">
-                        {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString("az-AZ") : "-"}
-                      </td>
-                    </tr>
-                  ))}
+                  {cases.map((item) => {
+                    const ev = disputeEvidenceCounts[item.auctionId];
+                    const isDisputed = item.reasonCode === "DISPUTE";
+                    return (
+                      <tr key={`${item.auctionId}-${item.reasonCode}`} className="hover:bg-slate-50 transition">
+                        <td className="px-6 py-4">
+                          <Link
+                            href={`/auction/${item.auctionId}/confirm`}
+                            className="font-medium text-slate-900 hover:text-brand-600 hover:underline"
+                          >
+                            {item.titleSnapshot}
+                          </Link>
+                          <div className="mt-1 font-mono text-xs text-slate-400">{item.auctionId}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <CaseBadge code={item.reasonCode} />
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">{item.message}</td>
+                        <td className="px-6 py-4">
+                          {isDisputed && ev ? (
+                            <div className="flex flex-col gap-0.5 text-xs">
+                              <span className="inline-flex items-center gap-1">
+                                <span className="h-2 w-2 rounded-full bg-blue-400" />
+                                <span className="text-slate-700">Alıcı: {ev.buyer}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                                <span className="text-slate-700">Satıcı: {ev.seller}</span>
+                              </span>
+                              {ev.total === 0 && (
+                                <span className="text-slate-400">Hələ yoxdur</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString("az-AZ") : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

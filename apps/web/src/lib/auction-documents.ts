@@ -1,5 +1,14 @@
-export const AUCTION_DOCUMENT_TYPES = ["ownership_proof", "identity", "power_of_attorney", "other"] as const;
+export const AUCTION_DOCUMENT_TYPES = [
+  "ownership_proof",
+  "identity",
+  "power_of_attorney",
+  "other",
+  "dispute_evidence",
+] as const;
 export type AuctionDocumentType = (typeof AUCTION_DOCUMENT_TYPES)[number];
+
+/** Role of the uploader in the context of a dispute */
+export type DisputeUploaderRole = "buyer" | "seller";
 
 export type AuctionDocumentStatus = "pending_review" | "approved" | "rejected";
 
@@ -9,6 +18,7 @@ export interface AuctionListingDocumentRecord {
   id: string;
   auctionId: string;
   uploadedByUserId: string;
+  uploaderRole?: DisputeUploaderRole;
   docType: AuctionDocumentType;
   status: AuctionDocumentStatus;
   originalFilename: string;
@@ -30,7 +40,8 @@ export const AUCTION_DOCUMENT_TYPE_LABELS: Record<AuctionDocumentType, string> =
   ownership_proof: "Mülkiyyət / çıxarış",
   identity: "Şəxsiyyət və ya təmsilçilik",
   power_of_attorney: "Etibarnamə",
-  other: "Digər"
+  other: "Digər",
+  dispute_evidence: "Mübahisə sübutu",
 };
 
 export const AUCTION_DOCUMENT_STATUS_LABELS: Record<AuctionDocumentStatus, string> = {
