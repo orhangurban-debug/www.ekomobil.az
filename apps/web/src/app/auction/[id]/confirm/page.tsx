@@ -22,6 +22,16 @@ export default async function AuctionConfirmPage({
   const canActAsBuyer = Boolean(user && winnerUserId && user.id === winnerUserId);
   const canActAsSeller = Boolean(user && user.id === auction.sellerUserId);
   const isDisputed = auction.status === "disputed";
+  const relistAllowedStatuses = new Set([
+    "ended_pending_confirmation",
+    "completed",
+    "not_met_reserve",
+    "no_show",
+    "seller_breach",
+    "disputed",
+    "cancelled"
+  ]);
+  const canRelist = canActAsSeller && relistAllowedStatuses.has(auction.status);
 
   const uploaderRole = canActAsBuyer ? "buyer" : canActAsSeller ? "seller" : null;
 
@@ -69,6 +79,7 @@ export default async function AuctionConfirmPage({
             auctionStatus={auction.status}
             canActAsBuyer={canActAsBuyer}
             canActAsSeller={canActAsSeller}
+            canRelist={canRelist}
           />
         </div>
 

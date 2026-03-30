@@ -303,6 +303,49 @@ export async function createAuctionListing(input: {
   }
 }
 
+export async function relistAuctionFromPrevious(input: {
+  sourceAuctionId: string;
+  actorUserId: string;
+}): Promise<{ ok: true; auction: AuctionListingRecord } | { ok: false; error: string }> {
+  const sourceAuction = await getAuctionListing(input.sourceAuctionId);
+  if (!sourceAuction) return { ok: false, error: "Auksion tapılmadı" };
+  if (sourceAuction.sellerUserId !== input.actorUserId) {
+    return { ok: false, error: "Yalnız satıcı lotu yenidən auksiona çıxara bilər" };
+  }
+
+  const blockedStatuses: AuctionStatus[] = ["live", "extended", "scheduled"];
+  if (blockedStatuses.includes(sourceAuction.status)) {
+    return { ok: false, error: "Aktiv və ya planlı lotu yenidən yaratmaq olmaz" };
+  }
+
+  const sourceStartsAt = new Date(sourceAuction.startsAt);
+  const sourceEndsAt = new Date(sourceAuction.endsAt);
+  const sourceDurationMs = sourceEndsAt.getTime() - sourceStartsAt.getTime();
+  const minDurationMs = 60 * 60 * 1000;
+  const maxDurationMs = 7 * 24 * 60 * 60 * 1000;
+  const boundedDurationMs = Number.isFinite(sourceDurationMs)
+    ? Math.min(maxDurationMs, Math.max(minDurationMs, sourceDurationMs))
+    : 24 * 60 * 60 * 1000;
+
+  const now = new Date();
+  const nextEndsAt = new Date(now.getTime() + boundedDurationMs);
+
+  return createAuctionListing({
+    listingId: sourceAuction.listingId,
+    sellerUserId: input.actorUserId,
+    mode: sourceAuction.mode,
+    startingBidAzn: sourceAuction.startingBidAzn,
+    reservePriceAzn: sourceAuction.reservePriceAzn,
+    buyNowPriceAzn: sourceAuction.buyNowPriceAzn,
+    startsAt: now.toISOString(),
+    endsAt: nextEndsAt.toISOString(),
+    depositRequired: sourceAuction.depositRequired,
+    depositAmountAzn: sourceAuction.depositAmountAzn,
+    sellerBondRequired: sourceAuction.sellerBondRequired,
+    sellerBondAmountAzn: sourceAuction.sellerBondAmountAzn
+  });
+}
+
 export async function getAuctionListing(auctionId: string): Promise<AuctionListingRecord | null> {
   try {
     const pool = getPgPool();
