@@ -191,18 +191,6 @@ export default async function HomePage() {
               </button>
             </form>
 
-            {/* Quick make filters */}
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {["Toyota", "Hyundai", "BMW", "Mercedes", "Kia", "Volkswagen"].map((make) => (
-                <Link
-                  key={make}
-                  href={`/listings?make=${encodeURIComponent(make)}`}
-                  className="rounded-full border border-white/15 bg-white/5 px-3.5 py-1 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-                >
-                  {make}
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -321,9 +309,6 @@ export default async function HomePage() {
                   </svg>
                   Auksiona bax
                 </Link>
-                <Link href="/register" className="rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">
-                  Bildiriş al
-                </Link>
               </div>
             </div>
 
@@ -394,12 +379,6 @@ export default async function HomePage() {
               className="w-full rounded-xl bg-white px-8 py-3 font-semibold text-[#0891B2] transition hover:bg-[#E5D3B3] sm:w-auto"
             >
               Pulsuz elan yerləşdir
-            </Link>
-            <Link
-              href="/listings"
-              className="w-full rounded-xl border-2 border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
-            >
-              Bütün elanlar
             </Link>
           </div>
         </div>

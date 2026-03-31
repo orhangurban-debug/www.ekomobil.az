@@ -23,15 +23,7 @@ export default function AuctionFrameworkPage() {
 
       <h1 className="text-3xl font-bold text-slate-900">Auksion çərçivəsi</h1>
       <p className="mt-2 text-slate-500">
-        Bu sənəd auksion iştirakçıları üçün öhdəlikləri və platformanın rolunu aydınlaşdırır. Hüquqi mətnlər üçün həmçinin{" "}
-        <Link href="/terms" className="text-[#0891B2] hover:underline">
-          istifadəçi şərtləri
-        </Link>{" "}
-        və{" "}
-        <Link href="/pricing#auction" className="text-[#0891B2] hover:underline">
-          qiymətlər
-        </Link>{" "}
-        bölməsinə baxın.
+        Auksion üçün əsas qaydalar.
       </p>
 
       <div className="mt-8 space-y-10 text-slate-700 leading-relaxed">
@@ -111,62 +103,15 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">Sənədlər: satıcı yükləyir, platforma yoxlayır</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Sənədlər</h2>
           <p className="mt-3">
-            Peşəkar marketplace və beynəlxalq auksion praktikasında norma belədir: <strong>tələb olunan sənədləri satıcı özü
-            təqdim edir</strong> (şəxsiyyət və ya şirkət sübutu, mülkiyyətə dair sənədlər, razılıq formaları və s. — hüquq
-            şablonunu siz təsdiqləyəndən sonra siyahı dəqiqləşir). Platforma bu sənədləri <strong>yığmır və əvəzinə göndərmir</strong>
-            — əks halda əməliyyat xərci, məxfilik riski və məsuliyyət bulanığıqlaşır.
+            Tələb olunan sənədləri satıcı yükləyir, platforma yoxlayır və lotu qaydalara uyğun aktiv edir.
           </p>
-          <p className="mt-3">
-            EkoMobil tərəfi: sənədlərin <strong>təhlükəsiz yüklənməsi</strong>, saxlanması (şifrəli obyekt saxlama),{" "}
-            <strong>moderasiya/ops təsdiqi</strong>, avtomatik yoxlamalar (məsələn VIN sorğusu) və lotun aktivləşməsi üçün
-            qaydalar. İstəyə bağlı olaraq yüksək dəyərli lotlar üçün <strong>“concierge”</strong> paketində əməkdaş təlimat
-            verə bilər, amma sənədin mənbəyi yenə də satıcı olmalıdır.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-slate-900">Mərhələli inkişaf xəritəsi</h2>
-          <div className="mt-4 space-y-5">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-              <h3 className="font-semibold text-emerald-900">Mərhələ 1 — hazırda (tətbiq olunur)</h3>
-              <p className="mt-2 text-sm text-emerald-900/90">
-                Aydın məsuliyyət mətnləri (/terms, bu səhifə), satıcı lot formunda və alıcı təklifdə etiraf qutuları, simmetrik
-                nəticə statusları (no-show, satıcı pozuntusu, mübahisə), hər iki intizam ödənişi üçün təsdiq ekranından checkout
-                axını, lot sənəd vault (satıcı yükləyir, ops təsdiq/rədd; prod-da Vercel Blob), ops konsolda review siyahısı və
-                açıq case-lər.
-              </p>
-            </div>
-            <div className="rounded-xl border border-[#0891B2]/25 bg-[#0891B2]/5 p-4">
-              <h3 className="font-semibold text-slate-900">Mərhələ 2 — növbəti (aktiv inkişaf)</h3>
-              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-700">
-                <li>SLA taymerləri və avtomatik xatırlatmalar (cron + ops audit) — təsdiq və intizam ödənişi addımları üçün.</li>
-                <li>Mübahisə kartında sübut yükləmə (tərəflər və ops üçün) — tətbiq olunur.</li>
-                <li>Yüksək dəyərli lotlar üçün satıcı performans bond + deep KYC axını — tətbiq olunur (ops review ilə).</li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <h3 className="font-semibold text-slate-900">Mərhələ 3 — strateji (biznes qərarı ilə)</h3>
-              <p className="mt-2 text-sm text-slate-600">
-                Əsas məbləğ üçün escrow və ya sənədləşdirilmiş təhvil tərəfdaşlığı, sığorta/ekspertiza paketləri — yalnız ayrıca
-                hüquqi və maliyyə modeli təsdiqləndikdən sonra.
-              </p>
-            </div>
-          </div>
         </section>
       </div>
 
       <div className="mt-12 flex flex-wrap gap-4">
-        <Link href="/auction" className="btn-primary">
-          Auksiona bax
-        </Link>
-        <Link href="/auction/sell" className="btn-secondary">
-          Lot yarat
-        </Link>
-        <Link href="/rules" className="btn-secondary">
-          Ümumi qaydalar
-        </Link>
+        <Link href="/auction" className="btn-primary">Auksiona bax</Link>
       </div>
     </div>
   );

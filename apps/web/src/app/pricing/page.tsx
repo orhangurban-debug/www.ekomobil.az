@@ -39,24 +39,8 @@ export default function PricingPage() {
           Şəffaf qiymət siyasəti
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-slate-500">
-          Fərdi satıcıdan böyük salona qədər hər kəs üçün ədalətli plan.
-          Gizli ödəniş yoxdur.
+          Sadə və aydın qiymətlər. Gizli ödəniş yoxdur.
         </p>
-        <nav className="mt-6 flex flex-wrap justify-center gap-3 text-sm font-medium">
-          {[
-            { href: "#listings", label: "Elan planları" },
-            { href: "#dealer", label: "Salon abunəsi" },
-            { href: "#auction", label: "Auksion haqları" }
-          ].map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-slate-600 transition hover:border-[#0891B2] hover:text-[#0891B2]"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
       </div>
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
@@ -140,12 +124,6 @@ export default function PricingPage() {
             })}
           </div>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-            <strong className="text-slate-900">Mövcud elanı yüksəlt:</strong>{" "}
-            Artıq yerləşdirdiyiniz elanı Standart və ya VIP plana keçirmək üçün{" "}
-            <Link href="/me" className="font-medium text-[#0891B2] hover:underline">Profil panelinizə</Link>{" "}
-            daxil olun.
-          </div>
         </section>
 
         {/* ─── 2. Dealer plans ───────────────────────────────────────── */}
@@ -211,17 +189,6 @@ export default function PricingPage() {
             ))}
           </div>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="font-semibold text-slate-900">Böyük şəbəkə üçün xüsusi qiymət?</p>
-                <p className="mt-1 text-sm text-slate-500">50+ elanı olan salonlar üçün fərdi müqavilə hazırlayırıq.</p>
-              </div>
-              <Link href="mailto:info@ekomobil.az" className="btn-secondary text-sm whitespace-nowrap">
-                Bizimlə əlaqə
-              </Link>
-            </div>
-          </div>
         </section>
 
         {/* ─── 3. Auction fees ───────────────────────────────────────── */}
@@ -339,32 +306,8 @@ export default function PricingPage() {
             </div>
           </div>
 
-          {/* How it works steps */}
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-            <h3 className="mb-5 font-semibold text-slate-900">Necə işləyir?</h3>
-            <div className="grid gap-4 sm:grid-cols-4">
-              {[
-                { step: "1", title: "Lot sifariş et", desc: "VIN doğrulama + ekspertiza EkoMobil tərəfindən aparılır" },
-                { step: "2", title: "Hərrac başlayır", desc: "Qeydiyyatlı alıcılar real vaxt rejimində təklif verir" },
-                { step: "3", title: "Ən yüksək təklif udur", desc: "48 saat ərzində qalib alıcı satıcı ilə növbəti addımı təsdiqləyir" },
-                { step: "4", title: "Off-platform settlement", desc: "Əsas satış ödənişi birbaşa satıcıya edilir, platforma yalnız xidmət haqqını hesablayır" }
-              ].map((item) => (
-                <div key={item.step} className="flex gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0891B2] text-xs font-bold text-white">
-                    {item.step}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">{item.title}</div>
-                    <div className="mt-0.5 text-xs text-slate-500 leading-relaxed">{item.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/auction" className="btn-primary">Auksiona bax</Link>
-            <Link href="/auction/sell" className="btn-secondary">Lot sifariş et</Link>
           </div>
         </section>
 
@@ -374,20 +317,12 @@ export default function PricingPage() {
           <div className="space-y-5 divide-y divide-slate-100">
             {[
               {
-                q: "Elan planı bitəndən sonra nə baş verir?",
-                a: "Elan 30 gündən sonra arxivə düşür. İstəsəniz bir kliklə yenidən aktiv edə bilərsiniz."
-              },
-              {
-                q: "Salon abunəsini istənilən vaxt ləğv edə bilərəmmi?",
-                a: "Bəli. İstənilən vaxt dayandıra bilərsiniz."
-              },
-              {
                 q: "Auksion lotunu uduzsam lot haqqı geri qaytarılırmı?",
-                a: "Xeyr. Lot haqqı geri qaytarılmır. Komisyon isə yalnız satış olarsa tutulur."
+                a: "Xeyr. Lot haqqı geri qaytarılmır. Komisyon yalnız satış olarsa tutulur."
               },
               {
                 q: "Auksiona alıcı qatılmasa nə olur?",
-                a: "Auksion bitir, qalib olmazsa satış olmamış sayılır. Lot qalır, komisyon tutulmur."
+                a: "Auksion bitir, satış olmur. Lot qalır, komisyon tutulmur."
               },
               {
                 q: "Satış alınmasa eyni elanla yenidən auksion aça bilərəm?",
@@ -395,15 +330,7 @@ export default function PricingPage() {
               },
               {
                 q: "Avtomobilin əsas ödənişini EkoMobil qəbul edirmi?",
-                a: "Xeyr. EkoMobil yalnız platforma haqqını alır. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir."
-              },
-              {
-                q: "Satıcı uduşdan sonra satmaqdan imtina edərsə?",
-                a: "Alıcı bunu sistemdə 'satıcı öhdəliyini pozdu' kimi qeyd edə bilər. Qaydalara görə intizam ödənişi və ops baxışı tətbiq oluna bilər."
-              },
-              {
-                q: "Dealer Pro planında VIN kredit nədir?",
-                a: "Hər kredit 1 VIN yoxlamasıdır. Pro planda aylıq 5 pulsuz kredit var, əlavə kredit 3 ₼/ədəd."
+                a: "Xeyr. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir."
               }
             ].map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">

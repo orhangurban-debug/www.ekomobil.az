@@ -436,22 +436,6 @@ export default function AuctionPage() {
                 {error && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <h4 className="mb-3 text-sm font-semibold text-slate-900">Texniki təminat və məsuliyyət</h4>
-                <div className="space-y-2.5 text-xs text-slate-600">
-                  <div>Təkliflər serverdə ardıcıl emal olunur; eyni lot üzrə eyni anda bir yazma yolu tətbiq olunur.</div>
-                  <div>Lot və təkliflər real vaxt axını ilə yenilənə bilər.</div>
-                  <div>
-                    Avtomobilin alışı, ödənişi və təhvil-təslim birbaşa alıcı ilə satıcı arasındadır. EkoMobil bu əməliyyatlara
-                    görə tərəf deyil və məsuliyyət daşımır — təfərrüatlar{" "}
-                    <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
-                      Auksion çərçivəsi
-                    </Link>
-                    -dədir.
-                  </div>
-                </div>
-              </div>
-
               <div>
                 <h4 className="mb-3 text-sm font-semibold text-slate-700">Digər lot-lar</h4>
                 <div className="space-y-3">
@@ -472,12 +456,8 @@ export default function AuctionPage() {
 
         <div className="mt-12 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6 text-center">
           <h3 className="font-semibold text-slate-900">Avtomobilinizi hərracda satmaq istəyirsiniz?</h3>
-          <p className="mt-1 text-sm text-slate-500">
-            VIN doğrulamasını keçmiş istənilən avtomobili lot kimi yerləşdirin. Əsas satış ödənişi yenə də birbaşa alıcı ilə satıcı arasında tamamlanacaq.
-          </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <Link href="/auction/sell" className="btn-primary">Lot qeydiyyatı</Link>
-            <Link href="/listings" className="btn-secondary">Marketplace-ə bax</Link>
           </div>
         </div>
       </div>

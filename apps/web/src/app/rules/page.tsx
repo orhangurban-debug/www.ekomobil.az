@@ -15,7 +15,7 @@ export default function RulesPage() {
       </nav>
 
       <h1 className="text-3xl font-bold text-slate-900">Platforma qaydaları</h1>
-      <p className="mt-2 text-slate-500">Elan dərc etmək və platformadan istifadə etmək üçün qaydalar</p>
+      <p className="mt-2 text-slate-500">Qısa və əsas qaydalar.</p>
 
       <div className="mt-10 space-y-8 text-slate-700 leading-relaxed">
         <section>
@@ -39,14 +39,6 @@ export default function RulesPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-slate-900">Diler elanları</h2>
-          <p className="mt-3">
-            Diler statuslu elanlar yalnız təsdiqlənmiş salonlar tərəfindən dərc edilə bilər. 
-            Diler hesabı üçün əlavə sənədlər (VÖEN, fəaliyyət icazəsi) tələb oluna bilər.
-          </p>
-        </section>
-
-        <section>
           <h2 className="text-xl font-semibold text-slate-900">Auksion qaydaları</h2>
           <p className="mt-3">
             Ətraflı öhdəlik cədvəli, mərhələli inkişaf planı və platforma məsuliyyətinin həddi üçün{" "}
@@ -56,12 +48,9 @@ export default function RulesPage() {
             səhifəsinə baxın.
           </p>
           <ul className="mt-3 list-disc pl-6 space-y-2">
-            <li>Auksion lotu yalnız moderasiyadan və trust checklist-dən keçdikdən sonra canlıya çıxarıla bilər.</li>
-            <li>Təklif vermək üçün təsdiqlənmiş hesab və telefon doğrulaması tələb oluna bilər.</li>
-            <li>Yüksək dəyərli lotlar üçün bidder deposit və əlavə risk yoxlaması tətbiq edilə bilər.</li>
-            <li>Qalib alıcı hərrac bitdikdən sonra müəyyən edilmiş SLA daxilində növbəti addımı təsdiqləməlidir.</li>
-            <li>Avtomobilin əsas alış qiyməti platformada ödənilmir; birbaşa satıcıya ödənilir.</li>
-            <li>No-show və manipulyasiya trust score, hesab statusu və gələcək iştirak hüququna təsir edə bilər.</li>
+            <li>Lot yalnız yoxlamadan sonra canlıya çıxır.</li>
+            <li>Təklif üçün hesab doğrulaması tələb oluna bilər.</li>
+            <li>Əsas ödəniş platformadan keçmir; birbaşa satıcıya ödənilir.</li>
           </ul>
         </section>
 
@@ -76,19 +65,10 @@ export default function RulesPage() {
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-slate-900">Etibar siqnalları</h2>
-          <p className="mt-3">
-            VIN yoxlaması, satıcı doğrulaması və media tamamlığı platformanın etibar sisteminin hissəsidir. 
-            Bu siqnallar alıcıya kömək məqsədilə təqdim olunur və tam zəmanət vermir.
-          </p>
-        </section>
       </div>
 
       <div className="mt-12 flex flex-wrap gap-4">
-        <Link href="/terms" className="btn-secondary">İstifadəçi şərtləri</Link>
-        <Link href="/privacy" className="btn-secondary">Məxfilik siyasəti</Link>
-        <Link href="/" className="btn-primary">Ana səhifəyə qayıt</Link>
+        <Link href="/rules/auction" className="btn-primary">Auksion qaydaları</Link>
       </div>
     </div>
   );
