@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LISTING_PLANS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
+import type { ListingKind } from "@/lib/marketplace-types";
 import {
   AUCTION_FEES,
   calcSellerCommission,
@@ -26,6 +27,141 @@ function SectionHeader({ label, title, sub }: { label: string; title: string; su
       </span>
       <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h2>
       <p className="mt-2 text-slate-500">{sub}</p>
+    </div>
+  );
+}
+
+type AuctionCategoryStyle = {
+  headerClass: string;
+  borderClass: string;
+  ringClass: string;
+};
+
+const AUCTION_CATEGORY_STYLES: Record<ListingKind, AuctionCategoryStyle> = {
+  vehicle: {
+    headerClass: "bg-[#0891B2]/10 border-[#0891B2]/20",
+    borderClass: "border-[#0891B2]/25",
+    ringClass: "ring-1 ring-[#0891B2]/15"
+  },
+  part: {
+    headerClass: "bg-fuchsia-500/10 border-fuchsia-500/20",
+    borderClass: "border-fuchsia-500/25",
+    ringClass: "ring-1 ring-fuchsia-500/15"
+  }
+};
+
+function AuctionFeeRow({
+  title,
+  value,
+  who,
+  desc
+}: {
+  title: string;
+  value: string;
+  who: string;
+  desc: string;
+}) {
+  return (
+    <div className="py-4">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-900">{title}</p>
+          <p className="mt-0.5 text-xs font-medium text-slate-600">{who}</p>
+          <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">{desc}</p>
+        </div>
+        <div className="shrink-0 text-xl font-bold tabular-nums text-slate-900 sm:text-right sm:pt-0.5">
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuctionCategoryPanel({
+  kind,
+  title,
+  subtitle,
+  exampleSaleAzn,
+  exampleLabel
+}: {
+  kind: ListingKind;
+  title: string;
+  subtitle: string;
+  exampleSaleAzn: number;
+  exampleLabel: string;
+}) {
+  const s = AUCTION_CATEGORY_STYLES[kind];
+  const lot = getLotListingFeeAzn(kind);
+  const comm = calcSellerCommission(exampleSaleAzn, kind);
+  const total = calcTotalSellerCost(exampleSaleAzn, kind);
+  const ratePct =
+    kind === "vehicle"
+      ? (AUCTION_FEES.SELLER_COMMISSION_VEHICLE_RATE * 100).toFixed(1)
+      : (AUCTION_FEES.SELLER_COMMISSION_PART_RATE * 100).toFixed(1);
+  const minCap =
+    kind === "vehicle"
+      ? `${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`
+      : `${AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN} ₼`;
+
+  return (
+    <div
+      id={kind === "vehicle" ? "auction-vehicle" : "auction-part"}
+      className={`scroll-mt-24 overflow-hidden rounded-2xl border bg-white shadow-sm ${s.borderClass} ${s.ringClass}`}
+    >
+      <div className={`border-b px-5 py-4 ${s.headerClass}`}>
+        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
+      </div>
+
+      <div className="divide-y divide-slate-100 px-5">
+        <AuctionFeeRow
+          title="Lot yerləşdirmə"
+          value={`${lot} ₼`}
+          who="Satıcı ödəyir"
+          desc={
+            kind === "vehicle"
+              ? "VIN yoxlama + ekspertiza axını üçün"
+              : "Hissə elanları üçün aşağı giriş xərci"
+          }
+        />
+        <AuctionFeeRow
+          title="Satış komisyonu"
+          value={`${ratePct}%`}
+          who="Satıcıdan — yalnız uğurlu satışda"
+          desc={`Min ${minCap}`}
+        />
+        <AuctionFeeRow
+          title="No-show cəriməsi"
+          value={`${getNoShowPenaltyAzn(kind)} ₼`}
+          who="Qalib alıcı — platforma intizam haqqı"
+          desc="Ödəniş və ya təhvil alınması üzrə öhdəlik pozulduqda"
+        />
+        <AuctionFeeRow
+          title="Satıcı pozuntusu"
+          value={`${getSellerBreachPenaltyAzn(kind)} ₼`}
+          who="Satıcı — platforma intizam haqqı"
+          desc="Lot təsviri, vəziyyət və ya təhvil öhdəliyi pozulduqda"
+        />
+      </div>
+
+      <div className="border-t border-slate-100 bg-slate-50/80 px-5 py-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Nümunə hesab</p>
+        <p className="mt-1 text-xs text-slate-500">{exampleLabel}</p>
+        <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-slate-400">Lot</dt>
+            <dd className="mt-0.5 text-sm font-bold text-slate-900">{lot.toLocaleString("az-AZ")} ₼</dd>
+          </div>
+          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-slate-400">Komisyon</dt>
+            <dd className="mt-0.5 text-sm font-bold text-slate-900">{comm.toLocaleString("az-AZ")} ₼</dd>
+          </div>
+          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-slate-400">Cəmi</dt>
+            <dd className="mt-0.5 text-sm font-bold text-slate-900">{total.toLocaleString("az-AZ")} ₼</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }
@@ -204,106 +340,54 @@ export default function PricingPage() {
             satıcıya ödəyir. Aşağıdakı haqlar yalnız platforma xidmətlərinə aiddir.
           </div>
 
-          {/* Fee cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                label: "Lot yerləşdirmə (avtomobil)",
-                value: `${getLotListingFeeAzn("vehicle")} ₼`,
-                who: "Satıcı ödəyir",
-                desc: "VIN yoxlama + ekspertiza axını üçün",
-                color: "bg-[#0891B2]/10 text-[#0891B2]"
-              },
-              {
-                label: "Lot yerləşdirmə (hissə)",
-                value: `${getLotListingFeeAzn("part")} ₼`,
-                who: "Satıcı ödəyir",
-                desc: "Hissə elanları üçün aşağı giriş xərcı",
-                color: "bg-fuchsia-500/10 text-fuchsia-700"
-              },
-              {
-                label: "Satış komisyonu (avtomobil)",
-                value: `${(AUCTION_FEES.SELLER_COMMISSION_VEHICLE_RATE * 100).toFixed(1)}%`,
-                who: "Satıcıdan — uğurlu satışda",
-                desc: `Min ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`,
-                color: "bg-emerald-500/10 text-emerald-700"
-              },
-              {
-                label: "Satış komisyonu (hissə)",
-                value: `${(AUCTION_FEES.SELLER_COMMISSION_PART_RATE * 100).toFixed(1)}%`,
-                who: "Satıcıdan — uğurlu satışda",
-                desc: `Min ${AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN} ₼`,
-                color: "bg-violet-500/10 text-violet-700"
-              },
-              {
-                label: "Alıcı premium",
-                value: "Pulsuz",
-                who: "Pilot mərhələdə 0%",
-                desc: "Açıq beta dövründə alıcıdan rüsum alınmır",
-                color: "bg-slate-100 text-slate-600"
-              },
-              {
-                label: "No-show cəriməsi",
-                value: `${getNoShowPenaltyAzn("part")}–${getNoShowPenaltyAzn("vehicle")} ₼`,
-                who: "Qalib alıcı — platforma intizam haqqı",
-                desc: "Lot növünə görə dəyişir (hissə/avtomobil)",
-                color: "bg-rose-500/10 text-rose-600"
-              },
-              {
-                label: "Satıcı pozuntusu",
-                value: `${getSellerBreachPenaltyAzn("part")}–${getSellerBreachPenaltyAzn("vehicle")} ₼`,
-                who: "Satıcı — platforma intizam haqqı",
-                desc: "Lot növünə görə dəyişir (hissə/avtomobil)",
-                color: "bg-amber-500/10 text-amber-800"
-              }
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-5">
-                <span className={`inline-block rounded-lg px-2.5 py-1 text-xs font-semibold ${item.color}`}>
-                  {item.label}
-                </span>
-                <div className="mt-3 text-2xl font-bold text-slate-900">{item.value}</div>
-                <p className="mt-1 text-xs font-medium text-slate-600">{item.who}</p>
-                <p className="mt-2 text-xs text-slate-400 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
+          <p className="mb-4 text-center text-sm text-slate-500">
+            Aşağıda hər lot növü üçün yerləşdirmə, komisyon və intizam haqları bir sətirdə toplanıb.
+          </p>
+
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-2 text-sm">
+            <a
+              href="#auction-vehicle"
+              className="rounded-full border border-[#0891B2]/30 bg-white px-3 py-1.5 font-medium text-[#0e7490] shadow-sm hover:bg-[#0891B2]/5"
+            >
+              Avtomobil haqları
+            </a>
+            <a
+              href="#auction-part"
+              className="rounded-full border border-fuchsia-500/30 bg-white px-3 py-1.5 font-medium text-fuchsia-800 shadow-sm hover:bg-fuchsia-500/5"
+            >
+              Hissə haqları
+            </a>
           </div>
 
-          {/* Example calculation */}
-          <div className="mt-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6">
-            <h3 className="font-semibold text-slate-900">Nümunə hesab</h3>
-            <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
-              {[
-                {
-                  label: "Hissə (300 ₼): lot",
-                  value: `${getLotListingFeeAzn("part").toLocaleString("az-AZ")} ₼`
-                },
-                {
-                  label: "Hissə (300 ₼): komisyon",
-                  value: `${calcSellerCommission(300, "part").toLocaleString("az-AZ")} ₼`
-                },
-                {
-                  label: "Hissə (300 ₼): cəmi",
-                  value: `${calcTotalSellerCost(300, "part").toLocaleString("az-AZ")} ₼`
-                },
-                {
-                  label: "Avtomobil (70,000 ₼): lot",
-                  value: `${getLotListingFeeAzn("vehicle").toLocaleString("az-AZ")} ₼`
-                },
-                {
-                  label: "Avtomobil (70,000 ₼): komisyon",
-                  value: `${calcSellerCommission(70000, "vehicle").toLocaleString("az-AZ")} ₼`
-                },
-                {
-                  label: "Avtomobil (70,000 ₼): cəmi",
-                  value: `${calcTotalSellerCost(70000, "vehicle").toLocaleString("az-AZ")} ₼`
-                }
-              ].map((row) => (
-                <div key={row.label} className="rounded-xl bg-white p-3">
-                  <div className="text-xs text-slate-400">{row.label}</div>
-                  <div className="mt-1 font-bold text-slate-900">{row.value}</div>
-                </div>
-              ))}
+          {/* Alıcı — bütün lot növləri üçün eyni */}
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">Alıcı premium</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Pilot / açıq beta: bütün lot növlərində alıcıdan əlavə rüsum tutulmur.
+                </p>
+              </div>
+              <div className="shrink-0 text-2xl font-bold text-emerald-600">Pulsuz</div>
             </div>
+            <p className="mt-3 text-xs text-slate-400">Gələcəkdə elan ediləcək faiz dərəcəsi ayrıca bildiriləcək.</p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
+            <AuctionCategoryPanel
+              kind="vehicle"
+              title="Avtomobil"
+              subtitle="Tam nəqliyyat vasitəsi lotları — VIN və ekspertiza axını"
+              exampleSaleAzn={70_000}
+              exampleLabel="Satış qiyməti 70 000 ₼ olduqda satıcının lot + komisyon xərci"
+            />
+            <AuctionCategoryPanel
+              kind="part"
+              title="Hissə"
+              subtitle="Ehtiyat hissə və aksesuar lotları"
+              exampleSaleAzn={300}
+              exampleLabel="Satış qiyməti 300 ₼ olduqda satıcının lot + komisyon xərci"
+            />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
