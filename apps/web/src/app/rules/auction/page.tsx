@@ -30,12 +30,13 @@ export default function AuctionFrameworkPage() {
         <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
           <h2 className="text-xl font-semibold text-slate-900">Platformanın rolu və məsuliyyətin həddi</h2>
           <p className="mt-3">
-            EkoMobil auksion üçün sistemi verir: lot, təkliflər, bildirişlər və platforma haqqı ödəniş linkləri.
+            EkoMobil auksion üçün texniki sistemi verir: lot, təkliflər, bildirişlər və platforma haqqı ödəniş linkləri.
             Avtomobilin və ya hissənin əsas satış pulu platformadan keçmir.
           </p>
           <p className="mt-3">
-            Alıcı və satıcı arasındakı razılaşma birbaşa onların öhdəliyidir. Moderasiya və ops dəstəyi var, amma bu tam
-            hüquqi zəmanət deyil.
+            Elan və lot üzrə təqdim edilən bütün məlumatların düzgünlüyü satıcının məsuliyyətindədir. Platforma
+            məlumatların yerləşdirilməsi və yayımlanması üçün imkan yaradır; müstəqil ekspert rəyi və ya hüquqi zəmanət
+            vermir.
           </p>
         </section>
 
@@ -105,7 +106,8 @@ export default function AuctionFrameworkPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900">Sənədlər</h2>
           <p className="mt-3">
-            Tələb olunan sənədləri satıcı yükləyir, platforma yoxlayır və lotu qaydalara uyğun aktiv edir.
+            Tələb olunan sənədləri satıcı yükləyir və təqdim edir. Platforma sənədlərin paylaşılması və yayımlanması üçün
+            texniki imkan verir.
           </p>
         </section>
       </div>

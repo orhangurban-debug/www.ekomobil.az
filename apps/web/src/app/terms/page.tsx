@@ -29,9 +29,9 @@ export default function TermsPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900">2. Platforma rolu</h2>
           <p className="mt-3">
-            EkoMobil yalnız elanların dərc edilməsi, axtarış və əlaqə imkanlarının təmin edilməsi ilə məhdudlaşır. 
-            Alıcı ilə satıcı arasında bağlanan müqavilələr birbaşa tərəflər arasında bağlanır. 
-            Platforma bu müqavilələrin tərəfi deyil və məsuliyyət daşımır.
+            EkoMobil yalnız elanların və auksion məlumatlarının yerləşdirilməsi, axtarış və əlaqə imkanlarının təmin
+            edilməsi ilə məhdudlaşır. Alıcı ilə satıcı arasında bağlanan razılaşmalar birbaşa tərəflər arasında bağlanır.
+            Platforma həmin razılaşmaların tərəfi deyil.
           </p>
           <p className="mt-3">
             EkoMobil satıcı, alıcı, agent, komisyonçu və ya escrow xidməti göstərən maliyyə vasitəçisi kimi çıxış etmir.
@@ -94,22 +94,25 @@ export default function TermsPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900">6. Etibar və yoxlama</h2>
           <p className="mt-3">
-            EkoMobil VIN yoxlaması, yürüş uyğunluğu və satıcı doğrulaması kimi etibar siqnalları təqdim edir. 
-            Bu məlumatlar köməkçi xarakter daşıyır və tam zəmanət vermir. 
-            Alıcı öz məsuliyyəti ilə əlavə yoxlama (ekspertiza) edə bilər.
+            EkoMobil satıcının təqdim etdiyi VIN, servis tarixçəsi və digər istinadları yerləşdirmək və göstərmək üçün
+            imkan yaradır. Bu məlumatların düzgünlüyü və tamlığı satıcının məsuliyyətindədir.
+          </p>
+          <p className="mt-3">
+            Platforma müstəqil texniki araşdırma aparmır və ekspert rəyi vermir. Alıcı istədikdə əlavə yoxlamanı (ekspertiza
+            və ya servis mərkəzi baxışı) özü təşkil edə bilər.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold text-slate-900">7. Məsuliyyətin məhdudlaşdırılması</h2>
           <p className="mt-3">
-            Platforma elanların dəqiqliyinə, satıcıların etibarlılığına və alıcı-satıcı mübahisələrinə görə 
-            birbaşa məsuliyyət daşımır. İstifadəçilər öz riskləri ilə əməliyyatlar həyata keçirirlər.
+            Platforma elanların dəqiqliyinə, satıcıların təqdim etdiyi məlumatların nəticələrinə və alıcı-satıcı
+            münasibətlərinə görə birbaşa məsuliyyət daşımır. İstifadəçilər əməliyyatları öz qərarı ilə icra edirlər.
           </p>
           <p className="mt-3">
             Platforma avtomobilin texniki vəziyyəti, real bazar dəyəri, tərəflərin öhdəliklərini yerinə yetirməsi,
             əsas satış ödənişinin icrası və ya mülkiyyət keçidinin hüquqi nəticələri üçün zəmanət vermir.
-            EkoMobil tərəfindən göstərilən trust siqnalları və moderasiya qərarları köməkçi xarakter daşıyır.
+            EkoMobil üzərində göstərilən məlumatlar məlumatlandırma məqsədi daşıyır.
           </p>
         </section>
 

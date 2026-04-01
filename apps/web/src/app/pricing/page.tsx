@@ -222,6 +222,11 @@ export default function PricingPage() {
       </div>
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
+          EkoMobil elan və auksion məlumatlarının yerləşdirilməsi və yayımlanması üçün platformadır. Məlumatların
+          düzgünlüyü və aktuallığı satıcının məsuliyyətindədir. VIN, servis tarixçəsi və sənəd istinadlarının paylaşılması
+          elanın keyfiyyətini artırır.
+        </section>
 
         {/* ─── 1. Listing plans ──────────────────────────────────────── */}
         <section id="listings" className="scroll-mt-20">

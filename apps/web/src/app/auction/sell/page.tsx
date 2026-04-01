@@ -39,8 +39,9 @@ export default async function AuctionSellPage() {
         <p className="text-sm font-medium text-brand-600">Auksion Seller Flow</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Lot yarat</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-          EkoMobil yalnız auksion infrastrukturunu və trust qatını təqdim edir. Avtomobilin əsas satış ödənişi
-          platformadan keçmir; qalib alıcı onu birbaşa satıcıya ödəyir.
+          EkoMobil yalnız auksion infrastrukturunu və məlumatların təqdimat imkanlarını verir. Elan və lot məlumatlarının
+          düzgünlüyünə görə məsuliyyət satıcıya məxsusdur. Avtomobilin əsas satış ödənişi platformadan keçmir; qalib alıcı
+          onu birbaşa satıcıya ödəyir.
         </p>
       </div>
 
@@ -68,16 +69,16 @@ export default async function AuctionSellPage() {
         <ul className="mt-3 list-disc space-y-1 pl-5">
           <li>Lot haqqı ödənmədən hərrac aktivləşmir</li>
           <li>Yüksək dəyərli lotlarda deep KYC və ya satıcı performans bond tələb oluna bilər</li>
-          <li>Satışın daha sürətli getməsi üçün VIN məlumat linki və servis tarixçə linki əlavə etmək tövsiyə olunur</li>
+          <li>Satışın daha sürətli getməsi üçün VIN və servis tarixçəsi məlumatlarını link və ya sənəd istinadı ilə əlavə etmək tövsiyə olunur</li>
         </ul>
       </div>
 
       <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-5 text-sm text-slate-700">
         <div className="font-semibold text-slate-900">Sənədlər</div>
         <p className="mt-2 leading-relaxed">
-          Tələb olunan sənədləri <strong>satıcı özü yükləyir və təqdim edir</strong>; platforma onları toplamır. Tərəfimizdən
-          təhlükəsiz saxlama, moderasiya və auksion üçün uyğunluq yoxlaması tətbiq olunur. Elan üzrə etibar siqnalları (VIN
-          avtomobil üçün, satıcı, media) tamamlanmalıdır. Lot yaradıldıqdan sonra həmin lotun ID-si ilə{" "}
+          Tələb olunan sənədləri <strong>satıcı özü yükləyir və təqdim edir</strong>; platforma onların təqdimatı və
+          yayımlanması üçün texniki imkan yaradır. Elan üzrə etibar siqnalları (VIN avtomobil üçün, satıcı, media)
+          tamamlanmalıdır. Lot yaradıldıqdan sonra həmin lotun ID-si ilə{" "}
           <span className="font-medium text-slate-800">/auction/&lt;lot-id&gt;/documents</span> səhifəsindən sənəd yükləyə
           bilərsiniz.
         </p>
