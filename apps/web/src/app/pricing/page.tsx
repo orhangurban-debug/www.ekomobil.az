@@ -77,6 +77,21 @@ function AuctionFeeRow({
   );
 }
 
+function NumberedSteps({ title, id, steps }: { title: string; id: string; steps: string[] }) {
+  return (
+    <div id={id} className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <h3 className="text-base font-bold text-slate-900">{title}</h3>
+      <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-600 marker:font-semibold marker:text-[#0891B2]">
+        {steps.map((s) => (
+          <li key={s} className="leading-relaxed">
+            {s}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function AuctionCategoryPanel({
   kind,
   title,
@@ -133,14 +148,14 @@ function AuctionCategoryPanel({
         <AuctionFeeRow
           title="No-show cəriməsi"
           value={`${getNoShowPenaltyAzn(kind)} ₼`}
-          who="Qalib alıcı — platforma intizam haqqı"
-          desc="Ödəniş və ya təhvil alınması üzrə öhdəlik pozulduqda"
+          who="Qalib alıcı (ödənişi o, linki satıcı yarada bilər)"
+          desc="Təhvil/ödəniş öhdəliyi pozulduqda. Tutulma: aşağıdakı “Intizam ödənişləri”."
         />
         <AuctionFeeRow
           title="Satıcı pozuntusu"
           value={`${getSellerBreachPenaltyAzn(kind)} ₼`}
-          who="Satıcı — platforma intizam haqqı"
-          desc="Lot təsviri, vəziyyət və ya təhvil öhdəliyi pozulduqda"
+          who="Satıcı (ödənişi o, linki qalib alıcı yarada bilər)"
+          desc="Satış öhdəliyi pozulduqda. Tutulma: eyni bölmədə."
         />
       </div>
 
@@ -340,8 +355,57 @@ export default function PricingPage() {
             satıcıya ödəyir. Aşağıdakı haqlar yalnız platforma xidmətlərinə aiddir.
           </div>
 
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm sm:p-6">
+            <h3 className="text-base font-semibold text-slate-900">Auksion axını və intizam ödənişləri</h3>
+            <p className="mt-3 leading-relaxed">
+              <span className="font-medium text-slate-800">Təkrarlanan görünüş.</span> Aşağıdakı iki kart eyni
+              quruluşdadır: məqsəd avtomobil ilə hissəni bir-birinə müqayisə etməkdir. Yalnız rəqəmlər və qısa kontekst
+              fərqlənir — eyni məlumatı iki dəfə “fərqli qayda” kimi təqdim etmirik.
+            </p>
+            <p className="mt-3 leading-relaxed">
+              <span className="font-medium text-slate-800">No-show cəriməsi alıcıdan necə tutulur?</span> Platforma bu
+              məbləği kartdan avtomatik çıxarmır və bidder deposit-i birbaşa cəriməyə çevirmir. Satıcı auksion bitəndən
+              sonra təsdiq pəncərəsində alıcı no-show bildirdikdə status yenilənir; satıcı sistemdə{" "}
+              <span className="font-medium text-slate-800">no-show üçün ödəniş səhifəsi (Kapital Bank checkout)</span>{" "}
+              yaradır. Ödənişi hüquqi olaraq <span className="font-medium text-slate-800">qalib alıcı</span> etməlidir —
+              linki alıcı ilə paylaşıb bank ödənişini tamamlayırsınız. Satıcı pozuntusu üçün də eyni prinsipdir: checkout
+              linkini <span className="font-medium text-slate-800">qalib alıcı</span> yaradır, ödənişi{" "}
+              <span className="font-medium text-slate-800">satıcı</span> edir.
+            </p>
+            <p className="mt-3 text-xs text-slate-400">
+              Ətraflı hüquqi çərçivə və SLA üçün <Link href="/rules/auction" className="font-medium text-[#0891B2] underline underline-offset-2">Auksion qaydaları</Link> səhifəsinə baxın.
+            </p>
+          </div>
+
+          <div className="mb-8 grid gap-6 lg:grid-cols-2">
+            <NumberedSteps
+              id="auction-seller-steps"
+              title="Satıcı üçün addımlar (A–Z)"
+              steps={[
+                "Etibar tələblərini tamamla: satıcı doğrulaması, media; avtomobil lotları üçün VIN axını.",
+                "Lot yarat: /auction/sell səhifəsindən elan seç, lot parametrlərini təsdiqlə.",
+                "Lot haqqı (və tələb olunduqda satıcı performans bond) üçün bank checkout-u tamamla — ödənilməyən lot aktivləşmir.",
+                "Lazım gəlsə lot üçün sənədləri auksion lotunun sənəd yükləmə səhifəsindən əlavə et.",
+                "Canlı hərracı izlə; bitəndə təsdiq pəncərəsində satıcı kimi nəticəni qeyd et (uğurlu satış, alıcı no-show, mübahisə və s.).",
+                "Uğurlu satışda əsas məbləği alıcı sənə birbaşa ödəyir; platforma uğur komisyonu üçün ayrıca checkout göstərilir.",
+                "Alıcı no-show bildirdikdə: sistemdə cərimə üçün ödəniş səhifəsi yaradırsan; ödənişi qalib alıcı bankda edir (yuxarıdakı izah)."
+              ]}
+            />
+            <NumberedSteps
+              id="auction-buyer-steps"
+              title="Alıcı üçün addımlar (A–Z)"
+              steps={[
+                "Hesabınla daxil ol; lotda “Deposit” işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
+                "Auksion qaydalarını təsdiqlə, təklif ver; qalib olanda təsdiq pəncərəsini izlə.",
+                "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın off-platform tamamlandığını təsdiqlə.",
+                "Öhdəlikləri pozmamağa çalış: əks halda satıcı no-show bildirə bilər; no-show statusunda səndən intizam cəriməsi ödənilməsi gözlənilir (ayrıca checkout).",
+                "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsində müvafiq seçimlə bildir; satıcı pozuntusu cəriməsi üçün checkout linkini sən yaradırsan, ödənişi satıcı edir."
+              ]}
+            />
+          </div>
+
           <p className="mb-4 text-center text-sm text-slate-500">
-            Aşağıda hər lot növü üçün yerləşdirmə, komisyon və intizam haqları bir sətirdə toplanıb.
+            Aşağıda hər lot növü üçün yerləşdirmə, komisyon və intizam haqları cədvəl kimi verilib.
           </p>
 
           <div className="mb-8 flex flex-wrap items-center justify-center gap-2 text-sm">
@@ -356,6 +420,18 @@ export default function PricingPage() {
               className="rounded-full border border-fuchsia-500/30 bg-white px-3 py-1.5 font-medium text-fuchsia-800 shadow-sm hover:bg-fuchsia-500/5"
             >
               Hissə haqları
+            </a>
+            <a
+              href="#auction-seller-steps"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 shadow-sm hover:bg-slate-50"
+            >
+              Satıcı addımları
+            </a>
+            <a
+              href="#auction-buyer-steps"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-600 shadow-sm hover:bg-slate-50"
+            >
+              Alıcı addımları
             </a>
           </div>
 

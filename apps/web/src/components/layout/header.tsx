@@ -11,7 +11,6 @@ const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE
 const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
   { href: "/auction", label: "Auksion", live: true },
-  { href: "/publish", label: "Elan yerləşdir" },
   { href: "/pricing", label: "Qiymətlər" },
   { href: "/dealer", label: "Salon paneli" },
   { href: "/favorites", label: "Favorilər" }
