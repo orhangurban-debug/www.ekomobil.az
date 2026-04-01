@@ -124,6 +124,7 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
 
   if (query.city && query.city !== "Hamısı") result = result.filter((item) => item.city === query.city);
   if (query.make && query.make !== "Hamısı") result = result.filter((item) => item.make === query.make);
+  if (query.model && query.model !== "Hamısı") result = result.filter((item) => item.model.toLowerCase() === query.model!.toLowerCase());
   if (query.search) {
     const needle = query.search.toLowerCase();
     result = result.filter((item) => `${item.make} ${item.model} ${item.title}`.toLowerCase().includes(needle));
@@ -201,6 +202,10 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     if (query.make && query.make !== "Hamısı") {
       values.push(query.make);
       where.push(`l.make = $${values.length}`);
+    }
+    if (query.model && query.model !== "Hamısı") {
+      values.push(query.model);
+      where.push(`LOWER(l.model) = LOWER($${values.length})`);
     }
     if (query.search) {
       values.push(`%${query.search.toLowerCase()}%`);

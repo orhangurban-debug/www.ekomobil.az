@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { ListingQuery } from "@/lib/marketplace-types";
+import type { CarModelInsights } from "@/lib/car-insights";
 
 const EXTRACT_SEARCH_PROMPT = `Sən EkoMobil avtomobil platformasının köməkçisisən. İstifadəçinin mesajından elan axtarış parametrlərini çıxar.
 
@@ -70,6 +71,73 @@ export async function extractSearchParams(userMessage: string): Promise<Partial<
     return q;
   } catch {
     return {};
+  }
+}
+
+const CAR_INSIGHTS_PROMPT = `Sən avtomobil analitiki ekspertisən. Aşağıdakı avtomobil modeli üçün JSON formatında dəqiq analitik məlumat yarat.
+
+Məlumat mənbələri: J.D. Power IQS/VDS, Consumer Reports Reliability Survey, TÜV Report, Euro NCAP/NHTSA. Reytinqlər 1–10 şkalasında.
+
+JSON strukturu (YALNIZ bu JSON-u qaytar, heç bir izah əlavə etmə):
+{
+  "make": "string",
+  "model": "string", 
+  "yearFrom": number,
+  "ratings": {
+    "reliability": number (1-10),
+    "comfort": number (1-10),
+    "performance": number (1-10),
+    "economy": number (1-10),
+    "safety": number (1-10)
+  },
+  "ownerSatisfaction": number (0-100, faiz),
+  "strengths": ["string", "string", "string"],
+  "weaknesses": ["string", "string", "string"],
+  "commonProblems": ["string", "string"],
+  "maintenanceCost": "aşağı" | "orta" | "yüksək" | "çox yüksək",
+  "sourceNote": "string (qısa mənbə qeydi)",
+  "verdict": "string (2-3 cümlə, Azərbaycan dilində)"
+}
+
+Bütün mətn sahələri Azərbaycan dilində olmalıdır. Reytinqlər beynəlxalq ortalama göstəriciləri əks etdirməlidir.`;
+
+// In-memory cache to avoid duplicate Gemini calls within a server lifecycle
+const insightsCache = new Map<string, CarModelInsights>();
+
+export async function generateCarInsightsAi(
+  make: string,
+  model: string,
+  year: number
+): Promise<CarModelInsights | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const cacheKey = `${make}::${model}::${Math.floor(year / 5) * 5}`;
+  if (insightsCache.has(cacheKey)) return insightsCache.get(cacheKey)!;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: `${CAR_INSIGHTS_PROMPT}\n\nModel: ${make} ${model} (${year} il)`,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+        maxOutputTokens: 1024
+      }
+    });
+
+    const text = response.text?.trim();
+    if (!text) return null;
+
+    const parsed = JSON.parse(text) as CarModelInsights;
+    // Basic validation
+    if (!parsed.ratings || typeof parsed.ratings.reliability !== "number") return null;
+
+    insightsCache.set(cacheKey, parsed);
+    return parsed;
+  } catch {
+    return null;
   }
 }
 

@@ -58,6 +58,7 @@ export default async function ListingsPage({
   const query = {
     city: typeof params.city === "string" ? params.city : undefined,
     make: typeof params.make === "string" ? params.make : undefined,
+    model: typeof params.model === "string" ? params.model : undefined,
     search: typeof params.q === "string" ? params.q : undefined,
     minPrice: typeof params.minPrice === "string" ? Number(params.minPrice) : undefined,
     maxPrice: typeof params.maxPrice === "string" ? Number(params.maxPrice) : undefined,
@@ -88,6 +89,7 @@ export default async function ListingsPage({
   const activeChips = [
     query.city && query.city !== "Hamısı" ? { label: query.city, href: chipHref(params, "city") } : null,
     query.make && query.make !== "Hamısı" ? { label: query.make, href: chipHref(params, "make") } : null,
+    query.model && query.model !== "Hamısı" ? { label: query.model, href: chipHref(params, "model") } : null,
     query.bodyType ? { label: query.bodyType, href: chipHref(params, "bodyType") } : null,
     query.fuelType ? { label: query.fuelType, href: chipHref(params, "fuelType") } : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,

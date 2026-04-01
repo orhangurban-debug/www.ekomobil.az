@@ -11,12 +11,14 @@ import {
   TRANSMISSIONS,
   DRIVE_TYPES,
   COLORS,
-  CONDITIONS
+  CONDITIONS,
+  getModelsForMake
 } from "@/lib/car-data";
 
 interface QueryState {
   city?: string;
   make?: string;
+  model?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -40,6 +42,7 @@ function buildUrl(query: QueryState) {
   const params = new URLSearchParams();
   if (query.city && query.city !== "Hamısı") params.set("city", query.city);
   if (query.make && query.make !== "Hamısı") params.set("make", query.make);
+  if (query.model && query.model !== "Hamısı") params.set("model", query.model);
   if (query.search) params.set("q", query.search);
   if (query.minPrice) params.set("minPrice", String(query.minPrice));
   if (query.maxPrice) params.set("maxPrice", String(query.maxPrice));
@@ -70,9 +73,11 @@ export function ListingsFiltersPanel({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [query, setQuery] = useState<QueryState>({
     city: initialQuery.city ?? "Hamısı",
     make: initialQuery.make ?? "Hamısı",
+    model: initialQuery.model ?? "Hamısı",
     search: initialQuery.search ?? "",
     minPrice: initialQuery.minPrice,
     maxPrice: initialQuery.maxPrice,
@@ -92,11 +97,18 @@ export function ListingsFiltersPanel({
     sort: initialQuery.sort ?? "recent"
   });
 
+  // Models for selected make
+  const availableModels = useMemo(() => {
+    if (!query.make || query.make === "Hamısı") return [];
+    return getModelsForMake(query.make);
+  }, [query.make]);
+
   const activeCount = useMemo(
     () =>
       [
         query.city && query.city !== "Hamısı",
         query.make && query.make !== "Hamısı",
+        query.model && query.model !== "Hamısı",
         query.search,
         query.minPrice,
         query.maxPrice,
@@ -117,175 +129,327 @@ export function ListingsFiltersPanel({
     [query]
   );
 
+  // Count active advanced filters for badge
+  const advancedCount = useMemo(
+    () =>
+      [
+        query.city && query.city !== "Hamısı",
+        query.fuelType,
+        query.transmission,
+        query.bodyType,
+        query.driveType,
+        query.color,
+        query.condition,
+        query.sellerType,
+        query.vinVerified,
+        query.sellerVerified
+      ].filter(Boolean).length,
+    [query]
+  );
+
   function apply(nextQuery = query) {
     router.push(buildUrl(nextQuery));
     setOpen(false);
   }
 
   function reset() {
-    const nextQuery: QueryState = { city: "Hamısı", make: "Hamısı", sort: "recent" };
+    const nextQuery: QueryState = { city: "Hamısı", make: "Hamısı", model: "Hamısı", sort: "recent" };
     setQuery(nextQuery);
     router.push("/listings");
     setOpen(false);
   }
 
+  function handleMakeChange(make: string) {
+    setQuery((prev) => ({ ...prev, make, model: "Hamısı" }));
+  }
+
   const panel = (
-    <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+
+      {/* Search */}
       <div>
         <label className="label">Axtarış</label>
         <input
           className="input-field"
           value={query.search ?? ""}
           onChange={(e) => setQuery((prev) => ({ ...prev, search: e.target.value }))}
-          placeholder="Marka, model və ya VIN"
+          placeholder="Marka, model və ya açar söz"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      {/* Make */}
+      <div>
+        <label className="label">Marka</label>
+        <select
+          className="input-field"
+          value={query.make ?? "Hamısı"}
+          onChange={(e) => handleMakeChange(e.target.value)}
+        >
+          <option value="Hamısı">Bütün markalar</option>
+          {CAR_MAKES.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Model — shows only when a make is selected */}
+      {availableModels.length > 0 && (
         <div>
-          <label className="label">Şəhər</label>
-          <select className="input-field" value={query.city ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, city: e.target.value }))}>
-            <option value="Hamısı">Hamısı</option>
-            {AZERBAIJAN_CITIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="label">Marka</label>
-          <select className="input-field" value={query.make ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, make: e.target.value }))}>
-            <option value="Hamısı">Hamısı</option>
-            {CAR_MAKES.map((m) => (
+          <label className="label">Model</label>
+          <select
+            className="input-field"
+            value={query.model ?? "Hamısı"}
+            onChange={(e) => setQuery((prev) => ({ ...prev, model: e.target.value }))}
+          >
+            <option value="Hamısı">Bütün modellər</option>
+            {availableModels.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
+      )}
+
+      {/* Price range */}
+      <div>
+        <label className="label">Qiymət (₼)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            className="input-field"
+            type="number"
+            value={query.minPrice ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, minPrice: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Min"
+          />
+          <input
+            className="input-field"
+            type="number"
+            value={query.maxPrice ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, maxPrice: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Max"
+          />
+        </div>
+        {/* Quick price presets */}
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {[
+            { label: "< 15K", max: 15000 },
+            { label: "15–30K", min: 15000, max: 30000 },
+            { label: "30–60K", min: 30000, max: 60000 },
+            { label: "60K+", min: 60000 }
+          ].map((p) => {
+            const active = query.minPrice === p.min && query.maxPrice === p.max;
+            return (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => setQuery((prev) => ({ ...prev, minPrice: p.min, maxPrice: p.max }))}
+                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${
+                  active
+                    ? "border-[#0891B2] bg-[#0891B2]/10 text-[#0891B2]"
+                    : "border-slate-200 text-slate-500 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                }`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="label">Min ₼</label>
-          <input className="input-field" type="number" value={query.minPrice ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minPrice: e.target.value ? Number(e.target.value) : undefined }))} placeholder="0" />
-        </div>
-        <div>
-          <label className="label">Max ₼</label>
-          <input className="input-field" type="number" value={query.maxPrice ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxPrice: e.target.value ? Number(e.target.value) : undefined }))} placeholder="100000" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="label">Min il</label>
-          <input className="input-field" type="number" value={query.minYear ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minYear: e.target.value ? Number(e.target.value) : undefined }))} placeholder="2000" />
-        </div>
-        <div>
-          <label className="label">Max il</label>
-          <input className="input-field" type="number" value={query.maxYear ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxYear: e.target.value ? Number(e.target.value) : undefined }))} placeholder="2025" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="label">Min yürüş (km)</label>
-          <input className="input-field" type="number" value={query.minMileage ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, minMileage: e.target.value ? Number(e.target.value) : undefined }))} placeholder="0" />
-        </div>
-        <div>
-          <label className="label">Max yürüş (km)</label>
-          <input className="input-field" type="number" value={query.maxMileage ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, maxMileage: e.target.value ? Number(e.target.value) : undefined }))} placeholder="300000" />
+      {/* Year range */}
+      <div>
+        <label className="label">İl</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            className="input-field"
+            type="number"
+            value={query.minYear ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, minYear: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Min"
+          />
+          <input
+            className="input-field"
+            type="number"
+            value={query.maxYear ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, maxYear: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Max"
+          />
         </div>
       </div>
 
+      {/* Mileage */}
       <div>
-        <label className="label">Yanacaq növü</label>
-        <select className="input-field" value={query.fuelType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, fuelType: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {FUEL_TYPES.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Ötürücü qutsu</label>
-        <select className="input-field" value={query.transmission ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, transmission: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {TRANSMISSIONS.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Ban növü</label>
-        <select className="input-field" value={query.bodyType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, bodyType: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {BODY_TYPES.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Ötürmə</label>
-        <select className="input-field" value={query.driveType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, driveType: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {DRIVE_TYPES.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Rəng</label>
-        <select className="input-field" value={query.color ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, color: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {COLORS.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Vəziyyət</label>
-        <select className="input-field" value={query.condition ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, condition: e.target.value || undefined }))}>
-          <option value="">Hamısı</option>
-          {CONDITIONS.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="label">Satıcı tipi</label>
-        <select className="input-field" value={query.sellerType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, sellerType: (e.target.value || undefined) as "private" | "dealer" | undefined }))}>
-          <option value="">Hamısı</option>
-          <option value="private">Fərdi</option>
-          <option value="dealer">Diler</option>
-        </select>
+        <label className="label">Yürüş (km)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            className="input-field"
+            type="number"
+            value={query.minMileage ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, minMileage: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Min"
+          />
+          <input
+            className="input-field"
+            type="number"
+            value={query.maxMileage ?? ""}
+            onChange={(e) => setQuery((prev) => ({ ...prev, maxMileage: e.target.value ? Number(e.target.value) : undefined }))}
+            placeholder="Max"
+          />
+        </div>
       </div>
 
+      {/* Sort */}
       <div>
         <label className="label">Sıralama</label>
-        <select className="input-field" value={query.sort ?? "recent"} onChange={(e) => {
-          const nextQuery = { ...query, sort: e.target.value as QueryState["sort"] };
-          setQuery(nextQuery);
-          apply(nextQuery);
-        }}>
+        <select
+          className="input-field"
+          value={query.sort ?? "recent"}
+          onChange={(e) => {
+            const nextQuery = { ...query, sort: e.target.value as QueryState["sort"] };
+            setQuery(nextQuery);
+            apply(nextQuery);
+          }}
+        >
           {sortOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>
 
-      <div className="space-y-2 border-t border-slate-100 pt-3">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input type="checkbox" checked={query.vinVerified ?? false} onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))} />
-          VIN doğrulanmış
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input type="checkbox" checked={query.sellerVerified ?? false} onChange={(e) => setQuery((prev) => ({ ...prev, sellerVerified: e.target.checked || undefined }))} />
-          Satıcı doğrulanmış
-        </label>
+      {/* Advanced filters — collapsible */}
+      <div className="rounded-xl border border-slate-200">
+        <button
+          type="button"
+          onClick={() => setAdvancedOpen((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-700"
+        >
+          <span>
+            Ətraflı filterlər
+            {advancedCount > 0 && (
+              <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0891B2] px-1 text-[10px] font-bold text-white">
+                {advancedCount}
+              </span>
+            )}
+          </span>
+          <svg
+            className={`h-4 w-4 text-slate-400 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {advancedOpen && (
+          <div className="space-y-3 border-t border-slate-100 px-3 pb-3 pt-3">
+            <div>
+              <label className="label">Şəhər</label>
+              <select className="input-field" value={query.city ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, city: e.target.value }))}>
+                <option value="Hamısı">Bütün şəhərlər</option>
+                {AZERBAIJAN_CITIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Yanacaq növü</label>
+              <select className="input-field" value={query.fuelType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, fuelType: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {FUEL_TYPES.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Ötürücü qutusu</label>
+              <select className="input-field" value={query.transmission ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, transmission: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {TRANSMISSIONS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Ban növü</label>
+              <select className="input-field" value={query.bodyType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, bodyType: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {BODY_TYPES.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Ötürmə növü</label>
+              <select className="input-field" value={query.driveType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, driveType: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {DRIVE_TYPES.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Rəng</label>
+              <select className="input-field" value={query.color ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, color: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {COLORS.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Vəziyyət</label>
+              <select className="input-field" value={query.condition ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, condition: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {CONDITIONS.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Satıcı tipi</label>
+              <select className="input-field" value={query.sellerType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, sellerType: (e.target.value || undefined) as "private" | "dealer" | undefined }))}>
+                <option value="">Hamısı</option>
+                <option value="private">Fərdi</option>
+                <option value="dealer">Diler</option>
+              </select>
+            </div>
+
+            <div className="space-y-2 border-t border-slate-100 pt-2">
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.vinVerified ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                VIN doğrulanmış
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.sellerVerified ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, sellerVerified: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Satıcı doğrulanmış
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Action buttons */}
       <div className="flex gap-2">
         <button type="button" className="btn-secondary flex-1" onClick={reset}>Sıfırla</button>
         <button type="button" className="btn-primary flex-1" onClick={() => apply()}>Tətbiq et</button>
       </div>
 
-      <div className="hidden pt-2 lg:block">
+      <div className="hidden pt-1 lg:block">
         <SaveSearchButton queryParams={query} />
       </div>
     </div>
@@ -293,6 +457,7 @@ export function ListingsFiltersPanel({
 
   return (
     <>
+      {/* Mobile trigger */}
       <div className="mb-4 flex items-center gap-2 lg:hidden">
         <button onClick={() => setOpen(true)} className="btn-secondary text-sm">
           Filterlər {activeCount > 0 ? `(${activeCount})` : ""}
@@ -300,13 +465,15 @@ export function ListingsFiltersPanel({
         <SaveSearchButton queryParams={query} />
       </div>
 
+      {/* Desktop sidebar */}
       <div className="hidden lg:block card p-5">{panel}</div>
 
+      {/* Mobile bottom sheet */}
       {open && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden">
           <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white p-5 max-h-[90vh] overflow-y-auto">
-            <div className="mb-4 flex items-center justify-between sticky top-0 bg-white pb-2">
-              <h2 className="font-semibold text-slate-900">Filterlər</h2>
+            <div className="mb-4 flex items-center justify-between sticky top-0 bg-white pb-2 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
               <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
             </div>
             {panel}

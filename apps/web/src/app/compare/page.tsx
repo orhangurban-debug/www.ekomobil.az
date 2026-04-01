@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listListings } from "@/server/listing-store";
 import { getCarInsights, getBrandContext, type CarModelInsights, type BrandContext } from "@/lib/car-insights";
+import { generateCarInsightsAi } from "@/lib/ai/gemini";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -309,9 +310,15 @@ export default async function ComparePage({
     );
   }
 
-  // Fetch insights for each listing; fall back to brand context
-  const insightsData = items.map((item) =>
-    getCarInsights(item.make, item.model, item.year)
+  // Fetch insights: 1) static DB  2) AI generation  3) brand-level fallback
+  const insightsData: (CarModelInsights | null)[] = await Promise.all(
+    items.map(async (item) => {
+      const static_ = getCarInsights(item.make, item.model, item.year);
+      if (static_) return static_;
+      // Try AI generation for models not in static DB
+      const ai = await generateCarInsightsAi(item.make, item.model, item.year);
+      return ai;
+    })
   );
   const brandContexts = items.map((item, i) =>
     insightsData[i] === null ? getBrandContext(item.make) : null
@@ -357,6 +364,14 @@ export default async function ComparePage({
               <p className="mt-1.5 text-sm text-slate-500">
                 {items.length} avtomobil · Texniki məlumat, beynəlxalq etibarlılıq statistikası, zəif nöqtələr
               </p>
+              {insightsData.some((d, i) => d !== null && !getCarInsights(items[i]?.make ?? "", items[i]?.model ?? "", items[i]?.year ?? 0)) && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-violet-600">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Bəzi modellər üçün analitika AI tərəfindən yaradılıb
+                </p>
+              )}
             </div>
             <Link href="/listings" className="btn-secondary hidden shrink-0 text-sm sm:inline-flex">
               ← Elanlara qayıt
