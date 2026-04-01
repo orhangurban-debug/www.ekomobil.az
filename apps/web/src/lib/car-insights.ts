@@ -9,6 +9,9 @@
  * fərdi istifadə şəraitinə görə fərqlənə bilər.
  */
 
+import type { PowertrainCategory, PowertrainSpec } from "@/lib/powertrain-types";
+export type { PowertrainCategory, PowertrainSpec };
+
 export type MaintenanceCost = "aşağı" | "orta" | "yüksək" | "çox yüksək";
 
 export interface CarModelRatings {
@@ -49,6 +52,8 @@ export interface CarModelInsights {
   sourceNote: string;
   /** Qısa analitik yekun */
   verdict: string;
+  /** Güc sistemi məlumatları (opsional — tam analiz üçün) */
+  powertrain?: PowertrainSpec;
 }
 
 const insights: CarModelInsights[] = [
@@ -163,6 +168,12 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 9, comfort: 7, performance: 5, economy: 10, safety: 8 },
     ownerSatisfaction: 82,
+    powertrain: {
+      category: "HEV",
+      systemPowerHp: 122,
+      engineCc: 1798,
+      fuelConsumption: { city: 4.3, highway: 5.0, combined: 4.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "4.5–5.0 L/100 km ilə Azərbaycanda ən sərfəli yanacaq xərcləri",
       "Hibrid batareyası (Nickel-Metal Hydride) 300 000+ km davamlıdır",
@@ -984,6 +995,559 @@ const insights: CarModelInsights[] = [
     maintenanceCost: "orta",
     sourceNote: "Consumer Reports 2023 · TÜV 2022",
     verdict: "Dağlıq ərazilər üçün AWD sistemi yaxşı seçimdir, lakin boksör mühərrik serinləşdiricisini düzgün texniki qulluq tələb edir."
+  },
+
+  // ── Toyota Hibrid / PHEV / BEV genişlənmə ─────────────────────────────────
+  {
+    make: "Toyota", model: "RAV4 Hybrid", yearFrom: 2019,
+    ratings: { reliability: 8, comfort: 8, performance: 8, economy: 9, safety: 9 },
+    ownerSatisfaction: 89,
+    powertrain: {
+      category: "HEV", systemPowerHp: 222, engineCc: 2487,
+      fuelConsumption: { city: 5.1, highway: 6.2, combined: 5.6, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["Şəhərdə 5.5 L/100km-ə düşür", "AWD-E sistemi güvənli", "222 hp güclü tam hibrid", "NCAP 5 ulduz"],
+    weaknesses: ["İlkin qiymət benzin versiyadan 4-5K yüksək", "Baqaj minimal azalır (batareya)"],
+    commonProblems: ["Arxa diferensial mühərrik arızası (nadir, zəmanət altında)", "Klima kompressor səsi"],
+    maintenanceCost: "orta",
+    sourceNote: "Consumer Reports 2024 · Euro NCAP 2021 · J.D. Power 2023",
+    verdict: "RAV4 Hybrid ailə SUV seqmentinin ən ağıllı seçimi. Uzunmüddətli yanacaq qənaəti ilk qiymət fərqini 2-3 ildə geri qaytarır."
+  },
+  {
+    make: "Toyota", model: "RAV4 Prime", yearFrom: 2020,
+    ratings: { reliability: 8, comfort: 8, performance: 9, economy: 9, safety: 9 },
+    ownerSatisfaction: 90,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 302, engineCc: 2487,
+      fuelConsumption: { city: 1.8, highway: 2.5, combined: 2.2, unit: "L/100km", testCycle: "WLTP",
+        evOnlyCombined: 17.5, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 18.1, acChargeKw: 3.3, electricRangeKm: 75, connectorType: "Type1" }
+    },
+    strengths: ["75 km elektrik diapazonu — şəhər sürüşü yanacaqsız", "302 hp sistem gücü", "AWD-e sistem standart"],
+    weaknesses: ["Azərbaycanda şarj infrastrukturu hələ məhdud", "Yüksək ilkin qiymət", "Şarj edilməzsə sərfiyyat artır"],
+    commonProblems: ["Batareya termik idarəetmə — çox soyuq havada diapazonu azalır", "AC şarj sürəti yavaş (3.3 kW)"],
+    maintenanceCost: "orta",
+    sourceNote: "EPA 2024 · Consumer Reports 2024 · Toyota Global",
+    verdict: "Evdə şarj imkanı olanlar üçün ideal: 302 hp güc + gündəlik yanacaqsız sürüş + uzun yolda həssaslıq yoxdur."
+  },
+  {
+    make: "Toyota", model: "Corolla Hybrid", yearFrom: 2019,
+    ratings: { reliability: 9, comfort: 7, performance: 6, economy: 9, safety: 9 },
+    ownerSatisfaction: 85,
+    powertrain: {
+      category: "HEV", systemPowerHp: 122, engineCc: 1798,
+      fuelConsumption: { city: 4.2, highway: 5.0, combined: 4.5, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["4.5 L/100km ortalama", "Toyota hibrid etibarlılıq irsini daşıyır", "Şəhərdə sakit elektrik sürüşü"],
+    weaknesses: ["CVT kimi hiss olunur — dinamika aşağı", "Arxa oturacaq sıxdır"],
+    commonProblems: ["Ön sürtüklər 80k km-dən sonra aşınma", "Klima kondenser sızıntısı (2019)"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Consumer Reports 2024 · TÜV 2023",
+    verdict: "Ən aşağı işlətmə xərclərindən biri. Sürüş zövqü olmasa da, yanacaq hesabınıza ciddi qənaət edir."
+  },
+  {
+    make: "Toyota", model: "Highlander Hybrid", yearFrom: 2020,
+    ratings: { reliability: 8, comfort: 9, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 87,
+    powertrain: {
+      category: "HEV", systemPowerHp: 243, engineCc: 2494,
+      fuelConsumption: { city: 7.1, highway: 7.8, combined: 7.4, unit: "L/100km", testCycle: "EPA" }
+    },
+    strengths: ["7 nəfərlik salon", "Ailə üçün geniş iç məkan", "AWD hibrid sistem"],
+    weaknesses: ["SUV ölçüsü şəhərdə çətin", "Yüksək qiymət"],
+    commonProblems: ["Arxa klima boru sıxıntısı", "Üçüncü sıra oturacağın məhdud rahatlığı"],
+    maintenanceCost: "orta",
+    sourceNote: "EPA 2024 · J.D. Power 2023",
+    verdict: "Böyük ailə üçün ən etibarlı hibrid SUV seçimlərindən. Yanacaq qənaəti ölçüsü nəzərə alındıqda yaxşıdır."
+  },
+  {
+    make: "Toyota", model: "bZ4X", yearFrom: 2022,
+    ratings: { reliability: 7, comfort: 8, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 76,
+    powertrain: {
+      category: "BEV", systemPowerHp: 204,
+      fuelConsumption: { combined: 17.5, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 71.4, fastChargeKw: 150, acChargeKw: 11, charge10to80Min: 30, electricRangeKm: 466, connectorType: "CCS" }
+    },
+    strengths: ["466 km WLTP diapazonu", "150 kW DC sürətli şarj", "Toyota zavodunun keyfiyyəti"],
+    weaknesses: ["İlk buraxılışda təkər boltu xatırlatma kampaniyası", "Rəqibdən baha"],
+    commonProblems: ["2022 ilk seriyanın təkər boltu problemi (bütün satınalmalar yoxlanılmalıdır)"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2022 · ADAC Test 2023",
+    verdict: "Toyota-nın ilk həqiqi BEV-i. Etibarlılıq zamanla sübut olunacaq; hal-hazırda bir neçə ilkin problem var."
+  },
+
+  // ── Hyundai genişlənmə ─────────────────────────────────────────────────────
+  {
+    make: "Hyundai", model: "Ioniq 5", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 9, performance: 8, economy: 8, safety: 9 },
+    ownerSatisfaction: 85,
+    powertrain: {
+      category: "BEV", systemPowerHp: 217,
+      fuelConsumption: { combined: 16.7, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 72.6, fastChargeKw: 220, acChargeKw: 11, charge10to80Min: 18, electricRangeKm: 481, connectorType: "CCS" }
+    },
+    strengths: ["800V şarj sistemi — 18 dəqiqədə 10→80%", "Geniş kabin (uzun ox arası)", "V2L funksiyası", "NCAP 5 ulduz"],
+    weaknesses: ["Soyuq havada diapazonu 30% azalır", "Yüksək qiymət"],
+    commonProblems: ["OTA proqram yeniləməsindən sonra bəzi funksiyalar reset", "Ön süspansiyon titrəmə (2021 ilk seriya)"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2021 · ADAC 2023 · What Car? 2023",
+    verdict: "800V ultra sürətli şarj texnologiyası ilə EV sənayesini öndən aparır. Uzun məsafə şarj narahatlığını aradan qaldıran ən yaxşı seçimlərdən."
+  },
+  {
+    make: "Hyundai", model: "Ioniq 6", yearFrom: 2022,
+    ratings: { reliability: 7, comfort: 9, performance: 9, economy: 9, safety: 9 },
+    ownerSatisfaction: 87,
+    powertrain: {
+      category: "BEV", systemPowerHp: 320,
+      fuelConsumption: { combined: 14.3, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 77.4, fastChargeKw: 220, acChargeKw: 11, charge10to80Min: 18, electricRangeKm: 614, connectorType: "CCS" }
+    },
+    strengths: ["614 km WLTP diapazonu — sektördə ən uzun", "Cd 0.21 aerodinamika", "18 dəqiqədə 10→80%"],
+    weaknesses: ["Sedan forması baqajı məhdudlaşdırır", "Arxa başlıq yeri az"],
+    commonProblems: ["Şarj portu qapısı donması (soyuq iqlim)", "Navigasiya ekranı yükləmə gecikmə"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2023 · ADAC 2023 · EPA 2023",
+    verdict: "614 km diapazonu ilə elektrik sedanların lideri. Uzun yol əsasən şarj dayanacağı olmadan mümkündür."
+  },
+  {
+    make: "Hyundai", model: "Tucson Hybrid", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 8, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 83,
+    powertrain: {
+      category: "HEV", systemPowerHp: 230, engineCc: 1598,
+      fuelConsumption: { city: 5.6, highway: 6.4, combined: 5.9, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["6 L/100km-in altında kombinədir sərfiyyat", "Müasir dizayn", "HTRAC AWD sistem"],
+    weaknesses: ["DCT sürət qutusunda 2021–2022 arıza hesabatları", "Proqram yeniləmələri çox tez-tez gəlir"],
+    commonProblems: ["DCT titrəmə 40-60 km/s aralığında (proqram yeniləməsi mövcuddur)", "Şüşə silindiri sızıntısı"],
+    maintenanceCost: "orta",
+    sourceNote: "J.D. Power IQS 2023 · Euro NCAP 2021",
+    verdict: "Rəqabətli hibrid SUV. DCT problemlərini zəmanət çərçivəsində həll edin; uzunmüddətli etibarlılıq hələ tam sübut olunmur."
+  },
+  {
+    make: "Hyundai", model: "Tucson PHEV", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 8, performance: 7, economy: 9, safety: 9 },
+    ownerSatisfaction: 81,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 261, engineCc: 1598,
+      fuelConsumption: { city: 1.4, highway: 2.1, combined: 1.7, unit: "L/100km", testCycle: "WLTP",
+        evOnlyCombined: 17.0, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 13.8, acChargeKw: 7.2, electricRangeKm: 62, connectorType: "Type2" }
+    },
+    strengths: ["62 km elektrik diapazonu", "7.2 kW sürətli AC şarj", "HTRAC AWD standart"],
+    weaknesses: ["Şarj edilməzsə sərfiyyat artır", "Baqaj azalır (batareya)"],
+    commonProblems: ["Şarj konnektoru donması (soyuq hava)", "DCT sürət qutusu problemi"],
+    maintenanceCost: "orta",
+    sourceNote: "WLTP Data 2023 · Euro NCAP 2021",
+    verdict: "62 km EV diapazonu ilə gündəlik şəhər sürüşündə yanacaq lazım olmayan praktik seçim."
+  },
+  {
+    make: "Hyundai", model: "Santa Fe Hybrid", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 8, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "HEV", systemPowerHp: 230, engineCc: 1598,
+      fuelConsumption: { city: 6.0, highway: 6.8, combined: 6.3, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["7 nəfərlik salon (bəzi versiyalar)", "AWD hibrid sistem", "Böyük baqaj"],
+    weaknesses: ["Dinamika orta", "Yüksək qiymət"],
+    commonProblems: ["HTRAC AWD debriyaj sürüşmə (nadir)", "Arxa kamera donması"],
+    maintenanceCost: "orta",
+    sourceNote: "J.D. Power 2023 · Consumer Reports 2024",
+    verdict: "Böyük ailə üçün yaxşı hibrid SUV. Toyota Highlander Hybrid ilə birbaşa rəqibdir."
+  },
+
+  // ── Kia genişlənmə ─────────────────────────────────────────────────────────
+  {
+    make: "Kia", model: "EV6", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 9, performance: 9, economy: 8, safety: 9 },
+    ownerSatisfaction: 86,
+    powertrain: {
+      category: "BEV", systemPowerHp: 325,
+      fuelConsumption: { combined: 15.7, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 77.4, fastChargeKw: 240, acChargeKw: 11, charge10to80Min: 18, electricRangeKm: 528, connectorType: "CCS" }
+    },
+    strengths: ["240 kW peak şarj gücü", "528 km WLTP diapazonu", "AWD GT seçimi 585 hp", "V2L funksiyası"],
+    weaknesses: ["Nazik arxa oturaq yastığı", "Yüksək qiymət aralığı"],
+    commonProblems: ["Şarj portu donma (soyuq iqlim)", "Ekran boş ekrana düşmə (OTA ilə həll edilir)"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2022 · ADAC 2023 · Car of the Year 2022",
+    verdict: "2022-ci il 'İlin Avtomobili' seçilmiş EV6, Ioniq 5 ilə eyni platformada qurulub, lakin daha sportif dizaynla gəlir."
+  },
+  {
+    make: "Kia", model: "Sportage PHEV", yearFrom: 2022,
+    ratings: { reliability: 7, comfort: 8, performance: 8, economy: 9, safety: 9 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 265, engineCc: 1598,
+      fuelConsumption: { city: 1.3, highway: 2.0, combined: 1.6, unit: "L/100km", testCycle: "WLTP",
+        evOnlyCombined: 17.3, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 13.8, acChargeKw: 7.2, electricRangeKm: 70, connectorType: "Type2" }
+    },
+    strengths: ["70 km elektrik diapazonu", "Müasir kabin dizaynı", "HTRAC AWD standart"],
+    weaknesses: ["Şarj olmadan sərfiyyat artır", "Bəzi proqram problemləri"],
+    commonProblems: ["Brembo sürtükləri erken aşınma", "Proqram yeniləmə arıza qeydləri"],
+    maintenanceCost: "orta",
+    sourceNote: "Euro NCAP 2022 · WLTP Data",
+    verdict: "70 km EV diapazonu ilə Sportage PHEV gündəlik şəhər sürüşündə yanacaq xərclərini minimuma endirir."
+  },
+  {
+    make: "Kia", model: "Niro Hybrid", yearFrom: 2017,
+    ratings: { reliability: 8, comfort: 7, performance: 6, economy: 9, safety: 8 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "HEV", systemPowerHp: 141, engineCc: 1580,
+      fuelConsumption: { city: 4.4, highway: 5.2, combined: 4.7, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["4.7 L/100km — sərfiyyatda Prius-a rəqib", "Crossover formatında gündəlik rahatlıq"],
+    weaknesses: ["Dinamika zəif", "Kabin materialları premium deyil"],
+    commonProblems: ["DCT titrəmə (ilk nəsil)", "Batareya soyuducusu arızası (nadir)"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Consumer Reports 2024 · TÜV 2022",
+    verdict: "Hibrid yanacaq qənaətini crossover pratikliyilə birləşdirən ağıllı seçim."
+  },
+
+  // ── Mitsubishi ─────────────────────────────────────────────────────────────
+  {
+    make: "Mitsubishi", model: "Outlander PHEV", yearFrom: 2014,
+    ratings: { reliability: 7, comfort: 7, performance: 7, economy: 8, safety: 8 },
+    ownerSatisfaction: 80,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 221, engineCc: 2360,
+      fuelConsumption: { city: 1.9, highway: 2.8, combined: 2.4, unit: "L/100km", testCycle: "WLTP",
+        evOnlyCombined: 20.0, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 13.8, acChargeKw: 3.7, fastChargeKw: 50, electricRangeKm: 57, connectorType: "CHAdeMO" }
+    },
+    strengths: ["4WD PHEV — offroad imkanı", "İki elektrik motoru (ön + arxa)", "50 kW DC sürətli şarj"],
+    weaknesses: ["2014–2018 modellər köhnəlib, batareya tutumu azalıb", "CHAdeMO konnektoru populyarlığını itirir"],
+    commonProblems: ["Batareya tutumunun azalması (ilk nəsil, 8+ il)", "EV diapazonu real həyatda 35-40 km-ə düşür"],
+    maintenanceCost: "orta",
+    sourceNote: "TÜV Report 2022 · Mitsubishi Official",
+    verdict: "2014–2019 modellər köhnəlmiş PHEV texnologiyası daşıyır. 2020+ yeni nəsil seçin; batareya vəziyyətini mütləq yoxlayın."
+  },
+
+  // ── Tesla ─────────────────────────────────────────────────────────────────
+  {
+    make: "Tesla", model: "Model 3", yearFrom: 2017,
+    ratings: { reliability: 6, comfort: 8, performance: 10, economy: 9, safety: 10 },
+    ownerSatisfaction: 86,
+    powertrain: {
+      category: "BEV", systemPowerHp: 283,
+      fuelConsumption: { combined: 13.5, unit: "kWh/100km", testCycle: "EPA" },
+      charging: { batteryKwh: 57.5, fastChargeKw: 250, acChargeKw: 11, charge10to80Min: 25, electricRangeKm: 491, connectorType: "Tesla-NACS" }
+    },
+    strengths: ["250 kW Supercharger şəbəkəsi", "Sektörün ən yüksək NHTSA təhlükəsizlik balı", "Sürətli OTA proqram yeniləmələri"],
+    weaknesses: ["Panel aralıqları (panel gaps)", "Tesla servis şəbəkəsi məhdud", "Yağış/rütubətdə bəzi elektrik sistemlər"],
+    commonProblems: ["Panel aralıqları — nisbətən geniş tolerans", "Pəncərə möhürü sızıntısı", "Silgi mexanizmi arızası"],
+    maintenanceCost: "aşağı",
+    sourceNote: "NHTSA Safety 2023 · Consumer Reports 2024 · J.D. Power IQS 2023",
+    verdict: "Sürət, texnologiya və diapazonda rəqibsiz. İstehsal keyfiyyəti hələ Alman və Yapon rəqiblərinə çatmır, lakin xidmət xərci çox aşağıdır."
+  },
+  {
+    make: "Tesla", model: "Model Y", yearFrom: 2020,
+    ratings: { reliability: 6, comfort: 8, performance: 9, economy: 9, safety: 10 },
+    ownerSatisfaction: 84,
+    powertrain: {
+      category: "BEV", systemPowerHp: 299,
+      fuelConsumption: { combined: 15.0, unit: "kWh/100km", testCycle: "EPA" },
+      charging: { batteryKwh: 75, fastChargeKw: 250, acChargeKw: 11, charge10to80Min: 28, electricRangeKm: 533, connectorType: "Tesla-NACS" }
+    },
+    strengths: ["Dünyada ən çox satılan avtomobil (2023)", "533 km diapazonu", "Geniş baqaj", "Supercharger şəbəkəsi"],
+    weaknesses: ["Panel boşluqları", "Mexaniki sürtük (bəzi AWD versiyalar)"],
+    commonProblems: ["Arxa süspansiyon tıqqıltısı", "Şüşə möhürü sızıntısı", "Şarj portu donması"],
+    maintenanceCost: "aşağı",
+    sourceNote: "NHTSA 2023 · Consumer Reports 2024",
+    verdict: "Dünyada ən populyar EV. Xidmət şəbəkəsini öncədən yoxlayın; istehsal keyfiyyəti model ilindən asılıdır."
+  },
+  {
+    make: "Tesla", model: "Model S", yearFrom: 2016,
+    ratings: { reliability: 6, comfort: 9, performance: 10, economy: 8, safety: 9 },
+    ownerSatisfaction: 85,
+    powertrain: {
+      category: "BEV", systemPowerHp: 670,
+      fuelConsumption: { combined: 17.8, unit: "kWh/100km", testCycle: "EPA" },
+      charging: { batteryKwh: 100, fastChargeKw: 250, acChargeKw: 11, charge10to80Min: 30, electricRangeKm: 637, connectorType: "Tesla-NACS" }
+    },
+    strengths: ["637 km EPA diapazonu", "Plaid versiya 1020 hp", "Ultra lüks kabin"],
+    weaknesses: ["Çox yüksək qiymət", "İstehsal keyfiyyəti Alman lüksdən geri"],
+    commonProblems: ["Model 2021 öncəsi: MCU ekran arızası (zəmanət altında həll edilib)", "Hava asqısı arızası"],
+    maintenanceCost: "orta",
+    sourceNote: "EPA 2024 · NHTSA 2023",
+    verdict: "EV lüks sedanının ilk etalonu. Qiyməti, diapazonu və performansı ilə hələ güclü rəqabət gücü var."
+  },
+
+  // ── BYD ───────────────────────────────────────────────────────────────────
+  {
+    make: "BYD", model: "Atto 3", yearFrom: 2022,
+    ratings: { reliability: 6, comfort: 8, performance: 7, economy: 8, safety: 8 },
+    ownerSatisfaction: 78,
+    powertrain: {
+      category: "BEV", systemPowerHp: 201,
+      fuelConsumption: { combined: 15.4, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 60.5, fastChargeKw: 80, acChargeKw: 7, charge10to80Min: 45, electricRangeKm: 420, connectorType: "CCS" }
+    },
+    strengths: ["Blade batareya texnologiyası", "Münasib qiymət", "Xoş kabin materialları"],
+    weaknesses: ["80 kW DC şarj sürəti rəqibdən aşağı", "Azərbaycanda servis az", "Uzunmüddətli etibarlılıq sübut olunmur"],
+    commonProblems: ["Proqram interfeysi dondurma", "Arxa kamera gecikməsi"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2022 · ADAC 2023",
+    verdict: "Blade batareya ilə gəlişmiş istilik idarəetmə. Qiymət/diapazonu nisbətinə görə Avropa bazarında güclü rəqib."
+  },
+  {
+    make: "BYD", model: "Han", yearFrom: 2020,
+    ratings: { reliability: 6, comfort: 9, performance: 9, economy: 9, safety: 8 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "BEV", systemPowerHp: 517,
+      fuelConsumption: { combined: 14.9, unit: "kWh/100km" },
+      charging: { batteryKwh: 85.4, fastChargeKw: 120, acChargeKw: 11, electricRangeKm: 550, connectorType: "CCS" }
+    },
+    strengths: ["517 hp AWD", "550 km diapazonu", "Lüks kabin", "Blade batareya"],
+    weaknesses: ["Servis şəbəkəsi Azərbaycanda yeni", "Yüksək qiymət"],
+    commonProblems: ["OTA yeniləmə sonrası xüsusiyyət dəyişiklikləri", "Panoram tavan rütubət"],
+    maintenanceCost: "orta",
+    sourceNote: "BYD Global · MIIT Çin",
+    verdict: "Çin bazarının premium EV sedanı. Texnoloji göstəricilər güclüdür, lakin Azərbaycanda servis imkanları formalaşır."
+  },
+  {
+    make: "BYD", model: "Seal", yearFrom: 2022,
+    ratings: { reliability: 6, comfort: 8, performance: 9, economy: 9, safety: 8 },
+    ownerSatisfaction: 80,
+    powertrain: {
+      category: "BEV", systemPowerHp: 523,
+      fuelConsumption: { combined: 14.5, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 82.5, fastChargeKw: 150, acChargeKw: 11, charge10to80Min: 35, electricRangeKm: 570, connectorType: "CCS" }
+    },
+    strengths: ["570 km WLTP diapazonu", "523 hp AWD", "150 kW DC şarj", "Blade batareya"],
+    weaknesses: ["Azərbaycanda yeni marka", "Servis şəbəkəsi limitli"],
+    commonProblems: ["İlk nəsil proqram interfeys problemləri"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Euro NCAP 2023 · WLTP Data",
+    verdict: "Tesla Model 3-ün birbaşa Çin rəqibi. Diapazonu üstündür; servis şəbəkəsi hələ izlənilməlidir."
+  },
+
+  // ── Volkswagen EV / PHEV genişlənmə ───────────────────────────────────────
+  {
+    make: "Volkswagen", model: "ID.4", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 8, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 79,
+    powertrain: {
+      category: "BEV", systemPowerHp: 204,
+      fuelConsumption: { combined: 16.5, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 77, fastChargeKw: 135, acChargeKw: 11, charge10to80Min: 35, electricRangeKm: 521, connectorType: "CCS" }
+    },
+    strengths: ["Geniş kabin", "VW Alman keyfiyyəti", "521 km WLTP"],
+    weaknesses: ["İlk proqram yeniləmə problemləri (2021)", "135 kW DC şarj — rəqibdən az"],
+    commonProblems: ["Proqram donması (OTA ilə aradan qalxır)", "12V batareya boşalması"],
+    maintenanceCost: "orta",
+    sourceNote: "Euro NCAP 2021 · ADAC 2023",
+    verdict: "VW-nin elektrik keçidinin bayraqdarı. Sabit, Alman etibarlılığı üçün yaxşı seçim."
+  },
+  {
+    make: "Volkswagen", model: "Golf GTE", yearFrom: 2020,
+    ratings: { reliability: 7, comfort: 8, performance: 8, economy: 9, safety: 8 },
+    ownerSatisfaction: 80,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 245, engineCc: 1395,
+      fuelConsumption: { combined: 1.5, unit: "L/100km", testCycle: "WLTP", evOnlyCombined: 15.9, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 13, acChargeKw: 3.6, electricRangeKm: 70, connectorType: "Type2" }
+    },
+    strengths: ["70 km EV diapazonu", "245 hp sportif sürüş", "Golf praktikliyi"],
+    weaknesses: ["Baqaj azalır", "3.6 kW AC şarj yavaş"],
+    commonProblems: ["DSG titrəmə aşağı sürətdə", "Şarj sistemi səhv göstəricisi"],
+    maintenanceCost: "orta",
+    sourceNote: "WLTP Data 2023 · Auto Express 2023",
+    verdict: "Golf-un PHEV versiyası — gündəlik EV, lazım gəldikdə sportif benzin."
+  },
+
+  // ── BMW EV / PHEV genişlənmə ───────────────────────────────────────────────
+  {
+    make: "BMW", model: "i4", yearFrom: 2021,
+    ratings: { reliability: 7, comfort: 8, performance: 9, economy: 8, safety: 9 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "BEV", systemPowerHp: 340,
+      fuelConsumption: { combined: 15.5, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 83.9, fastChargeKw: 205, acChargeKw: 11, charge10to80Min: 31, electricRangeKm: 590, connectorType: "CCS" }
+    },
+    strengths: ["590 km WLTP diapazonu", "BMW sportif sürüş DNA-sı", "205 kW DC şarj"],
+    weaknesses: ["Yüksək qiymət", "Şarj şəbəkəsi Tesla qədər geniş deyil"],
+    commonProblems: ["İlk nəsil proqram yeniləmə problemləri", "Ön əsas yastıq sərtliyi şikayətləri"],
+    maintenanceCost: "orta",
+    sourceNote: "Euro NCAP 2022 · ADAC 2023",
+    verdict: "BMW-nin EV sahəsindəki ən güclü cavabı. Sportif sürücülər üçün EV keçidini ən rahat edən modellərindən biri."
+  },
+  {
+    make: "BMW", model: "X5 xDrive45e", yearFrom: 2019,
+    ratings: { reliability: 7, comfort: 9, performance: 9, economy: 8, safety: 9 },
+    ownerSatisfaction: 84,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 394, engineCc: 2998,
+      fuelConsumption: { combined: 2.1, unit: "L/100km", testCycle: "WLTP", evOnlyCombined: 22.5, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 24, acChargeKw: 7.4, electricRangeKm: 87, connectorType: "Type2" }
+    },
+    strengths: ["87 km EV diapazonu", "394 hp sistem gücü", "Lüks BMW kabin", "xDrive AWD standart"],
+    weaknesses: ["Çox yüksək qiymət", "Servis xərci yüksək"],
+    commonProblems: ["Batareya soyutma sistemi (uzun istifadədə)", "Proqram yeniləmə gecikmələri"],
+    maintenanceCost: "yüksək",
+    sourceNote: "Euro NCAP 2020 · BMW Global 2024",
+    verdict: "Lüks, güclü PHEV SUV. 87 km EV diapazonu ilə gündəlik şəhər sürüşü yanacaqsız. Yüksək xidmət xərci nəzərə alınmalıdır."
+  },
+
+  // ── Mercedes EV / PHEV genişlənmə ─────────────────────────────────────────
+  {
+    make: "Mercedes-Benz", model: "EQS", yearFrom: 2021,
+    ratings: { reliability: 6, comfort: 10, performance: 9, economy: 8, safety: 9 },
+    ownerSatisfaction: 83,
+    powertrain: {
+      category: "BEV", systemPowerHp: 329,
+      fuelConsumption: { combined: 15.7, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 107.8, fastChargeKw: 200, acChargeKw: 22, charge10to80Min: 31, electricRangeKm: 770, connectorType: "CCS" }
+    },
+    strengths: ["770 km WLTP diapazonu — tam elektrik sedanda rekord", "Hyperscreen daxili ekran sistemi", "Ultra lüks kabin"],
+    weaknesses: ["Çox yüksək qiymət", "Böyük ölçü şəhərdə çətin", "İlk seriya MBUX proqram xətaları"],
+    commonProblems: ["MBUX Hyperscreen donması (proqram yeniləməsi ilə aradan qalxır)", "Ön süspansiyon titrəmə"],
+    maintenanceCost: "yüksək",
+    sourceNote: "Euro NCAP 2021 · ADAC 2022 · Autocar 2023",
+    verdict: "EV dünyasının ən lüks sedanı. 770 km diapazonu range anxiety-ni tamamilə aradan qaldırır."
+  },
+  {
+    make: "Mercedes-Benz", model: "GLC 300e", yearFrom: 2023,
+    ratings: { reliability: 7, comfort: 9, performance: 8, economy: 9, safety: 9 },
+    ownerSatisfaction: 83,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 313, engineCc: 1999,
+      fuelConsumption: { combined: 1.1, unit: "L/100km", testCycle: "WLTP", evOnlyCombined: 19.0, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 31.2, acChargeKw: 11, electricRangeKm: 134, connectorType: "Type2" }
+    },
+    strengths: ["134 km EV diapazonu — PHEV-lərin ən yaxşısı", "11 kW AC sürətli şarj", "Mercedes lüks kabin"],
+    weaknesses: ["Çox yüksək qiymət", "Baqaj azalır (batareya)"],
+    commonProblems: ["Proqram interfeys xətaları (2023 ilk seriya)", "Şarj konnektoru donması (soyuq hava)"],
+    maintenanceCost: "yüksək",
+    sourceNote: "WLTP 2023 · Auto Express 2023",
+    verdict: "134 km EV diapazonu ilə PHEV seqmentinin şampiyonu. Gündəlik şəhər sürüşü tamamilə yanacaqsız mümkündür."
+  },
+
+  // ── Volvo genişlənmə ───────────────────────────────────────────────────────
+  {
+    make: "Volvo", model: "XC60 T8", yearFrom: 2018,
+    ratings: { reliability: 7, comfort: 9, performance: 8, economy: 8, safety: 10 },
+    ownerSatisfaction: 82,
+    powertrain: {
+      category: "PHEV", systemPowerHp: 455, engineCc: 1969,
+      fuelConsumption: { combined: 1.6, unit: "L/100km", testCycle: "WLTP", evOnlyCombined: 20.3, evUnit: "kWh/100km" },
+      charging: { batteryKwh: 14.9, acChargeKw: 3.7, electricRangeKm: 61, connectorType: "Type2" }
+    },
+    strengths: ["NCAP 5 ulduz + ən yüksək təhlükəsizlik reytinqi", "455 hp sistem gücü", "Skandinav minimalist dizayn"],
+    weaknesses: ["3.7 kW AC şarj çox yavaş", "Yüksək qiymət"],
+    commonProblems: ["Şüşə silindiri əyilməsi", "Tablet interfeys donması"],
+    maintenanceCost: "yüksək",
+    sourceNote: "Euro NCAP 2022 · Consumer Reports 2023",
+    verdict: "Volvo-nun PHEV-i təhlükəsizlik standartları ilə öndə. 455 hp gücü ilə PHEV-lər arasında ən sürətlilərdən."
+  },
+
+  // ── Nissan EV ─────────────────────────────────────────────────────────────
+  {
+    make: "Nissan", model: "Leaf", yearFrom: 2018,
+    ratings: { reliability: 7, comfort: 7, performance: 6, economy: 9, safety: 8 },
+    ownerSatisfaction: 77,
+    powertrain: {
+      category: "BEV", systemPowerHp: 150,
+      fuelConsumption: { combined: 15.0, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 40, fastChargeKw: 50, acChargeKw: 6.6, electricRangeKm: 270, connectorType: "CHAdeMO" }
+    },
+    strengths: ["Aşağı ilkin qiymət", "Şəhər üçün ideal ölçü", "Nissan servis şəbəkəsi"],
+    weaknesses: ["CHAdeMO konnektoru ölür", "50 kW DC şarj çox yavaş", "270 km diapazonu məhduddur", "Batareya termik idarəetmə yoxdur"],
+    commonProblems: ["Batareya tutumunun azalması isti iqlimlərdə (aktiv soyutma yoxdur)", "CHAdeMO şarj cihazı tapılması çətinləşir"],
+    maintenanceCost: "aşağı",
+    sourceNote: "Consumer Reports 2023 · ADAC 2022",
+    verdict: "İlk kütləvi EV olaraq tarixi önəmi var. Batareya deqradasiyası isti iqlimlərdə problem; ikinci əl üçün batareya tutumunu mütləq yoxlayın."
+  },
+
+  // ── Honda Hibrid ──────────────────────────────────────────────────────────
+  {
+    make: "Honda", model: "CR-V Hybrid", yearFrom: 2019,
+    ratings: { reliability: 8, comfort: 8, performance: 7, economy: 9, safety: 9 },
+    ownerSatisfaction: 84,
+    powertrain: {
+      category: "HEV", systemPowerHp: 212, engineCc: 1993,
+      fuelConsumption: { city: 5.5, highway: 6.5, combined: 5.9, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["Honda e:HEV iki motor sistemi", "Şəhərdə sakit sürüş", "Geniş baqaj"],
+    weaknesses: ["Magistralda CVT kimi hiss olunur", "İlkin qiymət benzin versiyadan 3-4K çox"],
+    commonProblems: ["e:HEV ötürücü proqram xətası (nadir)"],
+    maintenanceCost: "orta",
+    sourceNote: "Consumer Reports 2024 · Euro NCAP 2023",
+    verdict: "Honda-nın hibrid texnologiyası Toyota-ya bənzər sakit şəhər sürüşü yaradır."
+  },
+
+  // ── Lexus genişlənmə ──────────────────────────────────────────────────────
+  {
+    make: "Lexus", model: "ES 300h", yearFrom: 2019,
+    ratings: { reliability: 9, comfort: 9, performance: 6, economy: 9, safety: 9 },
+    ownerSatisfaction: 88,
+    powertrain: {
+      category: "HEV", systemPowerHp: 215, engineCc: 2487,
+      fuelConsumption: { city: 4.8, highway: 5.5, combined: 5.1, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["Consumer Reports-un ən etibarlı avtomobili (2023)", "5.0 L/100km — lüks sedan üçün mükəmməl", "Ultra sakit kabin"],
+    weaknesses: ["Sürüş dinamikası zəif", "AWD yoxdur"],
+    commonProblems: ["Rütubətli havada pəncərə buğlanması"],
+    maintenanceCost: "orta",
+    sourceNote: "Consumer Reports Best Buy 2023 · J.D. Power VDS 2023",
+    verdict: "Dünyada ən etibarlı avtomobilin şərəfini qazanmış model. Sürüş dinamikasından razı olmayanlar E-Class-a baxmalıdır."
+  },
+  {
+    make: "Lexus", model: "RX 450h", yearFrom: 2016,
+    ratings: { reliability: 9, comfort: 9, performance: 7, economy: 8, safety: 9 },
+    ownerSatisfaction: 87,
+    powertrain: {
+      category: "HEV", systemPowerHp: 313, engineCc: 3456,
+      fuelConsumption: { city: 7.1, highway: 7.8, combined: 7.4, unit: "L/100km", testCycle: "WLTP" }
+    },
+    strengths: ["E-Four AWD elektrik sistemi", "313 hp hibrid güc", "Lexus ultra-etibarlılıq"],
+    weaknesses: ["7.4 L/100km — hibrid üçün yüksək", "Sürüş dinamikası orta"],
+    commonProblems: ["Hava süspansiyonu (F SPORT modeli)", "Navigasiya yeniləmə xərci"],
+    maintenanceCost: "orta",
+    sourceNote: "J.D. Power VDS 2023 · Consumer Reports 2024",
+    verdict: "Hibrid SUV seqmentinin etibarlılıq etalonu. 10 il / 300k km sorunsuz işləyən modellər adi haldır."
+  },
+
+  // ── Porsche EV / PHEV ─────────────────────────────────────────────────────
+  {
+    make: "Porsche", model: "Taycan", yearFrom: 2019,
+    ratings: { reliability: 7, comfort: 9, performance: 10, economy: 7, safety: 9 },
+    ownerSatisfaction: 87,
+    powertrain: {
+      category: "BEV", systemPowerHp: 408,
+      fuelConsumption: { combined: 20.0, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 93.4, fastChargeKw: 270, acChargeKw: 22, charge10to80Min: 23, electricRangeKm: 484, connectorType: "CCS" }
+    },
+    strengths: ["270 kW DC şarj — sektördə ən sürətlilərdən", "Porsche sürüş DNA-sı EV-də", "800V şarj sistemi"],
+    weaknesses: ["20 kWh/100km — yüksək sərfiyyat", "Çox yüksək qiymət"],
+    commonProblems: ["Ön elektronik süspansiyon arızası (ilk nəsil)", "Proqram interfeys xətaları"],
+    maintenanceCost: "çox yüksək",
+    sourceNote: "Auto Motor Sport 2023 · ADAC 2022",
+    verdict: "Elektrik sürüş zövqünün zirvəsi. EV keçidini sürüş keyfi itirmədən etmək istəyənlər üçün ən yaxşı seçim."
+  },
+
+  // ── Audi EV / PHEV ────────────────────────────────────────────────────────
+  {
+    make: "Audi", model: "e-tron", yearFrom: 2019,
+    ratings: { reliability: 7, comfort: 9, performance: 8, economy: 7, safety: 9 },
+    ownerSatisfaction: 81,
+    powertrain: {
+      category: "BEV", systemPowerHp: 360,
+      fuelConsumption: { combined: 22.0, unit: "kWh/100km", testCycle: "WLTP" },
+      charging: { batteryKwh: 95, fastChargeKw: 150, acChargeKw: 11, charge10to80Min: 30, electricRangeKm: 441, connectorType: "CCS" }
+    },
+    strengths: ["Geniş, lüks kabin", "441 km WLTP", "Audi keyfiyyəti"],
+    weaknesses: ["22 kWh/100km — çox enerji sərfiyyatı", "Rəqibdən baha", "150 kW DC şarj orta"],
+    commonProblems: ["Şarj sistemi arızaları (ilk nəsil)", "Virtual ayna kamera buğlanması"],
+    maintenanceCost: "yüksək",
+    sourceNote: "Euro NCAP 2019 · ADAC 2022",
+    verdict: "Audi lüksunu EV-ə gətirdi, lakin enerji sərfiyyatı yüksək. Ioniq 5 daha effektiv alternativdir."
   }
 ];
 

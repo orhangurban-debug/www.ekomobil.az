@@ -1,6 +1,7 @@
 import { randomUUID, scryptSync } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { demoLeads, demoListingsDetailed } from "@/lib/demo-marketplace";
+import { ensureModelInsightsTable } from "@/server/model-insights-store";
 
 let seeded = false;
 
@@ -11,6 +12,9 @@ function hashPassword(password: string): string {
 
 export async function ensureSeedData(): Promise<void> {
   if (seeded) return;
+
+  // Ensure model_insights table exists (non-blocking for first run)
+  await ensureModelInsightsTable();
 
   const pool = getPgPool();
   const client = await pool.connect();

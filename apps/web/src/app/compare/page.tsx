@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listListings } from "@/server/listing-store";
 import { getCarInsights, getBrandContext, type CarModelInsights, type BrandContext } from "@/lib/car-insights";
 import { generateCarInsightsAi } from "@/lib/ai/gemini";
+import { getPowertrainInfo, hasElectricComponent, requiresCharging, POWERTRAIN_CATALOG, type PowertrainCategory } from "@/lib/powertrain-types";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -433,7 +434,208 @@ export default async function ComparePage({
           </div>
         </Section>
 
-        {/* ── 2. Beynəlxalq etibarlılıq reytinqləri ──────────────────────── */}
+        {/* ── 2. Güc sistemi və yanacaq sərfiyyatı ────────────────────────── */}
+        {insightsData.some((d) => d?.powertrain) && (() => {
+          // Collect unique powertrain categories present in this comparison
+          const presentCategories = [...new Set(
+            insightsData.map((d) => d?.powertrain?.category).filter(Boolean) as PowertrainCategory[]
+          )];
+          const hasElectric = presentCategories.some(hasElectricComponent);
+          const hasCharging = presentCategories.some(requiresCharging);
+
+          return (
+            <Section
+              title="Güc sistemi və enerji sərfiyyatı"
+              icon={
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
+            >
+              {/* Powertrain type badges */}
+              <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-3 text-xs font-medium text-slate-400 flex items-center">Güc sistemi</span>
+                {items.map((_, i) => {
+                  const pt = insightsData[i]?.powertrain;
+                  if (!pt) return <div key={i} className="px-4 py-3 text-xs text-slate-300 italic">—</div>;
+                  const info = getPowertrainInfo(pt.category);
+                  return (
+                    <div key={i} className="px-4 py-3 flex items-center gap-2">
+                      <span className="text-base">{info.icon}</span>
+                      <span
+                        className="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+                        style={{ backgroundColor: info.color }}
+                      >
+                        {info.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* System power */}
+              <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Sistem gücü</span>
+                {items.map((_, i) => {
+                  const hp = insightsData[i]?.powertrain?.systemPowerHp;
+                  return (
+                    <div key={i} className="px-4 py-2.5 text-sm font-medium text-slate-700">
+                      {hp ? `${hp} hp` : "—"}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Engine displacement (for ICE) */}
+              {insightsData.some((d) => d?.powertrain?.engineCc) && (
+                <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Mühərrik həcmi</span>
+                  {items.map((_, i) => {
+                    const cc = insightsData[i]?.powertrain?.engineCc;
+                    return (
+                      <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
+                        {cc ? `${(cc / 1000).toFixed(1)} L (${cc} cc)` : "—"}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Fuel consumption */}
+              <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Kombinədir</span>
+                {items.map((_, i) => {
+                  const fc = insightsData[i]?.powertrain?.fuelConsumption;
+                  if (!fc) return <div key={i} className="px-4 py-2.5 text-xs text-slate-300 italic">—</div>;
+                  const isEV = fc.unit === "kWh/100km";
+                  return (
+                    <div key={i} className="px-4 py-2.5">
+                      <span className="text-sm font-semibold text-slate-800">
+                        {fc.combined} {fc.unit}
+                      </span>
+                      {fc.evOnlyCombined && (
+                        <div className="mt-0.5 text-[11px] text-violet-600">
+                          EV: {fc.evOnlyCombined} kWh/100km
+                        </div>
+                      )}
+                      {!isEV && fc.city && fc.highway && (
+                        <div className="mt-0.5 text-[10px] text-slate-400">
+                          Ş: {fc.city} · M: {fc.highway}
+                        </div>
+                      )}
+                      {fc.testCycle && (
+                        <div className="text-[10px] text-slate-300">{fc.testCycle}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Electric range & charging for PHEV/BEV */}
+              {hasCharging && (
+                <>
+                  <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Elektrik diapazonu</span>
+                    {items.map((_, i) => {
+                      const ch = insightsData[i]?.powertrain?.charging;
+                      return (
+                        <div key={i} className="px-4 py-2.5 text-sm font-semibold" style={{ color: ch?.electricRangeKm ? "#0891B2" : "#94a3b8" }}>
+                          {ch?.electricRangeKm ? `${ch.electricRangeKm} km` : "—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Batareya</span>
+                    {items.map((_, i) => {
+                      const ch = insightsData[i]?.powertrain?.charging;
+                      return (
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
+                          {ch?.batteryKwh ? `${ch.batteryKwh} kWh` : "—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">DC şarj (peak)</span>
+                    {items.map((_, i) => {
+                      const ch = insightsData[i]?.powertrain?.charging;
+                      return (
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
+                          {ch?.fastChargeKw ? `${ch.fastChargeKw} kW` : "—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="grid divide-x divide-slate-100 border-b border-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">10→80% şarj</span>
+                    {items.map((_, i) => {
+                      const ch = insightsData[i]?.powertrain?.charging;
+                      return (
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
+                          {ch?.charge10to80Min ? `~${ch.charge10to80Min} dəq` : "—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Konnektoru</span>
+                    {items.map((_, i) => {
+                      const ch = insightsData[i]?.powertrain?.charging;
+                      const connLabel: Record<string, string> = {
+                        "CCS": "CCS Combo2", "CHAdeMO": "CHAdeMO", "Type2": "AC Type2",
+                        "Tesla-NACS": "Tesla NACS", "Type1": "AC Type1", "GB/T": "GB/T (Çin)"
+                      };
+                      return (
+                        <div key={i} className="px-4 py-2.5 text-xs text-slate-600">
+                          {ch?.connectorType ? (connLabel[ch.connectorType] ?? ch.connectorType) : "—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Technology education panel */}
+              {hasElectric && presentCategories.length > 0 && (
+                <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4 space-y-3">
+                  <p className="text-xs font-semibold text-slate-600">Güc sistemi texnologiyaları haqqında:</p>
+                  {presentCategories.map((cat) => {
+                    const info = getPowertrainInfo(cat);
+                    return (
+                      <div key={cat} className="rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-sm">{info.icon}</span>
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+                            style={{ backgroundColor: info.color }}
+                          >
+                            {info.label}
+                          </span>
+                          <span className="text-xs font-medium text-slate-600">{info.fullName}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{info.howItWorks}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {info.pros.slice(0, 2).map((p) => (
+                            <span key={p} className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">✓ {p}</span>
+                          ))}
+                          {info.cons.slice(0, 1).map((c) => (
+                            <span key={c} className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] text-red-600">✗ {c}</span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <p className="text-[10px] text-slate-400">
+                    Yanacaq sərfiyyatı WLTP/EPA sınaq şəraitinə əsaslanır. Real həyat sərfiyyatı sürüş tərzindən 10–25% yüksək ola bilər.
+                  </p>
+                </div>
+              )}
+            </Section>
+          );
+        })()}
+
+        {/* ── 3. Beynəlxalq etibarlılıq reytinqləri ──────────────────────── */}
         <Section
           title="Beynəlxalq etibarlılıq reytinqləri"
           icon={

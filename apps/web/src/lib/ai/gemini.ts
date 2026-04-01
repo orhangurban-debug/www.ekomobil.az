@@ -1,6 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 import type { ListingQuery } from "@/lib/marketplace-types";
 import type { CarModelInsights } from "@/lib/car-insights";
+import {
+  getCachedInsight,
+  saveInsightToCache,
+  scheduleRefreshIfStale,
+  ensureModelInsightsTable
+} from "@/server/model-insights-store";
 
 const EXTRACT_SEARCH_PROMPT = `Sən EkoMobil avtomobil platformasının köməkçisisən. İstifadəçinin mesajından elan axtarış parametrlərini çıxar.
 
@@ -78,52 +84,84 @@ const CAR_INSIGHTS_PROMPT = `Sən avtomobil analitiki ekspertisən. Aşağıdak�
 
 Məlumat mənbələri: J.D. Power IQS/VDS, Consumer Reports Reliability Survey, TÜV Report, Euro NCAP/NHTSA. Reytinqlər 1–10 şkalasında.
 
+PowertrainCategory dəyərləri (hansı tətbiq olunursa onu seç):
+  "ICE_PETROL" | "ICE_DIESEL" | "ICE_LPG" | "MHEV" | "HEV" | "PHEV" | "EREV" | "BEV" | "FCEV"
+
 JSON strukturu (YALNIZ bu JSON-u qaytar, heç bir izah əlavə etmə):
 {
   "make": "string",
-  "model": "string", 
+  "model": "string",
   "yearFrom": number,
   "ratings": {
-    "reliability": number (1-10),
-    "comfort": number (1-10),
-    "performance": number (1-10),
-    "economy": number (1-10),
-    "safety": number (1-10)
+    "reliability": number,
+    "comfort": number,
+    "performance": number,
+    "economy": number,
+    "safety": number
   },
-  "ownerSatisfaction": number (0-100, faiz),
+  "ownerSatisfaction": number,
   "strengths": ["string", "string", "string"],
   "weaknesses": ["string", "string", "string"],
   "commonProblems": ["string", "string"],
   "maintenanceCost": "aşağı" | "orta" | "yüksək" | "çox yüksək",
-  "sourceNote": "string (qısa mənbə qeydi)",
-  "verdict": "string (2-3 cümlə, Azərbaycan dilində)"
+  "sourceNote": "string",
+  "verdict": "string",
+  "powertrain": {
+    "category": "ICE_PETROL",
+    "systemPowerHp": number,
+    "engineCc": number,
+    "fuelConsumption": {
+      "city": number,
+      "highway": number,
+      "combined": number,
+      "unit": "L/100km",
+      "testCycle": "WLTP"
+    }
+  }
 }
 
-Bütün mətn sahələri Azərbaycan dilində olmalıdır. Reytinqlər beynəlxalq ortalama göstəriciləri əks etdirməlidir.`;
+HEV/PHEV üçün powertrain nümunəsi:
+{
+  "category": "HEV",
+  "systemPowerHp": 220,
+  "engineCc": 2500,
+  "fuelConsumption": { "city": 5.5, "highway": 6.2, "combined": 5.8, "unit": "L/100km", "testCycle": "WLTP" }
+}
 
-// In-memory cache to avoid duplicate Gemini calls within a server lifecycle
-const insightsCache = new Map<string, CarModelInsights>();
+PHEV üçün əlavə:
+{
+  "category": "PHEV",
+  ...
+  "fuelConsumption": { "combined": 1.8, "unit": "L/100km", "testCycle": "WLTP", "evOnlyCombined": 18.5, "evUnit": "kWh/100km" },
+  "charging": { "batteryKwh": 15, "acChargeKw": 7.2, "electricRangeKm": 60, "connectorType": "Type2" }
+}
 
-export async function generateCarInsightsAi(
-  make: string,
-  model: string,
-  year: number
-): Promise<CarModelInsights | null> {
+BEV üçün:
+{
+  "category": "BEV",
+  "systemPowerHp": 204,
+  "fuelConsumption": { "combined": 16.5, "unit": "kWh/100km", "testCycle": "WLTP" },
+  "charging": { "batteryKwh": 77, "fastChargeKw": 135, "acChargeKw": 11, "charge10to80Min": 35, "electricRangeKm": 520, "connectorType": "CCS" }
+}
+
+Bütün mətn sahələri Azərbaycan dilində. Reytinqlər beynəlxalq ortalama göstəriciləri əks etdirməlidir.`;
+
+// In-memory cache for fast repeated access within same server request cycle
+const inMemoryCache = new Map<string, CarModelInsights>();
+
+async function generateFromGemini(make: string, model: string, year: number): Promise<CarModelInsights | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
-
-  const cacheKey = `${make}::${model}::${Math.floor(year / 5) * 5}`;
-  if (insightsCache.has(cacheKey)) return insightsCache.get(cacheKey)!;
 
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
-      contents: `${CAR_INSIGHTS_PROMPT}\n\nModel: ${make} ${model} (${year} il)`,
+      contents: `${CAR_INSIGHTS_PROMPT}\n\nModel: ${make} ${model} (${year} il, ən çox yayılmış mühərrik versiyası)`,
       config: {
         responseMimeType: "application/json",
         temperature: 0.2,
-        maxOutputTokens: 1024
+        maxOutputTokens: 1500
       }
     });
 
@@ -131,14 +169,48 @@ export async function generateCarInsightsAi(
     if (!text) return null;
 
     const parsed = JSON.parse(text) as CarModelInsights;
-    // Basic validation
     if (!parsed.ratings || typeof parsed.ratings.reliability !== "number") return null;
 
-    insightsCache.set(cacheKey, parsed);
     return parsed;
   } catch {
     return null;
   }
+}
+
+export async function generateCarInsightsAi(
+  make: string,
+  model: string,
+  year: number
+): Promise<CarModelInsights | null> {
+  const memKey = `${make}::${model}::${Math.floor(year / 5) * 5}`;
+
+  // 1. In-memory (fast path — same request)
+  if (inMemoryCache.has(memKey)) return inMemoryCache.get(memKey)!;
+
+  // 2. DB cache — persistent across deploys
+  await ensureModelInsightsTable();
+  const cached = await getCachedInsight(make, model, year);
+  if (cached) {
+    inMemoryCache.set(memKey, cached.data);
+    // Schedule background refresh if stale (non-blocking)
+    if (cached.isStale) {
+      scheduleRefreshIfStale(make, model, year, async () => {
+        const fresh = await generateFromGemini(make, model, year);
+        if (fresh) inMemoryCache.set(memKey, fresh);
+        return fresh;
+      });
+    }
+    return cached.data;
+  }
+
+  // 3. Generate via Gemini and persist
+  const generated = await generateFromGemini(make, model, year);
+  if (generated) {
+    inMemoryCache.set(memKey, generated);
+    // Persist to DB (non-blocking)
+    saveInsightToCache(make, model, year, generated, "ai").catch(() => {});
+  }
+  return generated;
 }
 
 export async function generateChatReply(
