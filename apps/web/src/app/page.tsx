@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ListingCard, ListingCardData } from "@/components/listings/listing-card";
+import { AdBanner } from "@/components/ads/ad-banner";
 import { getActiveListingCount, listListings } from "@/server/listing-store";
 
 function toCardData(item: {
@@ -279,6 +280,13 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─── Ad banner — listings altı ───────────────────────────────────── */}
+      <div className="border-y border-slate-100 bg-slate-50 py-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <AdBanner size="leaderboard" slotLabel="home-after-listings" />
+        </div>
+      </div>
 
       {/* ─── Auction teaser ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-[#0c1a2e] py-20">

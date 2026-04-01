@@ -22,6 +22,82 @@ export interface ListingCardData {
   planType?: "free" | "standard" | "vip";
 }
 
+// Marka adına görə gradient xəritəsi
+const MAKE_GRADIENTS: Record<string, [string, string]> = {
+  toyota:       ["#EB0A1E", "#C40012"],
+  lexus:        ["#1A1A1A", "#2D2D2D"],
+  bmw:          ["#0066CC", "#004999"],
+  "mercedes-benz": ["#1C1C1C", "#222"],
+  mercedes:     ["#1C1C1C", "#222"],
+  hyundai:      ["#002C5F", "#003575"],
+  kia:          ["#BB162B", "#9A1123"],
+  volkswagen:   ["#001E50", "#00214F"],
+  audi:         ["#BB0A14", "#990A12"],
+  honda:        ["#CC0000", "#AA0000"],
+  nissan:       ["#C3002F", "#A00028"],
+  chevrolet:    ["#D4A017", "#B8890F"],
+  ford:         ["#003087", "#002566"],
+  subaru:       ["#003399", "#002277"],
+  mazda:        ["#910000", "#780000"],
+  porsche:      ["#A50034", "#8A002C"],
+  "land rover": ["#006A4E", "#005040"],
+  jeep:         ["#2C5F2E", "#1F4220"],
+  volvo:        ["#003057", "#002244"],
+  renault:      ["#EFDF00", "#D4C600"],
+  peugeot:      ["#0051A5", "#003F80"],
+  skoda:        ["#4BA82E", "#3A8324"],
+  mitsubishi:   ["#E0001B", "#C00017"],
+  tesla:        ["#CC0000", "#AA0000"],
+  infiniti:     ["#1A1A1A", "#333"],
+  lada:         ["#003087", "#002566"],
+};
+
+function getGradient(title: string): [string, string] {
+  const lower = title.toLowerCase();
+  for (const [key, gradient] of Object.entries(MAKE_GRADIENTS)) {
+    if (lower.startsWith(key) || lower.includes(` ${key} `)) return gradient;
+  }
+  return ["#475569", "#334155"]; // default slate
+}
+
+function CarPlaceholder({ title, year, fuelType }: { title: string; year: number; fuelType: string }) {
+  const [from, to] = getGradient(title);
+  const makeWord = title.split(" ")[0];
+  const modelWord = title.split(" ")[1] ?? "";
+  const isElectric = fuelType.toLowerCase().includes("elektrik") || fuelType.toLowerCase().includes("hibrid");
+
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-2"
+      style={{ background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)` }}
+    >
+      {/* Make + model initials badge */}
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
+          <span className="text-xl font-black tracking-tight text-white/90 drop-shadow">
+            {makeWord.slice(0, 1)}{modelWord.slice(0, 1) || makeWord.slice(1, 2)}
+          </span>
+        </div>
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">{makeWord}</p>
+          {modelWord && <p className="text-[10px] text-white/50">{modelWord}</p>}
+        </div>
+      </div>
+      {/* year + fuel pills */}
+      <div className="flex items-center gap-1.5">
+        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/60">
+          {year}
+        </span>
+        {isElectric && (
+          <span className="rounded-full bg-emerald-500/30 px-2 py-0.5 text-[10px] font-medium text-emerald-200">
+            ⚡
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TrustRing({ score }: { score: number }) {
   const color =
     score >= 80 ? "#16a34a" :
@@ -97,11 +173,7 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <svg className="h-14 w-14 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
-            </svg>
-          </div>
+          <CarPlaceholder title={listing.title} year={listing.year} fuelType={listing.fuelType} />
         )}
 
         <TrustRing score={listing.trustScore} />

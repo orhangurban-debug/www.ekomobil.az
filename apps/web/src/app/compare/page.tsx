@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listListings } from "@/server/listing-store";
-import { getCarInsights, type CarModelInsights } from "@/lib/car-insights";
+import { getCarInsights, getBrandContext, type CarModelInsights, type BrandContext } from "@/lib/car-insights";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -212,13 +212,22 @@ function ListColumn({
 
 // ── Verdict card ──────────────────────────────────────────────────────────
 
+const TIER_LABELS: Record<BrandContext["reliabilityTier"], { label: string; cls: string }> = {
+  top: { label: "Ən yüksək", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  above_avg: { label: "Ortanın üstü", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  average: { label: "Orta", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  below_avg: { label: "Ortanın altı", cls: "bg-red-50 text-red-700 border-red-200" }
+};
+
 function VerdictCard({
   item,
   insight,
+  brandCtx,
   rank
 }: {
   item: ListingSummary;
   insight: CarModelInsights | null;
+  brandCtx: BrandContext | null;
   rank: number;
 }) {
   const isFirst = rank === 0;
@@ -237,9 +246,21 @@ function VerdictCard({
         </div>
       )}
       <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-      <p className="mt-2 text-xs leading-relaxed text-slate-500">
-        {insight?.verdict ?? "Bu model üçün beynəlxalq analiz məlumatı hələ əlavə edilməyib."}
-      </p>
+      {insight ? (
+        <p className="mt-2 text-xs leading-relaxed text-slate-500">{insight.verdict}</p>
+      ) : brandCtx ? (
+        <div className="mt-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Marka etibarlılığı:</span>
+            <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${TIER_LABELS[brandCtx.reliabilityTier].cls}`}>
+              {TIER_LABELS[brandCtx.reliabilityTier].label}
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed text-slate-500">{brandCtx.note}</p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs leading-relaxed text-slate-400 italic">Bu model üçün beynəlxalq analiz məlumatı hələ əlavə edilməyib.</p>
+      )}
       <Link
         href={`/listings/${item.id}`}
         className={`mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition ${
@@ -288,9 +309,12 @@ export default async function ComparePage({
     );
   }
 
-  // Fetch insights for each listing
+  // Fetch insights for each listing; fall back to brand context
   const insightsData = items.map((item) =>
     getCarInsights(item.make, item.model, item.year)
+  );
+  const brandContexts = items.map((item, i) =>
+    insightsData[i] === null ? getBrandContext(item.make) : null
   );
 
   // Column accent colors
@@ -457,6 +481,29 @@ export default async function ComparePage({
             </div>
           </div>
 
+          {/* Brand context for unmatched models */}
+          {brandContexts.some((b) => b !== null) && (
+            <div className="border-t border-slate-100 bg-amber-50/60 px-5 py-3">
+              <p className="mb-2 text-xs font-semibold text-amber-800">Marka konteksti — model məlumatı olmadan:</p>
+              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+                {items.map((item, i) => {
+                  const bc = brandContexts[i];
+                  if (!bc) return <div key={i} className="text-xs text-slate-300 italic px-1">Model üçün ətraflı məlumat var ↑</div>;
+                  return (
+                    <div key={i} className="space-y-1 px-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-medium" style={{ color: COLORS[i] }}>{item.make}</span>
+                        <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${TIER_LABELS[bc.reliabilityTier].cls}`}>
+                          {TIER_LABELS[bc.reliabilityTier].label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-amber-700">{bc.note}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3">
             <p className="text-xs text-slate-400">
               Mənbə: J.D. Power VDS/IQS · Consumer Reports · TÜV Report · Euro NCAP · ADAC Pannenstatistik.
@@ -555,6 +602,7 @@ export default async function ComparePage({
                 key={items[origIdx].id}
                 item={items[origIdx]}
                 insight={insightsData[origIdx]}
+                brandCtx={brandContexts[origIdx]}
                 rank={rank}
               />
             ))}

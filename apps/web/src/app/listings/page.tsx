@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ListingCard } from "@/components/listings/listing-card";
+import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
 import { listListings } from "@/server/listing-store";
 
@@ -139,9 +140,22 @@ export default async function ListingsPage({
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {result.items.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
+              {result.items.map((listing, idx) => (
+                <>
+                  <ListingCard key={listing.id} listing={listing} />
+                  {/* Hər 6 kartdan sonra native ad */}
+                  {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && (
+                    <NativeAdCard key={`ad-${idx}`} slotLabel={`listings-inline-${Math.floor(idx / 6)}`} />
+                  )}
+                </>
               ))}
+            </div>
+          )}
+
+          {/* Leaderboard banner — pagination üstü */}
+          {result.items.length > 0 && (
+            <div className="mt-8">
+              <AdBanner size="leaderboard" slotLabel="listings-bottom" />
             </div>
           )}
 

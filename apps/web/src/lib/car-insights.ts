@@ -1032,3 +1032,63 @@ export function getCarInsights(
 }
 
 export { insights as ALL_CAR_INSIGHTS };
+
+// ── Marka-səviyyəsində ümumi etibarlılıq konteksti ──────────────────────────
+// Xüsusi model tapılmadıqda göstərilir
+
+export interface BrandContext {
+  make: string;
+  reliabilityTier: "top" | "above_avg" | "average" | "below_avg";
+  maintenanceCost: MaintenanceCost;
+  note: string;
+}
+
+export const BRAND_CONTEXTS: BrandContext[] = [
+  { make: "Toyota", reliabilityTier: "top", maintenanceCost: "orta",
+    note: "Toyota bütün modellərində sənayenin ən yüksək etibarlılıq standartını qoruyur. J.D. Power sıralamalarında daimi lider." },
+  { make: "Lexus", reliabilityTier: "top", maintenanceCost: "orta",
+    note: "Toyota-nın premium qolu olan Lexus, Consumer Reports-un ən etibarlı marka sıralamasında ilk pilləni tutur." },
+  { make: "Mazda", reliabilityTier: "top", maintenanceCost: "orta",
+    note: "Mazda keyfiyyət/etibarlılıq nisbətinə görə Toyota ilə rəqabət aparır. Consumer Reports tərəfindən yüksək qiymətləndirilir." },
+  { make: "Honda", reliabilityTier: "above_avg", maintenanceCost: "orta",
+    note: "Honda uzun illik etibarlılıq reputasiyasını qoruyur. Bəzi CVT modellərində şikayətlər var." },
+  { make: "Subaru", reliabilityTier: "above_avg", maintenanceCost: "orta",
+    note: "AWD sisteminin etibarlılığı yüksəkdir. Boksör mühərrikinin texniki qulluğuna diqqət tələb olunur." },
+  { make: "Hyundai", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Son nəsillərdə etibarlılıq əhəmiyyətli artmışdır. 2016–2020 GDi mühərrikli modellər recall siyahısını yoxlayın." },
+  { make: "Kia", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Hyundai ilə eyni platform — eyni güclü cəhətlər və eyni potensial problemlər." },
+  { make: "Volkswagen", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "DSG ötürücüsü olan modellər diqqət tələb edir. Alman keyfiyyəti var, lakin xidmət xərci Yaponiaya görə yüksəkdir." },
+  { make: "Skoda", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Volkswagen qrupu platforması — oxşar güclü cəhətlər və problemlər, lakin qiymət daha aşağıdır." },
+  { make: "Audi", reliabilityTier: "average", maintenanceCost: "yüksək",
+    note: "Premium keyfiyyət, lakin texniki xidmət xərci yüksəkdir. TFSI mühərrikdə yağ sərfi şikayətləri yayılmışdır." },
+  { make: "BMW", reliabilityTier: "average", maintenanceCost: "yüksək",
+    note: "Dinamik sürüş ənənəsi güclüdür. Su nasosu/termostat arızaları statistik olaraq daha tez rast gəlinir." },
+  { make: "Mercedes-Benz", reliabilityTier: "average", maintenanceCost: "yüksək",
+    note: "Lüks konfort yüksəkdir. TÜV statistikasında xırda elektrik arızaları ortalamadan çoxdur." },
+  { make: "Nissan", reliabilityTier: "below_avg", maintenanceCost: "orta",
+    note: "CVT ötürücüsü Nissan-ın ən zəyif nöqtəsidir. CVT vəziyyəti alışdan əvvəl mütləq yoxlanılmalıdır." },
+  { make: "Chevrolet", reliabilityTier: "below_avg", maintenanceCost: "orta",
+    note: "Consumer Reports etibarlılıq sıralamasında orta-altında qalır. CVT şikayətləri geniş yayılmışdır." },
+  { make: "Ford", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Amerikan platformaları müxtəlif etibarlılıq göstəriciləri ilə gəlir. PowerShift DCT-li modellər diqqət tələb edir." },
+  { make: "Land Rover", reliabilityTier: "below_avg", maintenanceCost: "çox yüksək",
+    note: "Yolsuzluq performansı mükəmməldir, lakin etibarlılıq statistikası aşağıdır. Xidmət xərci çox yüksəkdir." },
+  { make: "Jeep", reliabilityTier: "below_avg", maintenanceCost: "yüksək",
+    note: "Offroad qabiliyyəti güclüdür. TÜV statistikasında etibarlılıq aşağıdır; xidmət tarixçəsi yoxlanılmalıdır." },
+  { make: "Mitsubishi", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Outlander/Pajero seriyaları Azərbaycanda populyardır. Ümumi etibarlılıq orta səviyyədədir." },
+  { make: "Renault", reliabilityTier: "average", maintenanceCost: "orta",
+    note: "Duster Azərbaycanda geniş yayılmışdır. Elektrik sistemi arızaları bəzən rast gəlinir." },
+  { make: "Volvo", reliabilityTier: "above_avg", maintenanceCost: "yüksək",
+    note: "Təhlükəsizlik standartları sənayenin zirvəsindədir. Xidmət xərci yüksəkdir." },
+  { make: "Porsche", reliabilityTier: "above_avg", maintenanceCost: "çox yüksək",
+    note: "Cayenne/Macan etibarlı mühərriklərlə gəlir. Xidmət xərci çox yüksəkdir." },
+];
+
+export function getBrandContext(make: string): BrandContext | null {
+  const lower = make.toLowerCase().trim();
+  return BRAND_CONTEXTS.find((b) => b.make.toLowerCase() === lower) ?? null;
+}
