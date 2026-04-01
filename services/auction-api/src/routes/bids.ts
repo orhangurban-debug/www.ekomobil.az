@@ -24,17 +24,37 @@ export async function registerBidRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send(result);
     }
 
+    const occurredAt = new Date().toISOString();
+    const basePayload = {
+      bid: result.bid,
+      auction: result.auction,
+      nextMinimumBidAzn: result.nextMinimumBidAzn,
+      extended: result.extended,
+      timeExtended: result.timeExtended
+    };
     await publishRealtimeEvent({
       auctionId: request.params.id,
       type: "bid.accepted",
-      occurredAt: new Date().toISOString(),
-      payload: {
-        bid: result.bid,
-        auction: result.auction,
-        nextMinimumBidAzn: result.nextMinimumBidAzn,
-        extended: result.extended
-      }
+      occurredAt,
+      payload: basePayload
     });
+    await publishRealtimeEvent({
+      auctionId: request.params.id,
+      type: "NEW_BID",
+      occurredAt,
+      payload: basePayload
+    });
+    if (result.timeExtended) {
+      await publishRealtimeEvent({
+        auctionId: request.params.id,
+        type: "TIME_EXTENDED",
+        occurredAt,
+        payload: {
+          auction: result.auction,
+          extendedByMs: basePayload.auction?.endsAt
+        }
+      });
+    }
 
     return reply.send(result);
   });

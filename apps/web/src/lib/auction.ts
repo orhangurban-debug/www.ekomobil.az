@@ -10,6 +10,7 @@ export type AuctionStatus =
   | "seller_confirmed"
   | "completed"
   | "not_met_reserve"
+  | "pending_seller_approval"
   | "no_show"
   | "seller_breach"
   | "cancelled"
@@ -177,6 +178,7 @@ export function getAuctionStatusLabel(status: AuctionStatus): string {
     seller_confirmed: "Satıcı təsdiqlədi",
     completed: "Tamamlandı",
     not_met_reserve: "Rezerv qarşılanmadı",
+    pending_seller_approval: "Satıcı təsdiqi gözlənir (rezervə yaxın)",
     no_show: "No-show",
     seller_breach: "Satıcı öhdəliyi pozuldu",
     cancelled: "Ləğv edildi",

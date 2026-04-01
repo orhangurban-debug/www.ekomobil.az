@@ -32,7 +32,7 @@ export const config = {
   allowOrigins: splitCsv(process.env.AUCTION_API_ALLOWED_ORIGINS ?? process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL),
   internalSecret: process.env.AUCTION_API_INTERNAL_SECRET ?? "",
   heartbeatMs: readInt("AUCTION_SSE_HEARTBEAT_MS", 15000),
-  antiSnipingWindowMs: readInt("AUCTION_ANTI_SNIPING_WINDOW_MS", 5 * 60 * 1000),
+  antiSnipingWindowMs: readInt("AUCTION_ANTI_SNIPING_WINDOW_MS", 2 * 60 * 1000),
   antiSnipingExtensionMs: readInt("AUCTION_ANTI_SNIPING_EXTENSION_MS", 2 * 60 * 1000),
   bidHistoryLimit: readInt("AUCTION_STREAM_HISTORY_LIMIT", 50)
 } as const;

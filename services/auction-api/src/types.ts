@@ -8,6 +8,7 @@ export type AuctionStatus =
   | "seller_confirmed"
   | "completed"
   | "not_met_reserve"
+  | "pending_seller_approval"
   | "no_show"
   | "seller_breach"
   | "cancelled"
@@ -29,6 +30,7 @@ export interface AuctionStateSnapshot {
   sellerUserId: string;
   titleSnapshot: string;
   startingBidAzn: number;
+  reservePriceAzn?: number;
   currentBidAzn: number | null;
   currentBidderUserId: string | null;
   minimumIncrementAzn: number;
@@ -68,6 +70,7 @@ export interface PlaceBidResult {
   auction?: AuctionStateSnapshot;
   nextMinimumBidAzn?: number;
   extended?: boolean;
+  timeExtended?: boolean;
 }
 
 export interface AuctionRealtimeEvent {
@@ -75,6 +78,8 @@ export interface AuctionRealtimeEvent {
   type:
     | "snapshot"
     | "bid.accepted"
+    | "NEW_BID"
+    | "TIME_EXTENDED"
     | "payment.updated"
     | "auction.updated"
     | "auction.heartbeat";

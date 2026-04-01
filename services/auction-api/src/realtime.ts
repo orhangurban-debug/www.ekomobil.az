@@ -1,3 +1,7 @@
+/**
+ * Real-time: Redis Pub/Sub + server-sent events (SSE).
+ * Socket.io əlavə etmək istəsəniz, eyni `publishRealtimeEvent` çağırışlarını otaqlara yönləndirin.
+ */
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { config } from "./config";
 import { changeViewerCount } from "./metrics";

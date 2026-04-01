@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
+import { runAuctionBidPreflight } from "@/server/auction-bid-preflight";
 import { fetchAuctionApi } from "@/server/auction-api-client";
 import { placeAuctionBid } from "@/server/auction-bid-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
@@ -58,6 +59,15 @@ export async function POST(
     .update(userAgent + rawIp + (process.env.AUTH_SECRET ?? ""))
     .digest("hex")
     .slice(0, 32);
+
+  const pre = await runAuctionBidPreflight({ userId: user.id, auctionId: id });
+  if (!pre.ok) {
+    const body: Record<string, unknown> = { ok: false, error: pre.message, code: pre.code };
+    if (pre.code === "PREAUTH_REQUIRED" && pre.preauthAmountAzn !== undefined) {
+      body.preauthAmountAzn = pre.preauthAmountAzn;
+    }
+    return NextResponse.json(body, { status: pre.status });
+  }
 
   const proxied = await fetchAuctionApi(`/api/auctions/${id}/bids`, {
     method: "POST",

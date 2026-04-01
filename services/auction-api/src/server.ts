@@ -7,6 +7,7 @@ import { getMetricsSnapshot } from "./metrics";
 import { getPgPool } from "./postgres";
 import { connectRedis } from "./redis";
 import { initRealtime } from "./realtime";
+import { startAuctionCloseWorker } from "./auction-close-worker";
 import { registerBidRoutes } from "./routes/bids";
 import { registerStreamRoutes } from "./routes/stream";
 
@@ -72,6 +73,7 @@ async function main() {
 
   await connectRedis();
   await initRealtime();
+  startAuctionCloseWorker();
   await app.listen({ port: config.port, host: config.host });
 }
 

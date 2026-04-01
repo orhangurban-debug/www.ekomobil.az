@@ -26,6 +26,7 @@ export default async function AuctionConfirmPage({
     "ended_pending_confirmation",
     "completed",
     "not_met_reserve",
+    "pending_seller_approval",
     "no_show",
     "seller_breach",
     "disputed",

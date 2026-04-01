@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { config } from "./config";
+import { getMinBidIncrement } from "./bid-increment";
+import { computeTieBreakerUserId, resolveTwoPartyProxy } from "./bid-proxy";
 import { lockAuctionForBid } from "./locks";
 import { countAcceptedBid, countAntiSnipingTrigger, countRejectedBid, observeBidLatency } from "./metrics";
 import { getPgPool, withTransaction } from "./postgres";
@@ -12,6 +14,7 @@ interface AuctionRow {
   seller_user_id: string;
   title_snapshot: string;
   starting_bid_azn: number;
+  reserve_price_azn: number | null;
   current_bid_azn: number | null;
   current_bidder_user_id: string | null;
   minimum_increment_azn: number;
@@ -51,6 +54,7 @@ function mapAuction(row: AuctionRow): AuctionStateSnapshot {
     sellerUserId: row.seller_user_id,
     titleSnapshot: row.title_snapshot,
     startingBidAzn: row.starting_bid_azn,
+    reservePriceAzn: row.reserve_price_azn ?? undefined,
     currentBidAzn: row.current_bid_azn,
     currentBidderUserId: row.current_bidder_user_id,
     minimumIncrementAzn: row.minimum_increment_azn,
@@ -86,6 +90,58 @@ function isAuctionOpen(status: string): boolean {
   return status === "live" || status === "extended";
 }
 
+async function insertBidRow(
+  client: PoolClient,
+  input: {
+    auctionId: string;
+    bidderUserId: string;
+    amountAzn: number;
+    maxAutoBidAzn: number | null;
+    isAutoBid: boolean;
+    source: "manual" | "auto";
+    ip?: string;
+    deviceFingerprint?: string;
+  }
+): Promise<BidRow> {
+  const bidResult = await client.query<BidRow>(
+    `INSERT INTO auction_bids (
+       id, auction_id, bidder_user_id, amount_azn, is_auto_bid, max_auto_bid_azn, source, ip_hash, device_fingerprint
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING *`,
+    [
+      randomUUID(),
+      input.auctionId,
+      input.bidderUserId,
+      input.amountAzn,
+      input.isAutoBid,
+      input.maxAutoBidAzn,
+      input.source,
+      hashOptional(input.ip),
+      hashOptional(input.deviceFingerprint)
+    ]
+  );
+  return bidResult.rows[0];
+}
+
+async function getLeaderEffectiveMax(
+  client: PoolClient,
+  auctionId: string,
+  leaderId: string
+): Promise<number | null> {
+  const r = await client.query<{ max_auto_bid_azn: number | null; amount_azn: number }>(
+    `SELECT max_auto_bid_azn, amount_azn
+     FROM auction_bids
+     WHERE auction_id = $1 AND bidder_user_id = $2
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [auctionId, leaderId]
+  );
+  const row = r.rows[0];
+  if (!row) return null;
+  return row.max_auto_bid_azn ?? row.amount_azn;
+}
+
 async function ensureParticipant(client: PoolClient, input: {
   auctionId: string;
   bidderUserId: string;
@@ -109,7 +165,7 @@ export async function listAuctions(limit = 20): Promise<AuctionStateSnapshot[]> 
   const result = await getPgPool().query<AuctionRow>(
     `SELECT *
      FROM auction_listings
-     WHERE status IN ('scheduled', 'live', 'extended', 'ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'completed')
+     WHERE status IN ('scheduled', 'live', 'extended', 'ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'completed', 'pending_seller_approval', 'not_met_reserve')
      ORDER BY starts_at ASC
      LIMIT $1`,
     [limit]
@@ -176,31 +232,122 @@ export async function placeBid(input: PlaceBidInput): Promise<PlaceBidResult> {
         return { ok: false, error: "Bu lot üçün deposit ödənişi tamamlanmalıdır" };
       }
 
-      const nextMinimumBidAzn = (auction.current_bid_azn ?? auction.starting_bid_azn) + auction.minimum_increment_azn;
-      if (input.amountAzn < nextMinimumBidAzn) {
-        return { ok: false, error: `Minimum bid ${nextMinimumBidAzn} ₼ olmalıdır`, nextMinimumBidAzn };
+      const challengerMax = input.autoBidMaxAzn ?? input.amountAzn;
+      if (challengerMax < input.amountAzn) {
+        return { ok: false, error: "Maksimum avtotəklif təklif məbləğindən kiçik ola bilməz" };
+      }
+
+      const cur = auction.current_bid_azn;
+      const leaderId = auction.current_bidder_user_id;
+      let minRequired: number;
+      if (!leaderId || cur === null) {
+        minRequired = auction.starting_bid_azn;
+      } else if (leaderId === input.bidderUserId && input.amountAzn >= cur) {
+        minRequired = cur;
+      } else {
+        minRequired = cur + getMinBidIncrement(cur);
+      }
+      if (input.amountAzn < minRequired) {
+        return {
+          ok: false,
+          error: `Minimum təklif ${minRequired} ₼ olmalıdır`,
+          nextMinimumBidAzn: minRequired
+        };
+      }
+
+      let leaderMaxForProxy: number | null = null;
+      if (leaderId && leaderId !== input.bidderUserId) {
+        leaderMaxForProxy =
+          (await getLeaderEffectiveMax(client, input.auctionId, leaderId)) ?? cur ?? auction.starting_bid_azn;
+      }
+
+      let tieWinnerId = input.bidderUserId;
+      if (leaderId && leaderId !== input.bidderUserId && leaderMaxForProxy !== null) {
+        const Ma = leaderMaxForProxy;
+        const Mb = challengerMax;
+        if (Ma === Mb) {
+          tieWinnerId = await computeTieBreakerUserId(client, input.auctionId, leaderId, input.bidderUserId);
+        }
+      }
+
+      let battle: ReturnType<typeof resolveTwoPartyProxy>;
+      try {
+        battle = resolveTwoPartyProxy({
+          startingBidAzn: auction.starting_bid_azn,
+          currentBidAzn: cur,
+          currentLeaderId: leaderId,
+          challengerId: input.bidderUserId,
+          challengerAmount: input.amountAzn,
+          challengerMax,
+          leaderMax: leaderId && leaderId !== input.bidderUserId ? leaderMaxForProxy : null,
+          tieWinnerId
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Təklif qəbul edilmədi";
+        return { ok: false, error: msg };
       }
 
       const nearClose = auction.ends_at.getTime() - now <= config.antiSnipingWindowMs;
       const nextEndsAt = nearClose ? new Date(auction.ends_at.getTime() + config.antiSnipingExtensionMs) : auction.ends_at;
-      const bidResult = await client.query<BidRow>(
-        `INSERT INTO auction_bids (
-           id, auction_id, bidder_user_id, amount_azn, is_auto_bid, max_auto_bid_azn, source, ip_hash, device_fingerprint
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING *`,
-        [
-          randomUUID(),
-          input.auctionId,
-          input.bidderUserId,
-          input.amountAzn,
-          Boolean(input.autoBidMaxAzn),
-          input.autoBidMaxAzn ?? null,
-          input.autoBidMaxAzn ? "auto" : "manual",
-          hashOptional(input.ip),
-          hashOptional(input.deviceFingerprint)
-        ]
-      );
+
+      let lastBidRow: BidRow;
+
+      if (!leaderId || cur === null) {
+        lastBidRow = await insertBidRow(client, {
+          auctionId: input.auctionId,
+          bidderUserId: input.bidderUserId,
+          amountAzn: battle.finalPrice,
+          maxAutoBidAzn: input.autoBidMaxAzn ?? null,
+          isAutoBid: battle.finalPrice !== input.amountAzn,
+          source: battle.finalPrice !== input.amountAzn ? "auto" : "manual",
+          ip: input.ip,
+          deviceFingerprint: input.deviceFingerprint
+        });
+      } else if (leaderId === input.bidderUserId) {
+        lastBidRow = await insertBidRow(client, {
+          auctionId: input.auctionId,
+          bidderUserId: input.bidderUserId,
+          amountAzn: battle.finalPrice,
+          maxAutoBidAzn: input.autoBidMaxAzn ?? null,
+          isAutoBid: false,
+          source: "manual",
+          ip: input.ip,
+          deviceFingerprint: input.deviceFingerprint
+        });
+      } else if (battle.winnerId === input.bidderUserId) {
+        lastBidRow = await insertBidRow(client, {
+          auctionId: input.auctionId,
+          bidderUserId: input.bidderUserId,
+          amountAzn: battle.finalPrice,
+          maxAutoBidAzn: input.autoBidMaxAzn ?? null,
+          isAutoBid: battle.finalPrice !== input.amountAzn || Boolean(input.autoBidMaxAzn),
+          source: battle.finalPrice !== input.amountAzn ? "auto" : "manual",
+          ip: input.ip,
+          deviceFingerprint: input.deviceFingerprint
+        });
+      } else {
+        await insertBidRow(client, {
+          auctionId: input.auctionId,
+          bidderUserId: input.bidderUserId,
+          amountAzn: input.amountAzn,
+          maxAutoBidAzn: input.autoBidMaxAzn ?? null,
+          isAutoBid: Boolean(input.autoBidMaxAzn),
+          source: input.autoBidMaxAzn ? "auto" : "manual",
+          ip: input.ip,
+          deviceFingerprint: input.deviceFingerprint
+        });
+        lastBidRow = await insertBidRow(client, {
+          auctionId: input.auctionId,
+          bidderUserId: leaderId,
+          amountAzn: battle.leaderAutoAmount ?? battle.finalPrice,
+          maxAutoBidAzn: null,
+          isAutoBid: true,
+          source: "auto",
+          ip: input.ip,
+          deviceFingerprint: input.deviceFingerprint
+        });
+      }
+
       const updatedResult = await client.query<AuctionRow>(
         `UPDATE auction_listings
          SET current_bid_azn = $2,
@@ -211,18 +358,20 @@ export async function placeBid(input: PlaceBidInput): Promise<PlaceBidResult> {
              updated_at = NOW()
          WHERE id = $1
          RETURNING *`,
-        [input.auctionId, input.amountAzn, input.bidderUserId, nearClose, nextEndsAt]
+        [input.auctionId, battle.finalPrice, battle.winnerId, nearClose, nextEndsAt]
       );
       const updatedAuction = mapAuction(updatedResult.rows[0]);
       if (nearClose) {
         countAntiSnipingTrigger();
       }
+      const nextMin = battle.finalPrice + getMinBidIncrement(battle.finalPrice);
       return {
         ok: true,
-        bid: mapBid(bidResult.rows[0]),
+        bid: mapBid(lastBidRow),
         auction: updatedAuction,
-        nextMinimumBidAzn: input.amountAzn + updatedAuction.minimumIncrementAzn,
-        extended: nearClose
+        nextMinimumBidAzn: nextMin,
+        extended: nearClose,
+        timeExtended: nearClose
       };
     });
 
