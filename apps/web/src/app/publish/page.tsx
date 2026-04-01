@@ -373,8 +373,160 @@ export default function PublishPage() {
             {/* Step 2: Media */}
             {step === "Media" && (
               <div className="card p-8 space-y-6">
-                <h2 className="text-lg font-semibold text-slate-900">Media protokolu</h2>
-                <p className="text-sm text-slate-500">Minimum standart: 20 foto + 15-30 saniyə mühərrik videosu</p>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Media protokolu</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Daha çox foto = daha yüksək etibar balı = daha sürətli satış
+                  </p>
+                </div>
+
+                {/* Photo angle guide */}
+                <div className="rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/4 p-4">
+                  <p className="mb-3 text-sm font-semibold text-[#0891B2]">📸 Tövsiyə olunan şəkil ardıcıllığı</p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[
+                      {
+                        label: "Ön sol 3/4", priority: "Əsas", tip: "Gündüz çəkin, kölgəsiz. Arxa fon sadə.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="8" y="18" width="60" height="20" rx="4" fill="#0891B2" opacity=".15"/>
+                            <rect x="12" y="20" width="52" height="16" rx="3" fill="#0891B2" opacity=".25"/>
+                            <ellipse cx="22" cy="38" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="22" cy="38" rx="4" ry="4" fill="#94a3b8"/>
+                            <ellipse cx="58" cy="38" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="58" cy="38" rx="4" ry="4" fill="#94a3b8"/>
+                            <rect x="14" y="18" width="24" height="10" rx="2" fill="#bae6fd" opacity=".7"/>
+                            <rect x="42" y="18" width="16" height="10" rx="2" fill="#bae6fd" opacity=".7"/>
+                            <path d="M5 32 L14 24" stroke="#0891B2" strokeWidth="2" strokeDasharray="3,2"/>
+                            <circle cx="5" cy="33" r="3" fill="#0891B2"/>
+                            <text x="1" y="46" fontSize="7" fill="#0891B2" fontWeight="bold">📷</text>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Arxa sağ 3/4", priority: "Əsas", tip: "Nömrə boşqabı aydın görünməlidir.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="8" y="18" width="60" height="20" rx="4" fill="#7c3aed" opacity=".15"/>
+                            <rect x="12" y="20" width="52" height="16" rx="3" fill="#7c3aed" opacity=".25"/>
+                            <ellipse cx="22" cy="38" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="22" cy="38" rx="4" ry="4" fill="#94a3b8"/>
+                            <ellipse cx="58" cy="38" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="58" cy="38" rx="4" ry="4" fill="#94a3b8"/>
+                            <rect x="42" y="22" width="22" height="8" rx="1.5" fill="#bae6fd" opacity=".7"/>
+                            <rect x="28" y="28" width="24" height="4" rx="1" fill="#f1f5f9" stroke="#94a3b8" strokeWidth=".5"/>
+                            <path d="M75 32 L66 24" stroke="#7c3aed" strokeWidth="2" strokeDasharray="3,2"/>
+                            <circle cx="75" cy="33" r="3" fill="#7c3aed"/>
+                            <text x="71" y="46" fontSize="7" fill="#7c3aed" fontWeight="bold">📷</text>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Sol profil", priority: "Vacib", tip: "Tam boy — ön təkərdən arxa təkərə qədər.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="6" y="18" width="66" height="18" rx="3" fill="#16a34a" opacity=".15"/>
+                            <rect x="10" y="20" width="58" height="14" rx="2" fill="#16a34a" opacity=".2"/>
+                            <ellipse cx="19" cy="36" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="19" cy="36" rx="4" ry="4" fill="#94a3b8"/>
+                            <ellipse cx="61" cy="36" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="61" cy="36" rx="4" ry="4" fill="#94a3b8"/>
+                            <rect x="14" y="17" width="20" height="11" rx="2" fill="#bae6fd" opacity=".7"/>
+                            <rect x="38" y="17" width="20" height="11" rx="2" fill="#bae6fd" opacity=".5"/>
+                            <path d="M40 48 L40 36" stroke="#16a34a" strokeWidth="2" strokeDasharray="3,2"/>
+                            <circle cx="40" cy="50" r="2.5" fill="#16a34a"/>
+                            <text x="36" y="58" fontSize="6" fill="#16a34a" fontWeight="bold">📷</text>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Sağ profil", priority: "Vacib", tip: "Sol profil ilə eyni şərtlər.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="6" y="18" width="66" height="18" rx="3" fill="#d97706" opacity=".15"/>
+                            <rect x="10" y="20" width="58" height="14" rx="2" fill="#d97706" opacity=".2"/>
+                            <ellipse cx="19" cy="36" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="19" cy="36" rx="4" ry="4" fill="#94a3b8"/>
+                            <ellipse cx="61" cy="36" rx="7" ry="7" fill="#334155"/>
+                            <ellipse cx="61" cy="36" rx="4" ry="4" fill="#94a3b8"/>
+                            <rect x="14" y="17" width="20" height="11" rx="2" fill="#bae6fd" opacity=".7"/>
+                            <rect x="38" y="17" width="20" height="11" rx="2" fill="#bae6fd" opacity=".5"/>
+                            <path d="M40 48 L40 36" stroke="#d97706" strokeWidth="2" strokeDasharray="3,2"/>
+                            <circle cx="40" cy="50" r="2.5" fill="#d97706"/>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Salon / Torpan", priority: "Vacib", tip: "Sürücü qapısı açıq. Torpan, sükan, ekranlar aydın.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="10" y="10" width="60" height="32" rx="4" fill="#0891B2" opacity=".1" stroke="#0891B2" strokeWidth=".5"/>
+                            <rect x="14" y="13" width="34" height="18" rx="2" fill="#bae6fd" opacity=".5"/>
+                            <circle cx="28" cy="31" r="8" fill="#334155" opacity=".3"/>
+                            <circle cx="28" cy="31" r="5" fill="#64748b" opacity=".4"/>
+                            <rect x="18" y="25" width="14" height="1.5" rx=".7" fill="#0891B2" opacity=".6"/>
+                            <rect x="52" y="13" width="14" height="25" rx="2" fill="#f8fafc" stroke="#cbd5e1" strokeWidth=".5"/>
+                            <rect x="54" y="15" width="10" height="12" rx="1" fill="#bae6fd" opacity=".5"/>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Arxa oturacaq", priority: "Tövsiyə", tip: "Arxa salon rahatlığı.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="10" y="8" width="60" height="36" rx="4" fill="#7c3aed" opacity=".08" stroke="#7c3aed" strokeWidth=".5"/>
+                            <rect x="15" y="12" width="20" height="28" rx="3" fill="#e2e8f0" stroke="#cbd5e1"/>
+                            <rect x="45" y="12" width="20" height="28" rx="3" fill="#e2e8f0" stroke="#cbd5e1"/>
+                            <rect x="17" y="30" width="16" height="8" rx="2" fill="#cbd5e1"/>
+                            <rect x="47" y="30" width="16" height="8" rx="2" fill="#cbd5e1"/>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Odometr", priority: "Vacib", tip: "Yürüş açıq oxunmalıdır. Gecə rejimi yox.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <circle cx="40" cy="28" r="18" fill="#334155" opacity=".9"/>
+                            <circle cx="40" cy="28" r="14" fill="#1e293b"/>
+                            <text x="28" y="31" fontSize="8" fill="#f1f5f9" fontWeight="bold">72 415</text>
+                            <text x="33" y="39" fontSize="5" fill="#94a3b8">km</text>
+                            <path d="M40 18 L42 28" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                        )
+                      },
+                      {
+                        label: "Mühərrik", priority: "Tövsiyə", tip: "Kapoton açıq. Yağ-su doldurma qapaqları görünsün.",
+                        icon: (
+                          <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
+                            <rect x="8" y="14" width="64" height="26" rx="4" fill="#334155" opacity=".15"/>
+                            <rect x="14" y="18" width="52" height="18" rx="3" fill="#475569" opacity=".3"/>
+                            <rect x="20" y="21" width="18" height="12" rx="2" fill="#64748b" opacity=".5"/>
+                            <rect x="42" y="21" width="18" height="12" rx="2" fill="#64748b" opacity=".4"/>
+                            <circle cx="30" cy="20" r="3" fill="#0891B2" opacity=".7"/>
+                            <circle cx="50" cy="20" r="3" fill="#f59e0b" opacity=".7"/>
+                            <path d="M8 14 L72 14" stroke="#94a3b8" strokeWidth=".5"/>
+                          </svg>
+                        )
+                      }
+                    ].map((angle) => (
+                      <div key={angle.label} className="rounded-xl border border-slate-200 bg-white p-2.5 text-center">
+                        <div className="mb-1.5">{angle.icon}</div>
+                        <p className="text-xs font-semibold text-slate-700 leading-tight">{angle.label}</p>
+                        <span className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                          angle.priority === "Əsas" ? "bg-[#0891B2]/10 text-[#0891B2]" :
+                          angle.priority === "Vacib" ? "bg-emerald-50 text-emerald-700" :
+                          "bg-slate-100 text-slate-500"
+                        }`}>
+                          {angle.priority}
+                        </span>
+                        <p className="mt-1 text-[10px] text-slate-400 leading-tight">{angle.tip}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[11px] text-[#0891B2]/70">
+                    💡 Xarici şəkillər gündüz çəkiləndə, iç şəkillər yaxşı işıqlı mühitdə çəkiləndə alıcının marağı 2x artır.
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -388,21 +540,21 @@ export default function PublishPage() {
                 </div>
 
                 <div>
-                  <label className="label mb-3">Tələb olunan bucaqlar</label>
+                  <label className="label mb-3">Mövcud bucaqlar</label>
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
-                        media[key] ? "border-brand-300 bg-brand-50" : "border-slate-200 bg-white hover:border-slate-300"
+                        media[key] ? "border-[#0891B2]/40 bg-[#0891B2]/5" : "border-slate-200 bg-white hover:border-slate-300"
                       }`}>
                         <input
                           type="checkbox"
                           checked={media[key] as boolean}
                           onChange={(e) => updateBoolean(key, e.target.checked)}
-                          className="h-4 w-4 rounded text-brand-600"
+                          className="h-4 w-4 rounded accent-[#0891B2]"
                         />
                         <span className="text-sm font-medium text-slate-700">{label}</span>
                         {media[key] && (
-                          <svg className="ml-auto h-4 w-4 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="ml-auto h-4 w-4 text-[#0891B2]" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                           </svg>
                         )}
@@ -447,13 +599,13 @@ export default function PublishPage() {
                   </div>
                 )}
 
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {LISTING_PLANS.map((plan) => (
                     <label
                       key={plan.id}
-                      className={`flex cursor-pointer items-start gap-4 rounded-xl border-2 p-4 transition ${
+                      className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-4 transition ${
                         planType === plan.id
-                          ? "border-brand-500 bg-brand-50"
+                          ? "border-[#0891B2] bg-[#0891B2]/5"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
                     >
@@ -463,20 +615,37 @@ export default function PublishPage() {
                         value={plan.id}
                         checked={planType === plan.id}
                         onChange={() => setPlanType(plan.id)}
-                        className="mt-1 h-4 w-4 text-brand-600"
+                        className="mt-1 h-4 w-4 accent-[#0891B2]"
                       />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-slate-900">{plan.nameAz}</span>
-                          <span className="font-bold text-slate-900">
-                            {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
+                          <span className="font-bold text-slate-900 shrink-0">
+                            {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼/dəfə`}
                           </span>
                         </div>
-                        <p className="mt-1 text-sm text-slate-500">
-                          {plan.id === "free" && "Standart sıralanma, 30 gün"}
-                          {plan.id === "standard" && "Vurğulanmış kart, 1.5x prioritet, statistika"}
-                          {plan.id === "vip" && "Ön səhifə prioriteti, 3x klik, vurğulanmış"}
-                        </p>
+                        {/* Plan details chips */}
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                            {plan.durationDays} gün aktiv
+                          </span>
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                            {plan.maxImages} şəkil
+                          </span>
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                            {plan.maxImageSizeKb >= 1024 ? `${(plan.maxImageSizeKb/1024).toFixed(0)} MB` : `${plan.maxImageSizeKb} KB`}/foto
+                          </span>
+                          {plan.videoEnabled && (
+                            <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
+                              {plan.maxVideos} video ({plan.maxVideoSizeMb} MB)
+                            </span>
+                          )}
+                          {plan.featuredInHome && (
+                            <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">
+                              ⭐ Ön səhifə
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </label>
                   ))}

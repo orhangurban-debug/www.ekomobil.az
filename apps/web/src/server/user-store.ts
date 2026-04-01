@@ -232,3 +232,56 @@ export async function saveSearch(userId: string, input: { name: string; queryPar
     [createUuidLikeId(), userId, input.name, JSON.stringify(input.queryParams)]
   );
 }
+
+// ── Public seller profile ──────────────────────────────────────────────────
+
+export interface PublicSellerProfile {
+  userId: string;
+  displayName: string;
+  city: string | null;
+  memberSince: string | null;
+  activeListingCount: number;
+  sellerVerified: boolean;
+}
+
+export async function getPublicSellerProfile(
+  userId: string
+): Promise<PublicSellerProfile | null> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+
+    const userResult = await pool.query<{
+      full_name: string | null;
+      city: string | null;
+      created_at: Date | null;
+      email_verified: boolean;
+    }>(
+      `SELECT up.full_name, up.city, u.created_at, u.email_verified
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.id = $1 LIMIT 1`,
+      [userId]
+    );
+    const user = userResult.rows[0];
+    if (!user) return null;
+
+    const countResult = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text as count FROM listings
+       WHERE owner_user_id = $1 AND status = 'active'`,
+      [userId]
+    );
+    const activeListingCount = Number(countResult.rows[0]?.count ?? 0);
+
+    return {
+      userId,
+      displayName: user.full_name ?? "EkoMobil İstifadəçisi",
+      city: user.city,
+      memberSince: user.created_at?.toISOString() ?? null,
+      activeListingCount,
+      sellerVerified: user.email_verified
+    };
+  } catch {
+    return null;
+  }
+}

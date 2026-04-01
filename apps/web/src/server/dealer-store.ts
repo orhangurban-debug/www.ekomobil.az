@@ -288,3 +288,89 @@ export async function createLeadForListing(input: {
     ]
   );
 }
+
+// ── Public profile ─────────────────────────────────────────────────────────
+
+export interface PublicDealerProfile {
+  id: string;
+  name: string;
+  city: string;
+  verified: boolean;
+  responseSlaMinutes: number;
+  activeListingCount: number;
+  memberSince: string | null;
+  inventory: ListingSummary[];
+}
+
+export async function getPublicDealerProfile(
+  dealerId: string
+): Promise<PublicDealerProfile | null> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+
+    const dealerResult = await pool.query<{
+      id: string; name: string; city: string; verified: boolean;
+      response_sla_minutes: number; created_at: Date | null;
+    }>(
+      `SELECT id, name, city, verified, response_sla_minutes, created_at
+       FROM dealer_profiles WHERE id = $1 LIMIT 1`,
+      [dealerId]
+    );
+    const dealer = dealerResult.rows[0];
+    if (!dealer) return null;
+
+    const inventoryResult = await pool.query<{
+      id: string; title: string; description: string; price_azn: number;
+      city: string; year: number; mileage_km: number; fuel_type: string;
+      transmission: string; make: string; model: string; vin: string;
+      status: string; seller_type: string; owner_user_id: string | null;
+      dealer_profile_id: string | null; plan_type: string | null;
+      listing_kind: string | null; created_at: Date; updated_at: Date;
+      trust_score: number | null; vin_verified: boolean | null;
+      seller_verified: boolean | null; media_complete: boolean | null;
+    }>(
+      `SELECT l.id, l.title, l.description, l.price_azn, l.city, l.year,
+              l.mileage_km, l.fuel_type, l.transmission, l.make, l.model,
+              l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
+              l.plan_type, l.listing_kind, l.created_at, l.updated_at,
+              ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
+       FROM listings l
+       LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+       WHERE l.dealer_profile_id = $1 AND l.status = 'active'
+       ORDER BY CASE COALESCE(l.plan_type,'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END, l.created_at DESC
+       LIMIT 50`,
+      [dealerId]
+    );
+
+    const inventory: ListingSummary[] = inventoryResult.rows.map((r) => ({
+      id: r.id, title: r.title, description: r.description,
+      priceAzn: r.price_azn, city: r.city, year: r.year,
+      mileageKm: r.mileage_km, fuelType: r.fuel_type,
+      transmission: r.transmission, make: r.make, model: r.model,
+      status: r.status as ListingSummary["status"],
+      sellerType: r.seller_type as ListingSummary["sellerType"],
+      dealerProfileId: r.dealer_profile_id ?? undefined,
+      planType: (r.plan_type ?? "free") as ListingSummary["planType"],
+      listingKind: (r.listing_kind ?? "vehicle") as ListingSummary["listingKind"],
+      vin: r.vin,
+      createdAt: r.created_at.toISOString(),
+      updatedAt: r.updated_at.toISOString(),
+      trustScore: r.trust_score ?? 50,
+      vinVerified: r.vin_verified ?? false,
+      sellerVerified: r.seller_verified ?? false,
+      mediaComplete: r.media_complete ?? false,
+      priceInsight: r.price_azn < 22000 ? "below_market" : r.price_azn > 50000 ? "above_market" : "market_rate"
+    }));
+
+    return {
+      id: dealer.id, name: dealer.name, city: dealer.city,
+      verified: dealer.verified, responseSlaMinutes: dealer.response_sla_minutes,
+      activeListingCount: inventory.length,
+      memberSince: dealer.created_at?.toISOString() ?? null,
+      inventory
+    };
+  } catch {
+    return null;
+  }
+}
