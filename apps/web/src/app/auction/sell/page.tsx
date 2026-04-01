@@ -68,6 +68,7 @@ export default async function AuctionSellPage() {
         <ul className="mt-3 list-disc space-y-1 pl-5">
           <li>Lot haqqı ödənmədən hərrac aktivləşmir</li>
           <li>Yüksək dəyərli lotlarda deep KYC və ya satıcı performans bond tələb oluna bilər</li>
+          <li>Satışın daha sürətli getməsi üçün VIN məlumat linki və servis tarixçə linki əlavə etmək tövsiyə olunur</li>
         </ul>
       </div>
 

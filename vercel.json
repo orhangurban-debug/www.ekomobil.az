@@ -1,0 +1,13 @@
+{
+  "experimentalServices": {
+    "web": {
+      "entrypoint": "apps/web",
+      "routePrefix": "/",
+      "framework": "nextjs"
+    },
+    "auction-api": {
+      "entrypoint": "services/auction-api",
+      "routePrefix": "/_/auction-api"
+    }
+  }
+}

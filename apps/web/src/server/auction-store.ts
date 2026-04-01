@@ -173,6 +173,10 @@ export async function createAuctionListing(input: {
   depositAmountAzn?: number;
   sellerBondRequired?: boolean;
   sellerBondAmountAzn?: number;
+  vinInfoUrl?: string;
+  serviceHistoryUrl?: string;
+  vinDocumentRef?: string;
+  serviceHistoryDocumentRef?: string;
 }): Promise<{ ok: true; auction: AuctionListingRecord } | { ok: false; error: string }> {
   const ownership = await validateListingOwnership(input.listingId, input.sellerUserId);
   if (!ownership.ok) return { ok: false, error: ownership.error ?? "Elan tapılmadı" };
@@ -260,6 +264,38 @@ export async function createAuctionListing(input: {
       actionType: "moderation_pending",
       detail: "Lot is waiting for payment and moderation clearance"
     });
+    if (input.vinInfoUrl) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "vin_reference_submitted",
+        detail: `VIN source link submitted: ${input.vinInfoUrl}`
+      });
+    }
+    if (input.serviceHistoryUrl) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "service_history_reference_submitted",
+        detail: `Service history link submitted: ${input.serviceHistoryUrl}`
+      });
+    }
+    if (input.vinDocumentRef) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "vin_document_reference_submitted",
+        detail: `VIN document reference submitted: ${input.vinDocumentRef}`
+      });
+    }
+    if (input.serviceHistoryDocumentRef) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "service_history_document_reference_submitted",
+        detail: `Service history document reference submitted: ${input.serviceHistoryDocumentRef}`
+      });
+    }
     return { ok: true, auction: mapAuctionRow(result.rows[0]) };
   } catch (error) {
     assertAuctionMemoryFallbackAllowed(error);
@@ -299,6 +335,38 @@ export async function createAuctionListing(input: {
       actionType: "moderation_pending",
       detail: "Lot is waiting for payment and moderation clearance"
     });
+    if (input.vinInfoUrl) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "vin_reference_submitted",
+        detail: `VIN source link submitted: ${input.vinInfoUrl}`
+      });
+    }
+    if (input.serviceHistoryUrl) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "service_history_reference_submitted",
+        detail: `Service history link submitted: ${input.serviceHistoryUrl}`
+      });
+    }
+    if (input.vinDocumentRef) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "vin_document_reference_submitted",
+        detail: `VIN document reference submitted: ${input.vinDocumentRef}`
+      });
+    }
+    if (input.serviceHistoryDocumentRef) {
+      await recordAuctionAuditLog({
+        auctionId: id,
+        actorUserId: input.sellerUserId,
+        actionType: "service_history_document_reference_submitted",
+        detail: `Service history document reference submitted: ${input.serviceHistoryDocumentRef}`
+      });
+    }
     return { ok: true, auction };
   }
 }

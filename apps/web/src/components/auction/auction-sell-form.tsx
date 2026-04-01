@@ -33,6 +33,12 @@ export function AuctionSellForm({
   const [depositAmountAzn, setDepositAmountAzn] = useState("");
   const [sellerBondRequired, setSellerBondRequired] = useState(false);
   const [sellerBondAmountAzn, setSellerBondAmountAzn] = useState("");
+  const [vinInfoType, setVinInfoType] = useState<"link" | "document">("link");
+  const [vinInfoUrl, setVinInfoUrl] = useState("");
+  const [vinDocumentRef, setVinDocumentRef] = useState("");
+  const [serviceHistoryType, setServiceHistoryType] = useState<"link" | "document">("link");
+  const [serviceHistoryUrl, setServiceHistoryUrl] = useState("");
+  const [serviceHistoryDocumentRef, setServiceHistoryDocumentRef] = useState("");
   const [ackMarketplace, setAckMarketplace] = useState(false);
   const [ackOffPlatform, setAckOffPlatform] = useState(false);
   const [ackFees, setAckFees] = useState(false);
@@ -85,7 +91,12 @@ export function AuctionSellForm({
         sellerBondRequired,
         sellerBondAmountAzn: sellerBondRequired
           ? Number(sellerBondAmountAzn || suggestedSellerBond)
-          : undefined
+          : undefined,
+        vinInfoUrl: vinInfoType === "link" ? vinInfoUrl.trim() || undefined : undefined,
+        serviceHistoryUrl: serviceHistoryType === "link" ? serviceHistoryUrl.trim() || undefined : undefined,
+        vinDocumentRef: vinInfoType === "document" ? vinDocumentRef.trim() || undefined : undefined,
+        serviceHistoryDocumentRef:
+          serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined
       })
     });
     const createPayload = (await createResponse.json()) as {
@@ -278,6 +289,71 @@ export function AuctionSellForm({
             />
           </div>
         )}
+      </div>
+
+      <div className="rounded-xl border border-slate-200 p-4">
+        <div className="mb-3 text-sm font-semibold text-slate-900">VIN və servis tarixçə məlumatları (tövsiyə olunur)</div>
+        <p className="mb-3 text-xs text-slate-600">
+          Satışın daha sürətli və etibarlı getməsi üçün bu məlumatları ya açıq link, ya da sənəd istinadı formatında paylaşa bilərsiniz.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="label">VIN məlumat formatı</label>
+            <select
+              className="input-field"
+              value={vinInfoType}
+              onChange={(e) => setVinInfoType(e.target.value as "link" | "document")}
+            >
+              <option value="link">Açıq link</option>
+              <option value="document">Sənəd istinadı</option>
+            </select>
+            {vinInfoType === "link" ? (
+              <input
+                type="url"
+                className="input-field mt-2"
+                value={vinInfoUrl}
+                onChange={(e) => setVinInfoUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            ) : (
+              <input
+                type="text"
+                className="input-field mt-2"
+                value={vinDocumentRef}
+                onChange={(e) => setVinDocumentRef(e.target.value)}
+                placeholder="Məs: VIN-report.pdf və ya sənəd ID"
+              />
+            )}
+          </div>
+          <div>
+            <label className="label">Servis tarixçə formatı</label>
+            <select
+              className="input-field"
+              value={serviceHistoryType}
+              onChange={(e) => setServiceHistoryType(e.target.value as "link" | "document")}
+            >
+              <option value="link">Açıq link</option>
+              <option value="document">Sənəd istinadı</option>
+            </select>
+            {serviceHistoryType === "link" ? (
+              <input
+                type="url"
+                className="input-field mt-2"
+                value={serviceHistoryUrl}
+                onChange={(e) => setServiceHistoryUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            ) : (
+              <input
+                type="text"
+                className="input-field mt-2"
+                value={serviceHistoryDocumentRef}
+                onChange={(e) => setServiceHistoryDocumentRef(e.target.value)}
+                placeholder="Məs: service-history.pdf və ya sənəd ID"
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 p-4">

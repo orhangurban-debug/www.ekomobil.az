@@ -68,7 +68,11 @@ export const createAuctionSchema = z
     depositRequired: z.boolean().optional(),
     depositAmountAzn: aznAmountSchema.optional(),
     sellerBondRequired: z.boolean().optional(),
-    sellerBondAmountAzn: aznAmountSchema.optional()
+    sellerBondAmountAzn: aznAmountSchema.optional(),
+    vinInfoUrl: z.string().url("VIN linki düzgün URL formatında olmalıdır").max(500).optional(),
+    serviceHistoryUrl: z.string().url("Servis tarixçəsi linki düzgün URL formatında olmalıdır").max(500).optional(),
+    vinDocumentRef: z.string().trim().max(500, "VIN sənəd istinadı çox uzundur").optional(),
+    serviceHistoryDocumentRef: z.string().trim().max(500, "Servis tarixçəsi sənəd istinadı çox uzundur").optional()
   })
   .refine(
     (data) =>

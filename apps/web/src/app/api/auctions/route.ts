@@ -63,6 +63,10 @@ export async function POST(req: Request) {
     depositAmountAzn: parsed.depositAmountAzn,
     sellerBondRequired: parsed.sellerBondRequired,
     sellerBondAmountAzn: parsed.sellerBondAmountAzn,
+    vinInfoUrl: parsed.vinInfoUrl,
+    serviceHistoryUrl: parsed.serviceHistoryUrl,
+    vinDocumentRef: parsed.vinDocumentRef,
+    serviceHistoryDocumentRef: parsed.serviceHistoryDocumentRef,
   });
 
   if (!result.ok) {

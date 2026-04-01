@@ -81,6 +81,12 @@ export default function PublishPage() {
   const [priceAzn, setPriceAzn] = useState(0);
   const [city, setCity] = useState("Bakı");
   const [vin, setVin] = useState("");
+  const [vinInfoType, setVinInfoType] = useState<"link" | "document">("link");
+  const [vinInfoUrl, setVinInfoUrl] = useState("");
+  const [vinDocumentRef, setVinDocumentRef] = useState("");
+  const [serviceHistoryType, setServiceHistoryType] = useState<"link" | "document">("link");
+  const [serviceHistoryUrl, setServiceHistoryUrl] = useState("");
+  const [serviceHistoryDocumentRef, setServiceHistoryDocumentRef] = useState("");
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState(2020);
@@ -95,6 +101,19 @@ export default function PublishPage() {
   const [result, setResult] = useState<TrustApiResponse | null>(null);
 
   const mediaCheck = useMemo(() => validateMediaProtocol(media), [media]);
+
+  const referenceNote = useMemo(() => {
+    const notes: string[] = [];
+    if (vinInfoType === "link" && vinInfoUrl.trim()) notes.push(`VIN məlumat linki: ${vinInfoUrl.trim()}`);
+    if (vinInfoType === "document" && vinDocumentRef.trim()) notes.push(`VIN sənəd istinadı: ${vinDocumentRef.trim()}`);
+    if (serviceHistoryType === "link" && serviceHistoryUrl.trim()) {
+      notes.push(`Servis tarixçə linki: ${serviceHistoryUrl.trim()}`);
+    }
+    if (serviceHistoryType === "document" && serviceHistoryDocumentRef.trim()) {
+      notes.push(`Servis tarixçəsi sənəd istinadı: ${serviceHistoryDocumentRef.trim()}`);
+    }
+    return notes.join(" | ");
+  }, [serviceHistoryDocumentRef, serviceHistoryType, serviceHistoryUrl, vinDocumentRef, vinInfoType, vinInfoUrl]);
 
   function updateBoolean(field: keyof MediaProtocolInput, value: boolean) {
     setMedia((prev) => ({ ...prev, [field]: value }));
@@ -136,7 +155,7 @@ export default function PublishPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: `${make} ${model} üçün yaradılan elan.`,
+          description: `${make} ${model} üçün yaradılan elan.${referenceNote ? ` Məlumat istinadları: ${referenceNote}` : ""}`,
           priceAzn,
           city,
           fuelType,
@@ -256,6 +275,72 @@ export default function PublishPage() {
                 <div>
                   <label className="label">VIN kodu</label>
                   <input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} className="input-field font-mono tracking-widest uppercase" placeholder="17 simvol" maxLength={17} />
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-medium text-slate-900">Etibarı artıran məlumatlar (tövsiyə olunur)</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    VIN və servis tarixçəsini açıq link və ya sənəd istinadı kimi paylaşa bilərsiniz. Bu məlumatlar alıcı üçün
+                    daha şəffaf təqdimat yaradır.
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label">VIN məlumat formatı</label>
+                      <select
+                        value={vinInfoType}
+                        onChange={(e) => setVinInfoType(e.target.value as "link" | "document")}
+                        className="input-field"
+                      >
+                        <option value="link">Açıq link</option>
+                        <option value="document">Sənəd istinadı</option>
+                      </select>
+                      {vinInfoType === "link" ? (
+                        <input
+                          type="url"
+                          value={vinInfoUrl}
+                          onChange={(e) => setVinInfoUrl(e.target.value)}
+                          className="input-field mt-2"
+                          placeholder="https://..."
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={vinDocumentRef}
+                          onChange={(e) => setVinDocumentRef(e.target.value)}
+                          className="input-field mt-2"
+                          placeholder="Məs: vin-report.pdf və ya sənəd ID"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="label">Servis tarixçə formatı</label>
+                      <select
+                        value={serviceHistoryType}
+                        onChange={(e) => setServiceHistoryType(e.target.value as "link" | "document")}
+                        className="input-field"
+                      >
+                        <option value="link">Açıq link</option>
+                        <option value="document">Sənəd istinadı</option>
+                      </select>
+                      {serviceHistoryType === "link" ? (
+                        <input
+                          type="url"
+                          value={serviceHistoryUrl}
+                          onChange={(e) => setServiceHistoryUrl(e.target.value)}
+                          className="input-field mt-2"
+                          placeholder="https://..."
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={serviceHistoryDocumentRef}
+                          onChange={(e) => setServiceHistoryDocumentRef(e.target.value)}
+                          className="input-field mt-2"
+                          placeholder="Məs: service-history.pdf və ya sənəd ID"
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -427,6 +512,11 @@ export default function PublishPage() {
                     ["Qiymət", `${priceAzn.toLocaleString()} ₼`],
                     ["Şəhər", city],
                     ["VIN", vin || "—"],
+                    ["VIN məlumatı", vinInfoType === "link" ? vinInfoUrl || "—" : vinDocumentRef || "—"],
+                    [
+                      "Servis tarixçəsi",
+                      serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
+                    ],
                     ["Media", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
                     ["Plan", LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType]
                   ].map(([label, value]) => (

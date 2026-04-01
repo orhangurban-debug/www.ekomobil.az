@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { LISTING_PLANS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
+import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 import type { ListingKind } from "@/lib/marketplace-types";
 import {
   AUCTION_FEES,
@@ -368,7 +369,71 @@ export default function PricingPage() {
 
         </section>
 
-        {/* ─── 3. Auction fees ───────────────────────────────────────── */}
+        {/* ─── 3. Parts store plans ──────────────────────────────────── */}
+        <section id="parts-store" className="scroll-mt-20">
+          <SectionHeader
+            label="Ehtiyat hissə mağazaları"
+            title="Mağaza paketləri"
+            sub="Ehtiyat hissə satışı üçün xüsusi aylıq paketlər. Kataloq böyüdükcə daha geniş funksiyalar aktiv olur."
+          />
+
+          <div className="grid gap-5 sm:grid-cols-3">
+            {PARTS_STORE_PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                  plan.highlight
+                    ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
+                    : "border-slate-200 shadow-sm"
+                }`}
+              >
+                {plan.highlight && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                    Ən populyar
+                  </span>
+                )}
+                <div className="mb-5">
+                  <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
+                      {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
+                    </span>
+                    {plan.priceAzn > 0 && (
+                      <span className="text-sm text-slate-400">/ ay</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {plan.maxPartsListings === null
+                      ? "Limitsiz aktiv hissə elanı"
+                      : `Aylıq ${plan.maxPartsListings} aktiv hissə elanı`}
+                  </p>
+                </div>
+
+                <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2">
+                      <CheckIcon />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/publish"
+                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
+                    plan.priceAzn === 0
+                      ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
+                  }`}
+                >
+                  {plan.priceAzn === 0 ? "Pulsuz başla" : "Paketi seç"}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ─── 4. Auction fees ───────────────────────────────────────── */}
         <section id="auction" className="scroll-mt-20">
           <SectionHeader
             label="Canlı hərrac"
