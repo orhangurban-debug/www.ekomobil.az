@@ -222,11 +222,23 @@ export default function PricingPage() {
       </div>
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
-          EkoMobil elan və auksion məlumatlarının yerləşdirilməsi və yayımlanması üçün platformadır. Məlumatların
-          düzgünlüyü və aktuallığı satıcının məsuliyyətindədir. VIN, servis tarixçəsi və sənəd istinadlarının paylaşılması
-          elanın keyfiyyətini artırır.
-        </section>
+        {/* Quick nav */}
+        <nav className="flex flex-wrap justify-center gap-2">
+          {[
+            { href: "#listings", label: "Elan planları" },
+            { href: "#dealer", label: "Salon planları" },
+            { href: "#parts-store", label: "Hissə mağazası" },
+            { href: "#auction", label: "Auksion haqları" }
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
 
         {/* ─── 1. Listing plans ──────────────────────────────────────── */}
         <section id="listings" className="scroll-mt-20">

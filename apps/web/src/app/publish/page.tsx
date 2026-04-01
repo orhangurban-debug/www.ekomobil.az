@@ -93,8 +93,8 @@ export default function PublishPage() {
   const [declaredMileageKm, setDeclaredMileageKm] = useState(0);
   const [fuelType, setFuelType] = useState("Benzin");
   const [transmission, setTransmission] = useState("Avtomat");
-  const [vinVerified] = useState(true);
-  const [sellerVerified] = useState(true);
+  const vinVerified = false;
+  const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
   const [planType, setPlanType] = useState<PlanType>("free");
   const [submitting, setSubmitting] = useState(false);
@@ -136,11 +136,6 @@ export default function PublishPage() {
         vehicle: { vin, make, model, year, declaredMileageKm },
         vinVerified,
         sellerVerified,
-        latestMileageEvent: {
-          sourceType: "service_partner",
-          recordedAt: "2026-01-01T10:00:00Z",
-          mileageKm: Math.round(declaredMileageKm * 0.9)
-        },
         mediaProtocol: media
       })
     });
@@ -164,11 +159,6 @@ export default function PublishPage() {
           vehicle: { vin: vin || crypto.randomUUID().slice(0, 17), make, model, year, declaredMileageKm },
           vinVerified,
           sellerVerified,
-          latestMileageEvent: {
-            sourceType: "service_partner",
-            recordedAt: "2026-01-01T10:00:00Z",
-            mileageKm: Math.round(declaredMileageKm * 0.9)
-          },
           mediaProtocol: media,
           planType
         })

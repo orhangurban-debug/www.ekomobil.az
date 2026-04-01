@@ -97,8 +97,8 @@ const trustFeatures = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
-    title: "VIN Yoxlama",
-    desc: "Hər avtomobilin şəxsiyyəti rəsmi mənbələr vasitəsilə təsdiqlənir."
+    title: "VIN & Sənəd İstinadları",
+    desc: "Satıcılar VIN məlumatı və servis tarixçəsini link və ya sənəd formatında əlavə edir, elanın keyfiyyəti artar."
   },
   {
     icon: (
@@ -106,8 +106,8 @@ const trustFeatures = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
       </svg>
     ),
-    title: "Servis Tarixçəsi",
-    desc: "Rəsmi servis mərkəzlərindən texniki qulluq qeydlərinin tam tarixi."
+    title: "Etibar Skoru",
+    desc: "Hər elan məlumatlarının dolğunluğuna görə avtomatik etibar skoru alır — alıcı üçün şəffaf meyar."
   },
   {
     icon: (
@@ -115,17 +115,17 @@ const trustFeatures = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
     ),
-    title: "Yürüş Təsdiqi",
-    desc: "DYP məlumat bazası ilə elandakı yürüş rəqəminin uyğunluğu yoxlanılır."
+    title: "Qiymət Analizi",
+    desc: "Bazar məlumatlarına əsasən elanın qiymət mövqeyi göstərilir: bazara uyğun, aşağı və ya yüksək."
   },
   {
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
       </svg>
     ),
-    title: "Qiymət Analizi",
-    desc: "Bazar məlumatlarına əsaslanaraq elanın real dəyərini müəyyən edirik."
+    title: "Canlı Auksion",
+    desc: "Real vaxt sayac, auto-bid sistemi və tam hərrac tarixi ilə şəffaf hərrac platforması."
   }
 ];
 
@@ -137,10 +137,10 @@ export default async function HomePage() {
   const featuredCards = listingsResult.items.map(toCardData);
 
   const stats = [
-    { value: activeCount > 0 ? `${activeCount.toLocaleString()}+` : "12,400+", label: "Aktiv elan" },
-    { value: "8,200+", label: "Uğurlu satış" },
-    { value: "94%", label: "VIN doğrulama" },
-    { value: "4.9/5", label: "İstifadəçi reytinqi" }
+    { value: activeCount > 0 ? `${activeCount.toLocaleString()}+` : "—", label: "Aktiv elan" },
+    { value: "Şəffaf", label: "Qiymət analizi" },
+    { value: "Satıcı", label: "Məsuliyyəti daşıyır" },
+    { value: "Real vaxt", label: "Auksion sistemi" }
   ];
 
   return (
@@ -166,8 +166,8 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-5 text-base text-white/60 sm:text-lg leading-relaxed">
-              VIN yoxlamalı, servis tarixçəli, qiymət analizli — Azərbaycanın
-              ən şəffaf avtomobil bazarı.
+              Satıcı məlumatları, etibar skoru, qiymət analizi — Azərbaycanın
+              ən şəffaf avtomobil platforması.
             </p>
 
             {/* Search bar */}
@@ -291,7 +291,7 @@ export default async function HomePage() {
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
-                Tezliklə — EkoMobil Auksion
+                EkoMobil Auksion
               </span>
               <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
                 Canlı hərrac ilə{" "}
@@ -299,8 +299,8 @@ export default async function HomePage() {
                 tapın
               </h2>
               <p className="mt-4 text-white/60 leading-relaxed">
-                Real vaxt sayac, avtomatik təklif (auto-bid), şəffaf hərrac
-                tarixi. Bütün lot-lar VIN doğrulamasından keçir.
+                Real vaxt sayac, avtomatik təklif (auto-bid) və şəffaf hərrac
+                tarixi. Satıcı məlumatlarının dolğunluğu lot keyfiyyətini müəyyən edir.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/auction" className="btn-primary gap-2">

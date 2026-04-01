@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { listListings } from "@/server/listing-store";
-import { ListingCard } from "@/components/listings/listing-card";
 
 export default async function ComparePage({
   searchParams
@@ -57,10 +57,8 @@ export default async function ComparePage({
             </table>
           </div>
 
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((item) => (
-              <ListingCard key={item.id} listing={item} />
-            ))}
+          <div className="mt-6 flex justify-center">
+            <Link href="/listings" className="btn-secondary text-sm">← Bütün elanlara qayıt</Link>
           </div>
         </>
       )}

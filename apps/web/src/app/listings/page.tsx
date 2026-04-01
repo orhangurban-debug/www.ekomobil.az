@@ -113,25 +113,37 @@ export default async function ListingsPage({
           {/* Sort bar */}
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">
-              {activeChips.length > 0 ? activeChips.map((chip) => (
-                <Link key={chip.label} href={chip.href} className="badge-verified">
-                  {chip.label} ×
-                </Link>
-              )) : (
-                <>
-                  <span className="badge-verified">VIN yoxlamalı</span>
-                  <span className="badge-neutral">Bütün elanlar</span>
-                </>
+              {activeChips.length > 0 ? (
+                activeChips.map((chip) => (
+                  <Link key={chip.label} href={chip.href} className="badge-verified">
+                    {chip.label} ×
+                  </Link>
+                ))
+              ) : (
+                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
               )}
             </div>
-            <div className="hidden lg:block text-sm text-slate-500">Sıralama və filterlər soldadır</div>
+            <div className="hidden lg:block text-sm text-slate-500">{result.total} elan</div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {result.items.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          {result.items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20 text-center">
+              <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <div>
+                <p className="font-medium text-slate-700">Heç bir elan tapılmadı</p>
+                <p className="mt-1 text-sm text-slate-400">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
+              </div>
+              <Link href="/listings" className="btn-secondary text-sm">Bütün elanlara bax</Link>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {result.items.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          )}
 
           {/* Pagination placeholder */}
           <div className="mt-10 flex items-center justify-center gap-2">

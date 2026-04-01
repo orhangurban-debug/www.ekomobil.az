@@ -36,65 +36,31 @@ export default async function AuctionSellPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <p className="text-sm font-medium text-brand-600">Auksion Seller Flow</p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">Lot yarat</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-          EkoMobil yalnız auksion infrastrukturunu və məlumatların təqdimat imkanlarını verir. Elan və lot məlumatlarının
-          düzgünlüyünə görə məsuliyyət satıcıya məxsusdur. Avtomobilin əsas satış ödənişi platformadan keçmir; qalib alıcı
-          onu birbaşa satıcıya ödəyir.
+        <h1 className="text-3xl font-bold text-slate-900">Lot yarat</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Lot məlumatlarının düzgünlüyü satıcının məsuliyyətindədir. Qalib alıcı ödənişi birbaşa satıcıya edir.
         </p>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-        <div className="font-semibold text-slate-900">Lot üçün ilkin şərtlər</div>
-        <p className="mt-2 text-xs text-slate-500">
-          Aşağıdakı siyahı seçdiyiniz elanın növünə uyğundur (avtomobil və ya hissə).
-        </p>
-        {checklistVehicle && (
-          <ul className="mt-3 list-disc space-y-1 pl-5">
-            <li className="font-medium text-slate-800">Avtomobil elanı</li>
-            <li className="ml-0">VIN doğrulaması tamamlanmış olmalıdır</li>
-            <li className="ml-0">Satıcı doğrulaması tamamlanmış olmalıdır</li>
-            <li className="ml-0">Media checklist tam olmalıdır</li>
-          </ul>
-        )}
-        {checklistPart && (
-          <ul className={`mt-3 list-disc space-y-1 pl-5 ${checklistVehicle ? "border-t border-slate-200 pt-3" : ""}`}>
-            <li className="font-medium text-slate-800">Avtomobil hissəsi elanı</li>
-            <li className="ml-0">VIN tələb olunmur</li>
-            <li className="ml-0">Satıcı doğrulaması tamamlanmış olmalıdır</li>
-            <li className="ml-0">Media checklist tam olmalıdır</li>
-          </ul>
-        )}
-        <ul className="mt-3 list-disc space-y-1 pl-5">
-          <li>Lot haqqı ödənmədən hərrac aktivləşmir</li>
-          <li>Yüksək dəyərli lotlarda deep KYC və ya satıcı performans bond tələb oluna bilər</li>
-          <li>Satışın daha sürətli getməsi üçün VIN və servis tarixçəsi məlumatlarını link və ya sənəd istinadı ilə əlavə etmək tövsiyə olunur</li>
-        </ul>
-      </div>
-
-      <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-5 text-sm text-slate-700">
-        <div className="font-semibold text-slate-900">Sənədlər</div>
-        <p className="mt-2 leading-relaxed">
-          Tələb olunan sənədləri <strong>satıcı özü yükləyir və təqdim edir</strong>; platforma onların təqdimatı və
-          yayımlanması üçün texniki imkan yaradır. Elan üzrə etibar siqnalları (VIN avtomobil üçün, satıcı, media)
-          tamamlanmalıdır. Lot yaradıldıqdan sonra həmin lotun ID-si ilə{" "}
-          <span className="font-medium text-slate-800">/auction/&lt;lot-id&gt;/documents</span> səhifəsindən sənəd yükləyə
-          bilərsiniz.
-        </p>
-        <p className="mt-3">
-          <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
-            Auksion çərçivəsi — sənəd siyasəti
-          </Link>
-          <span className="text-slate-400"> · </span>
-          <Link href="/publish" className="font-medium text-[#0891B2] hover:underline">
-            Elan yarat / yenilə
-          </Link>
-          <span className="text-slate-400"> · </span>
-          <Link href="/me" className="font-medium text-[#0891B2] hover:underline">
-            Profil və elanlarım
-          </Link>
-        </p>
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="flex flex-wrap gap-x-6 gap-y-1.5">
+          {checklistVehicle && (
+            <>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />VIN siqnalı tamamlanmalıdır</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Satıcı siqnalı tamamlanmalıdır</span>
+            </>
+          )}
+          {checklistPart && (
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Hissə: VIN tələb olunmur</span>
+          )}
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Media checklist tam olmalıdır</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Lot haqqı ödənməlidir</span>
+        </div>
+        <div className="mt-3 flex gap-4 text-xs">
+          <Link href="/rules/auction" className="text-[#0891B2] hover:underline">Qaydalar</Link>
+          <Link href="/publish" className="text-[#0891B2] hover:underline">Elan yarat</Link>
+          <Link href="/me" className="text-[#0891B2] hover:underline">Elanlarım</Link>
+        </div>
       </div>
 
       <AuctionSellForm

@@ -114,10 +114,12 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
         <div className="flex items-center gap-3">
           {userEmail ? (
             <div className="hidden md:flex items-center gap-3">
+              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
+                Elan yerləşdir
+              </Link>
               <Link href="/me" className="text-sm text-[#3E2F28] hover:text-[#0891B2]">
                 Profil
               </Link>
-              <span className="text-sm text-slate-500">{userEmail}</span>
               {userRole === "admin" || userRole === "support" ? (
                 <Link href="/ops/reviews" className="btn-secondary text-xs px-3 py-1.5">
                   Ops
@@ -195,16 +197,20 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
             <div className="mt-2 flex flex-col gap-2 border-t border-soft-brown pt-2">
               {userEmail ? (
                 <>
-                  <Link href="/me" className="btn-secondary text-center">Profil</Link>
+                  <Link href="/publish" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Elan yerləşdir</Link>
+                  <Link href="/me" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Profil</Link>
+                  {(userRole === "admin" || userRole === "support") && (
+                    <Link href="/ops/reviews" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Ops paneli</Link>
+                  )}
                   <form action="/api/auth/logout" method="POST">
                     <button type="submit" className="btn-secondary w-full">Çıxış</button>
                   </form>
                 </>
               ) : (
                 <>
-                  <Link href="/register" className="btn-secondary text-center">Qeydiyyat</Link>
-                  <Link href="/login" className="btn-secondary text-center">Daxil ol</Link>
-                  <Link href="/publish" className="btn-primary text-center">Elan yerləşdir</Link>
+                  <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Qeydiyyat</Link>
+                  <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Daxil ol</Link>
+                  <Link href="/publish" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Elan yerləşdir</Link>
                 </>
               )}
             </div>
