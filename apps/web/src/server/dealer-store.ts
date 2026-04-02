@@ -172,10 +172,20 @@ export async function updateLeadStage(input: {
 }): Promise<void> {
   await ensureSeedData();
   const pool = getPgPool();
+  // Əgər lead ilk dəfə 'new' mərhələsindən çıxırsa, real cavab vaxtını yazırıq.
+  // response_time_minutes = (indi − lead yaradılma tarixi) / 60 saniyə
   await pool.query(
     `
       UPDATE leads
-      SET stage = $2, note = COALESCE($3, note), updated_at = NOW()
+      SET
+        stage = $2,
+        note  = COALESCE($3, note),
+        updated_at = NOW(),
+        response_time_minutes = CASE
+          WHEN stage = 'new' AND $2 <> 'new' AND response_time_minutes IS NULL
+          THEN ROUND(EXTRACT(EPOCH FROM (NOW() - created_at)) / 60)::integer
+          ELSE response_time_minutes
+        END
       WHERE id = $1
     `,
     [input.leadId, input.stage, input.note ?? null]

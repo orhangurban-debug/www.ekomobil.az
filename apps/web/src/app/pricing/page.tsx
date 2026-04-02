@@ -669,26 +669,17 @@ export default function PricingPage() {
                       CSV import
                     </span>
                   )}
-                  {plan.vinCreditsPerMonth > 0 && (
+                  {plan.analyticsEnabled && (
                     <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
-                      {plan.vinCreditsPerMonth} VIN/ay
+                      Analitika
                     </span>
                   )}
-                  {plan.boostCreditsPerMonth > 0 && (
-                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs">
-                      {plan.boostCreditsPerMonth} boost/ay
-                    </span>
-                  )}
-                  {plan.multiBranchEnabled && (
-                    <span className="rounded-md bg-rose-50 text-rose-700 px-2 py-0.5 text-xs font-medium">
-                      Çox filial
-                    </span>
-                  )}
-                  <span className="rounded-md bg-slate-50 text-slate-500 px-2 py-0.5 text-xs">
-                    {plan.listingRefreshDays} gündə bir yoxlama
+                  <span className="rounded-md bg-slate-50 text-slate-400 px-2 py-0.5 text-xs">
+                    {plan.listingRefreshDays} gündə yoxlama
                   </span>
                 </div>
 
+                {/* Real features */}
                 <ul className="flex-1 space-y-2 text-sm text-slate-600">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
@@ -698,9 +689,26 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
+                {/* Coming soon */}
+                {plan.comingSoon.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                    <ul className="space-y-1">
+                      {plan.comingSoon.map((f) => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <Link
                   href="/dealer"
-                  className="mt-6 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+                  className="mt-5 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
                 >
                   Abunə ol
                 </Link>
@@ -771,33 +779,9 @@ export default function PricingPage() {
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                     {plan.perListingMaxImages} şəkil/SKU
                   </span>
-                  {plan.stockTrackingEnabled && (
-                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
-                      Stok izləmə
-                    </span>
-                  )}
-                  {plan.compatibilityEnabled && (
-                    <span className="rounded-md bg-fuchsia-50 text-fuchsia-700 px-2 py-0.5 text-xs font-medium">
-                      Uyğunluq məlumatı
-                    </span>
-                  )}
-                  {plan.csvImportEnabled && (
-                    <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
-                      CSV import
-                    </span>
-                  )}
-                  {plan.boostCreditsPerMonth > 0 && (
-                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs">
-                      {plan.boostCreditsPerMonth} boost/ay
-                    </span>
-                  )}
-                  {plan.multiWarehouseEnabled && (
-                    <span className="rounded-md bg-rose-50 text-rose-700 px-2 py-0.5 text-xs font-medium">
-                      Çox anbar
-                    </span>
-                  )}
                 </div>
 
+                {/* Real features */}
                 <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
@@ -807,9 +791,26 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
+                {/* Coming soon */}
+                {plan.comingSoon.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                    <ul className="space-y-1">
+                      {plan.comingSoon.map((f) => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <Link
                   href="/publish"
-                  className="mt-6 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+                  className="mt-5 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
                 >
                   Paketi seç
                 </Link>
