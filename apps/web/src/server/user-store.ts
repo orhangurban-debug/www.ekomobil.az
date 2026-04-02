@@ -18,6 +18,13 @@ export interface UserProfileRecord {
   bio?: string;
 }
 
+export interface GoogleOAuthIdentity {
+  providerUserId: string;
+  email: string;
+  fullName?: string;
+  avatarUrl?: string;
+}
+
 function mapUser(row: {
   id: string;
   email: string;
@@ -114,6 +121,122 @@ export async function createUserAccount(input: {
 
     await client.query("COMMIT");
     return mapUser(created.rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {
+  await ensureSeedData();
+  const pool = getPgPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const linked = await client.query<{
+      id: string;
+      email: string;
+      role: string;
+      email_verified: boolean;
+      phone: string | null;
+    }>(
+      `
+        SELECT u.id, u.email, u.role, u.email_verified, u.phone
+        FROM user_oauth_accounts oa
+        JOIN users u ON u.id = oa.user_id
+        WHERE oa.provider = 'google' AND oa.provider_user_id = $1
+        LIMIT 1
+      `,
+      [input.providerUserId]
+    );
+    if (linked.rows[0]) {
+      await client.query(
+        `UPDATE user_oauth_accounts SET last_login_at = NOW(), email_at_provider = $2
+         WHERE provider = 'google' AND provider_user_id = $1`,
+        [input.providerUserId, input.email]
+      );
+      await client.query(
+        `UPDATE users SET email_verified = true WHERE id = $1`,
+        [linked.rows[0].id]
+      );
+      await client.query("COMMIT");
+      return mapUser({ ...linked.rows[0], email_verified: true });
+    }
+
+    const existing = await client.query<{
+      id: string;
+      email: string;
+      role: string;
+      email_verified: boolean;
+      phone: string | null;
+    }>(
+      `SELECT id, email, role, email_verified, phone FROM users WHERE email = $1 LIMIT 1`,
+      [input.email]
+    );
+
+    let user = existing.rows[0];
+    if (!user) {
+      const userId = createUuidLikeId();
+      const randomPassword = randomUUID();
+      const created = await client.query<{
+        id: string;
+        email: string;
+        role: string;
+        email_verified: boolean;
+        phone: string | null;
+      }>(
+        `
+          INSERT INTO users (id, email, password_hash, role, email_verified, phone)
+          VALUES ($1, $2, $3, 'viewer', true, NULL)
+          RETURNING id, email, role, email_verified, phone
+        `,
+        [userId, input.email, hashPassword(randomPassword)]
+      );
+      user = created.rows[0];
+      await client.query(
+        `
+          INSERT INTO user_profiles (user_id, full_name, avatar_url)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (user_id) DO UPDATE
+          SET full_name = COALESCE(EXCLUDED.full_name, user_profiles.full_name),
+              avatar_url = COALESCE(EXCLUDED.avatar_url, user_profiles.avatar_url),
+              updated_at = NOW()
+        `,
+        [userId, input.fullName ?? null, input.avatarUrl ?? null]
+      );
+    } else {
+      await client.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+      await client.query(
+        `
+          INSERT INTO user_profiles (user_id, full_name, avatar_url)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (user_id) DO UPDATE
+          SET full_name = COALESCE(EXCLUDED.full_name, user_profiles.full_name),
+              avatar_url = COALESCE(EXCLUDED.avatar_url, user_profiles.avatar_url),
+              updated_at = NOW()
+        `,
+        [user.id, input.fullName ?? null, input.avatarUrl ?? null]
+      );
+    }
+
+    await client.query(
+      `
+        INSERT INTO user_oauth_accounts (id, user_id, provider, provider_user_id, email_at_provider)
+        VALUES ($1, $2, 'google', $3, $4)
+        ON CONFLICT (provider, provider_user_id) DO UPDATE
+        SET user_id = EXCLUDED.user_id,
+            email_at_provider = EXCLUDED.email_at_provider,
+            last_login_at = NOW()
+      `,
+      [createUuidLikeId(), user.id, input.providerUserId, input.email]
+    );
+
+    await client.query("COMMIT");
+    return mapUser({ ...user, email_verified: true });
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyEdgeSessionToken, getEdgeCookieName } from "@/lib/session-edge";
 
-const PROTECTED_PREFIXES = ["/ops", "/dealer", "/me", "/favorites"];
+const PROTECTED_PREFIXES = ["/ops", "/admin", "/dealer", "/me", "/favorites"];
 
 // State-changing API endpoints that require same-origin check
 const CSRF_PROTECTED_API_PREFIXES = [
@@ -85,6 +85,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/ops/:path*",
+    "/admin/:path*",
     "/dealer/:path*",
     "/me/:path*",
     "/favorites/:path*",
