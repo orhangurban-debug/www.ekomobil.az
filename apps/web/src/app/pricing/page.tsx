@@ -332,10 +332,13 @@ export default function PricingPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3">
+            <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
               <p className="text-xs text-slate-400">
-                Elan yerləşdirərkən qiymət aralığı avtomatik seçilir. Nəhayət təsdiq addımında ödəniş məbləği göstərilir.
+                Elan yerləşdirərkən qiymət aralığı avtomatik seçilir. Nəhayət təsdiq addımında dəqiq məbləği görəcəksiniz.
               </p>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
+                Standart plan həmişə rəqib platformalardan ucuzdur
+              </span>
             </div>
           </div>
 
@@ -386,7 +389,7 @@ export default function PricingPage() {
                         <>
                           <span className="text-xs text-slate-400 font-medium">-dən</span>
                           <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
-                            {isStandard ? "5" : "10"} ₼
+                            {isStandard ? "4" : "8"} ₼
                           </span>
                           <span className="text-sm text-slate-400">/ elan</span>
                         </>

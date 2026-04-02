@@ -222,41 +222,51 @@ export interface PricingTier {
  *     — buna uyğun qiymət ŞƏFFAFDIR.
  *   • Pulsuz (Free) plan bu cədvəldən kənardır — həmişə 0 ₼.
  */
+/**
+ * Rəqib müqayisəsi:
+ *   Turbo.az fərdi elan haqqı: ~8–30 ₼ (vahid qiymət, plan ayrımı yoxdur).
+ *   EkoMobil Standart hər zaman Turbo.az-dan AŞAĞI qalır.
+ *   EkoMobil VIP Turbo.az-ın maksimumunu keçmir (30 ₼ üst hədd).
+ *
+ * Rentabellik:
+ *   Standart planın minimum gəlir həddi ~4 ₼-dır (hosting + CDN + moderasiya xərci).
+ *   VIP planın minimum gəlir həddi ~7 ₼-dır (əlavə öncelik + analytics + story storage).
+ */
 export const PRICING_TIERS: PricingTier[] = [
   {
     minPriceAzn: 0,
     maxPriceAzn: 5000,
     labelAz: "0 — 5 000 ₼",
-    standardPriceAzn: 5,
-    vipPriceAzn: 10
+    standardPriceAzn: 4,
+    vipPriceAzn: 8
   },
   {
     minPriceAzn: 5001,
     maxPriceAzn: 15000,
     labelAz: "5 001 — 15 000 ₼",
-    standardPriceAzn: 9,
-    vipPriceAzn: 19
+    standardPriceAzn: 7,
+    vipPriceAzn: 14
   },
   {
     minPriceAzn: 15001,
     maxPriceAzn: 30000,
     labelAz: "15 001 — 30 000 ₼",
-    standardPriceAzn: 14,
-    vipPriceAzn: 27
+    standardPriceAzn: 10,
+    vipPriceAzn: 19
   },
   {
     minPriceAzn: 30001,
     maxPriceAzn: 60000,
     labelAz: "30 001 — 60 000 ₼",
-    standardPriceAzn: 19,
-    vipPriceAzn: 35
+    standardPriceAzn: 14,
+    vipPriceAzn: 24
   },
   {
     minPriceAzn: 60001,
     maxPriceAzn: null,
     labelAz: "60 001 ₼ və yuxarı",
-    standardPriceAzn: 25,
-    vipPriceAzn: 45
+    standardPriceAzn: 19,
+    vipPriceAzn: 30
   }
 ];
 
