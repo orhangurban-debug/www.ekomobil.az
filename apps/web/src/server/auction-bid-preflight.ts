@@ -1,5 +1,6 @@
 import { getSystemSettings } from "@/server/system-settings-store";
 import { getBidPreauthHoldAmountAzn } from "@/lib/auction-fees";
+import { applyRiskAdjustedPreauthHold, getAuctionUserRiskProfile } from "@/server/auction-risk-store";
 import {
   getUserBidGate,
   getListingKindForAuction,
@@ -13,7 +14,7 @@ export type BidPreflightFailure =
   | { ok: false; status: 403; code: "ACCOUNT_BLOCKED"; message: string }
   | { ok: false; status: 403; code: "IDENTITY_REQUIRED"; message: string }
   | { ok: false; status: 403; code: "TERMS_NOT_ACCEPTED"; message: string }
-  | { ok: false; status: 403; code: "PREAUTH_REQUIRED"; message: string; preauthAmountAzn?: number }
+  | { ok: false; status: 403; code: "PREAUTH_REQUIRED"; message: string; preauthAmountAzn?: number; riskTier?: string }
   | { ok: false; status: 403 | 503; code: "CONFIG"; message: string };
 
 export type BidPreflightSuccess = { ok: true };
@@ -93,7 +94,9 @@ export async function runAuctionBidPreflight(input: {
     listingKind === "part"
       ? settings.penaltyAmounts.part
       : settings.penaltyAmounts.vehicle;
-  const amount = getBidPreauthHoldAmountAzn(listingKind, basePenalty);
+  const baseHold = getBidPreauthHoldAmountAzn(listingKind, basePenalty);
+  const risk = await getAuctionUserRiskProfile(input.userId);
+  const amount = applyRiskAdjustedPreauthHold(baseHold, risk.preauthMultiplier, listingKind);
 
   return {
     ok: false,
@@ -101,6 +104,7 @@ export async function runAuctionBidPreflight(input: {
     code: "PREAUTH_REQUIRED",
     message:
       "Bu auksion üçün simvolik kart hold (pre-auth) tamamlanmalıdır. Ödəniş səhifəsini açıb hold-u bitirin.",
-    preauthAmountAzn: amount
+    preauthAmountAzn: amount,
+    riskTier: risk.tier
   };
 }

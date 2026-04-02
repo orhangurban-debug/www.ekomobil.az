@@ -4,6 +4,7 @@ import { getBidPreauthHoldAmountAzn } from "@/lib/auction-fees";
 import { getSystemSettings } from "@/server/system-settings-store";
 import { getListingKindForAuction } from "@/server/auction-bid-preflight-store";
 import { createPendingPreauthHold } from "@/server/auction-preauth-store";
+import { applyRiskAdjustedPreauthHold, getAuctionUserRiskProfile } from "@/server/auction-risk-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 /**
@@ -38,7 +39,9 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
   }
 
   const basePenalty = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
-  const amountAzn = getBidPreauthHoldAmountAzn(kind, basePenalty);
+  const baseHold = getBidPreauthHoldAmountAzn(kind, basePenalty);
+  const risk = await getAuctionUserRiskProfile(user.id);
+  const amountAzn = applyRiskAdjustedPreauthHold(baseHold, risk.preauthMultiplier, kind);
   const preauth = await createPendingPreauthHold({
     auctionId,
     userId: user.id,
@@ -50,6 +53,7 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
     preauthId: preauth.id,
     amountAzn,
     checkoutUrl: preauth.checkoutUrl,
+    riskTier: risk.tier,
     message: "Simvolik kart hold checkout-u yaradıldı."
   });
 }

@@ -4,6 +4,7 @@ import { runAuctionBidPreflight } from "@/server/auction-bid-preflight";
 import { fetchAuctionApi } from "@/server/auction-api-client";
 import { placeAuctionBid } from "@/server/auction-bid-store";
 import { runAuctionCloseSweepIfDue } from "@/server/auction-close-worker";
+import { getAuctionUserRiskProfile } from "@/server/auction-risk-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { placeBidSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
@@ -67,8 +68,26 @@ export async function POST(
     const body: Record<string, unknown> = { ok: false, error: pre.message, code: pre.code };
     if (pre.code === "PREAUTH_REQUIRED" && pre.preauthAmountAzn !== undefined) {
       body.preauthAmountAzn = pre.preauthAmountAzn;
+      body.riskTier = pre.riskTier;
     }
     return NextResponse.json(body, { status: pre.status });
+  }
+
+  const risk = await getAuctionUserRiskProfile(user.id);
+  const consideredMaxBid = Math.max(
+    parsed.amountAzn,
+    parsed.autoBidMaxAzn ?? 0
+  );
+  if (risk.bidCapAzn && consideredMaxBid > risk.bidCapAzn) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "RISK_BID_CAP",
+        bidCapAzn: risk.bidCapAzn,
+        error: `Risk səviyyənizə görə maksimal bid limiti ${risk.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`
+      },
+      { status: 403 }
+    );
   }
 
   const proxied = await fetchAuctionApi(`/api/auctions/${id}/bids`, {

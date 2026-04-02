@@ -236,6 +236,8 @@ export default function AuctionPage() {
       bid?: AuctionBidRecord;
       nextMinimumBidAzn?: number;
       code?: string;
+      riskTier?: string;
+      bidCapAzn?: number;
     };
 
     if (!payload.ok) {
@@ -247,12 +249,18 @@ export default function AuctionPage() {
           ok: boolean;
           error?: string;
           checkoutUrl?: string;
+          riskTier?: string;
         };
         if (preauthPayload.ok && preauthPayload.checkoutUrl) {
           window.location.href = preauthPayload.checkoutUrl;
           return;
         }
         setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
+        setSubmitting(false);
+        return;
+      }
+      if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
+        setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
         setSubmitting(false);
         return;
       }

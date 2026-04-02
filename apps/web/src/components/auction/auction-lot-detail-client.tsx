@@ -147,6 +147,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
       error?: string;
       code?: string;
       preauthAmountAzn?: number;
+      bidCapAzn?: number;
     };
 
     if (!payload.ok) {
@@ -164,6 +165,11 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
           return;
         }
         setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
+        setSubmitting(false);
+        return;
+      }
+      if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
+        setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
         setSubmitting(false);
         return;
       }
