@@ -1,4 +1,5 @@
 import { getSystemSettings } from "@/server/system-settings-store";
+import { getBidPreauthHoldAmountAzn } from "@/lib/auction-fees";
 import {
   getUserBidGate,
   getListingKindForAuction,
@@ -88,17 +89,18 @@ export async function runAuctionBidPreflight(input: {
   const held = await hasHeldPreauthForAuction(input.auctionId, input.userId);
   if (held) return { ok: true };
 
-  const amount =
+  const basePenalty =
     listingKind === "part"
       ? settings.penaltyAmounts.part
       : settings.penaltyAmounts.vehicle;
+  const amount = getBidPreauthHoldAmountAzn(listingKind, basePenalty);
 
   return {
     ok: false,
     status: 403,
     code: "PREAUTH_REQUIRED",
     message:
-      "Bu auksion üçün əvvəlcədən kart hold (pre-auth) tamamlanmalıdır. Ödəniş səhifəsini açıb hold-u bitirin.",
+      "Bu auksion üçün simvolik kart hold (pre-auth) tamamlanmalıdır. Ödəniş səhifəsini açıb hold-u bitirin.",
     preauthAmountAzn: amount
   };
 }

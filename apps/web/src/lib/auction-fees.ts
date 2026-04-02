@@ -30,8 +30,9 @@ export const AUCTION_FEES = {
   SELLER_PERFORMANCE_BOND_MIN_AZN: 500,
   NO_SHOW_PENALTY_VEHICLE_AZN: 80,
   NO_SHOW_PENALTY_PART_AZN: 15,
-  SELLER_BREACH_PENALTY_VEHICLE_AZN: 80,
-  SELLER_BREACH_PENALTY_PART_AZN: 15,
+  // Satıcı pozuntusu bazarda daha yüksək etibar zədəsi yaradır: asimmetrik məbləğ
+  SELLER_BREACH_PENALTY_VEHICLE_AZN: 120,
+  SELLER_BREACH_PENALTY_PART_AZN: 20,
 } as const;
 
 export type AuctionFees = typeof AUCTION_FEES;
@@ -84,4 +85,24 @@ export function getSellerBreachPenaltyAzn(kind?: ListingKind): number {
   return normalizeKind(kind) === "part"
     ? AUCTION_FEES.SELLER_BREACH_PENALTY_PART_AZN
     : AUCTION_FEES.SELLER_BREACH_PENALTY_VEHICLE_AZN;
+}
+
+/**
+ * Bid öncəsi kart hold (pre-auth) üçün daha yumşaq məbləğ.
+ * Məqsəd: istifadəçi friction-u azaltmaq, amma öhdəlik niyyətini təsdiqləmək.
+ * Bu məbləğ öhdəlik haqqının özü DEYİL.
+ */
+export function getBidPreauthHoldAmountAzn(kind?: ListingKind, basePenaltyAzn?: number): number {
+  const normalized = normalizeKind(kind);
+  const fallbackPenalty = getNoShowPenaltyAzn(normalized);
+  const base = Number.isFinite(basePenaltyAzn) && (basePenaltyAzn ?? 0) > 0
+    ? (basePenaltyAzn as number)
+    : fallbackPenalty;
+
+  // Təxmini 25% hold, amma floor/cap ilə istifadəçi dostu saxlanılır.
+  const raw = Math.round(base * 0.25);
+  if (normalized === "part") {
+    return Math.max(5, Math.min(raw, 10));
+  }
+  return Math.max(20, Math.min(raw, 30));
 }

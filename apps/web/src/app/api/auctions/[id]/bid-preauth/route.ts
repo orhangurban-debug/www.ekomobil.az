@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
+import { getBidPreauthHoldAmountAzn } from "@/lib/auction-fees";
 import { getSystemSettings } from "@/server/system-settings-store";
 import { getListingKindForAuction } from "@/server/auction-bid-preflight-store";
 import { createPendingPreauthHold } from "@/server/auction-preauth-store";
@@ -36,7 +37,8 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
     return NextResponse.json({ ok: false, error: "Auksion tapılmadı" }, { status: 404 });
   }
 
-  const amountAzn = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
+  const basePenalty = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
+  const amountAzn = getBidPreauthHoldAmountAzn(kind, basePenalty);
   const preauth = await createPendingPreauthHold({
     auctionId,
     userId: user.id,
@@ -48,6 +50,6 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
     preauthId: preauth.id,
     amountAzn,
     checkoutUrl: preauth.checkoutUrl,
-    message: "Kart hold checkout-u yaradıldı."
+    message: "Simvolik kart hold checkout-u yaradıldı."
   });
 }
