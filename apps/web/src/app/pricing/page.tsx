@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LISTING_PLANS } from "@/lib/listing-plans";
+import { LISTING_PLANS, PRICING_TIERS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
+import { BUMP_PACKAGES, VIP_PACKAGES, PREMIUM_PACKAGES } from "@/lib/listing-boost-plans";
 import type { ListingKind } from "@/lib/marketplace-types";
 import {
   AUCTION_FEES,
@@ -24,7 +25,7 @@ const AUCTION_SELLER_STEPS_AZ = [
 ];
 
 const AUCTION_BUYER_STEPS_AZ = [
-  "Hesabınla daxil ol; lotda “Deposit” işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
+  "Hesabınla daxil ol; lotda "Deposit" işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
   "Auksion qaydalarını təsdiqlə, təklif ver; qalib olanda təsdiq pəncərəsini izlə.",
   "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın off-platform tamamlandığını təsdiqlə.",
   "Öhdəlikləri pozmamağa çalış: əks halda satıcı no-show bildirə bilər; no-show statusunda intizam cəriməsi ayrıca checkout ilə ödənilir.",
@@ -39,6 +40,14 @@ function CheckIcon() {
   );
 }
 
+function XIcon() {
+  return (
+    <svg className="h-4 w-4 shrink-0 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 function SectionHeader({ label, title, sub }: { label: string; title: string; sub: string }) {
   return (
     <div className="mb-10 text-center">
@@ -47,6 +56,24 @@ function SectionHeader({ label, title, sub }: { label: string; title: string; su
       </span>
       <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h2>
       <p className="mt-2 text-slate-500">{sub}</p>
+    </div>
+  );
+}
+
+function NoBizFreeBanner() {
+  return (
+    <div className="mb-8 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4">
+      <svg className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+      </svg>
+      <div>
+        <p className="text-sm font-semibold text-rose-900">Biznes üçün pulsuz plan mövcud deyil</p>
+        <p className="mt-1 text-xs text-rose-700 leading-relaxed">
+          Salonlar və mağazalar kommersiya subyektləridir. Pulsuz elan fərdi satıcıların müstəsna imtiyazıdır —
+          biznes hesabları aktiv olmaq üçün abunə planı seçməlidir. Bu, platforma keyfiyyətini və bazar
+          ədalətliliyini qoruyur.
+        </p>
+      </div>
     </div>
   );
 }
@@ -217,7 +244,7 @@ export default function PricingPage() {
           Şəffaf qiymət siyasəti
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-slate-500">
-          Sadə və aydın qiymətlər. Gizli ödəniş yoxdur.
+          Sadə, ədalətli, gizli ödənişsiz. Fərdi satıcılar üçün pulsuz başlayır, biznes üçün aylıq abunə.
         </p>
       </div>
 
@@ -226,6 +253,7 @@ export default function PricingPage() {
         <nav className="flex flex-wrap justify-center gap-2">
           {[
             { href: "#listings", label: "Elan planları" },
+            { href: "#boost", label: "İrəliləmə xidmətləri" },
             { href: "#dealer", label: "Salon planları" },
             { href: "#parts-store", label: "Hissə mağazası" },
             { href: "#auction", label: "Auksion haqları" }
@@ -245,35 +273,79 @@ export default function PricingPage() {
           <SectionHeader
             label="Fərdi satıcı planları"
             title="Elan qiymət planları"
-            sub="Hər elan ayrıca plan alır. Eyni anda yalnız 1 pulsuz aktiv elanınız ola bilər."
+            sub="Hər elan ayrıca plan seçir. Eyni anda yalnız 1 pulsuz aktiv elanınız ola bilər."
           />
 
-          {/* Free listing limit note */}
+          {/* Two-column info boxes */}
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start">
             <div className="flex-1 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
               <p className="text-sm font-semibold text-amber-900">Pulsuz plan → 1 aktiv elan limiti</p>
               <p className="mt-1 text-xs text-amber-700 leading-relaxed">
                 Bir istifadəçi eyni anda yalnız <strong>1 aktiv pulsuz elan</strong> yerləşdirə bilər.
                 İkinci pulsuz elan üçün birinci elanın müddəti bitməlidir (30 gün + 7 gün lütf müddəti).
-                Eyni anda birdən çox elan yerləşdirmək istəyirsinizsə, hər biri üçün Standart (9 ₼) yaxud VIP (19 ₼) plan seçin.
+                Eyni anda birdən çox elan istəyirsinizsə, Standart yaxud VIP plan seçin.
               </p>
             </div>
             <div className="flex-1 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
               <p className="text-sm font-semibold text-emerald-900">Ödənişli planlar → limitsiz</p>
               <p className="mt-1 text-xs text-emerald-700 leading-relaxed">
-                Standart və VIP planlar <strong>eyni anda limitsiz sayda aktiv</strong> ola bilər — hər biri ayrıca ödənir.
-                Salon iseniz aylıq sabit ödənişli <a href="#dealer" className="underline font-medium">Salon planına</a> keçin.
+                Standart və VIP planlar <strong>eyni anda limitsiz sayda aktiv</strong> ola bilər — hər biri
+                ayrıca ödənilir. Salon iseniz aylıq sabit ödənişli{" "}
+                <a href="#dealer" className="underline font-medium">Salon planına</a> keçin.
               </p>
             </div>
           </div>
 
-          {/* Image & storage info box */}
+          {/* Dynamic pricing table */}
+          <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+              <p className="text-sm font-semibold text-slate-800">
+                Dinamik qiymət cədvəli — avtomobil satış qiymətinə görə
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Elan haqqı avtomobilin qiymət aralığına uyğun hesablanır. Pulsuz plan həmişə 0 ₼-dır.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 text-xs text-slate-500">
+                    <th className="py-3 pl-5 pr-3 text-left font-medium">Avtomobil qiymət aralığı</th>
+                    <th className="px-3 py-3 text-center font-medium">Pulsuz</th>
+                    <th className="px-3 py-3 text-center font-medium text-slate-700">Standart</th>
+                    <th className="px-3 py-3 text-center font-medium text-[#0891B2]">VIP</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {PRICING_TIERS.map((tier, i) => (
+                    <tr key={i} className="hover:bg-slate-50/60">
+                      <td className="py-3 pl-5 pr-3 font-medium text-slate-700">{tier.labelAz}</td>
+                      <td className="px-3 py-3 text-center text-slate-400">0 ₼</td>
+                      <td className="px-3 py-3 text-center font-semibold text-slate-800">
+                        {tier.standardPriceAzn} ₼
+                      </td>
+                      <td className="px-3 py-3 text-center font-bold text-[#0891B2]">
+                        {tier.vipPriceAzn} ₼
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3">
+              <p className="text-xs text-slate-400">
+                Elan yerləşdirərkən qiymət aralığı avtomatik seçilir. Nəhayət təsdiq addımında ödəniş məbləği göstərilir.
+              </p>
+            </div>
+          </div>
+
+          {/* Image processing info */}
           <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
-            <p className="text-sm font-semibold text-slate-800">📸 Şəkil emalı — bütün planlar üçün eynidir</p>
+            <p className="text-sm font-semibold text-slate-800">Şəkil emalı — bütün planlar üçün eynidir</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3 text-xs text-slate-600">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 rounded bg-[#0891B2]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0891B2]">AUTO</span>
-                <span><strong>İstənilən format qəbul olunur</strong> — JPEG, PNG, WebP, HEIC (iPhone), BMP. Sistem avtomatik JPEG-ə çevirir.</span>
+                <span><strong>İstənilən format qəbul olunur</strong> — JPEG, PNG, WebP, HEIC, BMP. Sistem avtomatik JPEG-ə çevirir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">SXIL</span>
@@ -281,14 +353,16 @@ export default function PricingPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LIMIT</span>
-                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8 şəkil, Standart: 20 şəkil, VIP: 40 şəkil.</span>
+                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8, Standart: 20, VIP: 40 şəkil.</span>
               </div>
             </div>
           </div>
 
+          {/* Plan cards */}
           <div className="grid gap-5 sm:grid-cols-3">
             {LISTING_PLANS.map((plan) => {
               const isVip = plan.id === "vip";
+              const isStandard = plan.id === "standard";
               return (
                 <div
                   key={plan.id}
@@ -306,17 +380,22 @@ export default function PricingPage() {
                   <div className="mb-4">
                     <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
-                      <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
-                        {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
-                      </span>
-                      {plan.priceAzn > 0 && (
-                        <span className="text-sm text-slate-400">/ elan</span>
+                      {plan.priceAzn === 0 ? (
+                        <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
+                      ) : (
+                        <>
+                          <span className="text-xs text-slate-400 font-medium">-dən</span>
+                          <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
+                            {isStandard ? "5" : "10"} ₼
+                          </span>
+                          <span className="text-sm text-slate-400">/ elan</span>
+                        </>
                       )}
                     </div>
                     <p className="mt-1 text-xs text-slate-400">{plan.durationDays} gün aktiv</p>
                   </div>
 
-                  {/* Storage chips */}
+                  {/* Feature chips */}
                   <div className="mb-4 flex flex-wrap gap-1.5">
                     <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.maxImages} şəkil</span>
                     <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.storageMb} MB</span>
@@ -334,23 +413,27 @@ export default function PricingPage() {
                       <>
                         <li className="flex items-center gap-2"><CheckIcon />Standart sıralanma</li>
                         <li className="flex items-center gap-2"><CheckIcon />Əsas axtarış görünüşü</li>
+                        <li className="flex items-center gap-2 text-slate-400"><XIcon />Boost (ayrıca alına bilər)</li>
+                        <li className="flex items-center gap-2 text-slate-400"><XIcon />Video</li>
                       </>
                     )}
                     {plan.id === "standard" && (
                       <>
-                        <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış kart</li>
+                        <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış elan kartı</li>
                         <li className="flex items-center gap-2"><CheckIcon />2× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />1 video (50 MB)</li>
+                        <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
                       </>
                     )}
                     {plan.id === "vip" && (
                       <>
-                        <li className="flex items-center gap-2"><CheckIcon />Ön səhifə üstünlüyü</li>
+                        <li className="flex items-center gap-2"><CheckIcon />Ana səhifə VIP bloku</li>
                         <li className="flex items-center gap-2"><CheckIcon />4× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış görünüş + ribbon</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış & klik statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />3 video (100 MB/video)</li>
+                        <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
                       </>
                     )}
                   </ul>
@@ -363,22 +446,163 @@ export default function PricingPage() {
                         : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
                     }`}
                   >
-                    {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Plan seç"}
+                    {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Elan ver"}
                   </Link>
                 </div>
               );
             })}
           </div>
 
+          <p className="mt-4 text-center text-xs text-slate-400">
+            * Standart və VIP plan qiyməti avtomobilin satış qiymətinə görə dəyişir. Yuxarıdakı cədvələ baxın.
+          </p>
         </section>
 
-        {/* ─── 2. Dealer plans ───────────────────────────────────────── */}
+        {/* ─── 2. Boost / Promote services ──────────────────────────── */}
+        <section id="boost" className="scroll-mt-20">
+          <SectionHeader
+            label="İrəliləmə xidmətləri"
+            title="Elanını daha çox gördür"
+            sub="Elan planından ayrı olaraq satın alınır. İstənilən plana əlavə edilə bilər."
+          />
+
+          {/* How boost works */}
+          <div className="mb-8 grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                icon: (
+                  <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7M12 3v18" />
+                  </svg>
+                ),
+                title: "İrəli çək",
+                desc: "Elanı ən yeni kimi sıralamaya qaldırır — axtarışda birinci görünür.",
+                color: "bg-slate-50 border-slate-200"
+              },
+              {
+                icon: (
+                  <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                ),
+                title: "VIP",
+                desc: "Axtarış nəticəsinin yuxarısındakı VIP blokunda görünür. Kart üzərində V işarəsi.",
+                color: "bg-amber-50 border-amber-200"
+              },
+              {
+                icon: (
+                  <svg className="h-6 w-6 text-[#0891B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                ),
+                title: "Premium",
+                desc: "Ana səhifənin Premium blokunda görünür. Ən yüksək görünürlük + VIP + İrəli çək daxildir.",
+                color: "bg-[#0891B2]/5 border-[#0891B2]/20"
+              }
+            ].map((item) => (
+              <div key={item.title} className={`rounded-2xl border p-5 ${item.color}`}>
+                <div className="mb-3">{item.icon}</div>
+                <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bump packages */}
+          <div className="mb-10">
+            <h3 className="mb-4 text-base font-semibold text-slate-900">İrəli çək paketləri</h3>
+            <div className="grid gap-3 sm:grid-cols-4">
+              {BUMP_PACKAGES.map((pkg) => (
+                <div key={pkg.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-800">{pkg.nameAz}</p>
+                  <p className="mt-1 flex-1 text-xs text-slate-500 leading-relaxed">{pkg.descriptionAz}</p>
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <span className="text-xl font-bold text-slate-900">{pkg.priceAzn} ₼</span>
+                    {pkg.isPopular && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Populyar</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* VIP packages */}
+          <div className="mb-10">
+            <h3 className="mb-4 text-base font-semibold text-slate-900">VIP paketləri</h3>
+            <div className="grid gap-3 sm:grid-cols-4">
+              {VIP_PACKAGES.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  className={`flex flex-col rounded-xl border bg-white p-4 shadow-sm ${
+                    pkg.isPopular ? "border-amber-300 ring-1 ring-amber-200" : "border-amber-200"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-amber-900">{pkg.nameAz}</p>
+                  {pkg.includedBonuses.length > 0 && (
+                    <p className="mt-1 text-xs text-amber-700">{pkg.includedBonuses[0]}</p>
+                  )}
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <span className="text-xl font-bold text-amber-900">{pkg.priceAzn} ₼</span>
+                    {pkg.isPopular && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">Populyar</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Premium packages */}
+          <div className="mb-6">
+            <h3 className="mb-4 text-base font-semibold text-slate-900">Premium paketləri</h3>
+            <div className="grid gap-3 sm:grid-cols-4">
+              {PREMIUM_PACKAGES.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  className={`flex flex-col rounded-xl border bg-white p-4 shadow-sm ${
+                    pkg.isPopular
+                      ? "border-[#0891B2] ring-1 ring-[#0891B2]/30"
+                      : "border-[#0891B2]/25"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-[#0891B2]">{pkg.nameAz}</p>
+                  {pkg.includedBonuses.length > 0 && (
+                    <ul className="mt-1 flex-1 space-y-0.5 text-xs text-slate-500">
+                      {pkg.includedBonuses.map((b) => (
+                        <li key={b} className="flex items-center gap-1">
+                          <span className="text-[#0891B2]">✓</span> {b}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <span className="text-xl font-bold text-[#0891B2]">{pkg.priceAzn} ₼</span>
+                    {pkg.isPopular && (
+                      <span className="rounded-full bg-[#0891B2]/10 px-2 py-0.5 text-[10px] font-semibold text-[#0891B2]">Populyar</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
+            <strong className="text-slate-800">Necə alınır?</strong> Aktiv elan idarə panelindən
+            istədiyiniz paketi seçib ödəniş edin. Boost aktivləşmə ani olur.
+            Salonlar aylıq abunəsinə daxil olan boost kreditlərindən avtomatik istifadə edə bilər.
+          </div>
+        </section>
+
+        {/* ─── 3. Dealer plans ───────────────────────────────────────── */}
         <section id="dealer" className="scroll-mt-20">
           <SectionHeader
             label="Avtomobil salonları"
             title="Salon abunə planları"
-            sub="Aylıq sabit ödəniş ilə bütün inventarınızı idarə edin. Elan boost-ları ayrıca hesablanır."
+            sub="Aylıq sabit ödəniş ilə bütün inventarınızı idarə edin. Boost kreditləri daxildir."
           />
+
+          <NoBizFreeBanner />
 
           <div className="grid gap-5 sm:grid-cols-3">
             {DEALER_PLANS.map((plan) => (
@@ -399,11 +623,9 @@ export default function PricingPage() {
                   <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
-                      {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
+                      {plan.priceAzn} ₼
                     </span>
-                    {plan.priceAzn > 0 && (
-                      <span className="text-sm text-slate-400">/ ay</span>
-                    )}
+                    <span className="text-sm text-slate-400">/ ay</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
                     {plan.maxListings === null
@@ -412,23 +634,33 @@ export default function PricingPage() {
                   </p>
                 </div>
 
-                {/* Per-listing image/CSV chips */}
+                {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                     {plan.perListingMaxImages} şəkil/elan
                   </span>
-                  {plan.csvImportEnabled && (
+                  {plan.videoEnabled && (
                     <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
-                      CSV toplu import
+                      {plan.maxVideosPerListing} video/elan
+                    </span>
+                  )}
+                  {plan.csvImportEnabled && (
+                    <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
+                      CSV import
                     </span>
                   )}
                   {plan.vinCreditsPerMonth && (
                     <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
-                      {plan.vinCreditsPerMonth} VIN kredit/ay
+                      {plan.vinCreditsPerMonth} VIN/ay
+                    </span>
+                  )}
+                  {plan.boostCreditsPerMonth > 0 && (
+                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs">
+                      {plan.boostCreditsPerMonth} boost/ay
                     </span>
                   )}
                   {plan.multiBranchEnabled && (
-                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">
+                    <span className="rounded-md bg-rose-50 text-rose-700 px-2 py-0.5 text-xs font-medium">
                       Çox filial
                     </span>
                   )}
@@ -445,27 +677,24 @@ export default function PricingPage() {
 
                 <Link
                   href="/dealer"
-                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
-                    plan.priceAzn === 0
-                      ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
-                  }`}
+                  className="mt-6 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
                 >
-                  {plan.priceAzn === 0 ? "Pulsuz başla" : "Abunə ol"}
+                  Abunə ol
                 </Link>
               </div>
             ))}
           </div>
-
         </section>
 
-        {/* ─── 3. Parts store plans ──────────────────────────────────── */}
+        {/* ─── 4. Parts store plans ──────────────────────────────────── */}
         <section id="parts-store" className="scroll-mt-20">
           <SectionHeader
             label="Ehtiyat hissə mağazaları"
             title="Mağaza paketləri"
-            sub="Ehtiyat hissə satışı üçün xüsusi aylıq paketlər. Kataloq böyüdükcə daha geniş funksiyalar aktiv olur."
+            sub="Ehtiyat hissə satışı üçün xüsusi aylıq paketlər. Kataloq böyüdükcə daha geniş funksiyalar."
           />
+
+          <NoBizFreeBanner />
 
           <div className="grid gap-5 sm:grid-cols-3">
             {PARTS_STORE_PLANS.map((plan) => (
@@ -486,17 +715,37 @@ export default function PricingPage() {
                   <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
-                      {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
+                      {plan.priceAzn} ₼
                     </span>
-                    {plan.priceAzn > 0 && (
-                      <span className="text-sm text-slate-400">/ ay</span>
-                    )}
+                    <span className="text-sm text-slate-400">/ ay</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
                     {plan.maxPartsListings === null
                       ? "Limitsiz aktiv hissə elanı"
-                      : `Aylıq ${plan.maxPartsListings} aktiv hissə elanı`}
+                      : `${plan.maxPartsListings} aktiv hissə elanı`}
                   </p>
+                </div>
+
+                {/* Feature chips */}
+                <div className="mb-4 flex flex-wrap gap-1.5">
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    {plan.perListingMaxImages} şəkil/elan
+                  </span>
+                  {plan.csvImportEnabled && (
+                    <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
+                      CSV import
+                    </span>
+                  )}
+                  {plan.boostCreditsPerMonth > 0 && (
+                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs">
+                      {plan.boostCreditsPerMonth} boost/ay
+                    </span>
+                  )}
+                  {plan.analyticsEnabled && (
+                    <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
+                      Analitika
+                    </span>
+                  )}
                 </div>
 
                 <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
@@ -510,20 +759,16 @@ export default function PricingPage() {
 
                 <Link
                   href="/publish"
-                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
-                    plan.priceAzn === 0
-                      ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
-                  }`}
+                  className="mt-6 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
                 >
-                  {plan.priceAzn === 0 ? "Pulsuz başla" : "Paketi seç"}
+                  Paketi seç
                 </Link>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ─── 4. Auction fees ───────────────────────────────────────── */}
+        {/* ─── 5. Auction fees ───────────────────────────────────────── */}
         <section id="auction" className="scroll-mt-20">
           <SectionHeader
             label="Canlı hərrac"
@@ -543,9 +788,7 @@ export default function PricingPage() {
               >
                 Auksion qaydaları (tam mətn)
               </Link>
-              <span className="hidden text-slate-300 sm:inline" aria-hidden>
-                |
-              </span>
+              <span className="hidden text-slate-300 sm:inline" aria-hidden>|</span>
               <a href="#auction-vehicle" className="font-medium text-slate-700 hover:text-[#0891B2]">
                 Avtomobil haqları
               </a>
@@ -592,18 +835,14 @@ export default function PricingPage() {
             <AuctionDetailsBlock title="Satıcı üçün addımlar (A–Z)">
               <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0891B2]">
                 {AUCTION_SELLER_STEPS_AZ.map((s) => (
-                  <li key={s} className="leading-relaxed">
-                    {s}
-                  </li>
+                  <li key={s} className="leading-relaxed">{s}</li>
                 ))}
               </ol>
             </AuctionDetailsBlock>
             <AuctionDetailsBlock title="Alıcı üçün addımlar (A–Z)">
               <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0891B2]">
                 {AUCTION_BUYER_STEPS_AZ.map((s) => (
-                  <li key={s} className="leading-relaxed">
-                    {s}
-                  </li>
+                  <li key={s} className="leading-relaxed">{s}</li>
                 ))}
               </ol>
             </AuctionDetailsBlock>
@@ -625,20 +864,24 @@ export default function PricingPage() {
           <div className="space-y-5 divide-y divide-slate-100">
             {[
               {
+                q: "Elan haqqım nə qədər olacaq?",
+                a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə dəyişir — yuxarıdakı cədvəldən baxın. Elan yerləşdirərkən təsdiq addımında dəqiq məbləği görəcəksiniz."
+              },
+              {
+                q: "Boost xidmətini nə vaxt almaq lazımdır?",
+                a: "İstənilən vaxt — elan aktiv olduqdan sonra idarə panelindən boost əlavə edə bilərsiniz. Elan yerləşdirərkən də boost seçmək mümkündür."
+              },
+              {
+                q: "Salon olaraq niyə pulsuz plan yoxdur?",
+                a: "Salonlar kommersiya subyektlərdir. Pulsuz sıralamaya düşmək fərdi satıcılara qarşı ədalətsizlik yaradır. Baza planımız (29 ₼/ay) artıq çox əlverişli qiymətdə geniş imkanlar təqdim edir."
+              },
+              {
                 q: "Auksion lotunu uduzsam lot haqqı geri qaytarılırmı?",
                 a: "Xeyr. Lot haqqı geri qaytarılmır. Komisyon yalnız satış olarsa tutulur."
               },
               {
-                q: "Auksiona alıcı qatılmasa nə olur?",
-                a: "Auksion bitir, satış olmur. Lot qalır, komisyon tutulmur."
-              },
-              {
-                q: "Satış alınmasa eyni elanla yenidən auksion aça bilərəm?",
-                a: "Bəli. Eyni elanla yeni lot yaradıb yenidən auksion aça bilərsiniz."
-              },
-              {
                 q: "Avtomobilin əsas ödənişini EkoMobil qəbul edirmi?",
-                a: "Xeyr. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir."
+                a: "Xeyr. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir. Platforma yalnız elan, boost və komisyon haqlarını alır."
               }
             ].map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">
@@ -648,7 +891,6 @@ export default function PricingPage() {
             ))}
           </div>
         </section>
-
       </div>
     </div>
   );

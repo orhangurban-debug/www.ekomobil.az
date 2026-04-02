@@ -194,3 +194,95 @@ export function daysRemaining(planExpiresAt: string | Date): number {
   const now = new Date();
   return Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dinamik qiymət cədvəli (avtomobil qiymətinə görə)
+// Turbo.az modelindən ilham alınıb: qiymət nə qədər yüksəkdirsə,
+// elan haqqı da bir az yüksəkdir — hər iki tərəf üçün ədalətli model.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PricingTier {
+  /** Minimum avtomobil qiyməti (₼) — daxil */
+  minPriceAzn: number;
+  /** Maksimum avtomobil qiyməti (₼) — daxil. null = yuxarı limit yoxdur */
+  maxPriceAzn: number | null;
+  labelAz: string;
+  /** Standart plan üçün ödəniş (₼) */
+  standardPriceAzn: number;
+  /** VIP plan üçün ödəniş (₼) */
+  vipPriceAzn: number;
+}
+
+/**
+ * Fərdi satıcı üçün avtomobil satış qiymətinə görə elan haqqı cədvəli.
+ *
+ * Niyə dinamik qiymət?
+ *   • Ucuz avtomobil satan satıcıya yüksək elan haqqı ƏDALƏTSIZDIR.
+ *   • Baha avtomobil satan satıcı daha çox şəkil, uzun müddət, prioritet istəyir
+ *     — buna uyğun qiymət ŞƏFFAFDIR.
+ *   • Pulsuz (Free) plan bu cədvəldən kənardır — həmişə 0 ₼.
+ */
+export const PRICING_TIERS: PricingTier[] = [
+  {
+    minPriceAzn: 0,
+    maxPriceAzn: 5000,
+    labelAz: "0 — 5 000 ₼",
+    standardPriceAzn: 5,
+    vipPriceAzn: 10
+  },
+  {
+    minPriceAzn: 5001,
+    maxPriceAzn: 15000,
+    labelAz: "5 001 — 15 000 ₼",
+    standardPriceAzn: 9,
+    vipPriceAzn: 19
+  },
+  {
+    minPriceAzn: 15001,
+    maxPriceAzn: 30000,
+    labelAz: "15 001 — 30 000 ₼",
+    standardPriceAzn: 14,
+    vipPriceAzn: 27
+  },
+  {
+    minPriceAzn: 30001,
+    maxPriceAzn: 60000,
+    labelAz: "30 001 — 60 000 ₼",
+    standardPriceAzn: 19,
+    vipPriceAzn: 35
+  },
+  {
+    minPriceAzn: 60001,
+    maxPriceAzn: null,
+    labelAz: "60 001 ₼ və yuxarı",
+    standardPriceAzn: 25,
+    vipPriceAzn: 45
+  }
+];
+
+/**
+ * Avtomobil satış qiymətinə görə düzgün qiymət dilimini qaytarır.
+ * Pulsuz plan üçün istifadə olunmur — həmişə 0 ₼.
+ */
+export function getPricingTierForVehicle(vehiclePriceAzn: number): PricingTier {
+  return (
+    PRICING_TIERS.find(
+      (t) =>
+        vehiclePriceAzn >= t.minPriceAzn &&
+        (t.maxPriceAzn === null || vehiclePriceAzn <= t.maxPriceAzn)
+    ) ?? PRICING_TIERS[PRICING_TIERS.length - 1]
+  );
+}
+
+/**
+ * Müəyyən plan tipi və avtomobil qiyməti üçün ödənişi hesablayır.
+ * Pulsuz plan həmişə 0 ₼ qaytarır.
+ */
+export function calculateListingFee(
+  planType: PlanType,
+  vehiclePriceAzn: number
+): number {
+  if (planType === "free") return 0;
+  const tier = getPricingTierForVehicle(vehiclePriceAzn);
+  return planType === "standard" ? tier.standardPriceAzn : tier.vipPriceAzn;
+}
