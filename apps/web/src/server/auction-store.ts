@@ -509,9 +509,10 @@ export async function confirmAuctionSale(input: {
 }): Promise<{ ok: boolean; error?: string; auction?: AuctionListingRecord; outcome?: AuctionOutcomeRecord }> {
   const auction = await getAuctionListing(input.auctionId);
   if (!auction) return { ok: false, error: "Auksion tapılmadı" };
+  const activeAuction = auction;
 
-  const winnerUserId = auction.winnerUserId ?? auction.currentBidderUserId;
-  if (input.actorRole === "seller" && auction.sellerUserId !== input.actorUserId) {
+  const winnerUserId = activeAuction.winnerUserId ?? activeAuction.currentBidderUserId;
+  if (input.actorRole === "seller" && activeAuction.sellerUserId !== input.actorUserId) {
     return { ok: false, error: "Yalnız satıcı bu əməliyyatı edə bilər" };
   }
   if (input.actorRole === "buyer" && winnerUserId !== input.actorUserId) {
@@ -519,37 +520,37 @@ export async function confirmAuctionSale(input: {
   }
 
   const now = new Date();
-  let nextStatus: AuctionStatus = auction.status;
-  let buyerConfirmedAt = auction.buyerConfirmedAt;
-  let sellerConfirmedAt = auction.sellerConfirmedAt;
-  let saleConfirmedAt = auction.saleConfirmedAt;
-  let noShowReportedAt = auction.noShowReportedAt;
-  let disputeReason = auction.disputeReason;
+  let nextStatus: AuctionStatus = activeAuction.status;
+  let buyerConfirmedAt = activeAuction.buyerConfirmedAt;
+  let sellerConfirmedAt = activeAuction.sellerConfirmedAt;
+  let saleConfirmedAt = activeAuction.saleConfirmedAt;
+  let noShowReportedAt = activeAuction.noShowReportedAt;
+  let disputeReason = activeAuction.disputeReason;
 
   async function notifyCounterpart(status: AuctionStatus): Promise<void> {
     const targetUserId =
-      input.actorRole === "buyer" ? auction.sellerUserId : winnerUserId;
+      input.actorRole === "buyer" ? activeAuction.sellerUserId : winnerUserId;
     if (!targetUserId) return;
 
     if (status === "buyer_confirmed") {
       await createAuctionNotification({
-        userId: auction.sellerUserId,
-        auctionId: auction.id,
+        userId: activeAuction.sellerUserId,
+        auctionId: activeAuction.id,
         type: "buyer_confirmed",
         title: "Alıcı nəticəni təsdiqlədi",
-        message: `"${auction.titleSnapshot}" lotunda alıcı təsdiq verdi. Siz də təsdiqləyin.`,
-        ctaHref: `/auction/${auction.id}/confirm`
+        message: `"${activeAuction.titleSnapshot}" lotunda alıcı təsdiq verdi. Siz də təsdiqləyin.`,
+        ctaHref: `/auction/${activeAuction.id}/confirm`
       });
       return;
     }
     if (status === "seller_confirmed" && winnerUserId) {
       await createAuctionNotification({
         userId: winnerUserId,
-        auctionId: auction.id,
+        auctionId: activeAuction.id,
         type: "seller_confirmed",
         title: "Satıcı nəticəni təsdiqlədi",
-        message: `"${auction.titleSnapshot}" lotunda satıcı təsdiq verdi. Siz də təsdiqləyin.`,
-        ctaHref: `/auction/${auction.id}/confirm`
+        message: `"${activeAuction.titleSnapshot}" lotunda satıcı təsdiq verdi. Siz də təsdiqləyin.`,
+        ctaHref: `/auction/${activeAuction.id}/confirm`
       });
       return;
     }
@@ -558,20 +559,20 @@ export async function confirmAuctionSale(input: {
         winnerUserId
           ? createAuctionNotification({
               userId: winnerUserId,
-              auctionId: auction.id,
+              auctionId: activeAuction.id,
               type: "auction_completed",
               title: "Auksion tamamlandı",
-              message: `"${auction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
-              ctaHref: `/auction/${auction.id}/confirm`
+              message: `"${activeAuction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
+              ctaHref: `/auction/${activeAuction.id}/confirm`
             })
           : Promise.resolve(),
         createAuctionNotification({
-          userId: auction.sellerUserId,
-          auctionId: auction.id,
+          userId: activeAuction.sellerUserId,
+          auctionId: activeAuction.id,
           type: "auction_completed",
           title: "Auksion tamamlandı",
-          message: `"${auction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
-          ctaHref: `/auction/${auction.id}/confirm`
+          message: `"${activeAuction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
+          ctaHref: `/auction/${activeAuction.id}/confirm`
         })
       ]);
       return;
@@ -579,33 +580,33 @@ export async function confirmAuctionSale(input: {
     if (status === "disputed") {
       await createAuctionNotification({
         userId: targetUserId,
-        auctionId: auction.id,
+        auctionId: activeAuction.id,
         type: "auction_disputed",
         title: "Mübahisə açıldı",
-        message: `"${auction.titleSnapshot}" lotu üzrə mübahisə açıldı. Sübutlarınızı əlavə edin.`,
-        ctaHref: `/auction/${auction.id}/confirm`
+        message: `"${activeAuction.titleSnapshot}" lotu üzrə mübahisə açıldı. Sübutlarınızı əlavə edin.`,
+        ctaHref: `/auction/${activeAuction.id}/confirm`
       });
       return;
     }
     if (status === "no_show" && winnerUserId) {
       await createAuctionNotification({
         userId: winnerUserId,
-        auctionId: auction.id,
+        auctionId: activeAuction.id,
         type: "buyer_obligation_fee",
         title: "Alıcı öhdəlik haqqı tətbiq edildi",
-        message: `"${auction.titleSnapshot}" lotu üzrə öhdəlik pozuntusu qeydə alındı. Checkout-u tamamlayın.`,
-        ctaHref: `/auction/${auction.id}/confirm`
+        message: `"${activeAuction.titleSnapshot}" lotu üzrə öhdəlik pozuntusu qeydə alındı. Checkout-u tamamlayın.`,
+        ctaHref: `/auction/${activeAuction.id}/confirm`
       });
       return;
     }
     if (status === "seller_breach") {
       await createAuctionNotification({
-        userId: auction.sellerUserId,
-        auctionId: auction.id,
+        userId: activeAuction.sellerUserId,
+        auctionId: activeAuction.id,
         type: "seller_obligation_fee",
         title: "Satıcı öhdəlik haqqı tətbiq edildi",
-        message: `"${auction.titleSnapshot}" lotu üzrə satıcı öhdəliyi pozulması qeydə alındı. Checkout-u tamamlayın.`,
-        ctaHref: `/auction/${auction.id}/confirm`
+        message: `"${activeAuction.titleSnapshot}" lotu üzrə satıcı öhdəliyi pozulması qeydə alındı. Checkout-u tamamlayın.`,
+        ctaHref: `/auction/${activeAuction.id}/confirm`
       });
     }
   }

@@ -74,9 +74,7 @@ export const createAuctionSchema = z
     vinDocumentRef: z.string().trim().max(500, "VIN sənəd istinadı çox uzundur").optional(),
     serviceHistoryDocumentRef: z.string().trim().max(500, "Servis tarixçəsi sənəd istinadı çox uzundur").optional(),
     /** Satıcı şərt qəbul checkboxları tamamlandı — server tərəfindən qeyd üçün tələb olunur */
-    sellerTermsAccepted: z.literal(true, {
-      errorMap: () => ({ message: "Auksion şərtlərini qəbul etmədən lot yerləşdirə bilməzsiniz" })
-    })
+    sellerTermsAccepted: z.literal(true, "Auksion şərtlərini qəbul etmədən lot yerləşdirə bilməzsiniz")
   })
   .refine(
     (data) =>
