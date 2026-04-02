@@ -121,8 +121,8 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
                 Profil
               </Link>
               {userRole === "admin" || userRole === "support" ? (
-                <Link href="/ops/reviews" className="btn-secondary text-xs px-3 py-1.5">
-                  Ops
+                <Link href="/admin" className="btn-secondary text-xs px-3 py-1.5">
+                  Admin
                 </Link>
               ) : null}
               <form action="/api/auth/logout" method="POST">
@@ -200,7 +200,7 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
                   <Link href="/publish" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Elan yerləşdir</Link>
                   <Link href="/me" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Profil</Link>
                   {(userRole === "admin" || userRole === "support") && (
-                    <Link href="/ops/reviews" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Ops paneli</Link>
+                    <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Admin paneli</Link>
                   )}
                   <form action="/api/auth/logout" method="POST">
                     <button type="submit" className="btn-secondary w-full">Çıxış</button>

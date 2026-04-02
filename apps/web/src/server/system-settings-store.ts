@@ -40,3 +40,27 @@ export async function getSystemSettings(): Promise<SystemSettingsRow> {
     updatedAt: row.updated_at.toISOString()
   };
 }
+
+export async function updateSystemSettings(input: {
+  auctionMode: AuctionPaymentMode;
+  penaltyAmounts: PenaltyAmountsJson;
+}): Promise<SystemSettingsRow> {
+  const pool = getPgPool();
+  const result = await pool.query<SystemSettingsDbRow>(
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, updated_at)
+     VALUES (1, $1, $2::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       auction_mode = EXCLUDED.auction_mode,
+       penalty_amounts = EXCLUDED.penalty_amounts,
+       updated_at = NOW()
+     RETURNING id, auction_mode, penalty_amounts, updated_at`,
+    [input.auctionMode, JSON.stringify(input.penaltyAmounts)]
+  );
+  const row = result.rows[0];
+  return {
+    id: row.id,
+    auctionMode: (row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY"),
+    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts),
+    updatedAt: row.updated_at.toISOString()
+  };
+}
