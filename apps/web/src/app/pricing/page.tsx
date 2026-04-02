@@ -25,7 +25,7 @@ const AUCTION_SELLER_STEPS_AZ = [
 ];
 
 const AUCTION_BUYER_STEPS_AZ = [
-  "Hesabınla daxil ol; lotda "Deposit" işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
+  "Hesabınla daxil ol; lotda \u201cDeposit\u201d işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
   "Auksion qaydalarını təsdiqlə, təklif ver; qalib olanda təsdiq pəncərəsini izlə.",
   "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın off-platform tamamlandığını təsdiqlə.",
   "Öhdəlikləri pozmamağa çalış: əks halda satıcı no-show bildirə bilər; no-show statusunda intizam cəriməsi ayrıca checkout ilə ödənilir.",
