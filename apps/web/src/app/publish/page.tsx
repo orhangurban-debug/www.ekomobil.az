@@ -1,10 +1,15 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
-import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
+import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
+import {
+  processImageForUpload,
+  formatFileSize,
+  type ProcessedImage
+} from "@/lib/image-processor";
 
 const STEPS = ["Avtomobil", "Media", "Plan", "Yoxlama"] as const;
 type Step = (typeof STEPS)[number];
@@ -100,6 +105,12 @@ export default function PublishPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<TrustApiResponse | null>(null);
 
+  // ── Image upload state ──────────────────────────────────────────────────
+  const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
+  const [uploadProcessing, setUploadProcessing] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const mediaCheck = useMemo(() => validateMediaProtocol(media), [media]);
 
   const referenceNote = useMemo(() => {
@@ -118,6 +129,41 @@ export default function PublishPage() {
   function updateBoolean(field: keyof MediaProtocolInput, value: boolean) {
     setMedia((prev) => ({ ...prev, [field]: value }));
   }
+
+  const handleImageFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      const plan = LISTING_PLANS.find((p) => p.id === planType);
+      const maxImages = plan?.maxImages ?? 8;
+
+      setUploadProcessing(true);
+      setUploadErrors([]);
+      const newErrors: string[] = [];
+      const newImages: ProcessedImage[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        if (uploadedImages.length + newImages.length >= maxImages) {
+          newErrors.push(`Maksimum ${maxImages} şəkil əlavə etmək olar (bu plan: ${plan?.nameAz}).`);
+          break;
+        }
+        const result = await processImageForUpload(files[i]);
+        if (result.ok) {
+          newImages.push(result);
+        } else {
+          newErrors.push(`${files[i].name}: ${result.error}`);
+        }
+      }
+
+      setUploadedImages((prev) => [...prev, ...newImages]);
+      setUploadErrors(newErrors);
+      setMedia((prev) => ({
+        ...prev,
+        imageCount: uploadedImages.length + newImages.length
+      }));
+      setUploadProcessing(false);
+    },
+    [planType, uploadedImages]
+  );
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -528,19 +574,114 @@ export default function PublishPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="label">Foto sayı</label>
-                    <input type="number" value={media.imageCount} onChange={(e) => setMedia((p) => ({ ...p, imageCount: Number(e.target.value) }))} className="input-field" min={0} />
+                {/* ── Real image upload ───────────────────────────────────── */}
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="label mb-0">Şəkillər</label>
+                    <span className="text-xs text-slate-400">
+                      {uploadedImages.length} / {LISTING_PLANS.find(p => p.id === planType)?.maxImages ?? 8} şəkil
+                    </span>
                   </div>
-                  <div>
-                    <label className="label">Video müddəti (san)</label>
-                    <input type="number" value={media.engineVideoDurationSec} onChange={(e) => setMedia((p) => ({ ...p, engineVideoDurationSec: Number(e.target.value) }))} className="input-field" min={0} max={60} />
+
+                  {/* Drop zone */}
+                  <div
+                    className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 transition ${
+                      uploadProcessing
+                        ? "border-[#0891B2]/40 bg-[#0891B2]/5"
+                        : "border-slate-300 bg-slate-50 hover:border-[#0891B2]/60 hover:bg-[#0891B2]/5"
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      void handleImageFiles(e.dataTransfer.files);
+                    }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,.heic,.heif"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => void handleImageFiles(e.target.files)}
+                    />
+                    {uploadProcessing ? (
+                      <div className="flex items-center gap-2 text-sm text-[#0891B2]">
+                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Şəkillər sıxılır…
+                      </div>
+                    ) : (
+                      <>
+                        <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                        <p className="text-sm text-slate-500">
+                          <span className="font-semibold text-[#0891B2]">Fayl seçin</span> və ya bura sürükləyin
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          JPEG · PNG · WebP · HEIC — istənilən ölçü qəbul olunur, sistem avtomatik sıxır
+                        </p>
+                      </>
+                    )}
                   </div>
+
+                  {/* Upload errors */}
+                  {uploadErrors.length > 0 && (
+                    <div className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3">
+                      {uploadErrors.map((e, i) => (
+                        <p key={i} className="text-xs text-red-700">{e}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Image previews */}
+                  {uploadedImages.length > 0 && (
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {uploadedImages.map((img, i) => (
+                        <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={URL.createObjectURL(img.file)}
+                            alt={`Şəkil ${i + 1}`}
+                            className="h-full w-full object-cover"
+                          />
+                          {/* Compression badge */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-center text-[9px] text-white">
+                            {formatFileSize(img.compressedSizeBytes)}
+                            {img.wasResized && " · sıxıldı"}
+                          </div>
+                          {/* Remove button */}
+                          <button
+                            type="button"
+                            className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-white group-hover:flex"
+                            onClick={() => {
+                              setUploadedImages((prev) => prev.filter((_, idx) => idx !== i));
+                              setMedia((prev) => ({ ...prev, imageCount: uploadedImages.length - 1 }));
+                            }}
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Compression info note */}
+                  {uploadedImages.length > 0 && (
+                    <p className="mt-2 text-[11px] text-slate-400">
+                      💾 Cəmi: {formatFileSize(uploadedImages.reduce((s, img) => s + img.compressedSizeBytes, 0))} · Sistem avtomatik JPEG 85%-ə çevirmişdir
+                    </p>
+                  )}
                 </div>
 
+                {/* ── Angle checklist ─────────────────────────────────────── */}
                 <div>
-                  <label className="label mb-3">Mövcud bucaqlar</label>
+                  <label className="label mb-3">Çəkilmiş bucaqları işarələyin</label>
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
@@ -562,6 +703,22 @@ export default function PublishPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* ── Video duration ──────────────────────────────────────── */}
+                {LISTING_PLANS.find(p => p.id === planType)?.videoEnabled && (
+                  <div>
+                    <label className="label">Mühərrik videosu (saniyə)</label>
+                    <input
+                      type="number"
+                      value={media.engineVideoDurationSec}
+                      onChange={(e) => setMedia((p) => ({ ...p, engineVideoDurationSec: Number(e.target.value) }))}
+                      className="input-field"
+                      min={0}
+                      max={60}
+                    />
+                    <p className="mt-1 text-xs text-slate-400">15–30 saniyə tövsiyə olunur. Video yükləmə müddəti ödəniş sonrası aktivləşir.</p>
+                  </div>
+                )}
 
                 {!mediaCheck.isComplete && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -593,9 +750,22 @@ export default function PublishPage() {
               <div className="card p-8 space-y-6">
                 <h2 className="text-lg font-semibold text-slate-900">Elan planı</h2>
                 <p className="text-sm text-slate-500">Elanınızın necə görünməsini seçin</p>
+
+                {/* Free plan limit note */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 space-y-1">
+                  <p>
+                    <span className="font-semibold text-slate-700">Pulsuz plan:</span>{" "}
+                    eyni anda yalnız <strong>{FREE_LISTING_CONCURRENT_LIMIT} aktiv pulsuz elan</strong> yerləşdirə bilərsiniz.
+                    İkinci elan üçün ilk elanın müddəti bitməli, yaxud Standart/VIP plan seçilməlidir.
+                  </p>
+                  <p>
+                    <span className="font-semibold text-slate-700">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0891B2] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
+                  </p>
+                </div>
+
                 {planType !== "free" && (
-                  <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-                    Paid plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, sonra Kapital Bank ödəniş axını tamamlanandan sonra aktivləşir.
+                  <div className="rounded-xl border border-[#0891B2]/20 bg-[#0891B2]/5 px-4 py-3 text-sm text-[#0891B2]">
+                    Ödənişli plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, Kapital Bank ödənişi tamamlanandan sonra aktivləşir.
                   </div>
                 )}
 

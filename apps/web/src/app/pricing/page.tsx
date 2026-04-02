@@ -243,10 +243,48 @@ export default function PricingPage() {
         {/* ─── 1. Listing plans ──────────────────────────────────────── */}
         <section id="listings" className="scroll-mt-20">
           <SectionHeader
-            label="Fərdi & dealer elanları"
+            label="Fərdi satıcı planları"
             title="Elan qiymət planları"
-            sub="Elanınızı daha çox alıcıya çatdırmaq üçün plan seçin. Hər elan 30 gün aktivdir."
+            sub="Hər elan ayrıca plan alır. Eyni anda yalnız 1 pulsuz aktiv elanınız ola bilər."
           />
+
+          {/* Free listing limit note */}
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="flex-1 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <p className="text-sm font-semibold text-amber-900">Pulsuz plan → 1 aktiv elan limiti</p>
+              <p className="mt-1 text-xs text-amber-700 leading-relaxed">
+                Bir istifadəçi eyni anda yalnız <strong>1 aktiv pulsuz elan</strong> yerləşdirə bilər.
+                İkinci pulsuz elan üçün birinci elanın müddəti bitməlidir (30 gün + 7 gün lütf müddəti).
+                Eyni anda birdən çox elan yerləşdirmək istəyirsinizsə, hər biri üçün Standart (9 ₼) yaxud VIP (19 ₼) plan seçin.
+              </p>
+            </div>
+            <div className="flex-1 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+              <p className="text-sm font-semibold text-emerald-900">Ödənişli planlar → limitsiz</p>
+              <p className="mt-1 text-xs text-emerald-700 leading-relaxed">
+                Standart və VIP planlar <strong>eyni anda limitsiz sayda aktiv</strong> ola bilər — hər biri ayrıca ödənir.
+                Salon iseniz aylıq sabit ödənişli <a href="#dealer" className="underline font-medium">Salon planına</a> keçin.
+              </p>
+            </div>
+          </div>
+
+          {/* Image & storage info box */}
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+            <p className="text-sm font-semibold text-slate-800">📸 Şəkil emalı — bütün planlar üçün eynidir</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3 text-xs text-slate-600">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 rounded bg-[#0891B2]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0891B2]">AUTO</span>
+                <span><strong>İstənilən format qəbul olunur</strong> — JPEG, PNG, WebP, HEIC (iPhone), BMP. Sistem avtomatik JPEG-ə çevirir.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">SXIL</span>
+                <span><strong>Böyük fayllar avtomatik sıxılır</strong> — 85% JPEG keyfiyyəti, max 1280 px. 10 MB telefon fotosu ~800 KB-a endirilir.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LIMIT</span>
+                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8 şəkil, Standart: 20 şəkil, VIP: 40 şəkil.</span>
+              </div>
+            </div>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
             {LISTING_PLANS.map((plan) => {
@@ -265,41 +303,54 @@ export default function PricingPage() {
                       Ən populyar
                     </span>
                   )}
-                  <div className="mb-5">
+                  <div className="mb-4">
                     <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
                       <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
                         {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
                       </span>
                       {plan.priceAzn > 0 && (
-                        <span className="text-sm text-slate-400">/ 30 gün</span>
+                        <span className="text-sm text-slate-400">/ elan</span>
                       )}
                     </div>
+                    <p className="mt-1 text-xs text-slate-400">{plan.durationDays} gün aktiv</p>
                   </div>
 
-                  <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
+                  {/* Storage chips */}
+                  <div className="mb-4 flex flex-wrap gap-1.5">
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.maxImages} şəkil</span>
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.storageMb} MB</span>
+                    {plan.videoEnabled
+                      ? <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">{plan.maxVideos} video</span>
+                      : <span className="rounded-md bg-slate-100 text-slate-400 px-2 py-0.5 text-xs">Video yoxdur</span>
+                    }
+                    {plan.id === "free" && (
+                      <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">1 aktiv limit</span>
+                    )}
+                  </div>
+
+                  <ul className="flex-1 space-y-2 text-sm text-slate-600">
                     {plan.id === "free" && (
                       <>
                         <li className="flex items-center gap-2"><CheckIcon />Standart sıralanma</li>
-                        <li className="flex items-center gap-2"><CheckIcon />30 gün aktiv</li>
                         <li className="flex items-center gap-2"><CheckIcon />Əsas axtarış görünüşü</li>
                       </>
                     )}
                     {plan.id === "standard" && (
                       <>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış kart</li>
-                        <li className="flex items-center gap-2"><CheckIcon />1.5× prioritet sıralama</li>
+                        <li className="flex items-center gap-2"><CheckIcon />2× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış statistikası</li>
-                        <li className="flex items-center gap-2"><CheckIcon />30 gün aktiv</li>
+                        <li className="flex items-center gap-2"><CheckIcon />1 video (50 MB)</li>
                       </>
                     )}
                     {plan.id === "vip" && (
                       <>
                         <li className="flex items-center gap-2"><CheckIcon />Ön səhifə üstünlüyü</li>
-                        <li className="flex items-center gap-2"><CheckIcon />3× prioritet sıralama</li>
+                        <li className="flex items-center gap-2"><CheckIcon />4× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış görünüş + ribbon</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış & klik statistikası</li>
-                        <li className="flex items-center gap-2"><CheckIcon />30 gün aktiv</li>
+                        <li className="flex items-center gap-2"><CheckIcon />3 video (100 MB/video)</li>
                       </>
                     )}
                   </ul>
@@ -344,7 +395,7 @@ export default function PricingPage() {
                     Ən populyar
                   </span>
                 )}
-                <div className="mb-5">
+                <div className="mb-4">
                   <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
@@ -357,11 +408,33 @@ export default function PricingPage() {
                   <p className="mt-1 text-xs text-slate-400">
                     {plan.maxListings === null
                       ? "Limitsiz aktiv elan"
-                      : `Aylıq ${plan.maxListings} aktiv elan`}
+                      : `${plan.maxListings} aktiv elan (eyni anda)`}
                   </p>
                 </div>
 
-                <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
+                {/* Per-listing image/CSV chips */}
+                <div className="mb-4 flex flex-wrap gap-1.5">
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    {plan.perListingMaxImages} şəkil/elan
+                  </span>
+                  {plan.csvImportEnabled && (
+                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+                      CSV toplu import
+                    </span>
+                  )}
+                  {plan.vinCreditsPerMonth && (
+                    <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
+                      {plan.vinCreditsPerMonth} VIN kredit/ay
+                    </span>
+                  )}
+                  {plan.multiBranchEnabled && (
+                    <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">
+                      Çox filial
+                    </span>
+                  )}
+                </div>
+
+                <ul className="flex-1 space-y-2 text-sm text-slate-600">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <CheckIcon />

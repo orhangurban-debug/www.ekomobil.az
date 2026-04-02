@@ -1,36 +1,68 @@
 /**
  * EkoMobil — Elan Qiymət Planları və Yaddaş Limitləri
  *
- * Referans: Turbo.az, OLX, mobile.de plan strukturları
- * Şəkil sıxılması: JPEG 85%, max 1280px — front-end tərəfindən tətbiq olunur.
- * Saxlama: Vercel Blob (yaxud S3-uyğun xidmət)
+ * ── Qiymətləndirmə modeli ────────────────────────────────────────────────
+ *
+ * İSTİFADƏÇİ (fərdi satıcı):
+ *   • Hər elan ayrıca plan seçir: Pulsuz / Standart / VIP.
+ *   • Eyni anda yalnız 1 aktiv PULSUZ elanı ola bilər.
+ *     İkinci pulsuz elan yerləşdirmək üçün birinci elanın müddəti bitməlidir
+ *     və ya Standart/VIP plana yüksəlməlidir.
+ *   • Ödənişli planlar (Standart/VIP) isə limitsiz sayda eyni vaxtda aktiv
+ *     ola bilər — hər biri ayrıca ödənir.
+ *
+ * SALON (dealer) — ayrıca DEALER_PLANS abunəliyi var:
+ *   • Aylıq sabit abunə → N aktiv elan hüququ.
+ *   • Hər elan Standart keyfiyyətdə (20 foto, video, 40 MB).
+ *   • CSV toplu yükləmə imkanı (Pro/Enterprise).
+ *   → bax: src/lib/dealer-plans.ts
+ *
+ * MAĞAZA (ehtiyat hissəsi) — ayrıca PARTS_STORE_PLANS abunəliyi var:
+ *   → bax: src/lib/parts-store-plans.ts
+ *
+ * ── Şəkil emalı ─────────────────────────────────────────────────────────
+ *   Hər yüklənən şəkil sistem tərəfindən avtomatik:
+ *     • JPEG 85% keyfiyyəti ilə sıxılır
+ *     • Maksimum 1280 px (uzun tərəf) ölçüsünə gətirilir
+ *     • HEIC / PNG / WebP / BMP → JPEG-ə çevrilir
+ *   Bu emal browser-da (Canvas API) baş verir, server yükünü azaldır.
+ *   Sıxılmadan sonra plan limiti yoxlanılır.
+ *   → bax: src/lib/image-processor.ts
  */
 
 export type PlanType = "free" | "standard" | "vip";
+
+/**
+ * Eyni anda bir istifadəçinin sahib ola biləcəyi maksimum PULSUZ aktiv elan sayı.
+ * Ödənişli elanların sayında limit yoxdur.
+ */
+export const FREE_LISTING_CONCURRENT_LIMIT = 1;
 
 export interface ListingPlan {
   id: PlanType;
   name: string;
   nameAz: string;
+  /** Elan başına ödəniş (bir dəfəlik) */
   priceAzn: number;
   /** Elanın aktiv qalacağı gün sayı */
   durationDays: number;
   priorityMultiplier: number;
   isHighlighted: boolean;
   featuredInHome: boolean;
-  /** Maksimum şəkil sayı */
+  /** Maksimum şəkil sayı (sıxılmadan sonra) */
   maxImages: number;
-  /** Hər şəkil üçün maksimum fayl ölçüsü (KB) */
+  /**
+   * Hər şəkil üçün maksimum fayl ölçüsü (KB) — sıxılmadan ƏVVƏL yoxlanılır.
+   * Sıxılmadan sonra həcm daha kiçik olacaq.
+   */
   maxImageSizeKb: number;
-  /** Bir elan üçün ümumi şəkil saxlama həcmi (MB) */
+  /** Bir elan üçün ümumi şəkil saxlama həcmi (MB) — sıxılmadan sonra */
   storageMb: number;
   /** Video yükləmə imkanı */
   videoEnabled: boolean;
-  /** Maksimum video sayı */
   maxVideos: number;
-  /** Hər video üçün maksimum ölçü (MB) */
   maxVideoSizeMb: number;
-  /** Elanın yenidən aktivləşdirilə biləcəyi gün sayı (müddəti bitdikdən sonra) */
+  /** Müddət bitdikdən sonra yeniləmə "lütf müddəti" (gün) */
   renewGracePeriodDays: number;
 }
 
@@ -45,8 +77,8 @@ export const LISTING_PLANS: ListingPlan[] = [
     isHighlighted: false,
     featuredInHome: false,
     maxImages: 8,
-    maxImageSizeKb: 800,        // 800 KB/şəkil
-    storageMb: 6,               // ~6 MB ümumi
+    maxImageSizeKb: 10240,     // 10 MB giriş — sıxılmadan sonra ~800 KB
+    storageMb: 6,
     videoEnabled: false,
     maxVideos: 0,
     maxVideoSizeMb: 0,
@@ -57,13 +89,13 @@ export const LISTING_PLANS: ListingPlan[] = [
     name: "Standard",
     nameAz: "Standart",
     priceAzn: 9,
-    durationDays: 60,           // 60 gün (pulsuzdan 2x)
+    durationDays: 60,
     priorityMultiplier: 2,
     isHighlighted: true,
     featuredInHome: false,
     maxImages: 20,
-    maxImageSizeKb: 2048,       // 2 MB/şəkil
-    storageMb: 40,              // ~40 MB ümumi
+    maxImageSizeKb: 20480,     // 20 MB giriş — sıxılmadan sonra ~2 MB
+    storageMb: 40,
     videoEnabled: true,
     maxVideos: 1,
     maxVideoSizeMb: 50,
@@ -74,13 +106,13 @@ export const LISTING_PLANS: ListingPlan[] = [
     name: "VIP",
     nameAz: "VIP",
     priceAzn: 19,
-    durationDays: 90,           // 90 gün
+    durationDays: 90,
     priorityMultiplier: 4,
     isHighlighted: true,
     featuredInHome: true,
     maxImages: 40,
-    maxImageSizeKb: 5120,       // 5 MB/şəkil (yüksək keyfiyyət)
-    storageMb: 200,             // ~200 MB ümumi
+    maxImageSizeKb: 30720,     // 30 MB giriş — RAW/HEIC fayllar da qəbul olunur
+    storageMb: 200,
     videoEnabled: true,
     maxVideos: 3,
     maxVideoSizeMb: 100,
@@ -106,7 +138,7 @@ export function calculatePlanExpiry(planType: PlanType): Date {
 
 /**
  * Şəkil faylının plan limitinə uyğun olub-olmadığını yoxlayır.
- * Front-end validasiyası — upload başlamadan əvvəl çağırılır.
+ * Browser-da upload başlamadan əvvəl çağırılır (sıxılmadan əvvəl ölçü yoxlaması).
  */
 export function validateImageForPlan(
   planType: PlanType,
@@ -119,34 +151,35 @@ export function validateImageForPlan(
   if (currentCount >= plan.maxImages) {
     return {
       ok: false,
-      error: `Bu plan üçün maksimum ${plan.maxImages} şəkil yükləmək olar`
+      error: `Bu plan üçün maksimum ${plan.maxImages} şəkil əlavə etmək olar`
     };
   }
 
   const maxBytes = plan.maxImageSizeKb * 1024;
   if (fileSizeBytes > maxBytes) {
-    const maxMb = (plan.maxImageSizeKb / 1024).toFixed(1);
+    const maxMb = (plan.maxImageSizeKb / 1024).toFixed(0);
     return {
       ok: false,
-      error: `Şəkil ölçüsü ${maxMb} MB-dan böyük ola bilməz (bu plan üçün)`
+      error: `Seçilmiş fayl ${maxMb} MB limitini keçir. Daha kiçik fayl seçin.`
     };
   }
 
   return { ok: true };
 }
 
-/**
- * Planın ümumi saxlama həcmi limiti (bytes)
- */
+/** Planın ümumi saxlama həcmi limiti (bytes) */
 export function getPlanStorageLimitBytes(planType: PlanType): number {
   const plan = getPlanById(planType);
   return (plan?.storageMb ?? 6) * 1024 * 1024;
 }
 
 /**
- * Plan müddəti bitdikdən sonra "lütf müddəti" keçibsə arxivlənmə lazımdır
+ * Plan müddəti + lütf müddəti keçibsə arxivləmə lazımdır.
  */
-export function shouldArchiveListing(planExpiresAt: string | Date, planType: PlanType): boolean {
+export function shouldArchiveListing(
+  planExpiresAt: string | Date,
+  planType: PlanType
+): boolean {
   const plan = getPlanById(planType);
   const grace = plan?.renewGracePeriodDays ?? 7;
   const expiry = new Date(planExpiresAt);
@@ -155,9 +188,7 @@ export function shouldArchiveListing(planExpiresAt: string | Date, planType: Pla
   return new Date() > archiveAt;
 }
 
-/**
- * Elanın neçə gün qaldığını qaytarır (mənfi = müddəti keçib)
- */
+/** Elanın neçə gün qaldığını qaytarır (mənfi = müddəti keçib) */
 export function daysRemaining(planExpiresAt: string | Date): number {
   const expiry = new Date(planExpiresAt);
   const now = new Date();
