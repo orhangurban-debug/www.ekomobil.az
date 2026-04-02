@@ -7,6 +7,7 @@ import { TestDriveButton } from "@/components/listings/test-drive-button";
 import { ListingCard } from "@/components/listings/listing-card";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
+import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
 
 const priceInsightMap = {
   below_market: { label: "Bazar qiymətindən aşağı", cls: "badge-verified" },
@@ -43,6 +44,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const scoreColor =
     listing.trustScore >= 80 ? "#16a34a" :
     listing.trustScore >= 60 ? "#d97706" : "#dc2626";
+
+  const vinCheck =
+    listing.vin && listing.vin !== "PARTS-NOVIN" && isVinFormatValid(listing.vin)
+      ? getVinCheckLinks(listing.vin)
+      : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -227,6 +233,64 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               )}
             </div>
           </div>
+
+          {/* VIN check resources */}
+          {vinCheck && (
+            <div className="card p-5 space-y-4">
+              {/* Header */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-slate-900">VIN Tarixçəsini Özünüz Yoxlayın</h3>
+                </div>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                  Bu avtomobil <span className="font-medium text-slate-700">{vinCheck.regionLabelAz}</span> mənşəlidir.
+                  Aşağıdakı rəsmi xarici resurslara daxil olaraq tarixçəni müstəqil yoxlaya bilərsiniz.
+                </p>
+                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2">
+                  <span className="font-mono text-xs font-bold tracking-widest text-slate-700 select-all">{vinCheck.vin}</span>
+                  <span className="ml-auto text-[10px] text-slate-400">VIN nömrəsini kopyalayın →</span>
+                </div>
+              </div>
+
+              {/* Links */}
+              <ul className="space-y-2">
+                {vinCheck.links.map((link) => (
+                  <li key={link.name}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-3 transition hover:border-[#0891B2] hover:shadow-sm"
+                    >
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 group-hover:text-[#0891B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-800 group-hover:text-[#0891B2]">{link.nameAz}</span>
+                          {link.free ? (
+                            <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Pulsuz</span>
+                          ) : (
+                            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">Ödənişli</span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-500 leading-snug">{link.descriptionAz}</p>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Disclaimer */}
+              <p className="text-[10px] text-slate-400 leading-relaxed border-t border-slate-100 pt-3">
+                EkoMobil bu xidmətlərlə heç bir şəriklik münasibətinə malik deyil və linklər yalnız məlumat məqsədi ilə verilir.
+                Satınalmadan əvvəl müstəqil ekspert yoxlaması tövsiyə olunur.
+              </p>
+            </div>
+          )}
 
           {/* Safety notice */}
           <div className="rounded-xl border border-brand-100 bg-brand-50 p-4 text-xs text-brand-800 leading-relaxed">
