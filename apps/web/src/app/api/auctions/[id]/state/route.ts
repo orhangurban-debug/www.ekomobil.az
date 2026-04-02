@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchAuctionApi } from "@/server/auction-api-client";
+import { runAuctionCloseSweepIfDue } from "@/server/auction-close-worker";
 import { getAuctionListing } from "@/server/auction-store";
 
 export async function GET(
@@ -13,6 +14,7 @@ export async function GET(
     return NextResponse.json(payload, { status: response.status });
   }
 
+  await runAuctionCloseSweepIfDue();
   const auction = await getAuctionListing(id);
   if (!auction) {
     return NextResponse.json({ ok: false, error: "Auksion tapılmadı" }, { status: 404 });

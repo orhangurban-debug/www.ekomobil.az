@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchAuctionApi } from "@/server/auction-api-client";
+import { runAuctionCloseSweepIfDue } from "@/server/auction-close-worker";
 import { listAuctionBids } from "@/server/auction-bid-store";
 
 export async function GET(
@@ -16,6 +17,7 @@ export async function GET(
     return NextResponse.json(payload, { status: response.status });
   }
 
+  await runAuctionCloseSweepIfDue();
   const bids = await listAuctionBids(id, safeLimit);
   return NextResponse.json({ ok: true, bids });
 }

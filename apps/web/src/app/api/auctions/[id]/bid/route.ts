@@ -3,6 +3,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { runAuctionBidPreflight } from "@/server/auction-bid-preflight";
 import { fetchAuctionApi } from "@/server/auction-api-client";
 import { placeAuctionBid } from "@/server/auction-bid-store";
+import { runAuctionCloseSweepIfDue } from "@/server/auction-close-worker";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { placeBidSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
@@ -60,6 +61,7 @@ export async function POST(
     .digest("hex")
     .slice(0, 32);
 
+  await runAuctionCloseSweepIfDue();
   const pre = await runAuctionBidPreflight({ userId: user.id, auctionId: id });
   if (!pre.ok) {
     const body: Record<string, unknown> = { ok: false, error: pre.message, code: pre.code };

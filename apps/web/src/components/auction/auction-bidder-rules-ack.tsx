@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * localStorage cache key — yalnız "bu cihazda qəbul edilib" sürətli yoxlaması üçün.
@@ -26,15 +26,13 @@ export function useAuctionBidderRulesAck(): {
   acknowledged: boolean;
   setAcknowledged: (value: boolean) => void;
 } {
-  const [acknowledged, setAckState] = useState(false);
-
-  useEffect(() => {
+  const [acknowledged, setAckState] = useState(() => {
     try {
-      setAckState(window.localStorage.getItem(STORAGE_KEY) === "1");
+      return typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY) === "1";
     } catch {
-      setAckState(false);
+      return false;
     }
-  }, []);
+  });
 
   async function setAcknowledged(value: boolean) {
     // localStorage: sürətli UI yeniləmə üçün

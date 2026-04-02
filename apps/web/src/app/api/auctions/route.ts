@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { fetchAuctionApi } from "@/server/auction-api-client";
+import { runAuctionCloseSweepIfDue } from "@/server/auction-close-worker";
 import { createAuctionListing, listAuctionListings } from "@/server/auction-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { createAuctionSchema, parseOrThrow, ValidationError } from "@/lib/validate";
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
     return NextResponse.json(payload, { status: response.status });
   }
 
+  await runAuctionCloseSweepIfDue();
   const auctions = await listAuctionListings(limit);
   return NextResponse.json({ ok: true, auctions });
 }

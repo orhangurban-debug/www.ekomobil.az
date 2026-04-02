@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
+import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
 
@@ -15,6 +16,7 @@ export default async function ProfilePage() {
   const savedSearches = await listSavedSearches(user.id);
   const myListings = await listListingsForUser(user.id);
   const deepKyc = await getUserKycProfile(user.id);
+  const auctionNotifications = await listAuctionNotificationsForUser(user.id, 8);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -70,6 +72,40 @@ export default async function ProfilePage() {
                 Deep KYC səhifəsi
               </Link>
             </div>
+          </section>
+
+          <section className="card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Auksion yenilikləri</h2>
+              <Link href="/auction" className="btn-secondary text-sm">Auksiona keç</Link>
+            </div>
+            {auctionNotifications.length === 0 ? (
+              <p className="text-sm text-slate-500">Hələ auksion bildirişi yoxdur.</p>
+            ) : (
+              <div className="space-y-3">
+                {auctionNotifications.map((item) => (
+                  <div key={item.id} className={`rounded-xl border p-4 ${item.isRead ? "border-slate-200" : "border-[#0891B2]/25 bg-[#0891B2]/5"}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">{item.title}</div>
+                        <p className="mt-1 text-sm text-slate-600">{item.message}</p>
+                        <div className="mt-2 text-xs text-slate-400">
+                          {new Date(item.createdAt).toLocaleString("az-AZ")}
+                        </div>
+                      </div>
+                      {!item.isRead && <span className="badge-verified">Yeni</span>}
+                    </div>
+                    {item.ctaHref && (
+                      <div className="mt-3">
+                        <Link href={item.ctaHref} className="text-sm font-medium text-brand-600 hover:underline">
+                          Aç →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="card p-6">

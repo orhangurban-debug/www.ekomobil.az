@@ -37,7 +37,7 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
   }
 
   const amountAzn = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
-  const { id } = await createPendingPreauthHold({
+  const preauth = await createPendingPreauthHold({
     auctionId,
     userId: user.id,
     amountAzn
@@ -45,9 +45,9 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
 
   return NextResponse.json({
     ok: true,
-    preauthId: id,
+    preauthId: preauth.id,
     amountAzn,
-    message:
-      "Növbəti addım: PSP ilə hold yaradıb callback-də statusu 'held' edin. İnkişaf mühitində əl ilə DB yeniləyə bilərsiniz."
+    checkoutUrl: preauth.checkoutUrl,
+    message: "Kart hold checkout-u yaradıldı."
   });
 }

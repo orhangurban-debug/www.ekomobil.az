@@ -8,6 +8,7 @@ import {
 } from "@/lib/auction";
 import type { ListingDetail } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
+import { createAuctionNotification } from "@/server/auction-notification-store";
 import { getListingDetail, validateListingOwnership } from "@/server/listing-store";
 import { getDeepKycStatus } from "@/server/user-kyc-store";
 import {
@@ -525,6 +526,90 @@ export async function confirmAuctionSale(input: {
   let noShowReportedAt = auction.noShowReportedAt;
   let disputeReason = auction.disputeReason;
 
+  async function notifyCounterpart(status: AuctionStatus): Promise<void> {
+    const targetUserId =
+      input.actorRole === "buyer" ? auction.sellerUserId : winnerUserId;
+    if (!targetUserId) return;
+
+    if (status === "buyer_confirmed") {
+      await createAuctionNotification({
+        userId: auction.sellerUserId,
+        auctionId: auction.id,
+        type: "buyer_confirmed",
+        title: "Alıcı nəticəni təsdiqlədi",
+        message: `"${auction.titleSnapshot}" lotunda alıcı təsdiq verdi. Siz də təsdiqləyin.`,
+        ctaHref: `/auction/${auction.id}/confirm`
+      });
+      return;
+    }
+    if (status === "seller_confirmed" && winnerUserId) {
+      await createAuctionNotification({
+        userId: winnerUserId,
+        auctionId: auction.id,
+        type: "seller_confirmed",
+        title: "Satıcı nəticəni təsdiqlədi",
+        message: `"${auction.titleSnapshot}" lotunda satıcı təsdiq verdi. Siz də təsdiqləyin.`,
+        ctaHref: `/auction/${auction.id}/confirm`
+      });
+      return;
+    }
+    if (status === "completed") {
+      await Promise.all([
+        winnerUserId
+          ? createAuctionNotification({
+              userId: winnerUserId,
+              auctionId: auction.id,
+              type: "auction_completed",
+              title: "Auksion tamamlandı",
+              message: `"${auction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
+              ctaHref: `/auction/${auction.id}/confirm`
+            })
+          : Promise.resolve(),
+        createAuctionNotification({
+          userId: auction.sellerUserId,
+          auctionId: auction.id,
+          type: "auction_completed",
+          title: "Auksion tamamlandı",
+          message: `"${auction.titleSnapshot}" lotu hər iki tərəf tərəfindən təsdiqləndi.`,
+          ctaHref: `/auction/${auction.id}/confirm`
+        })
+      ]);
+      return;
+    }
+    if (status === "disputed") {
+      await createAuctionNotification({
+        userId: targetUserId,
+        auctionId: auction.id,
+        type: "auction_disputed",
+        title: "Mübahisə açıldı",
+        message: `"${auction.titleSnapshot}" lotu üzrə mübahisə açıldı. Sübutlarınızı əlavə edin.`,
+        ctaHref: `/auction/${auction.id}/confirm`
+      });
+      return;
+    }
+    if (status === "no_show" && winnerUserId) {
+      await createAuctionNotification({
+        userId: winnerUserId,
+        auctionId: auction.id,
+        type: "buyer_obligation_fee",
+        title: "Alıcı öhdəlik haqqı tətbiq edildi",
+        message: `"${auction.titleSnapshot}" lotu üzrə öhdəlik pozuntusu qeydə alındı. Checkout-u tamamlayın.`,
+        ctaHref: `/auction/${auction.id}/confirm`
+      });
+      return;
+    }
+    if (status === "seller_breach") {
+      await createAuctionNotification({
+        userId: auction.sellerUserId,
+        auctionId: auction.id,
+        type: "seller_obligation_fee",
+        title: "Satıcı öhdəlik haqqı tətbiq edildi",
+        message: `"${auction.titleSnapshot}" lotu üzrə satıcı öhdəliyi pozulması qeydə alındı. Checkout-u tamamlayın.`,
+        ctaHref: `/auction/${auction.id}/confirm`
+      });
+    }
+  }
+
   if (input.outcome === "disputed") {
     nextStatus = "disputed";
     disputeReason = input.note ?? "İstifadəçi tərəfindən dispute yaradıldı";
@@ -632,6 +717,8 @@ export async function confirmAuctionSale(input: {
         [getSellerBreachPenaltyAzn(kind), auction.sellerUserId]
       );
     }
+
+    await notifyCounterpart(nextStatus).catch(() => undefined);
 
     return { ok: true, auction: updatedAuction, outcome };
   } catch (error) {

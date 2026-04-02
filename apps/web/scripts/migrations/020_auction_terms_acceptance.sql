@@ -9,7 +9,7 @@
 
 CREATE TABLE IF NOT EXISTS auction_terms_acceptances (
   id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id        TEXT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   -- 'bidder' = alıcı, 'seller' = satıcı
   role           TEXT        NOT NULL CHECK (role IN ('bidder', 'seller')),
   terms_version  TEXT        NOT NULL DEFAULT 'v1',

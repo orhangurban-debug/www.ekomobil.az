@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUCTION_FEES, calcSellerPerformanceBond, getLotListingFeeAzn } from "@/lib/auction-fees";
+import {
+  AUCTION_FEES,
+  calcSellerCommission,
+  calcSellerPerformanceBond,
+  getLotListingFeeAzn
+} from "@/lib/auction-fees";
 
 interface SellableListing {
   id: string;
@@ -60,6 +65,10 @@ export function AuctionSellForm({
   const isHighValue = Boolean(selected && selected.priceAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN);
   const suggestedSellerBond = selected ? calcSellerPerformanceBond(selected.priceAzn) : 0;
   const listingFeeAzn = getLotListingFeeAzn(selected?.listingKind);
+  const successFeePreviewAzn = selected ? calcSellerCommission(selected.priceAzn, selected.listingKind) : 0;
+  const successFeeRateLabel = selected?.listingKind === "part" ? "3%" : "1.2%";
+  const successFeeMinLabel = selected?.listingKind === "part" ? "2 ₼" : "25 ₼";
+  const successFeeCapLabel = selected?.listingKind === "part" ? "40 ₼" : "700 ₼";
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -395,6 +404,40 @@ export function AuctionSellForm({
         Avtomobilin əsas satış ödənişi EkoMobil üzərindən keçmir. Qalib alıcı əsas məbləği birbaşa satıcıya ödəyir.
         Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq ({listingFeeAzn.toLocaleString("az-AZ")} ₼).
         Alıcı iştirak etməzsə lot satışsız bağlanır və satış komisyonu tutulmur.
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-slate-900">Satıcı xərc preview-u</div>
+            <p className="mt-1 text-xs text-slate-600">
+              Komisyon yalnız uğurlu satışda tutulur. Lot haqqı isə lot aktivləşməsi üçün əvvəlcədən ödənilir.
+            </p>
+          </div>
+          <Link href="/pricing#auction" className="text-xs font-medium text-[#0891B2] hover:underline">
+            Tam cədvəl →
+          </Link>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200">
+            <div className="text-xs text-slate-500">Lot haqqı</div>
+            <div className="mt-1 text-xl font-bold text-slate-900">{listingFeeAzn.toLocaleString("az-AZ")} ₼</div>
+          </div>
+          <div className="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200">
+            <div className="text-xs text-slate-500">Uğurlu satış komisyonu</div>
+            <div className="mt-1 text-xl font-bold text-slate-900">{successFeePreviewAzn.toLocaleString("az-AZ")} ₼</div>
+            <div className="mt-1 text-[11px] text-slate-500">
+              {successFeeRateLabel} · min {successFeeMinLabel} · max {successFeeCapLabel}
+            </div>
+          </div>
+          <div className="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200">
+            <div className="text-xs text-slate-500">Bu elan üçün nümunə ümumi xərc</div>
+            <div className="mt-1 text-xl font-bold text-[#0891B2]">
+              {(listingFeeAzn + successFeePreviewAzn).toLocaleString("az-AZ")} ₼
+            </div>
+            <div className="mt-1 text-[11px] text-slate-500">Lot haqqı dərhal, komisyon isə yalnız uğurlu satışda</div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">

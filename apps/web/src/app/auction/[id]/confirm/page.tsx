@@ -84,6 +84,35 @@ export default async function AuctionConfirmPage({
           />
         </div>
 
+        {isDisputed && (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+            <h2 className="text-base font-semibold text-red-950">Mübahisə axını</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl bg-white/80 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-red-500">1. Sübut əlavə et</div>
+                <p className="mt-2 text-sm text-red-900/90">
+                  Foto, PDF, mesaj ekran görüntüsü və ya müvafiq sənədi aşağıdan yükləyin.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/80 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-red-500">2. Qarşı tərəf cavabı</div>
+                <p className="mt-2 text-sm text-red-900/90">
+                  Qarşı tərəfin də sübut təqdim etməsi gözlənilir. Əlavə sənəd olduqca yenidən yükləyə bilərsiniz.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/80 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-red-500">3. Ops baxışı</div>
+                <p className="mt-2 text-sm text-red-900/90">
+                  Ops komandası hər iki tərəfin materiallarını yoxlayır və nəticəni status yeniləməsi ilə qeydə alır.
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-red-900/80">
+              Tövsiyə: yalnız faktı sübut edən materiallar yükləyin. Eyni sənədi təkrar yükləməyin və şəxsi təhqir xarakterli qeydlərdən istifadə etməyin.
+            </p>
+          </div>
+        )}
+
         {/* Dispute evidence section — visible only when disputed and user is a party */}
         {isDisputed && uploaderRole && (
           <div className="mt-8">

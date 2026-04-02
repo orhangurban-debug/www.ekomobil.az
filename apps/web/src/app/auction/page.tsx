@@ -98,7 +98,16 @@ function LotCard({
       </div>
       <div className="mt-4 flex items-center justify-between">
         <CountdownDisplay endAt={lot.endsAt} compact />
-        <span className="text-xs font-semibold text-slate-500">{lot.minimumIncrementAzn.toLocaleString("az-AZ")} ₼ artım</span>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/auction/${lot.id}`}
+            onClick={(event) => event.stopPropagation()}
+            className="text-xs font-semibold text-[#0891B2] hover:underline"
+          >
+            Ətraflı bax
+          </Link>
+          <span className="text-xs font-semibold text-slate-500">{lot.minimumIncrementAzn.toLocaleString("az-AZ")} ₼ artım</span>
+        </div>
       </div>
     </button>
   );
@@ -226,9 +235,27 @@ export default function AuctionPage() {
       error?: string;
       bid?: AuctionBidRecord;
       nextMinimumBidAzn?: number;
+      code?: string;
     };
 
     if (!payload.ok) {
+      if (payload.code === "PREAUTH_REQUIRED") {
+        const preauthResponse = await fetch(`/api/auctions/${activeLot.id}/bid-preauth`, {
+          method: "POST"
+        });
+        const preauthPayload = (await preauthResponse.json()) as {
+          ok: boolean;
+          error?: string;
+          checkoutUrl?: string;
+        };
+        if (preauthPayload.ok && preauthPayload.checkoutUrl) {
+          window.location.href = preauthPayload.checkoutUrl;
+          return;
+        }
+        setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
+        setSubmitting(false);
+        return;
+      }
       setError(payload.error ?? "Bid göndərilmədi");
       setSubmitting(false);
       return;
