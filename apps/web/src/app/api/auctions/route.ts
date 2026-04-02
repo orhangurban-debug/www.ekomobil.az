@@ -4,6 +4,7 @@ import { fetchAuctionApi } from "@/server/auction-api-client";
 import { createAuctionListing, listAuctionListings } from "@/server/auction-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { createAuctionSchema, parseOrThrow, ValidationError } from "@/lib/validate";
+import { recordAuctionTermsAcceptance } from "@/server/auction-terms-store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -49,6 +50,14 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+  // Satıcı şərt qəbulunu server-side qeyd edirik (sellerTermsAccepted: true schema tərəfindən doğrulanır)
+  await recordAuctionTermsAcceptance({
+    userId: user.id,
+    role: "seller",
+    ipAddress: getClientIp(req),
+    userAgent: req.headers.get("user-agent") ?? undefined
+  });
 
   const result = await createAuctionListing({
     listingId: parsed.listingId,

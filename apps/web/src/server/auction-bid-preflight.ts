@@ -5,11 +5,13 @@ import {
   recordBidCardValidation
 } from "@/server/auction-bid-preflight-store";
 import { hasHeldPreauthForAuction } from "@/server/auction-preauth-store";
+import { hasAcceptedAuctionTerms } from "@/server/auction-terms-store";
 
 export type BidPreflightFailure =
   | { ok: false; status: 403; code: "PENALTY_BALANCE"; message: string }
   | { ok: false; status: 403; code: "ACCOUNT_BLOCKED"; message: string }
   | { ok: false; status: 403; code: "IDENTITY_REQUIRED"; message: string }
+  | { ok: false; status: 403; code: "TERMS_NOT_ACCEPTED"; message: string }
   | { ok: false; status: 403; code: "PREAUTH_REQUIRED"; message: string; preauthAmountAzn?: number }
   | { ok: false; status: 403 | 503; code: "CONFIG"; message: string };
 
@@ -40,6 +42,17 @@ export async function runAuctionBidPreflight(input: {
       status: 403,
       code: "PENALTY_BALANCE",
       message: "Əvvəlki auksion üzrə platforma borcunuz var. Borc bağlanana qədər təklif verə bilməzsiniz."
+    };
+  }
+
+  // Alıcı şərtlər qəbulu — server-side yoxlama
+  const termsAccepted = await hasAcceptedAuctionTerms(input.userId, "bidder");
+  if (!termsAccepted) {
+    return {
+      ok: false,
+      status: 403,
+      code: "TERMS_NOT_ACCEPTED",
+      message: "Auksion şərtlərini qəbul etmədən təklif verə bilməzsiniz. Auksion səhifəsindən şərtləri qəbul edin."
     };
   }
 

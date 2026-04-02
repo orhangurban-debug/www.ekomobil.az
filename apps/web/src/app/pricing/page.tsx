@@ -367,8 +367,8 @@ export default function PricingPage() {
               const isVip = plan.id === "vip";
               const isStandard = plan.id === "standard";
               return (
-                <div
-                  key={plan.id}
+          <div
+            key={plan.id}
                   className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
                     isVip
                       ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
@@ -377,10 +377,10 @@ export default function PricingPage() {
                 >
                   {isVip && (
                     <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
-                      Ən populyar
-                    </span>
-                  )}
-                  <div className="mb-4">
+                Ən populyar
+              </span>
+            )}
+            <div className="mb-4">
                     <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
                       {plan.priceAzn === 0 ? (
@@ -390,11 +390,11 @@ export default function PricingPage() {
                           <span className="text-xs text-slate-400 font-medium">-dən</span>
                           <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
                             {isStandard ? "4" : "8"} ₼
-                          </span>
+                </span>
                           <span className="text-sm text-slate-400">/ elan</span>
                         </>
-                      )}
-                    </div>
+                )}
+              </div>
                     <p className="mt-1 text-xs text-slate-400">{plan.durationDays} gün aktiv</p>
                   </div>
 
@@ -409,48 +409,48 @@ export default function PricingPage() {
                     {plan.id === "free" && (
                       <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">1 aktiv limit</span>
                     )}
-                  </div>
+            </div>
 
                   <ul className="flex-1 space-y-2 text-sm text-slate-600">
-                    {plan.id === "free" && (
-                      <>
+              {plan.id === "free" && (
+                <>
                         <li className="flex items-center gap-2"><CheckIcon />Standart sıralanma</li>
                         <li className="flex items-center gap-2"><CheckIcon />Əsas axtarış görünüşü</li>
                         <li className="flex items-center gap-2 text-slate-400"><XIcon />Boost (ayrıca alına bilər)</li>
                         <li className="flex items-center gap-2 text-slate-400"><XIcon />Video</li>
-                      </>
-                    )}
-                    {plan.id === "standard" && (
-                      <>
+                </>
+              )}
+              {plan.id === "standard" && (
+                <>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış elan kartı</li>
                         <li className="flex items-center gap-2"><CheckIcon />2× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />1 video (50 MB)</li>
                         <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
-                      </>
-                    )}
-                    {plan.id === "vip" && (
-                      <>
+                </>
+              )}
+              {plan.id === "vip" && (
+                <>
                         <li className="flex items-center gap-2"><CheckIcon />Ana səhifə VIP bloku</li>
                         <li className="flex items-center gap-2"><CheckIcon />4× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış görünüş + ribbon</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış & klik statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />3 video (100 MB/video)</li>
                         <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
-                      </>
-                    )}
-                  </ul>
+                </>
+              )}
+            </ul>
 
-                  <Link
-                    href="/publish"
+            <Link
+              href="/publish"
                     className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
                       plan.priceAzn === 0
-                        ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
-                    }`}
-                  >
+                  ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
+              }`}
+            >
                     {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Elan ver"}
-                  </Link>
+            </Link>
                 </div>
               );
             })}
@@ -507,9 +507,9 @@ export default function PricingPage() {
                 <div className="mb-3">{item.icon}</div>
                 <h3 className="font-semibold text-slate-900">{item.title}</h3>
                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
           </div>
+        ))}
+      </div>
 
           {/* Bump packages */}
           <div className="mb-10">
@@ -771,8 +771,8 @@ export default function PricingPage() {
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
                     {plan.maxActiveListings.toLocaleString("az-AZ")} aktiv SKU
-                  </p>
-                </div>
+        </p>
+      </div>
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
@@ -906,7 +906,7 @@ export default function PricingPage() {
             </Link>
             <Link href="/rules/auction" className="btn-secondary">
               Qaydaları oxu
-            </Link>
+        </Link>
           </div>
         </section>
 

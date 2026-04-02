@@ -96,7 +96,8 @@ export function AuctionSellForm({
         serviceHistoryUrl: serviceHistoryType === "link" ? serviceHistoryUrl.trim() || undefined : undefined,
         vinDocumentRef: vinInfoType === "document" ? vinDocumentRef.trim() || undefined : undefined,
         serviceHistoryDocumentRef:
-          serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined
+          serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined,
+        sellerTermsAccepted: true as const
       })
     });
     const createPayload = (await createResponse.json()) as {
