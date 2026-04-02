@@ -66,6 +66,25 @@ export interface ListingPlan {
   renewGracePeriodDays: number;
 }
 
+/**
+ * Şəkil sayı prinsipləri (reallığa əsaslanan):
+ *
+ * Bir avtomobil üçün REAL fotoçəkim planı:
+ *   Xarici (4 bucaqdan + ön + arxa)           → 6 şəkil
+ *   Daxili (tabló, sükan, ön oturacaqlar,
+ *           arxa oturacaqlar, baqaj)           → 5 şəkil
+ *   Texniki (mühərrik, caqul/disk, odometr)   → 3 şəkil
+ *   Əlavə detallar (çatlaq, cızmaq, xüsusi
+ *           avadanlıq)                        → 2-4 şəkil
+ *   CƏMI: 16-18 "mükəmməl" şəkil. 20 üst hədd.
+ *
+ * 40 şəkil = axtarış motorlarının robotları üçün yaxşı, alıcı üçün qeyri-mütənasib.
+ * 3+ video = tək bir köhnə avtomobil üçün heç vaxt lazım deyil.
+ *
+ * Video sayı prinsipləri:
+ *   1 video = walk-around (1-2 dəq) → alıcı üçün kifayətdir.
+ *   2+ video = yalnız premium/ekzotik avtomobillər üçün məntiqlidir.
+ */
 export const LISTING_PLANS: ListingPlan[] = [
   {
     id: "free",
@@ -77,8 +96,8 @@ export const LISTING_PLANS: ListingPlan[] = [
     isHighlighted: false,
     featuredInHome: false,
     maxImages: 8,
-    maxImageSizeKb: 10240,     // 10 MB giriş — sıxılmadan sonra ~800 KB
-    storageMb: 6,
+    maxImageSizeKb: 10240,     // 10 MB giriş → ~800 KB çıxış
+    storageMb: 8,
     videoEnabled: false,
     maxVideos: 0,
     maxVideoSizeMb: 0,
@@ -93,9 +112,9 @@ export const LISTING_PLANS: ListingPlan[] = [
     priorityMultiplier: 2,
     isHighlighted: true,
     featuredInHome: false,
-    maxImages: 20,
-    maxImageSizeKb: 20480,     // 20 MB giriş — sıxılmadan sonra ~2 MB
-    storageMb: 40,
+    maxImages: 15,
+    maxImageSizeKb: 20480,     // 20 MB giriş → ~1.5 MB çıxış
+    storageMb: 25,             // 15 şəkil × ~1.5 MB ≈ 22 MB + ehtiyat
     videoEnabled: true,
     maxVideos: 1,
     maxVideoSizeMb: 50,
@@ -110,12 +129,12 @@ export const LISTING_PLANS: ListingPlan[] = [
     priorityMultiplier: 4,
     isHighlighted: true,
     featuredInHome: true,
-    maxImages: 40,
-    maxImageSizeKb: 30720,     // 30 MB giriş — RAW/HEIC fayllar da qəbul olunur
-    storageMb: 200,
+    maxImages: 20,             // 40→20: 20 şəkil əsl peşəkar fotoçəkim üçün tam kifayətdir
+    maxImageSizeKb: 30720,     // 30 MB giriş — HEIC/RAW fayllar da qəbul olunur
+    storageMb: 40,             // 20 şəkil × ~1.8 MB + 1 video ≈ 36 MB + ehtiyat
     videoEnabled: true,
-    maxVideos: 3,
-    maxVideoSizeMb: 100,
+    maxVideos: 1,              // 3→1: walk-around video hər avtomobil üçün kifayətdir
+    maxVideoSizeMb: 200,       // Daha uzun/keyfiyyətli video üçün yer var
     renewGracePeriodDays: 30
   }
 ];

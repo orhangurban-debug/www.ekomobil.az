@@ -356,7 +356,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LIMIT</span>
-                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8, Standart: 20, VIP: 40 şəkil.</span>
+                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8, Standart: 15, VIP: 20 şəkil.</span>
               </div>
             </div>
           </div>
@@ -602,10 +602,29 @@ export default function PricingPage() {
           <SectionHeader
             label="Avtomobil salonları"
             title="Salon abunə planları"
-            sub="Aylıq sabit ödəniş ilə bütün inventarınızı idarə edin. Boost kreditləri daxildir."
+            sub="Aylıq abunə → aktiv elan slotu. Abunə aktiv olduqca bütün elanlar görünür."
           />
 
           <NoBizFreeBanner />
+
+          {/* Slot logic explainer */}
+          <div className="mb-8 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm">
+            <p className="font-semibold text-blue-900">Salon planı necə işləyir?</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-blue-800">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-blue-500">①</span>
+                <span><strong>Slot sistemi:</strong> Hər plan N aktiv elan slotu verir. Slot fərdi elan planı seçmədən doldurulur — keyfiyyət planla sabitdir.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-blue-500">②</span>
+                <span><strong>Satılanda azalır:</strong> Avtomobil satılanda/silinəndə slot azad olur, yeni avtomobil girir. Əlavə ödəniş yoxdur.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-blue-500">③</span>
+                <span><strong>Abunə bitincə:</strong> Bütün elanlar lütf müddəti qurtarana qədər gizlənir — silinmir. Abunə yenilənincə geri qayıdır.</span>
+              </div>
+            </div>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
             {DEALER_PLANS.map((plan) => (
@@ -631,9 +650,7 @@ export default function PricingPage() {
                     <span className="text-sm text-slate-400">/ ay</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
-                    {plan.maxListings === null
-                      ? "Limitsiz aktiv elan"
-                      : `${plan.maxListings} aktiv elan (eyni anda)`}
+                    {plan.maxActiveListings} aktiv elan slotu
                   </p>
                 </div>
 
@@ -652,7 +669,7 @@ export default function PricingPage() {
                       CSV import
                     </span>
                   )}
-                  {plan.vinCreditsPerMonth && (
+                  {plan.vinCreditsPerMonth > 0 && (
                     <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
                       {plan.vinCreditsPerMonth} VIN/ay
                     </span>
@@ -667,6 +684,9 @@ export default function PricingPage() {
                       Çox filial
                     </span>
                   )}
+                  <span className="rounded-md bg-slate-50 text-slate-500 px-2 py-0.5 text-xs">
+                    {plan.listingRefreshDays} gündə bir yoxlama
+                  </span>
                 </div>
 
                 <ul className="flex-1 space-y-2 text-sm text-slate-600">
@@ -694,10 +714,29 @@ export default function PricingPage() {
           <SectionHeader
             label="Ehtiyat hissə mağazaları"
             title="Mağaza paketləri"
-            sub="Ehtiyat hissə satışı üçün xüsusi aylıq paketlər. Kataloq böyüdükcə daha geniş funksiyalar."
+            sub="Kataloq (SKU) əsaslı elan sistemi. Salondan fərqli olaraq stok izləmə və uyğunluq məlumatı daxildir."
           />
 
           <NoBizFreeBanner />
+
+          {/* Parts store vs dealer logic explainer */}
+          <div className="mb-8 rounded-2xl border border-fuchsia-100 bg-fuchsia-50 px-5 py-4 text-sm">
+            <p className="font-semibold text-fuchsia-900">Mağaza planı salondan necə fərqlənir?</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-fuchsia-800">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-fuchsia-500">①</span>
+                <span><strong>SKU kataloqu:</strong> Hər elan bir hissə tipidir (SKU). Satılanda stok azalır, elan silinmir — "stokda yoxdur" olur.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-fuchsia-500">②</span>
+                <span><strong>Uyğunluq axtarışı:</strong> Alıcılar hansı avto markaları/modelləri/illəri üçün hissə axtardığını göstərir. Mağaza uyğun elanları sıraya çəkir.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-fuchsia-500">③</span>
+                <span><strong>Az foto lazımdır:</strong> Hissə elanlarında 5-12 şəkil tam kifayətdir. 25-40 şəkil gərəksiзdir — avtomobil elanı ilə qarışdırmayın.</span>
+              </div>
+            </div>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
             {PARTS_STORE_PLANS.map((plan) => (
@@ -723,17 +762,25 @@ export default function PricingPage() {
                     <span className="text-sm text-slate-400">/ ay</span>
                   </div>
                   <p className="mt-1 text-xs text-slate-400">
-                    {plan.maxPartsListings === null
-                      ? "Limitsiz aktiv hissə elanı"
-                      : `${plan.maxPartsListings} aktiv hissə elanı`}
+                    {plan.maxActiveListings.toLocaleString("az-AZ")} aktiv SKU
                   </p>
                 </div>
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                    {plan.perListingMaxImages} şəkil/elan
+                    {plan.perListingMaxImages} şəkil/SKU
                   </span>
+                  {plan.stockTrackingEnabled && (
+                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+                      Stok izləmə
+                    </span>
+                  )}
+                  {plan.compatibilityEnabled && (
+                    <span className="rounded-md bg-fuchsia-50 text-fuchsia-700 px-2 py-0.5 text-xs font-medium">
+                      Uyğunluq məlumatı
+                    </span>
+                  )}
                   {plan.csvImportEnabled && (
                     <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
                       CSV import
@@ -744,9 +791,9 @@ export default function PricingPage() {
                       {plan.boostCreditsPerMonth} boost/ay
                     </span>
                   )}
-                  {plan.analyticsEnabled && (
-                    <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
-                      Analitika
+                  {plan.multiWarehouseEnabled && (
+                    <span className="rounded-md bg-rose-50 text-rose-700 px-2 py-0.5 text-xs font-medium">
+                      Çox anbar
                     </span>
                   )}
                 </div>

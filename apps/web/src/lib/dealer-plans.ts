@@ -1,26 +1,30 @@
 /**
  * EkoMobil — Avto Salon Abunəlik Planları
  *
- * ── Qiymətləndirmə modeli ─────────────────────────────────────────────
+ * ── Salon planı məntiqi (fərdi elan planlarından FƏRQLI işləyir) ──────────
  *
- * Salon planları FƏRDİ satıcı planlarından tam ayrıdır.
- * PULSUZ PLAN YOXDUR — peşəkar biznes platforması kimi hər salon ödəniş edir.
+ * FƏRDİ satıcı modeli:          SALON modeli:
+ *   Hər elan ayrıca plan alır     Aylıq abunə → "slot" hüququ
+ *   Hər elan öz müddəti var       Elan aktiv ↔ abunə aktiv
+ *   Plan = elan keyfiyyəti        Plan = eyni anda neçə elan (slot)
+ *   Elan sona çatınca arxivlənir  Abunə bitincə TÜM elanlar gizlənir
  *
- * Niyə pulsuz plan yoxdur?
- *   • Salonlar kommersiya subyektlərdir — pulsuz sıralamaya düşmək ədalətsiz
- *     rəqabət yaradır fərdi satıcılara qarşı.
- *   • Keyfiyyəti qorumaq: Yalnız ciddi bizneslərin siyahıya düşməsi
- *     platforma etibarını artırır.
- *   • Öz "Salon baza" planımız artıq bazardakı pulsuz alternativi əvəz edir:
- *     rəqiblərə görə geniş imkanlarla çox əlverişli qiymətdə.
+ * ── Slot məntiqi ─────────────────────────────────────────────────────────
+ *   • Salon aylıq ödəyir → maxListings qədər AKTIV slot alır.
+ *   • Avtomobil satılanda/silinəndə → slot azad olur → yeni elan girir.
+ *   • Abunə bitincə → bütün elanlar 30 gün gizlənir (grace), sonra arxivlənir.
+ *   • Elan keyfiyyəti (foto, video) planla sabitdir — fərdi plan seçim yoxdur.
  *
- * Salon elanlarının hər biri avtomatik olaraq "Pro" keyfiyyəti alır:
- *   • 20 foto (sıxılmış JPEG, max 1280 px)
- *   • Video imkanı (plan asılı)
- *   • 90 gün aktiv müddət
+ * ── "Limitsiz" fəlsəfəsi ─────────────────────────────────────────────────
+ *   Azərbaycan bazarının ən böyük salonlarında belə aktiv inventar adətən
+ *   150-200 avtomobili keçmir. "Limitsiz" = qeyri-müəyyən xərc + keyfiyyətsiz
+ *   siyahı riskidir. Enterprise planı 200 slot ilə bütün real ssenariləri əhatə edir.
  *
- * Şəkil emalı fərdi satıcılarla eynidir:
- *   → bax: src/lib/image-processor.ts
+ * ── Listing refresh ──────────────────────────────────────────────────────
+ *   listingRefreshDays: Salon hər N gündən bir elanların hələ inventarda
+ *   olduğunu təsdiqləməlidir (bir klik). Bu "hayalet ilan" problemini önləyir.
+ *
+ * PULSUZ PLAN YOXDUR.
  */
 
 export type DealerPlanId = "baza" | "pro" | "enterprise";
@@ -28,29 +32,40 @@ export type DealerPlanId = "baza" | "pro" | "enterprise";
 export interface DealerPlan {
   id: DealerPlanId;
   nameAz: string;
-  /** Aylıq abunə ödənişi (₼). 0 icazə verilmir. */
+  /** Aylıq abunə ödənişi (₼). 0 heç vaxt olmayacaq. */
   priceAzn: number;
   billingCycle: "monthly";
-  /** Eyni anda aktiv ola biləcək maksimum elan sayı (null = limitsiz) */
-  maxListings: number | null;
-  /** Hər elanda maksimum şəkil sayı */
+  /**
+   * Eyni anda aktiv ola biləcək maksimum elan SLOTU.
+   * null YOXDUR — ən böyük plan da sabit üst həddə malikdir.
+   */
+  maxActiveListings: number;
+  /** Hər elanda maksimum şəkil sayı (plan tərəfindən sabitlənir, satıcı seçmir) */
   perListingMaxImages: number;
   /** Hər elanda video yükləmə imkanı */
   videoEnabled: boolean;
-  /** Maksimum video sayı (elan başına) */
+  /** Hər elanda maksimum video sayı */
   maxVideosPerListing: number;
+  /**
+   * Elanların "hayalet inventar" yoxlaması intervalı (gün).
+   * Salon hər N gündən bir elanın hələ satışda olduğunu bir klikdə təsdiqləyir.
+   * Təsdiq edilməyən elanlar sarı "yoxlanılmayıb" etiketiylə işarələnir.
+   */
+  listingRefreshDays: number;
   /** CSV toplu yükləmə imkanı */
   csvImportEnabled: boolean;
-  /** Aylıq VIN sorğu krediti (null = yoxdur) */
-  vinCreditsPerMonth: number | null;
-  /** Çoxlu filial idarəetməsi */
+  /** Aylıq VIN servis sorğu krediti */
+  vinCreditsPerMonth: number;
+  /** Çoxlu filial — vahid paneldən idarə */
   multiBranchEnabled: boolean;
-  /** Aylıq boost krediti (irəli çək/VIP/Premium üçün) */
+  /** Aylıq boost krediti (irəli çək / VIP / Premium) */
   boostCreditsPerMonth: number;
-  /** Lead CRM həcm limiti (null = limitsiz) */
+  /** Lead CRM sifariş sayı limiti (null = limitsiz) */
   leadInboxLimit: number | null;
-  /** Analitik panel */
+  /** Analitik panel (baxış, lead, dönüşüm statistikası) */
   analyticsEnabled: boolean;
+  /** Abunə bitdikdən sonra elanların gizlənməzdən əvvəl aktiv qaldığı gün (lütf müddəti) */
+  gracePeriodDays: number;
   features: string[];
   highlight?: boolean;
 }
@@ -61,22 +76,26 @@ export const DEALER_PLANS: DealerPlan[] = [
     nameAz: "Salon Baza",
     priceAzn: 29,
     billingCycle: "monthly",
-    maxListings: 30,
-    perListingMaxImages: 15,
+    maxActiveListings: 30,
+    perListingMaxImages: 10,
     videoEnabled: false,
     maxVideosPerListing: 0,
+    listingRefreshDays: 60,
     csvImportEnabled: false,
-    vinCreditsPerMonth: null,
+    vinCreditsPerMonth: 0,
     multiBranchEnabled: false,
     boostCreditsPerMonth: 0,
     leadInboxLimit: 50,
     analyticsEnabled: false,
+    gracePeriodDays: 14,
     features: [
-      "30 aktiv elan (eyni anda)",
-      "Elan başına 15 şəkil",
-      "Salon profil səhifəsi + Doğrulanmış badge",
+      "30 aktiv elan slotu",
+      "Elan başına 10 şəkil",
+      "Salon profil səhifəsi",
+      "Doğrulanmış salon badge",
       "Lead qutusu (son 50 sorğu)",
-      "Standart axtarış görünüşü"
+      "Standart axtarış görünüşü",
+      "Hər 60 gündən bir inventar yoxlaması"
     ]
   },
   {
@@ -84,26 +103,28 @@ export const DEALER_PLANS: DealerPlan[] = [
     nameAz: "Salon Pro",
     priceAzn: 59,
     billingCycle: "monthly",
-    maxListings: 100,
-    perListingMaxImages: 25,
+    maxActiveListings: 80,
+    perListingMaxImages: 20,
     videoEnabled: true,
-    maxVideosPerListing: 2,
+    maxVideosPerListing: 1,
+    listingRefreshDays: 90,
     csvImportEnabled: true,
     vinCreditsPerMonth: 10,
     multiBranchEnabled: false,
     boostCreditsPerMonth: 5,
     leadInboxLimit: null,
     analyticsEnabled: true,
+    gracePeriodDays: 21,
     highlight: true,
     features: [
-      "100 aktiv elan (eyni anda)",
-      "Elan başına 25 şəkil + 2 video",
+      "80 aktiv elan slotu",
+      "Elan başına 20 şəkil + 1 video",
       "CSV toplu yükləmə",
       "Tam lead CRM — limitsiz",
       "Baxış & lead statistikası",
       "VIN servis sorğusu — 10 kredit/ay",
       "Aylıq 5 boost krediti (irəli çək/VIP)",
-      "\"Doğrulanmış Salon\" badge"
+      "Hər 90 gündən bir inventar yoxlaması"
     ]
   },
   {
@@ -111,19 +132,21 @@ export const DEALER_PLANS: DealerPlan[] = [
     nameAz: "Salon Enterprise",
     priceAzn: 119,
     billingCycle: "monthly",
-    maxListings: null,
-    perListingMaxImages: 40,
+    maxActiveListings: 200,      // "Limitsiz" deyil — 200 slot Azərbaycanda ən böyük salonları əhatə edir
+    perListingMaxImages: 25,
     videoEnabled: true,
-    maxVideosPerListing: 5,
+    maxVideosPerListing: 2,      // 5→2: bir avtomobil üçün walk-around + test drive kifayətdir
+    listingRefreshDays: 120,
     csvImportEnabled: true,
     vinCreditsPerMonth: 30,
     multiBranchEnabled: true,
     boostCreditsPerMonth: 20,
     leadInboxLimit: null,
     analyticsEnabled: true,
+    gracePeriodDays: 30,
     features: [
-      "Limitsiz aktiv elan",
-      "Elan başına 40 şəkil + 5 video",
+      "200 aktiv elan slotu",
+      "Elan başına 25 şəkil + 2 video",
       "CSV toplu yükləmə (limit yoxdur)",
       "Çoxlu filial — vahid idarəetmə paneli",
       "Tam lead CRM + SLA izləmə",
@@ -138,4 +161,31 @@ export const DEALER_PLANS: DealerPlan[] = [
 
 export function getDealerPlanById(id: DealerPlanId): DealerPlan | undefined {
   return DEALER_PLANS.find((p) => p.id === id);
+}
+
+/**
+ * Aktivliyini itirmiş (refresh edilməmiş) elan sayını hesablamaq üçün
+ * son yoxlama tarixini yoxlayır.
+ */
+export function isDealerListingStale(
+  lastRefreshedAt: string | Date,
+  plan: DealerPlan
+): boolean {
+  const last = new Date(lastRefreshedAt);
+  const threshold = new Date();
+  threshold.setDate(threshold.getDate() - plan.listingRefreshDays);
+  return last < threshold;
+}
+
+/**
+ * Abunəliyin lütf müddəti keçibsə bütün salon elanları arxivlənməlidir.
+ */
+export function shouldArchiveDealerListings(
+  subscriptionExpiresAt: string | Date,
+  plan: DealerPlan
+): boolean {
+  const expiry = new Date(subscriptionExpiresAt);
+  const archiveAt = new Date(expiry);
+  archiveAt.setDate(archiveAt.getDate() + plan.gracePeriodDays);
+  return new Date() > archiveAt;
 }
