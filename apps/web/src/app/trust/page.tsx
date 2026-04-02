@@ -54,7 +54,7 @@ export default function TrustPage() {
 
       <div className="mt-12 flex flex-wrap gap-3">
         <Link href="/listings?vinVerified=1" className="btn-primary text-sm">
-          VIN doğrulanmış elanlara bax
+          VIN nömrəsi olan elanlara bax
         </Link>
         <Link href="/" className="btn-secondary text-sm">
           Ana səhifəyə qayıt

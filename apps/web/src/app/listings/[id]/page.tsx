@@ -171,10 +171,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <div className="space-y-3">
               {[
                 {
-                  label: "VIN Yoxlama",
+                  label: "VIN Nömrəsi",
                   ok: listing.vinVerified,
-                  okText: "Doğrulandı",
-                  failText: "Doğrulanmayıb"
+                  okText: "Daxil edilib",
+                  failText: "Daxil edilməyib"
                 },
                 {
                   label: "Satıcı Doğrulaması",

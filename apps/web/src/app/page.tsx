@@ -330,7 +330,7 @@ export default async function HomePage() {
                 </span>
               </div>
               <h3 className="mt-3 text-lg font-bold text-white">2021 BMW X5 xDrive30d</h3>
-              <p className="mt-1 text-sm text-white/50">VIN doğrulanmış • 68,000 km • Bakı</p>
+              <p className="mt-1 text-sm text-white/50">VIN daxil edilib • 68,000 km • Bakı</p>
 
               <div className="mt-5 grid grid-cols-3 gap-3">
                 {[
@@ -379,7 +379,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-3xl px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Avtomobilinizi satmaq istəyirsiniz?</h2>
           <p className="mt-4 text-white/85 leading-relaxed">
-            Etibarlı alıcılara çatın. VIN doğrulamalı elanınızla daha sürətli satın.
+            Etibarlı alıcılara çatın. VIN nömrəli elanınız daha sürətli satılır.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link

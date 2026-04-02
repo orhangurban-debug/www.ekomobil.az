@@ -116,7 +116,7 @@ export const DEALER_PLANS: DealerPlan[] = [
       "Hər 90 gündən bir inventar yoxlaması"
     ],
     comingSoon: [
-      "VIN tarix sorğusu",
+      "VIN tarixçəsi (3-cü tərəf API inteqrasiyası)",
       "Excel/CSV ixrac",
       "Boost krediti sistemi"
     ]
@@ -147,7 +147,7 @@ export const DEALER_PLANS: DealerPlan[] = [
     ],
     comingSoon: [
       "Çoxlu filial — vahid idarə paneli",
-      "VIN tarix sorğusu",
+      "VIN tarixçəsi (3-cü tərəf API inteqrasiyası)",
       "Excel/CSV ixrac",
       "Boost krediti sistemi"
     ]

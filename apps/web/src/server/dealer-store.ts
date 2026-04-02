@@ -245,12 +245,14 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
         vin,
         sellerType: "dealer",
         trust: {
-          trustScore: 70,
-          vinVerified: true,
+          // CSV yükləmə zamanı VIN DOĞRULANMIR — yalnız nömrə saxlanılır.
+          // vinVerified ancaq real xarici API (CarVertical, DVX) yoxlamasından sonra true ola bilər.
+          trustScore: 60,
+          vinVerified: false,
           sellerVerified: true,
           mediaComplete: false,
-          serviceHistorySummary: "Dealer import edildi",
-          riskSummary: "İlkin dealer import",
+          serviceHistorySummary: "Salon tərəfindən import edildi — VIN hələ yoxlanılmayıb",
+          riskSummary: "VIN manual daxil edilib, xarici yoxlama yoxdur",
           mileageFlagSeverity: undefined,
           mileageFlagMessage: undefined
         }

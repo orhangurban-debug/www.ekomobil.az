@@ -427,7 +427,7 @@ export function ListingsFiltersPanel({
                   onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))}
                   className="h-4 w-4 rounded accent-[#0891B2]"
                 />
-                VIN doğrulanmış
+                VIN mövcuddur
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input

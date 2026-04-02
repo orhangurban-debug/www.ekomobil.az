@@ -93,7 +93,7 @@ export default async function ListingsPage({
     query.bodyType ? { label: query.bodyType, href: chipHref(params, "bodyType") } : null,
     query.fuelType ? { label: query.fuelType, href: chipHref(params, "fuelType") } : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,
-    query.vinVerified ? { label: "VIN doğrulanmış", href: chipHref(params, "vinVerified") } : null,
+    query.vinVerified ? { label: "VIN mövcuddur", href: chipHref(params, "vinVerified") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
