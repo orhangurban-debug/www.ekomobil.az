@@ -19,17 +19,17 @@ const AUCTION_SELLER_STEPS_AZ = [
   "Lot yarat: /auction/sell səhifəsindən elan seç, lot parametrlərini təsdiqlə.",
   "Lot haqqı (və tələb olunduqda satıcı performans bond) üçün bank checkout-u tamamla — ödənilməyən lot aktivləşmir.",
   "Lazım gəlsə lot üçün sənədləri auksion lotunun sənəd yükləmə səhifəsindən əlavə et.",
-  "Canlı hərracı izlə; bitəndə təsdiq pəncərəsində satıcı kimi nəticəni qeyd et (uğurlu satış, alıcı no-show, mübahisə və s.).",
+  "Canlı hərracı izlə; bitəndə təsdiq pəncərəsində satıcı kimi nəticəni qeyd et (uğurlu satış, alıcı öhdəlik pozuntusu, mübahisə və s.).",
   "Uğurlu satışda əsas məbləği alıcı sənə birbaşa ödəyir; platforma uğur komisyonu üçün ayrıca checkout göstərilir.",
-  "Alıcı no-show bildirdikdə: sistemdə cərimə üçün ödəniş səhifəsi yaradırsan; ödənişi qalib alıcı bankda edir."
+  "Alıcı öhdəliyini pozduqda: sistemdə platforma öhdəlik haqqı üçün checkout linkini yaradırsın; həmin haqqı qalib alıcı ödəyir."
 ];
 
 const AUCTION_BUYER_STEPS_AZ = [
   "Hesabınla daxil ol; lotda \u201cDeposit\u201d işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
   "Auksion qaydalarını təsdiqlə, təklif ver; qalib olanda təsdiq pəncərəsini izlə.",
   "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın off-platform tamamlandığını təsdiqlə.",
-  "Öhdəlikləri pozmamağa çalış: əks halda satıcı no-show bildirə bilər; no-show statusunda intizam cəriməsi ayrıca checkout ilə ödənilir.",
-  "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsində müvafiq seçimlə bildir; satıcı pozuntusu cəriməsi üçün checkout linkini qalib alıcı yaradır."
+  "Öhdəliklərini yerinə yetir — platforma hər iki tərəfin öhdəliyini ciddi izləyir. Öhdəlik pozulduqda platforma öhdəlik haqqı ayrıca checkout ilə tətbiq edilir.",
+  "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsindəki müvafiq seçimlə bildir; platforma satıcı öhdəlik haqqı üçün checkout linkini sən yaradırsın."
 ];
 
 function CheckIcon() {
@@ -200,16 +200,16 @@ function AuctionCategoryPanel({
           desc={`Min ${minCap}`}
         />
         <AuctionFeeRow
-          title="No-show cəriməsi"
+          title="Alıcı öhdəlik haqqı"
           value={`${getNoShowPenaltyAzn(kind)} ₼`}
           who="Qalib alıcı"
-          desc="Öhdəlik pozulduqda; bank checkout ilə."
+          desc="Alıcı öhdəliyini yerinə yetirmədikdə; bank checkout ilə."
         />
         <AuctionFeeRow
-          title="Satıcı pozuntusu"
+          title="Satıcı öhdəlik haqqı"
           value={`${getSellerBreachPenaltyAzn(kind)} ₼`}
           who="Satıcı"
-          desc="Satış öhdəliyi pozulduqda; bank checkout ilə."
+          desc="Satıcı satış öhdəliyini yerinə yetirmədikdə; bank checkout ilə."
         />
       </div>
 
@@ -872,11 +872,12 @@ export default function PricingPage() {
           </div>
 
           <div className="mt-8 space-y-3">
-            <AuctionDetailsBlock title="Ödəniş və intizam cərimələri — necə işləyir?">
+            <AuctionDetailsBlock title="Ödəniş və öhdəlik haqqları — necə işləyir?">
               <p className="leading-relaxed text-slate-600">
-                İki kart eyni quruluşdadır ki, avtomobil ilə hissəni asan müqayisə edəsiniz. No-show və satıcı
-                pozuntusu üzrə məbləğlər ayrıca bank checkout ilə ödənilir; kartdan avtomatik çıxılma və ya depositin
-                birbaşa cəriməyə çevrilməsi tətbiq edilmir. Ətraflı hüquqi izah və SLA üçün{" "}
+                EkoMobil auksionunda hər iki tərəf — alıcı da, satıcı da — öhdəlik verir. Öhdəlik pozulduqda
+                platforma öhdəlik haqqı tətbiq edilir; bu həm platforma tamlığını qoruyur, həm zərər görən tərəfi
+                kompensasiya edir. Məbləğlər ayrıca bank checkout ilə ödənilir; kartdan avtomatik çıxılma tətbiq edilmir.
+                Ətraflı hüquqi izah və SLA üçün{" "}
                 <Link href="/rules/auction" className="font-semibold text-[#0891B2] underline underline-offset-2">
                   auksion qaydaları
                 </Link>{" "}

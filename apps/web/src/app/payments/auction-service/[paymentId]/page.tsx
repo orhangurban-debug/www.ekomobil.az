@@ -19,8 +19,8 @@ function getEventLabel(eventType: string): string {
     case "lot_fee": return "Auksion lot haqqı";
     case "seller_performance_bond": return "Satıcı performans bond";
     case "seller_success_fee": return "Success fee invoice";
-    case "no_show_penalty": return "No-show cəriməsi";
-    case "seller_breach_penalty": return "Satıcı öhdəliyi pozulması — platforma cəriməsi";
+    case "no_show_penalty": return "Alıcı öhdəlik haqqı";
+    case "seller_breach_penalty": return "Satıcı öhdəlik haqqı";
     default: return eventType;
   }
 }

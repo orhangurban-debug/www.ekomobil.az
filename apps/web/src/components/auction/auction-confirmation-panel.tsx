@@ -147,12 +147,13 @@ export function AuctionConfirmationPanel({
 
       {auctionStatus === "seller_breach" && canActAsBuyer && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          <p className="font-medium">Satıcı öhdəliyi pozulması qeydə alınıb.</p>
+          <p className="font-medium">Satıcı öhdəliyi pozulması qeydə alındı.</p>
           <p className="mt-2 text-amber-900/90">
-            Aşağıdakı düymə ilə platforma xidmət cəriməsi (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼, avtomobil üçün{" "}
-            {getSellerBreachPenaltyAzn("vehicle")} ₼) üçün ödəniş səhifəsi yaradılır. Ödənişi hüquqi olaraq{" "}
-            <strong>satıcı</strong> etməlidir; checkout linkini satıcı ilə paylaşa bilərsiniz. Bu cərimə avtomobilin alış
-            qiyməti deyil — yalnız platforma qaydalarına görə intizam ödənişidir.
+            EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Satıcı öhdəliyini yerinə yetirmədikdə platforma
+            satıcı öhdəlik haqqı (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼, avtomobil üçün{" "}
+            {getSellerBreachPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>satıcı</strong> tərəfindən edilməlidir;
+            aşağıdakı checkout linkini satıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
+            öhdəliyinə görə tətbiq edilən haqdır.
           </p>
           <button
             type="button"
@@ -160,19 +161,20 @@ export function AuctionConfirmationPanel({
             disabled={Boolean(loadingAction)}
             className="btn-primary mt-4 w-full justify-center sm:w-auto"
           >
-            {loadingAction === "seller-breach-payment" ? "Hazırlanır..." : "Satıcı cəriməsi üçün checkout"}
+            {loadingAction === "seller-breach-payment" ? "Hazırlanır..." : "Satıcı öhdəlik haqqı — checkout"}
           </button>
         </div>
       )}
 
       {auctionStatus === "no_show" && canActAsSeller && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          <p className="font-medium">Alıcı no-show qeydə alınıb.</p>
+          <p className="font-medium">Alıcı öhdəliyi pozulması qeydə alındı.</p>
           <p className="mt-2 text-amber-900/90">
-            Aşağıdakı düymə ilə platforma no-show cəriməsi (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün{" "}
-            {getNoShowPenaltyAzn("vehicle")} ₼) üçün ödəniş səhifəsi yaradılır. Ödənişi hüquqi olaraq <strong>qalib alıcı</strong>{" "}
-            etməlidir; checkout linkini alıcı ilə paylaşa bilərsiniz. Bu cərimə avtomobilin alış qiyməti deyil — yalnız platforma
-            qaydalarına görə intizam ödənişidir.
+            EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Qalib alıcı öhdəliyini yerinə yetirmədikdə platforma
+            alıcı öhdəlik haqqı (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün{" "}
+            {getNoShowPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>qalib alıcı</strong> tərəfindən edilməlidir;
+            aşağıdakı checkout linkini alıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
+            öhdəliyinə görə tətbiq edilən haqdır.
           </p>
           <button
             type="button"
@@ -180,7 +182,7 @@ export function AuctionConfirmationPanel({
             disabled={Boolean(loadingAction)}
             className="btn-primary mt-4 w-full justify-center sm:w-auto"
           >
-            {loadingAction === "no-show-payment" ? "Hazırlanır..." : "No-show cəriməsi üçün checkout"}
+            {loadingAction === "no-show-payment" ? "Hazırlanır..." : "Alıcı öhdəlik haqqı — checkout"}
           </button>
         </div>
       )}

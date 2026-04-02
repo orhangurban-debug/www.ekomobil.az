@@ -86,15 +86,16 @@ export default function AuctionFrameworkPage() {
           </p>
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>
-              <strong>Alıcı no-show:</strong> qalib alıcı müəyyən edilmiş davranışı pozduqda satıcı no-show bildirişi edə bilər;
-              platforma no-show cəriməsi (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün {getNoShowPenaltyAzn("vehicle")} ₼)
-              üzrə ödəniş axını təsdiq ekranından başladılır.
+              <strong>Alıcı öhdəliyinin pozulması:</strong> qalib alıcı öhdəliyini yerinə yetirmədikdə satıcı
+              bunu qeydə ala bilər; platforma alıcı öhdəlik haqqı (hissə üçün {getNoShowPenaltyAzn("part")} ₼,
+              avtomobil üçün {getNoShowPenaltyAzn("vehicle")} ₼) üzrə checkout axını təsdiq ekranından başladılır.
+              EkoMobil öhdəlik pozuntularına qarşı sıfır tolerans mövqeyini saxlayır.
             </li>
             <li>
-              <strong>Satıcı öhdəliyinin pozulması:</strong> qalib alıcı satıcının satışı rədd etdiyini və ya öhdəliyini pozduğunu
-              qeyd edə bilər; status yenilənir və satıcıya aid platforma cəriməsi (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼,
-              avtomobil üçün {getSellerBreachPenaltyAzn("vehicle")} ₼) üçün checkout təsdiq ekranından yaradılır
-              (ödənişi satıcı etməlidir).
+              <strong>Satıcı öhdəliyinin pozulması:</strong> qalib alıcı satıcının satışı rədd etdiyini və ya
+              öhdəliyini pozduğunu qeydə ala bilər; platforma satıcı öhdəlik haqqı (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼,
+              avtomobil üçün {getSellerBreachPenaltyAzn("vehicle")} ₼) üçün checkout yaradılır — ödənişi satıcı
+              etməlidir. EkoMobil hər iki tərəfin öhdəliyini eyni şəkildə qoruyur.
             </li>
             <li>
               <strong>Mübahisə:</strong> tərəflərdən biri mübahisə bildirdikdə iş ops/hüquq proseduruna keçə bilər; platforma

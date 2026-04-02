@@ -156,14 +156,14 @@ export async function createAuctionServicePayment(input: {
     }
     chargedUserId = auction.sellerUserId;
   } else if (input.eventType === "no_show_penalty") {
-    if (auction.sellerUserId !== input.actorUserId) return { ok: false, error: "No-show cəriməsini yalnız satıcı başladır" };
+    if (auction.sellerUserId !== input.actorUserId) return { ok: false, error: "Alıcı öhdəlik haqqı checkout-u yalnız satıcı tərəfindən başladıla bilər" };
     if (auction.status !== "no_show") {
       return { ok: false, error: "No-show statusu qeydə alınmayıb" };
     }
     if (!winnerUserId) return { ok: false, error: "Qalib alıcı tapılmadı" };
     chargedUserId = winnerUserId;
   } else if (input.eventType === "seller_breach_penalty") {
-    if (winnerUserId !== input.actorUserId) return { ok: false, error: "Bu cərimə invoicesunu yalnız qalib alıcı yarada bilər" };
+    if (winnerUserId !== input.actorUserId) return { ok: false, error: "Satıcı öhdəlik haqqı checkout-u yalnız qalib alıcı tərəfindən yaradıla bilər" };
     if (auction.status !== "seller_breach") {
       return { ok: false, error: "Satıcı öhdəliyi pozulması qeydə alınmayıb" };
     }
@@ -390,6 +390,25 @@ export async function finalizeAuctionServicePayment(input: {
     actionType: `payment_${updated.eventType}_${input.status}`,
     detail: `${updated.eventType} marked ${input.status}`
   });
+
+  // Öhdəlik haqqı ödənildikdə istifadəçinin penalty balansı azaldılır.
+  // GREATEST(0,...) mənfi balansa yol vermir.
+  if (
+    input.status === "succeeded" &&
+    (updated.eventType === "no_show_penalty" || updated.eventType === "seller_breach_penalty") &&
+    updated.userId
+  ) {
+    try {
+      await getPgPool().query(
+        `UPDATE users
+         SET penalty_balance_azn = GREATEST(0, penalty_balance_azn - $1)
+         WHERE id = $2`,
+        [updated.amountAzn, updated.userId]
+      );
+    } catch {
+      // Memory fallback rejimindədir — ops paneldən manual tənzimləmə lazım ola bilər.
+    }
+  }
 
   return { ok: true, payment: updated };
 }

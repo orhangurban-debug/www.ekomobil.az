@@ -10,8 +10,10 @@ import type { ListingKind } from "@/lib/marketplace-types";
  * Alıcıya tətbiq olunan:
  *  - BUYER_PREMIUM_RATE: opsional (pilot mərhələdə 0)
  *
- * Cərimə (platforma xidmət haqqı — avtomobilin əsas qiyməti deyil):
- *  - listing kind üzrə no-show/seller-breach
+ * Öhdəlik haqqları (platforma öhdəlik qaydası — avtomobilin əsas qiyməti deyil):
+ *  - Alıcı öhdəlik haqqı (no-show): alıcı öhdəliyini pozduqda
+ *  - Satıcı öhdəlik haqqı (seller-breach): satıcı öhdəliyini pozduqda
+ *  EkoMobil hər iki tərəfin öhdəliyini eyni şəkildə qoruyur.
  */
 export const AUCTION_FEES = {
   LOT_LISTING_FEE_VEHICLE_AZN: 25,

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { AUCTION_FEES, calcSellerPerformanceBond } from "@/lib/auction-fees";
+import { AUCTION_FEES, calcSellerPerformanceBond, getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
 import {
   type AuctionListingRecord,
   type AuctionOutcomeRecord,
@@ -603,6 +603,36 @@ export async function confirmAuctionSale(input: {
       actionType: `auction_${input.outcome}`,
       detail: `${input.actorRole} marked outcome as ${input.outcome}`
     });
+
+    // Öhdəlik haqqı müvafiq istifadəçinin balansına əlavə edilir.
+    // Bu məbləği bid preflight (getUserBidGate) yoxlayır — tənzimlənən qədər bidding bloklanır.
+    if (nextStatus === "no_show" && winnerUserId) {
+      const kindRow = await pool.query<{ listing_kind: string }>(
+        `SELECT l.listing_kind FROM auction_listings a
+         JOIN listings l ON l.id = a.listing_id
+         WHERE a.id = $1 LIMIT 1`,
+        [auction.id]
+      );
+      const kind = kindRow.rows[0]?.listing_kind === "part" ? "part" as const : "vehicle" as const;
+      await pool.query(
+        `UPDATE users SET penalty_balance_azn = penalty_balance_azn + $1 WHERE id = $2`,
+        [getNoShowPenaltyAzn(kind), winnerUserId]
+      );
+    }
+    if (nextStatus === "seller_breach" && auction.sellerUserId) {
+      const kindRow = await pool.query<{ listing_kind: string }>(
+        `SELECT l.listing_kind FROM auction_listings a
+         JOIN listings l ON l.id = a.listing_id
+         WHERE a.id = $1 LIMIT 1`,
+        [auction.id]
+      );
+      const kind = kindRow.rows[0]?.listing_kind === "part" ? "part" as const : "vehicle" as const;
+      await pool.query(
+        `UPDATE users SET penalty_balance_azn = penalty_balance_azn + $1 WHERE id = $2`,
+        [getSellerBreachPenaltyAzn(kind), auction.sellerUserId]
+      );
+    }
+
     return { ok: true, auction: updatedAuction, outcome };
   } catch (error) {
     assertAuctionMemoryFallbackAllowed(error);
