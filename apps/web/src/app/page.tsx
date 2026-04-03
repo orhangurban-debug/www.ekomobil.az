@@ -67,8 +67,8 @@ const lifestyleCategories = [
     accent: "from-amber-500/10 to-yellow-500/5"
   },
   {
-    label: "VIN Doğrulanmış",
-    sub: "Şəxsiyyəti təsdiqlənmiş",
+    label: "VIN Məlumatı",
+    sub: "VIN təqdim edilmiş elanlar",
     href: "/listings?vinVerified=1",
     icon: (
       <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -252,7 +252,7 @@ export default async function HomePage() {
           <div className="mb-8 flex items-end justify-between">
             <div>
               <h2 className="section-title">Son elanlar</h2>
-              <p className="section-subtitle mt-1">Yoxlanılmış, etibarlı avtomobillər</p>
+              <p className="section-subtitle mt-1">Məlumatı dolğun elanlar</p>
             </div>
             <Link href="/listings" className="btn-secondary hidden text-sm sm:inline-flex">
               Hamısına bax
@@ -358,7 +358,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="section-title">Niyə EkoMobil?</h2>
-            <p className="section-subtitle mt-1">Hər elan şəffaflıq protokolundan keçir</p>
+            <p className="section-subtitle mt-1">Hər elan məlumat dolğunluğu və risk siqnalları üzrə qiymətləndirilir</p>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {trustFeatures.map((feature) => (

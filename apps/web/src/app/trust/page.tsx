@@ -3,29 +3,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Etibar mexanizmləri",
-  description: "EkoMobil platformasının VIN yoxlaması, servis tarixçəsi, yürüş təsdiqi və qəza arxivi haqqında məlumat."
+  description: "EkoMobil platformasında VIN məlumatı, servis tarixçəsi, yürüş təsdiqi və qəza arxivi haqqında məlumat."
 };
 
 const sections = [
   {
     id: "vin-yoxlama",
-    title: "VIN Yoxlama",
-    content: "Hər avtomobilin şəxsiyyəti rəsmi mənbələr vasitəsilə təsdiqlənir. VIN (Vehicle Identification Number) kodu avtomobilin unikal identifikatorudur və qəza tarixçəsi, sahib dəyişiklikləri, texniki vəziyyət haqqında məlumat verir."
+    title: "VIN Məlumatı",
+    content: "VIN (Vehicle Identification Number) avtomobilin unikal identifikatorudur. EkoMobil-də VIN nömrəsi paylaşılır və alıcıya rəsmi/xarici mənbələrdən tarixçə yoxlaması üçün yönləndirmələr təqdim olunur. Tarixçə nəticələrinin müstəqil yoxlanması alıcının məsuliyyətindədir."
   },
   {
     id: "servis-tarixcesi",
     title: "Servis Tarixçəsi",
-    content: "Rəsmi servis mərkəzlərindən texniki qulluq qeydlərinin tam tarixi. Baxım, təmir və hissə dəyişiklikləri haqqında şəffaf məlumat əldə edə bilərsiniz."
+    content: "Satıcı servis tarixçəsi üzrə link və ya sənəd istinadı əlavə edə bilər. EkoMobil bu istinadları elan daxilində göstərir ki, alıcı məlumatı mənbə üzərindən müstəqil yoxlaya bilsin."
   },
   {
     id: "yurus-tesdigi",
     title: "Yürüş Təsdiqi",
-    content: "DYP məlumat bazası ilə elandakı yürüş rəqəminin uyğunluğu yoxlanılır. Avtomobilin real yürüşü ilə elan məlumatı uyğun gəlmirsə, sizə xəbərdarlıq göstərilir."
+    content: "Elan məlumatlarına əsaslanan avtomatik risk yoxlaması yürüş fərqi ehtimalını aşkarladıqda xəbərdarlıq göstərə bilər. Bu xəbərdarlıq ilkin siqnaldır və alıcı tərəfindən servis yoxlaması ilə təsdiqlənməlidir."
   },
   {
     id: "qeza-arxivi",
     title: "Qəza Arxivi",
-    content: "Qəza və zərər tarixçəsi məlumat bazaları ilə inteqrasiya. Avtomobilin keçmişində qeydə alınmış qəza və ya ciddi zərər varsa, bunu əvvəlcədən biləcəksiniz."
+    content: "Qəza tarixçəsi barədə məlumat satıcının təqdim etdiyi istinadlar və alıcının istifadə etdiyi xarici hesabat xidmətləri əsasında qiymətləndirilməlidir. EkoMobil alıcıya bu yoxlama üçün yönləndirmə təqdim edir."
   }
 ];
 
@@ -40,7 +40,7 @@ export default function TrustPage() {
 
       <h1 className="text-3xl font-bold text-[#3E2F28]">Etibar mexanizmləri</h1>
       <p className="mt-2 text-slate-600">
-        EkoMobil hər elanı şəffaflıq protokoluna uyğun yoxlayır.
+        EkoMobil elan məlumatlarının dolğunluğunu və risk siqnallarını avtomatik qiymətləndirir; yekun texniki/hüquqi yoxlama alıcı və satıcıya məxsusdur.
       </p>
 
       <div className="mt-10 space-y-12">

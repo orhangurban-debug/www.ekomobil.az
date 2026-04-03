@@ -44,7 +44,7 @@ export function Footer() {
             <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3E2F28]">Etibar</h4>
             <ul className="mt-3 space-y-2">
               {[
-                { href: "/trust#vin-yoxlama", label: "VIN Yoxlama" },
+                { href: "/trust#vin-yoxlama", label: "VIN Məlumatı" },
                 { href: "/trust#servis-tarixcesi", label: "Servis Tarixçəsi" },
                 { href: "/trust#yurus-tesdigi", label: "Yürüş Təsdiqi" },
                 { href: "/trust#qeza-arxivi", label: "Qəza Arxivi" }
