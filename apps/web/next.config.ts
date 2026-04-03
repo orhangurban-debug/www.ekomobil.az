@@ -1,14 +1,18 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === "production";
+const connectSrc = isProduction
+  ? "connect-src 'self' https://e-commerce.kapitalbank.az"
+  : "connect-src 'self' ws://localhost:* wss://localhost:* https://e-commerce.kapitalbank.az";
+
 const ContentSecurityPolicy = [
   "default-src 'self'",
-  // Next.js App Router requires unsafe-inline for hydration scripts
+  // Next.js App Router hydration currently requires inline script/style.
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  // Same-origin API + SSE streams + WebSocket for hot reload (dev only)
-  "connect-src 'self' ws://localhost:* wss://localhost:*",
+  connectSrc,
   "media-src 'none'",
   "object-src 'none'",
   "frame-src 'none'",
@@ -20,7 +24,7 @@ const ContentSecurityPolicy = [
 
 const securityHeaders = [
   // Disable DNS prefetching leaking visited URLs
-  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-DNS-Prefetch-Control", value: "off" },
   // Force HTTPS for 2 years, include subdomains + preload
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   // Prevent clickjacking / embedding in iframes

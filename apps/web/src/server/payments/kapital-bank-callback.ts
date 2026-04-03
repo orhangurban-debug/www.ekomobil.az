@@ -97,6 +97,13 @@ export async function resolveKapitalBankPaymentStatus(input: {
 }> {
   const remoteOrderId = input.providerPayload?.remoteOrderId;
   const remoteOrderPassword = input.providerPayload?.remoteOrderPassword;
+  const providerMode = input.providerPayload?.mode;
+
+  // In live mode we must resolve from the bank-side order state.
+  // Accepting callback-provided fallback statuses in live mode is unsafe.
+  if (providerMode === "live" && (!remoteOrderId || !remoteOrderPassword)) {
+    throw new Error("Live rejimdə bank sifariş identifikatoru tapılmadı");
+  }
 
   if (remoteOrderId && remoteOrderPassword) {
     const remote = await getKapitalBankOrderStatus({ remoteOrderId, remoteOrderPassword });

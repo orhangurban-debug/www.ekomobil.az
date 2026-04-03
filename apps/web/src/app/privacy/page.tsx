@@ -248,7 +248,7 @@ export default function PrivacyPage() {
           <Section id="security" title="7. Məlumat təhlükəsizliyi">
             <ul className="list-disc space-y-2 pl-5 text-sm">
               <li>Bütün məlumat ötürülməsi <strong>TLS/HTTPS</strong> ilə şifrələnir</li>
-              <li>Parollar <strong>bcrypt</strong> ilə hash-lənir, açıq mətn saxlanmır</li>
+              <li>Parollar <strong>scrypt</strong> ilə hash-lənir, açıq mətn saxlanmır</li>
               <li>Kart məlumatları bizim serverlərə <strong>heç vaxt düşmür</strong> — prosessor tokenizasiyasından istifadə olunur</li>
               <li>Daxili giriş məhdudlaşdırılmış rol əsaslı hüquqlarla idarə olunur</li>
               <li>Şübhəli aktivlik avtomatik aşkarlanır və bloklanır</li>

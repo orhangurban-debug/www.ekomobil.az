@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { finalizeAuctionPreauth, getAuctionPreauth } from "@/server/auction-preauth-store";
 import {
-  resolveKapitalBankPaymentStatus,
-  verifyKapitalBankCallbackPlaceholder
+  resolveKapitalBankPaymentStatus
 } from "@/server/payments/kapital-bank-callback";
 
 async function handle(preauthId: string, status: string | null, reference?: string | null) {
@@ -11,10 +10,15 @@ async function handle(preauthId: string, status: string | null, reference?: stri
     return { ok: false as const, statusCode: 404, body: { ok: false, error: "Pre-auth tapılmadı" } };
   }
 
-  const resolved = await resolveKapitalBankPaymentStatus({
-    fallbackStatus: status,
-    providerPayload: preauth.providerPayload
-  });
+  let resolved;
+  try {
+    resolved = await resolveKapitalBankPaymentStatus({
+      fallbackStatus: status,
+      providerPayload: preauth.providerPayload
+    });
+  } catch {
+    return { ok: false as const, statusCode: 400, body: { ok: false, error: "Ödəniş statusu bankdan təsdiqlənmədi" } };
+  }
 
   const finalStatus = resolved.status === "succeeded" ? "held" : "failed";
   const result = await finalizeAuctionPreauth({
@@ -32,7 +36,6 @@ async function handle(preauthId: string, status: string | null, reference?: stri
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  verifyKapitalBankCallbackPlaceholder({ signature: url.searchParams.get("signature") });
   const preauthId = url.searchParams.get("preauthId");
   if (!preauthId) {
     return NextResponse.json({ ok: false, error: "preauthId tələb olunur" }, { status: 400 });
@@ -55,7 +58,6 @@ export async function POST(req: Request) {
     reference?: string;
     signature?: string;
   };
-  verifyKapitalBankCallbackPlaceholder({ body, signature: body.signature ?? null });
   if (!body.preauthId) {
     return NextResponse.json({ ok: false, error: "preauthId tələb olunur" }, { status: 400 });
   }

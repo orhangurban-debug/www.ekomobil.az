@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { finalizeAuctionServicePayment, getAuctionServicePayment } from "@/server/auction-payment-store";
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
-import { resolveKapitalBankPaymentStatus, verifyKapitalBankCallbackPlaceholder } from "@/server/payments/kapital-bank-callback";
+import { resolveKapitalBankPaymentStatus } from "@/server/payments/kapital-bank-callback";
 import { getAuctionListing } from "@/server/auction-store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  verifyKapitalBankCallbackPlaceholder({
-    signature: url.searchParams.get("signature")
-  });
   const paymentId = url.searchParams.get("paymentId");
   if (!paymentId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
@@ -17,10 +14,15 @@ export async function GET(req: Request) {
   if (!payment) {
     return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
   }
-  const resolved = await resolveKapitalBankPaymentStatus({
-    fallbackStatus: url.searchParams.get("status"),
-    providerPayload: payment.providerPayload
-  });
+  let resolved;
+  try {
+    resolved = await resolveKapitalBankPaymentStatus({
+      fallbackStatus: url.searchParams.get("status"),
+      providerPayload: payment.providerPayload
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Ödəniş statusu bankdan təsdiqlənmədi" }, { status: 400 });
+  }
 
   const result = await finalizeAuctionServicePayment({
     paymentId,
@@ -60,10 +62,6 @@ export async function POST(req: Request) {
     reference?: string;
     signature?: string;
   };
-  verifyKapitalBankCallbackPlaceholder({
-    body,
-    signature: body.signature ?? null
-  });
   if (!body.paymentId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
@@ -71,10 +69,15 @@ export async function POST(req: Request) {
   if (!payment) {
     return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
   }
-  const resolved = await resolveKapitalBankPaymentStatus({
-    fallbackStatus: body.status ?? null,
-    providerPayload: payment.providerPayload
-  });
+  let resolved;
+  try {
+    resolved = await resolveKapitalBankPaymentStatus({
+      fallbackStatus: body.status ?? null,
+      providerPayload: payment.providerPayload
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Ödəniş statusu bankdan təsdiqlənmədi" }, { status: 400 });
+  }
 
   const result = await finalizeAuctionServicePayment({
     paymentId: body.paymentId,

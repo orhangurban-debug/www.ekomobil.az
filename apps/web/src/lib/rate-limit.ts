@@ -60,8 +60,12 @@ export async function checkRateLimit(
 
     return { ok: true, remaining };
   } catch {
-    // DB unavailable — fail open (allow the request) to avoid blocking legitimate users
-    return { ok: true, remaining: maxRequests };
+    // Fail closed by default in production to prevent bypassing abuse controls.
+    const failOpen = process.env.RATE_LIMIT_FAIL_OPEN === "true" || process.env.NODE_ENV !== "production";
+    if (failOpen) {
+      return { ok: true, remaining: maxRequests };
+    }
+    return { ok: false, remaining: 0, retryAfterSeconds: 60 };
   }
 }
 

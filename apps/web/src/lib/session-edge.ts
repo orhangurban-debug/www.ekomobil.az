@@ -14,8 +14,12 @@ export interface EdgeSessionUser {
 }
 
 async function getEdgeSecret(): Promise<CryptoKey> {
-  const raw = process.env.AUTH_SECRET || "dev-only-secret-change-me";
-  const enc = new TextEncoder().encode(raw);
+  const raw = process.env.AUTH_SECRET;
+  if (!raw && process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET production mühitində təyin edilməlidir");
+  }
+  const secret = raw || "dev-only-secret-change-me";
+  const enc = new TextEncoder().encode(secret);
   return crypto.subtle.importKey("raw", enc, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
 

@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import { finalizeAuctionDeposit, getAuctionDeposit } from "@/server/auction-payment-store";
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
-import { resolveKapitalBankPaymentStatus, verifyKapitalBankCallbackPlaceholder } from "@/server/payments/kapital-bank-callback";
+import { resolveKapitalBankPaymentStatus } from "@/server/payments/kapital-bank-callback";
 import { getAuctionListing } from "@/server/auction-store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  verifyKapitalBankCallbackPlaceholder({
-    signature: url.searchParams.get("signature")
-  });
   const depositId = url.searchParams.get("depositId");
   if (!depositId) {
     return NextResponse.json({ ok: false, error: "depositId tələb olunur" }, { status: 400 });
@@ -17,10 +14,15 @@ export async function GET(req: Request) {
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
   }
-  const resolved = await resolveKapitalBankPaymentStatus({
-    fallbackStatus: url.searchParams.get("status"),
-    providerPayload: deposit.providerPayload
-  });
+  let resolved;
+  try {
+    resolved = await resolveKapitalBankPaymentStatus({
+      fallbackStatus: url.searchParams.get("status"),
+      providerPayload: deposit.providerPayload
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Ödəniş statusu bankdan təsdiqlənmədi" }, { status: 400 });
+  }
 
   const result = await finalizeAuctionDeposit({
     depositId,
@@ -56,10 +58,6 @@ export async function POST(req: Request) {
     reference?: string;
     signature?: string;
   };
-  verifyKapitalBankCallbackPlaceholder({
-    body,
-    signature: body.signature ?? null
-  });
   if (!body.depositId) {
     return NextResponse.json({ ok: false, error: "depositId tələb olunur" }, { status: 400 });
   }
@@ -67,10 +65,15 @@ export async function POST(req: Request) {
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
   }
-  const resolved = await resolveKapitalBankPaymentStatus({
-    fallbackStatus: body.status ?? null,
-    providerPayload: deposit.providerPayload
-  });
+  let resolved;
+  try {
+    resolved = await resolveKapitalBankPaymentStatus({
+      fallbackStatus: body.status ?? null,
+      providerPayload: deposit.providerPayload
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Ödəniş statusu bankdan təsdiqlənmədi" }, { status: 400 });
+  }
 
   const result = await finalizeAuctionDeposit({
     depositId: body.depositId,
