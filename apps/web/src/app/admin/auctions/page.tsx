@@ -31,29 +31,29 @@ export default async function AdminAuctionsPage({
           </p>
         </div>
         <Link href="/ops/auctions" className="btn-secondary">
-          Ops panelini aç
+          Əməliyyat panelini aç
         </Link>
       </div>
 
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-6">
         <input name="q" defaultValue={q} placeholder="Axtar: lot ID/ad/satıcı" className="input-field md:col-span-2" />
-        <input name="status" defaultValue={status} placeholder="Status filter" className="input-field" />
-        <input name="mode" defaultValue={mode} placeholder="Mode filter" className="input-field" />
+        <input name="status" defaultValue={status} placeholder="Status filtri" className="input-field" />
+        <input name="mode" defaultValue={mode} placeholder="Rejim filtri" className="input-field" />
         <select name="freezeBidding" defaultValue={freezeBidding ?? ""} className="input-field">
-          <option value="">Freeze (hamısı)</option>
-          <option value="true">Frozen</option>
-          <option value="false">Not frozen</option>
+          <option value="">Dondurma (hamısı)</option>
+          <option value="true">Dondurulub</option>
+          <option value="false">Dondurulmayıb</option>
         </select>
         <div className="flex gap-2">
           <input type="hidden" name="pageSize" value={pageSize} />
-          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+          <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
       <AdminAuctionsTable items={data.items} />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
-          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+          Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
         </p>
         <div className="flex gap-2">
           <Link

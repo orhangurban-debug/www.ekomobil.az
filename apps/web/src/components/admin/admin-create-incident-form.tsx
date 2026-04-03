@@ -23,7 +23,7 @@ export function AdminCreateIncidentForm() {
         body: JSON.stringify(form)
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Case yaradılmadı");
+      if (!payload.ok) throw new Error(payload.error || "Hal yaradılmadı");
       setForm({
         subjectType: "listing",
         subjectId: "",
@@ -34,7 +34,7 @@ export function AdminCreateIncidentForm() {
       });
       window.location.reload();
     } catch {
-      alert("Case yaradılmadı");
+      alert("Hal yaradılmadı");
     } finally {
       setBusy(false);
     }
@@ -42,33 +42,33 @@ export function AdminCreateIncidentForm() {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <h3 className="text-sm font-semibold text-slate-900">Yeni incident aç</h3>
+      <h3 className="text-sm font-semibold text-slate-900">Yeni insident aç</h3>
       <div className="mt-3 grid gap-3 md:grid-cols-6">
         <select className="input-field" value={form.subjectType} onChange={(e) => setForm((p) => ({ ...p, subjectType: e.target.value }))}>
-          <option value="listing">listing</option>
-          <option value="user">user</option>
-          <option value="lead">lead</option>
-          <option value="auction">auction</option>
-          <option value="kyc">kyc</option>
-          <option value="system">system</option>
+          <option value="listing">Elan</option>
+          <option value="user">İstifadəçi</option>
+          <option value="lead">Sorğu</option>
+          <option value="auction">Auksion</option>
+          <option value="kyc">KYC</option>
+          <option value="system">Sistem</option>
         </select>
-        <input className="input-field md:col-span-2" placeholder="subject ID" value={form.subjectId} onChange={(e) => setForm((p) => ({ ...p, subjectId: e.target.value }))} />
+        <input className="input-field md:col-span-2" placeholder="Obyekt ID-si" value={form.subjectId} onChange={(e) => setForm((p) => ({ ...p, subjectId: e.target.value }))} />
         <select className="input-field" value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}>
-          <option value="complaint">complaint</option>
-          <option value="fraud">fraud</option>
-          <option value="policy_violation">policy_violation</option>
-          <option value="false_info">false_info</option>
-          <option value="abuse">abuse</option>
-          <option value="technical">technical</option>
+          <option value="complaint">Şikayət</option>
+          <option value="fraud">Dələduzluq</option>
+          <option value="policy_violation">Qayda pozuntusu</option>
+          <option value="false_info">Yalan məlumat</option>
+          <option value="abuse">Sui-istifadə</option>
+          <option value="technical">Texniki problem</option>
         </select>
         <select className="input-field" value={form.severity} onChange={(e) => setForm((p) => ({ ...p, severity: e.target.value }))}>
-          <option value="low">low</option>
-          <option value="medium">medium</option>
-          <option value="high">high</option>
-          <option value="critical">critical</option>
+          <option value="low">Aşağı</option>
+          <option value="medium">Orta</option>
+          <option value="high">Yüksək</option>
+          <option value="critical">Kritik</option>
         </select>
         <button type="button" onClick={() => void submit()} disabled={busy} className="btn-primary justify-center disabled:opacity-60">
-          {busy ? "Yaradılır..." : "Case aç"}
+          {busy ? "Yaradılır..." : "Hal aç"}
         </button>
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-3">

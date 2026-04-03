@@ -16,6 +16,19 @@ interface AdminListingRow {
   createdAt: string;
 }
 
+const LISTING_STATUS_LABELS: Record<string, string> = {
+  active: "Aktiv",
+  pending_review: "Yoxlamada",
+  rejected: "Rədd edilib",
+  archived: "Arxivdədir"
+};
+
+const SELLER_TYPE_LABELS: Record<string, string> = {
+  individual: "Fərdi satıcı",
+  dealer: "Avtosalon",
+  parts_store: "Ehtiyat hissə mağazası"
+};
+
 export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
   const [rows, setRows] = useState(items);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -35,11 +48,11 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
         body: JSON.stringify({ listingIds, status })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Bulk listing update failed");
+      if (!payload.ok) throw new Error(payload.error || "Toplu elan yenilənməsi uğursuz oldu");
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Bulk listing update failed");
+      alert("Toplu elan yenilənməsi uğursuz oldu");
     } finally {
       setBusy(false);
     }
@@ -52,10 +65,10 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
           Seçilən elan: <span className="font-semibold text-slate-900">{Object.values(selected).filter(Boolean).length}</span>
         </p>
         <div className="flex items-center gap-2">
-          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("active")}>Bulk active</button>
-          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("pending_review")}>Bulk review</button>
-          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("rejected")}>Bulk reject</button>
-          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("archived")}>Bulk archive</button>
+          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("active")}>Toplu aktiv et</button>
+          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("pending_review")}>Toplu baxışa göndər</button>
+          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("rejected")}>Toplu rədd et</button>
+          <button type="button" disabled={busy} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60" onClick={() => void bulkUpdate("archived")}>Toplu arxivlə</button>
         </div>
       </div>
       <table className="w-full text-sm">
@@ -96,9 +109,11 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
                 </Link>
               </td>
               <td className="px-4 py-3">
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{item.status}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                  {LISTING_STATUS_LABELS[item.status] || item.status}
+                </span>
               </td>
-              <td className="px-4 py-3 text-slate-700">{item.sellerType}</td>
+              <td className="px-4 py-3 text-slate-700">{SELLER_TYPE_LABELS[item.sellerType] || item.sellerType}</td>
               <td className="px-4 py-3 text-slate-700">{item.planType || "-"}</td>
               <td className="px-4 py-3 font-semibold text-slate-900">{item.priceAzn.toLocaleString("az-AZ")} ₼</td>
               <td className="px-4 py-3 text-xs text-slate-500">{new Date(item.createdAt).toLocaleDateString("az-AZ")}</td>

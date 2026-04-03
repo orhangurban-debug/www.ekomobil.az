@@ -14,6 +14,13 @@ interface AdminLeadRow {
   listingTitle?: string;
 }
 
+const LEAD_STAGE_LABELS: Record<string, string> = {
+  new: "Yeni",
+  in_progress: "İcrada",
+  test_drive: "Test sürüşü",
+  closed: "Bağlanıb"
+};
+
 export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
   const [rows, setRows] = useState(items);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -33,11 +40,11 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
         body: JSON.stringify({ leadIds, stage })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Bulk stage update failed");
+      if (!payload.ok) throw new Error(payload.error || "Toplu mərhələ yenilənməsi uğursuz oldu");
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Bulk stage update failed");
+      alert("Toplu mərhələ yenilənməsi uğursuz oldu");
     } finally {
       setBusy(false);
     }
@@ -47,12 +54,12 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
         <p className="text-xs text-slate-500">
-          Seçilən lead: <span className="font-semibold text-slate-900">{Object.values(selected).filter(Boolean).length}</span>
+          Seçilən sorğu: <span className="font-semibold text-slate-900">{Object.values(selected).filter(Boolean).length}</span>
         </p>
         <div className="flex items-center gap-2">
-          <button type="button" disabled={busy} onClick={() => void bulkStage("in_progress")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Bulk in_progress</button>
-          <button type="button" disabled={busy} onClick={() => void bulkStage("test_drive")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Bulk test_drive</button>
-          <button type="button" disabled={busy} onClick={() => void bulkStage("closed")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Bulk closed</button>
+          <button type="button" disabled={busy} onClick={() => void bulkStage("in_progress")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu icraya keçir</button>
+          <button type="button" disabled={busy} onClick={() => void bulkStage("test_drive")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu test sürüşü</button>
+          <button type="button" disabled={busy} onClick={() => void bulkStage("closed")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu bağla</button>
         </div>
       </div>
       <table className="w-full text-sm">
@@ -89,7 +96,7 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
               <td className="px-4 py-3 text-slate-700">{lead.listingTitle || "-"}</td>
               <td className="px-4 py-3">
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {lead.stage}
+                  {LEAD_STAGE_LABELS[lead.stage] || lead.stage}
                 </span>
               </td>
               <td className="px-4 py-3 text-slate-700">{lead.source}</td>

@@ -27,35 +27,35 @@ export default async function AdminIncidentsPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Incident & Moderation Inbox</h2>
+          <h2 className="text-xl font-bold text-slate-900">İnsident və moderasiya qutusu</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Şikayətlər, qayda pozuntuları, saxta/yalan məlumatlar və risk case-lər.
+            Şikayətlər, qayda pozuntuları, saxta/yalan məlumatlar və risk halları.
           </p>
         </div>
-        <Link href="/ops/reviews" className="btn-secondary">Ops reviews</Link>
+        <Link href="/ops/reviews" className="btn-secondary">Əməliyyat baxışları</Link>
       </div>
 
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
-        <input name="q" defaultValue={q} placeholder="Axtar: case, subject, title" className="input-field md:col-span-2" />
+        <input name="q" defaultValue={q} placeholder="Axtar: hal, obyekt, başlıq" className="input-field md:col-span-2" />
         <select name="sourceType" defaultValue={sourceType ?? "all"} className="input-field">
           <option value="all">Mənbə (hamısı)</option>
-          <option value="incident">incident</option>
-          <option value="manual_review">manual_review</option>
-          <option value="auction_case">auction_case</option>
+          <option value="incident">İstifadəçi insidenti</option>
+          <option value="manual_review">Əl baxışı</option>
+          <option value="auction_case">Auksion halı</option>
         </select>
         <select name="status" defaultValue={status ?? ""} className="input-field">
           <option value="">Status (hamısı)</option>
-          <option value="open">open</option>
-          <option value="triage">triage</option>
-          <option value="in_review">in_review</option>
-          <option value="actioned">actioned</option>
-          <option value="resolved">resolved</option>
-          <option value="dismissed">dismissed</option>
+          <option value="open">Açıq</option>
+          <option value="triage">İlkin baxış</option>
+          <option value="in_review">Araşdırmada</option>
+          <option value="actioned">Tədbir görülüb</option>
+          <option value="resolved">Həll edilib</option>
+          <option value="dismissed">Əsassız sayılıb</option>
         </select>
         <div className="flex gap-2">
           <input type="hidden" name="severity" value={severity ?? ""} />
           <input type="hidden" name="pageSize" value={pageSize} />
-          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+          <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
@@ -63,7 +63,7 @@ export default async function AdminIncidentsPage({
       <AdminIncidentsTable items={data.items} />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
-          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+          Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
         </p>
         <div className="flex gap-2">
           <Link

@@ -15,11 +15,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <h1 className="text-2xl font-bold text-slate-900">Admin giriş icazəsi yoxdur</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Bu səhifə yalnız admin və support rolları üçün açıqdır.
+            Bu səhifə yalnız admin və dəstək rolları üçün açıqdır.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link href="/" className="btn-secondary">Ana səhifə</Link>
-            <Link href="/ops/auctions" className="btn-primary">Ops konsoluna keç</Link>
+            <Link href="/ops/auctions" className="btn-primary">Əməliyyat konsoluna keç</Link>
           </div>
         </div>
       </div>
@@ -32,7 +32,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Centralized Admin</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Mərkəzləşdirilmiş idarəetmə</p>
               <h1 className="mt-1 text-2xl font-bold text-slate-900">Platforma idarəetməsi</h1>
               <p className="mt-1 text-sm text-slate-500">
                 Saytın istifadəçi, elan, auksion, maliyyə və CRM axınlarının vahid idarə paneli.

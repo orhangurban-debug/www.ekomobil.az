@@ -23,11 +23,11 @@ export async function PATCH(req: Request) {
   const body = (await req.json()) as { leadIds?: string[]; stage?: string; reason?: string };
   const leadIds = Array.isArray(body.leadIds) ? body.leadIds.filter(Boolean) : [];
   if (leadIds.length === 0 || !body.stage) {
-    return NextResponse.json({ ok: false, error: "leadIds and stage are required." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Sorğu ID-ləri və mərhələ mütləqdir." }, { status: 400 });
   }
   const allowed = new Set(["new", "in_progress", "test_drive", "offer", "won", "closed"]);
   if (!allowed.has(body.stage)) {
-    return NextResponse.json({ ok: false, error: "Invalid lead stage." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Sorğu mərhələsi yanlışdır." }, { status: 400 });
   }
   const updated = await bulkUpdateLeadStage(leadIds, body.stage);
   await createAdminAuditLog({

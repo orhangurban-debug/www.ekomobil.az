@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     metadata?: unknown;
   };
   if (!body.subjectType || !body.subjectId || !body.category || !body.title) {
-    return NextResponse.json({ ok: false, error: "subjectType, subjectId, category and title are required." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Obyekt tipi, obyekt ID-si, kateqoriya və başlıq mütləqdir." }, { status: 400 });
   }
   const incident = await createIncidentCase({
     actorUserId: auth.user.id,

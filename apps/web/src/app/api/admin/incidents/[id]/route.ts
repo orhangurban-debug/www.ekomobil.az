@@ -22,7 +22,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     note: body.note
   });
   if (!updated) {
-    return NextResponse.json({ ok: false, error: "Incident not found." }, { status: 404 });
+    return NextResponse.json({ ok: false, error: "İnsident tapılmadı." }, { status: 404 });
   }
   await createAdminAuditLog({
     actorUserId: auth.user.id,

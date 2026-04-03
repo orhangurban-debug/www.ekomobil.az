@@ -13,7 +13,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   const { id } = await context.params;
   const body = (await req.json()) as { role?: UserRole };
   if (!body.role || !ALLOWED_ROLES.includes(body.role)) {
-    return NextResponse.json({ ok: false, error: "Invalid role." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Rol dəyəri yanlışdır." }, { status: 400 });
   }
 
   try {
@@ -28,6 +28,6 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     });
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ ok: false, error: "Role update failed." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Rol yenilənməsi uğursuz oldu." }, { status: 500 });
   }
 }

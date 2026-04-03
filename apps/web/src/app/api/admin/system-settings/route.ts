@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const part = Number(body.penaltyAmounts?.part);
   const validMode = mode === "BETA_FIN_ONLY" || mode === "STRICT_PRE_AUTH";
   if (!validMode || !Number.isFinite(vehicle) || vehicle <= 0 || !Number.isFinite(part) || part <= 0) {
-    return NextResponse.json({ ok: false, error: "Invalid settings payload." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Ayar məlumatları yanlışdır." }, { status: 400 });
   }
 
   try {
@@ -36,6 +36,6 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ ok: true, settings: updated });
   } catch {
-    return NextResponse.json({ ok: false, error: "Settings update failed." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Ayarların yenilənməsi uğursuz oldu." }, { status: 500 });
   }
 }

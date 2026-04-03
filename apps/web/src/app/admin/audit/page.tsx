@@ -21,17 +21,17 @@ export default async function AdminAuditPage({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Admin audit log</h2>
+        <h2 className="text-xl font-bold text-slate-900">Admin audit jurnalı</h2>
         <p className="mt-1 text-sm text-slate-500">Bütün admin dəyişiklikləri üçün izləmə jurnalı.</p>
       </div>
 
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-4">
         <input name="q" defaultValue={q} placeholder="Axtar" className="input-field md:col-span-2" />
-        <input name="entityType" defaultValue={entityType} placeholder="Entity type" className="input-field" />
+        <input name="entityType" defaultValue={entityType} placeholder="Obyekt tipi" className="input-field" />
         <div className="flex gap-2">
           <input type="hidden" name="actionType" value={actionType ?? ""} />
           <input type="hidden" name="pageSize" value={pageSize} />
-          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+          <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
@@ -40,10 +40,10 @@ export default async function AdminAuditPage({
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-4 py-3 text-left">Tarix</th>
-              <th className="px-4 py-3 text-left">Action</th>
-              <th className="px-4 py-3 text-left">Entity</th>
-              <th className="px-4 py-3 text-left">Actor</th>
-              <th className="px-4 py-3 text-left">Reason</th>
+              <th className="px-4 py-3 text-left">Əməliyyat</th>
+              <th className="px-4 py-3 text-left">Obyekt</th>
+              <th className="px-4 py-3 text-left">İcraçı</th>
+              <th className="px-4 py-3 text-left">Səbəb</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -61,7 +61,7 @@ export default async function AdminAuditPage({
       </div>
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
-          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+          Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
         </p>
         <div className="flex gap-2">
           <Link

@@ -3,6 +3,20 @@
 import { useState } from "react";
 
 type UserRole = "admin" | "support" | "dealer" | "viewer";
+type UserStatus = "active" | "suspended" | "review";
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  viewer: "İzləyici",
+  dealer: "Diler",
+  support: "Dəstək",
+  admin: "Admin"
+};
+
+const STATUS_LABELS: Record<UserStatus, string> = {
+  active: "Aktiv",
+  suspended: "Dayandırılıb",
+  review: "Baxışda"
+};
 
 interface AdminUserRow {
   id: string;
@@ -47,7 +61,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
     }
   }
 
-  async function updateStatus(userId: string, status: string) {
+  async function updateStatus(userId: string, status: UserStatus) {
     setBusyId(userId);
     const prev = rows;
     setRows((current) => current.map((u) => (u.id === userId ? { ...u, userAccountStatus: status } : u)));
@@ -67,7 +81,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
     }
   }
 
-  async function bulkUpdateStatus(status: string) {
+  async function bulkUpdateStatus(status: UserStatus) {
     const userIds = rows.filter((row) => selected[row.id]).map((row) => row.id);
     if (userIds.length === 0 || bulkBusy) return;
     setBulkBusy(true);
@@ -84,7 +98,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Bulk status yenilənmədi");
+      alert("Toplu status yenilənmədi");
     } finally {
       setBulkBusy(false);
     }
@@ -97,9 +111,9 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
           Seçilən istifadəçi: <span className="font-semibold text-slate-700">{Object.values(selected).filter(Boolean).length}</span>
         </p>
         <div className="flex items-center gap-2">
-          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("active")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk active</button>
-          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("review")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk review</button>
-          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("suspended")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk suspend</button>
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("active")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Toplu aktiv et</button>
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("review")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Toplu baxışa göndər</button>
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("suspended")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Toplu dayandır</button>
         </div>
       </div>
       <table className="w-full text-sm">
@@ -121,7 +135,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
             <th className="px-4 py-3 text-left">İstifadəçi</th>
             <th className="px-4 py-3 text-left">Rol</th>
             <th className="px-4 py-3 text-left">Status</th>
-            <th className="px-4 py-3 text-left">Penalty</th>
+            <th className="px-4 py-3 text-left">Öhdəlik balansı</th>
             <th className="px-4 py-3 text-left">Doğrulama</th>
             <th className="px-4 py-3 text-left">Qeydiyyat</th>
           </tr>
@@ -148,22 +162,22 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
                   disabled={busyId === user.id || !canEditRoles}
                   className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                 >
-                  <option value="viewer">viewer</option>
-                  <option value="dealer">dealer</option>
-                  <option value="support">support</option>
-                  <option value="admin">admin</option>
+                  <option value="viewer">{ROLE_LABELS.viewer}</option>
+                  <option value="dealer">{ROLE_LABELS.dealer}</option>
+                  <option value="support">{ROLE_LABELS.support}</option>
+                  <option value="admin">{ROLE_LABELS.admin}</option>
                 </select>
               </td>
               <td className="px-4 py-3">
                 <select
                   value={user.userAccountStatus}
-                  onChange={(e) => void updateStatus(user.id, e.target.value)}
+                  onChange={(e) => void updateStatus(user.id, e.target.value as UserStatus)}
                   disabled={busyId === user.id}
                   className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                 >
-                  <option value="active">active</option>
-                  <option value="suspended">suspended</option>
-                  <option value="review">review</option>
+                  <option value="active">{STATUS_LABELS.active}</option>
+                  <option value="suspended">{STATUS_LABELS.suspended}</option>
+                  <option value="review">{STATUS_LABELS.review}</option>
                 </select>
               </td>
               <td className="px-4 py-3 font-semibold text-slate-700">
@@ -171,9 +185,9 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
               </td>
               <td className="px-4 py-3">
                 {user.emailVerified ? (
-                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">Verified</span>
+                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">Təsdiqlənib</span>
                 ) : (
-                  <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Pending</span>
+                  <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Gözləmədə</span>
                 )}
               </td>
               <td className="px-4 py-3 text-xs text-slate-500">

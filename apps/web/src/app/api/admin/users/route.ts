@@ -30,11 +30,11 @@ export async function PATCH(req: Request) {
   };
   const userIds = Array.isArray(body.userIds) ? body.userIds.filter(Boolean) : [];
   if (userIds.length === 0) {
-    return NextResponse.json({ ok: false, error: "No user IDs provided." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "İstifadəçi ID-ləri təqdim edilməyib." }, { status: 400 });
   }
   if (body.status) {
     if (!["active", "suspended", "review"].includes(body.status)) {
-      return NextResponse.json({ ok: false, error: "Invalid status." }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "Status dəyəri yanlışdır." }, { status: 400 });
     }
     const updated = await bulkUpdateAdminUserStatus(userIds, body.status);
     await createAdminAuditLog({
@@ -47,5 +47,5 @@ export async function PATCH(req: Request) {
     });
     return NextResponse.json({ ok: true, updated });
   }
-  return NextResponse.json({ ok: false, error: "Unsupported bulk operation." }, { status: 400 });
+  return NextResponse.json({ ok: false, error: "Dəstəklənməyən toplu əməliyyat." }, { status: 400 });
 }

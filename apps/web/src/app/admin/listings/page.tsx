@@ -44,32 +44,32 @@ export default async function AdminListingsPage({
         <input name="q" defaultValue={q} placeholder="Axtar: başlıq/marka/model/VIN" className="input-field md:col-span-2" />
         <select name="status" defaultValue={status ?? ""} className="input-field">
           <option value="">Status (hamısı)</option>
-          <option value="active">active</option>
-          <option value="pending_review">pending_review</option>
-          <option value="rejected">rejected</option>
-          <option value="archived">archived</option>
+          <option value="active">Aktiv</option>
+          <option value="pending_review">Yoxlamada</option>
+          <option value="rejected">Rədd edilib</option>
+          <option value="archived">Arxivdədir</option>
         </select>
         <select name="listingKind" defaultValue={listingKind ?? ""} className="input-field">
           <option value="">Növ (hamısı)</option>
-          <option value="vehicle">vehicle</option>
-          <option value="part">part</option>
+          <option value="vehicle">Nəqliyyat vasitəsi</option>
+          <option value="part">Ehtiyat hissə</option>
         </select>
         <select name="sellerType" defaultValue={sellerType ?? ""} className="input-field">
           <option value="">Satıcı (hamısı)</option>
-          <option value="private">private</option>
-          <option value="dealer">dealer</option>
+          <option value="private">Fərdi</option>
+          <option value="dealer">Diler</option>
         </select>
         <input name="city" defaultValue={city} placeholder="Şəhər" className="input-field" />
         <div className="flex gap-2">
           <input type="hidden" name="pageSize" value={pageSize} />
-          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+          <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
       <AdminListingsTable items={data.items} />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
-          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+          Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
         </p>
         <div className="flex gap-2">
           <Link

@@ -26,10 +26,10 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }:
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Ayarlar saxlanmadı");
-      alert("Ayarlar uğurla saxlanıldı");
+      if (!payload.ok) throw new Error(payload.error || "Parametrlər saxlanmadı");
+      alert("Parametrlər uğurla saxlanıldı");
     } catch {
-      alert("Ayarlar saxlanmadı");
+      alert("Parametrlər saxlanmadı");
     } finally {
       setBusy(false);
     }
@@ -50,13 +50,13 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }:
             onChange={(e) => setMode(e.target.value as Props["auctionMode"])}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
           >
-            <option value="BETA_FIN_ONLY">BETA_FIN_ONLY</option>
-            <option value="STRICT_PRE_AUTH">STRICT_PRE_AUTH</option>
+            <option value="BETA_FIN_ONLY">Yalnız maliyyə təsdiqi (BETA)</option>
+            <option value="STRICT_PRE_AUTH">Sərt ön bloklama</option>
           </select>
         </label>
 
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Vehicle öhdəlik (₼)</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Nəqliyyat öhdəlik haqqı (₼)</span>
           <input
             type="number"
             value={vehicle}
@@ -67,7 +67,7 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }:
         </label>
 
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Part öhdəlik (₼)</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Hissə öhdəlik haqqı (₼)</span>
           <input
             type="number"
             value={part}

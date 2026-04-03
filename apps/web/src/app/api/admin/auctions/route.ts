@@ -29,7 +29,7 @@ export async function PATCH(req: Request) {
     reason?: string;
   };
   if (!body.auctionId) {
-    return NextResponse.json({ ok: false, error: "auctionId is required." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Auksion ID-si mütləqdir." }, { status: 400 });
   }
   await setAuctionAdminControls({
     auctionId: body.auctionId,

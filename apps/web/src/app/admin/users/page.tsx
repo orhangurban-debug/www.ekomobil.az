@@ -47,27 +47,27 @@ export default async function AdminUsersPage({
         <input name="q" defaultValue={q} placeholder="Axtar: email/ad/şəhər" className="input-field md:col-span-2" />
         <select name="role" defaultValue={role ?? ""} className="input-field">
           <option value="">Bütün rollar</option>
-          <option value="admin">admin</option>
-          <option value="support">support</option>
-          <option value="dealer">dealer</option>
-          <option value="viewer">viewer</option>
+          <option value="admin">Admin</option>
+          <option value="support">Dəstək</option>
+          <option value="dealer">Diler</option>
+          <option value="viewer">İzləyici</option>
         </select>
         <select name="status" defaultValue={status ?? ""} className="input-field">
           <option value="">Bütün statuslar</option>
-          <option value="active">active</option>
-          <option value="review">review</option>
-          <option value="suspended">suspended</option>
+          <option value="active">Aktiv</option>
+          <option value="review">Baxışda</option>
+          <option value="suspended">Dayandırılıb</option>
         </select>
         <div className="flex gap-2">
           <input type="hidden" name="pageSize" value={pageSize} />
-          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+          <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
       <UserManagementTable users={data.items} canEditRoles={canEditRoles} />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
-          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+          Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
         </p>
         <div className="flex gap-2">
           <Link

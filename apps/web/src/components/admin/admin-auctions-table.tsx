@@ -19,6 +19,15 @@ interface AdminAuctionRow {
   controlNote?: string;
 }
 
+const AUCTION_STATUS_LABELS: Record<string, string> = {
+  draft: "Qaralama",
+  scheduled: "Planlanıb",
+  live: "Canlı",
+  ended: "Bitib",
+  settled: "Yekunlaşıb",
+  cancelled: "Ləğv edilib"
+};
+
 export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
   const [rows, setRows] = useState(items);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -42,10 +51,10 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Auksion idarə update failed");
+      if (!payload.ok) throw new Error(payload.error || "Auksion idarəetmə yenilənməsi uğursuz oldu");
     } catch {
       setRows(prev);
-      alert("Auksion idarə update failed");
+      alert("Auksion idarəetmə yenilənməsi uğursuz oldu");
     } finally {
       setBusyId(null);
     }
@@ -59,10 +68,10 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
             <th className="px-4 py-3 text-left">Lot</th>
             <th className="px-4 py-3 text-left">Status</th>
             <th className="px-4 py-3 text-left">Qiymət</th>
-            <th className="px-4 py-3 text-left">Ends</th>
-            <th className="px-4 py-3 text-left">Freeze bid</th>
-            <th className="px-4 py-3 text-left">Manual review</th>
-            <th className="px-4 py-3 text-left">Actions</th>
+            <th className="px-4 py-3 text-left">Bitmə vaxtı</th>
+            <th className="px-4 py-3 text-left">Təklif dondurma</th>
+            <th className="px-4 py-3 text-left">Əl baxışı</th>
+            <th className="px-4 py-3 text-left">Əməliyyatlar</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -73,7 +82,9 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
                 <div className="text-xs text-slate-500">{item.id}</div>
               </td>
               <td className="px-4 py-3">
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{item.status}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                  {AUCTION_STATUS_LABELS[item.status] || item.status}
+                </span>
               </td>
               <td className="px-4 py-3 text-slate-700">
                 {(item.currentBidAzn ?? item.startingBidAzn).toLocaleString("az-AZ")} ₼
@@ -87,7 +98,7 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
                     disabled={busyId === item.id}
                     onChange={(e) => void updateControl(item, { freezeBidding: e.target.checked })}
                   />
-                  <span className="text-xs text-slate-600">{item.freezeBidding ? "Frozen" : "Open"}</span>
+                  <span className="text-xs text-slate-600">{item.freezeBidding ? "Dondurulub" : "Açıqdır"}</span>
                 </label>
               </td>
               <td className="px-4 py-3">
@@ -98,16 +109,16 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
                     disabled={busyId === item.id}
                     onChange={(e) => void updateControl(item, { forceManualReview: e.target.checked })}
                   />
-                  <span className="text-xs text-slate-600">{item.forceManualReview ? "On" : "Off"}</span>
+                  <span className="text-xs text-slate-600">{item.forceManualReview ? "Aktiv" : "Qeyri-aktiv"}</span>
                 </label>
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-col gap-1">
                   <Link href={`/auction/${item.id}`} className="text-xs font-semibold text-[#0891B2] hover:underline">
-                    Lot detail
+                    Lot detalları
                   </Link>
                   <Link href={`/auction/${item.id}/confirm`} className="text-xs font-semibold text-[#0891B2] hover:underline">
-                    Confirm panel
+                    Təsdiq paneli
                   </Link>
                 </div>
               </td>

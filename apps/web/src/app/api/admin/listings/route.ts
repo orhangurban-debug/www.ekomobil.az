@@ -40,11 +40,11 @@ export async function PATCH(req: Request) {
   };
   const listingIds = Array.isArray(body.listingIds) ? body.listingIds.filter(Boolean) : [];
   if (listingIds.length === 0 || !body.status) {
-    return NextResponse.json({ ok: false, error: "listingIds and status are required." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Elan ID-ləri və status mütləqdir." }, { status: 400 });
   }
   const allowed = new Set(["active", "inactive", "archived", "rejected", "pending_review"]);
   if (!allowed.has(body.status)) {
-    return NextResponse.json({ ok: false, error: "Invalid listing status." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Elan statusu yanlışdır." }, { status: 400 });
   }
   const updated = await bulkUpdateListingStatus(listingIds, body.status);
   await createAdminAuditLog({

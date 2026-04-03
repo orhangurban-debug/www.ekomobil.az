@@ -13,7 +13,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   const body = (await req.json()) as { status?: string };
   const status = (body.status || "").trim();
   if (!ALLOWED_STATUS.has(status)) {
-    return NextResponse.json({ ok: false, error: "Invalid status." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Status dəyəri yanlışdır." }, { status: 400 });
   }
 
   try {
@@ -28,6 +28,6 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     });
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ ok: false, error: "Status update failed." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Status yenilənməsi uğursuz oldu." }, { status: 500 });
   }
 }
