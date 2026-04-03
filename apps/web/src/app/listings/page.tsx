@@ -1,8 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
 import { listListings } from "@/server/listing-store";
+
+export const metadata: Metadata = {
+  title: "Bütün elanlar",
+  description: "Azərbaycanda satılan avtomobilləri filtr və axtarışla tapın. VIN mövcudluğu, qiymət və şəhər üzrə elanları müqayisə edin.",
+  alternates: {
+    canonical: "/listings"
+  }
+};
 
 const sortOptions: Array<{
   value: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";

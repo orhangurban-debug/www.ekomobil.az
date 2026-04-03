@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
@@ -29,6 +30,36 @@ async function isListingOwner(
     return r.rows[0]?.owner_user_id === userId;
   }
   return false;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await getListingDetail(id);
+  if (!listing) {
+    return {
+      title: "Elan tapılmadı",
+      robots: { index: false, follow: false }
+    };
+  }
+  const title = `${listing.title} — ${listing.priceAzn.toLocaleString("az-AZ")} ₼`;
+  const description = `${listing.year} il, ${listing.city}, ${listing.mileageKm.toLocaleString("az-AZ")} km. EkoMobil-də elan detalı və satıcı əlaqə məlumatları.`;
+  const canonicalPath = `/listings/${listing.id}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: canonicalPath
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description
+    }
+  };
 }
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
