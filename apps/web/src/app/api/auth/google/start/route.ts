@@ -30,12 +30,13 @@ export async function GET(req: Request) {
   }
 
   const url = new URL(req.url);
+  const baseUrl = url.origin;
   const nextPath = normalizeNextPath(url.searchParams.get("next"));
   const state = generateOAuthState();
   const verifier = generatePkceVerifier();
   const challenge = toPkceChallenge(verifier);
 
-  const redirect = NextResponse.redirect(buildGoogleAuthUrl({ state, codeChallenge: challenge }));
+  const redirect = NextResponse.redirect(buildGoogleAuthUrl({ state, codeChallenge: challenge, baseUrl }));
   const common = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

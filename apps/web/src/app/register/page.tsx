@@ -32,7 +32,6 @@ export default function RegisterPage() {
       return;
     }
     router.push("/me");
-    router.refresh();
   }
 
   return (

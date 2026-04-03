@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 
@@ -18,7 +18,9 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
 
 export function Header({ userEmail, userRole }: { userEmail?: string; userRole?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [noticeVisible, setNoticeVisible] = useState(() => {
     if (typeof window === "undefined") return true;
     return window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1";
@@ -29,6 +31,18 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
   function hideNotice() {
     setNoticeVisible(false);
     window.localStorage.setItem(GLOBAL_NOTICE_STORAGE_KEY, "1");
+  }
+
+  async function onLogout() {
+    if (logoutLoading) return;
+    setLogoutLoading(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
+    } finally {
+      router.push("/login");
+      router.refresh();
+      setLogoutLoading(false);
+    }
   }
 
   return (
@@ -125,11 +139,14 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
                   Admin
                 </Link>
               ) : null}
-              <form action="/api/auth/logout" method="POST">
-                <button type="submit" className="btn-secondary text-xs px-3 py-1.5">
-                  Çıxış
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => void onLogout()}
+                disabled={logoutLoading}
+                className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60"
+              >
+                {logoutLoading ? "Çıxılır..." : "Çıxış"}
+              </button>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
@@ -202,9 +219,14 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
                   {(userRole === "admin" || userRole === "support") && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Admin paneli</Link>
                   )}
-                  <form action="/api/auth/logout" method="POST">
-                    <button type="submit" className="btn-secondary w-full">Çıxış</button>
-                  </form>
+                  <button
+                    type="button"
+                    onClick={() => void onLogout()}
+                    disabled={logoutLoading}
+                    className="btn-secondary w-full disabled:opacity-60"
+                  >
+                    {logoutLoading ? "Çıxılır..." : "Çıxış"}
+                  </button>
                 </>
               ) : (
                 <>

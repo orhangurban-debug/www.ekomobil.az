@@ -25,6 +25,12 @@ export interface GoogleOAuthIdentity {
   avatarUrl?: string;
 }
 
+const OWNER_ADMIN_EMAILS = new Set(["orhangurban@gmail.com"]);
+
+function isOwnerAdminEmail(email: string): boolean {
+  return OWNER_ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
 function mapUser(row: {
   id: string;
   email: string;
@@ -108,7 +114,13 @@ export async function createUserAccount(input: {
         VALUES ($1, $2, $3, $4, false, $5)
         RETURNING id, email, role, email_verified, phone
       `,
-      [userId, input.email, hashPassword(input.password), input.role ?? "viewer", input.phone ?? null]
+      [
+        userId,
+        input.email,
+        hashPassword(input.password),
+        input.role ?? (isOwnerAdminEmail(input.email) ? "admin" : "viewer"),
+        input.phone ?? null
+      ]
     );
 
     await client.query(
@@ -154,17 +166,28 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       [input.providerUserId]
     );
     if (linked.rows[0]) {
+      const shouldBeAdmin = isOwnerAdminEmail(input.email);
       await client.query(
         `UPDATE user_oauth_accounts SET last_login_at = NOW(), email_at_provider = $2
          WHERE provider = 'google' AND provider_user_id = $1`,
         [input.providerUserId, input.email]
       );
       await client.query(
-        `UPDATE users SET email_verified = true WHERE id = $1`,
+        `UPDATE users SET email_verified = true, role = CASE WHEN $2 THEN 'admin' ELSE role END WHERE id = $1`,
+        [linked.rows[0].id, shouldBeAdmin]
+      );
+      const refreshed = await client.query<{
+        id: string;
+        email: string;
+        role: string;
+        email_verified: boolean;
+        phone: string | null;
+      }>(
+        `SELECT id, email, role, email_verified, phone FROM users WHERE id = $1 LIMIT 1`,
         [linked.rows[0].id]
       );
       await client.query("COMMIT");
-      return mapUser({ ...linked.rows[0], email_verified: true });
+      return mapUser(refreshed.rows[0] ?? { ...linked.rows[0], email_verified: true });
     }
 
     const existing = await client.query<{
@@ -191,10 +214,10 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       }>(
         `
           INSERT INTO users (id, email, password_hash, role, email_verified, phone)
-          VALUES ($1, $2, $3, 'viewer', true, NULL)
+          VALUES ($1, $2, $3, $4, true, NULL)
           RETURNING id, email, role, email_verified, phone
         `,
-        [userId, input.email, hashPassword(randomPassword)]
+        [userId, input.email, hashPassword(randomPassword), isOwnerAdminEmail(input.email) ? "admin" : "viewer"]
       );
       user = created.rows[0];
       await client.query(
@@ -209,7 +232,10 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
         [userId, input.fullName ?? null, input.avatarUrl ?? null]
       );
     } else {
-      await client.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
+      await client.query(
+        `UPDATE users SET email_verified = true, role = CASE WHEN $2 THEN 'admin' ELSE role END WHERE id = $1`,
+        [user.id, isOwnerAdminEmail(input.email)]
+      );
       await client.query(
         `
           INSERT INTO user_profiles (user_id, full_name, avatar_url)
@@ -221,6 +247,14 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
         `,
         [user.id, input.fullName ?? null, input.avatarUrl ?? null]
       );
+      const refreshed = await client.query<{
+        id: string;
+        email: string;
+        role: string;
+        email_verified: boolean;
+        phone: string | null;
+      }>(`SELECT id, email, role, email_verified, phone FROM users WHERE id = $1 LIMIT 1`, [user.id]);
+      user = refreshed.rows[0] ?? user;
     }
 
     await client.query(

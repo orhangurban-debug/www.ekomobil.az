@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
-import { exchangeGoogleCode, getAppBaseUrl, isGoogleOAuthConfigured } from "@/lib/google-oauth";
+import { exchangeGoogleCode, isGoogleOAuthConfigured } from "@/lib/google-oauth";
 import { upsertUserFromGoogle } from "@/server/user-store";
 
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
@@ -27,8 +27,9 @@ function safeNextPath(path: string | undefined): string {
 
 export async function GET(req: Request) {
   const incoming = new URL(req.url);
+  const baseUrl = incoming.origin;
   if (!isGoogleOAuthConfigured()) {
-    return NextResponse.redirect(new URL("/login?error=google_not_configured", getAppBaseUrl()));
+    return NextResponse.redirect(new URL("/login?error=google_not_configured", baseUrl));
   }
 
   const code = incoming.searchParams.get("code");
@@ -36,10 +37,10 @@ export async function GET(req: Request) {
   const error = incoming.searchParams.get("error");
 
   if (error) {
-    return NextResponse.redirect(new URL("/login?error=google_access_denied", getAppBaseUrl()));
+    return NextResponse.redirect(new URL("/login?error=google_access_denied", baseUrl));
   }
   if (!code || !state) {
-    return NextResponse.redirect(new URL("/login?error=google_invalid_callback", getAppBaseUrl()));
+    return NextResponse.redirect(new URL("/login?error=google_invalid_callback", baseUrl));
   }
 
   const requestCookies = req.headers.get("cookie") || "";
@@ -59,14 +60,14 @@ export async function GET(req: Request) {
   const verifier = cookies.get(OAUTH_PKCE_COOKIE);
   const nextPath = safeNextPath(cookies.get(OAUTH_NEXT_COOKIE));
   if (!expectedState || !verifier || state !== expectedState) {
-    const fail = NextResponse.redirect(new URL("/login?error=google_state_mismatch", getAppBaseUrl()));
+    const fail = NextResponse.redirect(new URL("/login?error=google_state_mismatch", baseUrl));
     clearOAuthCookies(fail);
     return fail;
   }
 
-  const googleUser = await exchangeGoogleCode({ code, codeVerifier: verifier });
+  const googleUser = await exchangeGoogleCode({ code, codeVerifier: verifier, baseUrl });
   if (!googleUser) {
-    const fail = NextResponse.redirect(new URL("/login?error=google_token_failed", getAppBaseUrl()));
+    const fail = NextResponse.redirect(new URL("/login?error=google_token_failed", baseUrl));
     clearOAuthCookies(fail);
     return fail;
   }
@@ -79,7 +80,7 @@ export async function GET(req: Request) {
       avatarUrl: googleUser.picture
     });
     const token = createSessionToken({ id: user.id, email: user.email, role: user.role });
-    const success = NextResponse.redirect(new URL(nextPath, getAppBaseUrl()));
+    const success = NextResponse.redirect(new URL(nextPath, baseUrl));
     success.cookies.set(getSessionCookieName(), token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -90,7 +91,7 @@ export async function GET(req: Request) {
     clearOAuthCookies(success);
     return success;
   } catch {
-    const fail = NextResponse.redirect(new URL("/login?error=google_signin_failed", getAppBaseUrl()));
+    const fail = NextResponse.redirect(new URL("/login?error=google_signin_failed", baseUrl));
     clearOAuthCookies(fail);
     return fail;
   }

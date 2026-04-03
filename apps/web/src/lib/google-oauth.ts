@@ -23,8 +23,9 @@ export function isGoogleOAuthConfigured(): boolean {
   return Boolean(clientId && clientSecret);
 }
 
-export function buildGoogleCallbackUrl(): string {
-  return `${getAppBaseUrl()}/api/auth/google/callback`;
+export function buildGoogleCallbackUrl(baseUrl?: string): string {
+  const root = (baseUrl || getAppBaseUrl()).replace(/\/+$/, "");
+  return `${root}/api/auth/google/callback`;
 }
 
 export function generateOAuthState(): string {
@@ -39,9 +40,9 @@ export function toPkceChallenge(verifier: string): string {
   return createHash("sha256").update(verifier).digest("base64url");
 }
 
-export function buildGoogleAuthUrl(input: { state: string; codeChallenge: string }): string {
+export function buildGoogleAuthUrl(input: { state: string; codeChallenge: string; baseUrl?: string }): string {
   const { clientId } = getGoogleConfig();
-  const callbackUrl = buildGoogleCallbackUrl();
+  const callbackUrl = buildGoogleCallbackUrl(input.baseUrl);
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", callbackUrl);
@@ -55,9 +56,9 @@ export function buildGoogleAuthUrl(input: { state: string; codeChallenge: string
   return url.toString();
 }
 
-export async function exchangeGoogleCode(input: { code: string; codeVerifier: string }) {
+export async function exchangeGoogleCode(input: { code: string; codeVerifier: string; baseUrl?: string }) {
   const { clientId, clientSecret } = getGoogleConfig();
-  const callbackUrl = buildGoogleCallbackUrl();
+  const callbackUrl = buildGoogleCallbackUrl(input.baseUrl);
   const body = new URLSearchParams({
     code: input.code,
     client_id: clientId,
