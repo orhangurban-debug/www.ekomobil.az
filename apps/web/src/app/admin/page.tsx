@@ -57,6 +57,24 @@ export default async function AdminDashboardPage() {
           </Link>
         </div>
       </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Link href="/admin/incidents" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Moderation</p>
+          <h3 className="mt-2 font-bold text-slate-900">Incident Inbox</h3>
+          <p className="mt-1 text-sm text-slate-500">Şikayət, qayda pozuntusu və saxta məlumat case-ləri.</p>
+        </Link>
+        <Link href="/admin/auctions" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Auction control</p>
+          <h3 className="mt-2 font-bold text-slate-900">Risk & freeze panel</h3>
+          <p className="mt-1 text-sm text-slate-500">Lot freeze, manual-review bayraqları və sürətli keçidlər.</p>
+        </Link>
+        <Link href="/admin/audit" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Governance</p>
+          <h3 className="mt-2 font-bold text-slate-900">Admin audit timeline</h3>
+          <p className="mt-1 text-sm text-slate-500">Kim nəyi nə vaxt dəyişdi izləmə jurnalı.</p>
+        </Link>
+      </div>
     </div>
   );
 }

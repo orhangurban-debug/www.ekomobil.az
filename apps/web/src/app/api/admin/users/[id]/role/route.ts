@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { UserRole } from "@/lib/auth";
 import { requireApiRoles } from "@/lib/rbac";
+import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { updateAdminUserRole } from "@/server/admin-store";
 
 const ALLOWED_ROLES: UserRole[] = ["admin", "support", "dealer", "viewer"];
@@ -17,6 +18,14 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
   try {
     await updateAdminUserRole(id, body.role);
+    await createAdminAuditLog({
+      actorUserId: auth.user.id,
+      actorRole: auth.user.role,
+      actionType: "user_role_updated",
+      entityType: "user",
+      entityId: id,
+      metadata: { role: body.role }
+    });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false, error: "Role update failed." }, { status: 500 });

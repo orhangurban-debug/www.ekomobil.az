@@ -16,9 +16,16 @@ interface AdminUserRow {
   city?: string;
 }
 
-export function UserManagementTable({ users }: { users: AdminUserRow[] }) {
+interface Props {
+  users: AdminUserRow[];
+  canEditRoles?: boolean;
+}
+
+export function UserManagementTable({ users, canEditRoles = false }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rows, setRows] = useState(users);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   async function updateRole(userId: string, role: UserRole) {
     setBusyId(userId);
@@ -60,11 +67,57 @@ export function UserManagementTable({ users }: { users: AdminUserRow[] }) {
     }
   }
 
+  async function bulkUpdateStatus(status: string) {
+    const userIds = rows.filter((row) => selected[row.id]).map((row) => row.id);
+    if (userIds.length === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    const prev = rows;
+    setRows((current) => current.map((u) => (selected[u.id] ? { ...u, userAccountStatus: status } : u)));
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds, status })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!payload.ok) throw new Error(payload.error || "Status yenilənmədi");
+      setSelected({});
+    } catch {
+      setRows(prev);
+      alert("Bulk status yenilənmədi");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+        <p className="text-xs text-slate-500">
+          Seçilən istifadəçi: <span className="font-semibold text-slate-700">{Object.values(selected).filter(Boolean).length}</span>
+        </p>
+        <div className="flex items-center gap-2">
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("active")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk active</button>
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("review")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk review</button>
+          <button type="button" disabled={bulkBusy} onClick={() => void bulkUpdateStatus("suspended")} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-60">Bulk suspend</button>
+        </div>
+      </div>
       <table className="w-full text-sm">
         <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <tr>
+            <th className="px-4 py-3 text-left">
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setSelected(
+                    checked
+                      ? Object.fromEntries(rows.map((row) => [row.id, true]))
+                      : {}
+                  );
+                }}
+              />
+            </th>
             <th className="px-4 py-3 text-left">İstifadəçi</th>
             <th className="px-4 py-3 text-left">Rol</th>
             <th className="px-4 py-3 text-left">Status</th>
@@ -77,6 +130,13 @@ export function UserManagementTable({ users }: { users: AdminUserRow[] }) {
           {rows.map((user) => (
             <tr key={user.id}>
               <td className="px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(selected[user.id])}
+                  onChange={(e) => setSelected((current) => ({ ...current, [user.id]: e.target.checked }))}
+                />
+              </td>
+              <td className="px-4 py-3">
                 <div className="font-medium text-slate-900">{user.fullName || user.email}</div>
                 <div className="text-xs text-slate-500">{user.email}</div>
                 <div className="font-mono text-[11px] text-slate-400">{user.id}</div>
@@ -85,7 +145,7 @@ export function UserManagementTable({ users }: { users: AdminUserRow[] }) {
                 <select
                   value={user.role}
                   onChange={(e) => void updateRole(user.id, e.target.value as UserRole)}
-                  disabled={busyId === user.id}
+                  disabled={busyId === user.id || !canEditRoles}
                   className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                 >
                   <option value="viewer">viewer</option>

@@ -6,6 +6,7 @@ import { getListingKindForAuction } from "@/server/auction-bid-preflight-store";
 import { createPendingPreauthHold } from "@/server/auction-preauth-store";
 import { applyRiskAdjustedPreauthHold, getAuctionUserRiskProfile } from "@/server/auction-risk-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { getAuctionAdminControl } from "@/server/admin-store";
 
 /**
  * STRICT_PRE_AUTH: lot üçün hold sətri yaradır (Kapital callback ilə 'held' olmalıdır).
@@ -26,6 +27,13 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
   if (!limit.ok) return rateLimitResponse(60);
 
   const settings = await getSystemSettings();
+  const control = await getAuctionAdminControl(auctionId);
+  if (control?.freezeBidding) {
+    return NextResponse.json(
+      { ok: false, error: "Bu lot admin tərəfindən dondurulub." },
+      { status: 403 }
+    );
+  }
   if (settings.auctionMode !== "STRICT_PRE_AUTH") {
     return NextResponse.json(
       { ok: false, error: "Bu rejimdə pre-auth tələb olunmur." },

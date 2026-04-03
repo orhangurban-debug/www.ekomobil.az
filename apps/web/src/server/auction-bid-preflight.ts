@@ -8,6 +8,7 @@ import {
 } from "@/server/auction-bid-preflight-store";
 import { hasHeldPreauthForAuction } from "@/server/auction-preauth-store";
 import { hasAcceptedAuctionTerms } from "@/server/auction-terms-store";
+import { getAuctionAdminControl } from "@/server/admin-store";
 
 export type BidPreflightFailure =
   | { ok: false; status: 403; code: "PENALTY_BALANCE"; message: string }
@@ -15,6 +16,7 @@ export type BidPreflightFailure =
   | { ok: false; status: 403; code: "IDENTITY_REQUIRED"; message: string }
   | { ok: false; status: 403; code: "TERMS_NOT_ACCEPTED"; message: string }
   | { ok: false; status: 403; code: "PREAUTH_REQUIRED"; message: string; preauthAmountAzn?: number; riskTier?: string }
+  | { ok: false; status: 403; code: "AUCTION_FROZEN"; message: string }
   | { ok: false; status: 403 | 503; code: "CONFIG"; message: string };
 
 export type BidPreflightSuccess = { ok: true };
@@ -26,6 +28,16 @@ export async function runAuctionBidPreflight(input: {
   userId: string;
   auctionId: string;
 }): Promise<BidPreflightSuccess | BidPreflightFailure> {
+  const adminControl = await getAuctionAdminControl(input.auctionId);
+  if (adminControl?.freezeBidding) {
+    return {
+      ok: false,
+      status: 403,
+      code: "AUCTION_FROZEN",
+      message: "Bu lot admin tərəfindən müvəqqəti dondurulub. Təklif vermək hazırda mümkün deyil."
+    };
+  }
+
   const gate = await getUserBidGate(input.userId);
   if (!gate) {
     return { ok: false, status: 503, code: "CONFIG", message: "İstifadəçi tapılmadı." };

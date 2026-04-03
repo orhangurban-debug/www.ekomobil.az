@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { AuctionPaymentMode } from "@/lib/auction-system-settings";
 import { requireApiRoles } from "@/lib/rbac";
+import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { updateSystemSettings } from "@/server/system-settings-store";
 
 export async function POST(req: Request) {
@@ -24,6 +25,14 @@ export async function POST(req: Request) {
     const updated = await updateSystemSettings({
       auctionMode: mode,
       penaltyAmounts: { vehicle, part }
+    });
+    await createAdminAuditLog({
+      actorUserId: auth.user.id,
+      actorRole: auth.user.role,
+      actionType: "system_settings_updated",
+      entityType: "settings",
+      entityId: "auction_system",
+      metadata: updated
     });
     return NextResponse.json({ ok: true, settings: updated });
   } catch {

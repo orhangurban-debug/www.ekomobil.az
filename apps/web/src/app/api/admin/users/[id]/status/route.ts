@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
+import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { updateAdminUserStatus } from "@/server/admin-store";
 
 const ALLOWED_STATUS = new Set(["active", "suspended", "review"]);
@@ -17,6 +18,14 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
   try {
     await updateAdminUserStatus(id, status);
+    await createAdminAuditLog({
+      actorUserId: auth.user.id,
+      actorRole: auth.user.role,
+      actionType: "user_status_updated",
+      entityType: "user",
+      entityId: id,
+      metadata: { status }
+    });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false, error: "Status update failed." }, { status: 500 });

@@ -14,6 +14,7 @@ const sections: Array<{
       { href: "/admin/users", label: "İstifadəçilər & Rollar" },
       { href: "/admin/listings", label: "Elanlar" },
       { href: "/admin/auctions", label: "Auksion" },
+      { href: "/admin/incidents", label: "Incidents & Moderation" },
     ]
   },
   {
@@ -21,7 +22,16 @@ const sections: Array<{
     items: [
       { href: "/admin/finance", label: "Maliyyə" },
       { href: "/admin/crm", label: "CRM" },
+      { href: "/admin/audit", label: "Audit log" },
       { href: "/admin/settings", label: "Sistem ayarları" }
+    ]
+  },
+  {
+    title: "Ops keçidləri",
+    items: [
+      { href: "/ops/reviews", label: "Ops Reviews" },
+      { href: "/ops/auctions", label: "Ops Auctions" },
+      { href: "/ops/analytics", label: "Ops Analytics" }
     ]
   }
 ];

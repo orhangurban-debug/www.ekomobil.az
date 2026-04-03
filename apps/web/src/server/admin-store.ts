@@ -63,6 +63,30 @@ export interface AdminListingRow {
   createdAt: string;
 }
 
+export interface AdminAuctionRow {
+  id: string;
+  titleSnapshot: string;
+  status: string;
+  mode: string;
+  currentBidAzn?: number;
+  startingBidAzn: number;
+  sellerUserId: string;
+  winnerUserId?: string;
+  endsAt: string;
+  updatedAt: string;
+  freezeBidding: boolean;
+  forceManualReview: boolean;
+  controlNote?: string;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 function n(v: string | number | null | undefined): number {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
   if (typeof v === "string") {
@@ -337,4 +361,438 @@ export async function listAdminListings(limit = 120): Promise<AdminListingRow[]>
   } catch {
     return [];
   }
+}
+
+function clampPage(page?: number): number {
+  return Math.max(1, page ?? 1);
+}
+
+function clampPageSize(pageSize?: number): number {
+  return Math.min(100, Math.max(10, pageSize ?? 25));
+}
+
+export async function listAdminUsersPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  role?: string;
+  status?: string;
+  sortBy?: "created_at" | "email" | "penalty_balance_azn";
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminUserRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(u.email) LIKE $${values.length}
+      OR LOWER(COALESCE(up.full_name, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(up.city, '')) LIKE $${values.length}
+    )`);
+  }
+  if (input.role?.trim()) {
+    values.push(input.role.trim());
+    where.push(`u.role = $${values.length}`);
+  }
+  if (input.status?.trim()) {
+    values.push(input.status.trim());
+    where.push(`u.user_account_status = $${values.length}`);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const sortBy = input.sortBy === "email" ? "u.email" : input.sortBy === "penalty_balance_azn" ? "u.penalty_balance_azn" : "u.created_at";
+  const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM users u
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    id: string;
+    email: string;
+    role: string;
+    user_account_status: string;
+    penalty_balance_azn: number;
+    email_verified: boolean;
+    created_at: Date;
+    full_name: string | null;
+    city: string | null;
+  }>(
+    `SELECT
+      u.id, u.email, u.role, u.user_account_status, u.penalty_balance_azn, u.email_verified, u.created_at,
+      up.full_name, up.city
+    FROM users u
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    ${whereSql}
+    ORDER BY ${sortBy} ${sortDir}
+    LIMIT $${values.length - 1} OFFSET $${values.length}`,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: row.role as UserRole,
+      userAccountStatus: row.user_account_status,
+      penaltyBalanceAzn: row.penalty_balance_azn,
+      emailVerified: row.email_verified,
+      createdAt: row.created_at.toISOString(),
+      fullName: row.full_name ?? undefined,
+      city: row.city ?? undefined
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function bulkUpdateAdminUserStatus(userIds: string[], status: string): Promise<number> {
+  if (userIds.length === 0) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `UPDATE users
+     SET user_account_status = $2
+     WHERE id = ANY($1::text[])`,
+    [userIds, status]
+  );
+  return result.rowCount ?? 0;
+}
+
+export async function listAdminListingsPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: string;
+  listingKind?: string;
+  sellerType?: string;
+  city?: string;
+  sortBy?: "created_at" | "price_azn" | "year";
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminListingRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(title) LIKE $${values.length}
+      OR LOWER(make) LIKE $${values.length}
+      OR LOWER(model) LIKE $${values.length}
+      OR LOWER(vin) LIKE $${values.length}
+    )`);
+  }
+  if (input.status?.trim()) {
+    values.push(input.status.trim());
+    where.push(`status = $${values.length}`);
+  }
+  if (input.listingKind?.trim()) {
+    values.push(input.listingKind.trim());
+    where.push(`listing_kind = $${values.length}`);
+  }
+  if (input.sellerType?.trim()) {
+    values.push(input.sellerType.trim());
+    where.push(`seller_type = $${values.length}`);
+  }
+  if (input.city?.trim()) {
+    values.push(input.city.trim());
+    where.push(`city = $${values.length}`);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const sortBy =
+    input.sortBy === "price_azn" ? "price_azn" : input.sortBy === "year" ? "year" : "created_at";
+  const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total FROM listings ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    id: string;
+    title: string;
+    status: string;
+    seller_type: string;
+    listing_kind: string | null;
+    price_azn: number;
+    city: string;
+    year: number;
+    plan_type: string | null;
+    created_at: Date;
+  }>(
+    `SELECT id, title, status, seller_type, listing_kind, price_azn, city, year, plan_type, created_at
+     FROM listings
+     ${whereSql}
+     ORDER BY ${sortBy} ${sortDir}
+     LIMIT $${values.length - 1} OFFSET $${values.length}`,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      status: row.status,
+      sellerType: row.seller_type,
+      listingKind: row.listing_kind === "part" ? "part" : "vehicle",
+      priceAzn: row.price_azn,
+      city: row.city,
+      year: row.year,
+      planType: row.plan_type ?? undefined,
+      createdAt: row.created_at.toISOString()
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function bulkUpdateListingStatus(listingIds: string[], status: string): Promise<number> {
+  if (listingIds.length === 0) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `UPDATE listings
+     SET status = $2, updated_at = NOW()
+     WHERE id = ANY($1::text[])`,
+    [listingIds, status]
+  );
+  return result.rowCount ?? 0;
+}
+
+export async function listAdminLeadsPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  stage?: string;
+  source?: string;
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminLeadRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(l.customer_name) LIKE $${values.length}
+      OR LOWER(COALESCE(l.customer_phone, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(l.customer_email, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(x.title, '')) LIKE $${values.length}
+    )`);
+  }
+  if (input.stage?.trim()) {
+    values.push(input.stage.trim());
+    where.push(`l.stage = $${values.length}`);
+  }
+  if (input.source?.trim()) {
+    values.push(input.source.trim());
+    where.push(`l.source = $${values.length}`);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM leads l
+     LEFT JOIN listings x ON x.id = l.listing_id
+     ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    id: string;
+    customer_name: string;
+    customer_phone: string | null;
+    customer_email: string | null;
+    stage: string;
+    source: string;
+    response_time_minutes: number | null;
+    created_at: Date;
+    title: string | null;
+  }>(
+    `SELECT
+      l.id, l.customer_name, l.customer_phone, l.customer_email, l.stage, l.source, l.response_time_minutes, l.created_at,
+      x.title
+     FROM leads l
+     LEFT JOIN listings x ON x.id = l.listing_id
+     ${whereSql}
+     ORDER BY l.created_at ${sortDir}
+     LIMIT $${values.length - 1} OFFSET $${values.length}`,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      id: row.id,
+      customerName: row.customer_name,
+      customerPhone: row.customer_phone ?? undefined,
+      customerEmail: row.customer_email ?? undefined,
+      stage: row.stage,
+      source: row.source,
+      responseTimeMinutes: row.response_time_minutes ?? undefined,
+      createdAt: row.created_at.toISOString(),
+      listingTitle: row.title ?? undefined
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function bulkUpdateLeadStage(leadIds: string[], stage: string): Promise<number> {
+  if (leadIds.length === 0) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `UPDATE leads
+     SET stage = $2, updated_at = NOW()
+     WHERE id = ANY($1::text[])`,
+    [leadIds, stage]
+  );
+  return result.rowCount ?? 0;
+}
+
+export async function listAdminAuctionsPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: string;
+  mode?: string;
+  freezeBidding?: "true" | "false";
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminAuctionRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(al.title_snapshot) LIKE $${values.length}
+      OR LOWER(al.id) LIKE $${values.length}
+      OR LOWER(al.seller_user_id) LIKE $${values.length}
+    )`);
+  }
+  if (input.status?.trim()) {
+    values.push(input.status.trim());
+    where.push(`al.status = $${values.length}`);
+  }
+  if (input.mode?.trim()) {
+    values.push(input.mode.trim());
+    where.push(`al.mode = $${values.length}`);
+  }
+  if (input.freezeBidding === "true") {
+    where.push(`COALESCE(ac.freeze_bidding, false) = true`);
+  } else if (input.freezeBidding === "false") {
+    where.push(`COALESCE(ac.freeze_bidding, false) = false`);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM auction_listings al
+     LEFT JOIN auction_admin_controls ac ON ac.auction_id = al.id
+     ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    id: string;
+    title_snapshot: string;
+    status: string;
+    mode: string;
+    current_bid_azn: number | null;
+    starting_bid_azn: number;
+    seller_user_id: string;
+    winner_user_id: string | null;
+    ends_at: Date;
+    updated_at: Date;
+    freeze_bidding: boolean | null;
+    force_manual_review: boolean | null;
+    note: string | null;
+  }>(
+    `SELECT
+      al.id, al.title_snapshot, al.status, al.mode, al.current_bid_azn, al.starting_bid_azn,
+      al.seller_user_id, al.winner_user_id, al.ends_at, al.updated_at,
+      ac.freeze_bidding, ac.force_manual_review, ac.note
+     FROM auction_listings al
+     LEFT JOIN auction_admin_controls ac ON ac.auction_id = al.id
+     ${whereSql}
+     ORDER BY al.updated_at ${sortDir}
+     LIMIT $${values.length - 1} OFFSET $${values.length}`,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      id: row.id,
+      titleSnapshot: row.title_snapshot,
+      status: row.status,
+      mode: row.mode,
+      currentBidAzn: row.current_bid_azn ?? undefined,
+      startingBidAzn: row.starting_bid_azn,
+      sellerUserId: row.seller_user_id,
+      winnerUserId: row.winner_user_id ?? undefined,
+      endsAt: row.ends_at.toISOString(),
+      updatedAt: row.updated_at.toISOString(),
+      freezeBidding: row.freeze_bidding ?? false,
+      forceManualReview: row.force_manual_review ?? false,
+      controlNote: row.note ?? undefined
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function setAuctionAdminControls(input: {
+  auctionId: string;
+  actorUserId?: string;
+  freezeBidding?: boolean;
+  forceManualReview?: boolean;
+  note?: string;
+}): Promise<void> {
+  const pool = getPgPool();
+  await pool.query(
+    `INSERT INTO auction_admin_controls (auction_id, freeze_bidding, force_manual_review, note, updated_by_user_id, updated_at)
+     VALUES ($1, COALESCE($2, false), COALESCE($3, false), $4, $5, NOW())
+     ON CONFLICT (auction_id) DO UPDATE SET
+       freeze_bidding = COALESCE($2, auction_admin_controls.freeze_bidding),
+       force_manual_review = COALESCE($3, auction_admin_controls.force_manual_review),
+       note = COALESCE($4, auction_admin_controls.note),
+       updated_by_user_id = COALESCE($5, auction_admin_controls.updated_by_user_id),
+       updated_at = NOW()`,
+    [input.auctionId, input.freezeBidding ?? null, input.forceManualReview ?? null, input.note ?? null, input.actorUserId ?? null]
+  );
+}
+
+export async function getAuctionAdminControl(auctionId: string): Promise<{ freezeBidding: boolean; forceManualReview: boolean; note?: string } | null> {
+  const pool = getPgPool();
+  const result = await pool.query<{ freeze_bidding: boolean; force_manual_review: boolean; note: string | null }>(
+    `SELECT freeze_bidding, force_manual_review, note
+     FROM auction_admin_controls
+     WHERE auction_id = $1
+     LIMIT 1`,
+    [auctionId]
+  );
+  if (!result.rows[0]) return null;
+  return {
+    freezeBidding: result.rows[0].freeze_bidding,
+    forceManualReview: result.rows[0].force_manual_review,
+    note: result.rows[0].note ?? undefined
+  };
 }

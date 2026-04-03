@@ -1,7 +1,27 @@
-import { getCrmSnapshot, listAdminLeads } from "@/server/admin-store";
+import Link from "next/link";
+import { AdminLeadsTable } from "@/components/admin/admin-leads-table";
+import { getCrmSnapshot, listAdminLeadsPaged } from "@/server/admin-store";
 
-export default async function AdminCrmPage() {
-  const [snapshot, leads] = await Promise.all([getCrmSnapshot(), listAdminLeads(120)]);
+export default async function AdminCrmPage({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = Number(params.page || 1);
+  const pageSize = Number(params.pageSize || 25);
+  const q = typeof params.q === "string" ? params.q : undefined;
+  const stage = typeof params.stage === "string" ? params.stage : undefined;
+  const source = typeof params.source === "string" ? params.source : undefined;
+  const [snapshot, data] = await Promise.all([
+    getCrmSnapshot(),
+    listAdminLeadsPaged({ page, pageSize, q, stage, source })
+  ]);
+  const qParams = new URLSearchParams();
+  if (q) qParams.set("q", q);
+  if (stage) qParams.set("stage", stage);
+  if (source) qParams.set("source", source);
+  qParams.set("pageSize", String(pageSize));
   return (
     <div className="space-y-5">
       <div>
@@ -18,36 +38,43 @@ export default async function AdminCrmPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-xs text-slate-500">Orta cavab (dəq)</p><p className="text-2xl font-bold">{snapshot.avgResponseMinutes}</p></div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-4 py-3 text-left">Müştəri</th>
-              <th className="px-4 py-3 text-left">Elan</th>
-              <th className="px-4 py-3 text-left">Mərhələ</th>
-              <th className="px-4 py-3 text-left">SLA</th>
-              <th className="px-4 py-3 text-left">Tarix</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {leads.map((lead) => (
-              <tr key={lead.id}>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-slate-900">{lead.customerName}</div>
-                  <div className="text-xs text-slate-500">{lead.customerPhone || lead.customerEmail || "-"}</div>
-                </td>
-                <td className="px-4 py-3 text-slate-700">{lead.listingTitle || "-"}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                    {lead.stage}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-700">{lead.responseTimeMinutes ?? "-"} dəq</td>
-                <td className="px-4 py-3 text-xs text-slate-500">{new Date(lead.createdAt).toLocaleString("az-AZ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
+        <input name="q" defaultValue={q} placeholder="Axtar: müştəri/telefon/email/elan" className="input-field md:col-span-2" />
+        <select name="stage" defaultValue={stage ?? ""} className="input-field">
+          <option value="">Mərhələ (hamısı)</option>
+          <option value="new">new</option>
+          <option value="in_progress">in_progress</option>
+          <option value="test_drive">test_drive</option>
+          <option value="offer">offer</option>
+          <option value="won">won</option>
+          <option value="closed">closed</option>
+        </select>
+        <input name="source" defaultValue={source} placeholder="Mənbə (source)" className="input-field" />
+        <div className="flex gap-2">
+          <input type="hidden" name="pageSize" value={pageSize} />
+          <button type="submit" className="btn-primary w-full justify-center">Filter</button>
+        </div>
+      </form>
+
+      <AdminLeadsTable items={data.items} />
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+        <p className="text-slate-500">
+          Toplam: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
+        </p>
+        <div className="flex gap-2">
+          <Link
+            href={data.page > 1 ? `/admin/crm?${new URLSearchParams([...qParams.entries(), ["page", String(data.page - 1)]])}` : "#"}
+            className={`btn-secondary px-3 py-1.5 text-xs ${data.page <= 1 ? "pointer-events-none opacity-50" : ""}`}
+          >
+            Geri
+          </Link>
+          <Link
+            href={data.page < data.totalPages ? `/admin/crm?${new URLSearchParams([...qParams.entries(), ["page", String(data.page + 1)]])}` : "#"}
+            className={`btn-secondary px-3 py-1.5 text-xs ${data.page >= data.totalPages ? "pointer-events-none opacity-50" : ""}`}
+          >
+            İrəli
+          </Link>
+        </div>
       </div>
     </div>
   );
