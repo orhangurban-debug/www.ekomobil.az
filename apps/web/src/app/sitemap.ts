@@ -6,6 +6,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://ekomobil.az";
 const STATIC_ROUTES: Array<{ path: string; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]; priority: number }> = [
   { path: "/", changeFrequency: "daily", priority: 1 },
   { path: "/listings", changeFrequency: "hourly", priority: 0.9 },
+  { path: "/parts", changeFrequency: "hourly", priority: 0.85 },
   { path: "/auction", changeFrequency: "hourly", priority: 0.8 },
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
   { path: "/terms", changeFrequency: "monthly", priority: 0.5 },

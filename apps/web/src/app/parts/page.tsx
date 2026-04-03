@@ -6,10 +6,10 @@ import { ListingsFiltersPanel } from "@/components/listings/listings-filters-pan
 import { listListings } from "@/server/listing-store";
 
 export const metadata: Metadata = {
-  title: "Bütün elanlar",
-  description: "Azərbaycanda satılan avtomobilləri filtr və axtarışla tapın. VIN mövcudluğu, qiymət və şəhər üzrə elanları müqayisə edin.",
+  title: "Mağaza elanları",
+  description: "Ehtiyat hissə, təkər, yağ və aksesuar elanlarını filter və axtarışla tapın.",
   alternates: {
-    canonical: "/listings"
+    canonical: "/parts"
   }
 };
 
@@ -41,7 +41,7 @@ function chipHref(
   }
   if (value) params.set(key, value);
   const query = params.toString();
-  return query ? `/listings?${query}` : "/listings";
+  return query ? `/parts?${query}` : "/parts";
 }
 
 function pageHref(searchParams: Record<string, string | string[] | undefined>, page: number): string {
@@ -55,10 +55,10 @@ function pageHref(searchParams: Record<string, string | string[] | undefined>, p
     }
   }
   params.set("page", String(page));
-  return `/listings?${params.toString()}`;
+  return `/parts?${params.toString()}`;
 }
 
-export default async function ListingsPage({
+export default async function PartsPage({
   searchParams
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -84,7 +84,7 @@ export default async function ListingsPage({
     sellerType: (typeof params.sellerType === "string" ? params.sellerType : undefined) as "private" | "dealer" | undefined,
     vinVerified: params.vinVerified === "1" ? true : undefined,
     sellerVerified: params.sellerVerified === "1" ? true : undefined,
-    listingKind: "vehicle" as const,
+    listingKind: "part" as const,
     sort: (typeof params.sort === "string" ? params.sort : "recent") as
       | "trust_desc"
       | "price_asc"
@@ -109,21 +109,17 @@ export default async function ListingsPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Page header */}
       <div className="mb-8">
-        <h1 className="section-title">Bütün elanlar</h1>
-        <p className="section-subtitle">{result.total} elan tapıldı</p>
+        <h1 className="section-title">Mağaza elanları</h1>
+        <p className="section-subtitle">{result.total} hissə və aksesuar elanı tapıldı</p>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
-        {/* Sidebar filters */}
         <aside className="w-full shrink-0 lg:w-64">
-          <ListingsFiltersPanel initialQuery={query} sortOptions={sortOptions} basePath="/listings" />
+          <ListingsFiltersPanel initialQuery={query} sortOptions={sortOptions} basePath="/parts" />
         </aside>
 
-        {/* Listings grid */}
         <div className="flex-1">
-          {/* Sort bar */}
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               {activeChips.length > 0 ? (
@@ -141,37 +137,29 @@ export default async function ListingsPage({
 
           {result.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20 text-center">
-              <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <div>
-                <p className="font-medium text-slate-700">Heç bir elan tapılmadı</p>
-                <p className="mt-1 text-sm text-slate-400">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
-              </div>
-              <Link href="/listings" className="btn-secondary text-sm">Bütün elanlara bax</Link>
+              <p className="font-medium text-slate-700">Hələ mağaza elanı yoxdur</p>
+              <p className="mt-1 text-sm text-slate-400">Axtarışı genişləndirin və ya filterləri dəyişin.</p>
+              <Link href="/parts" className="btn-secondary text-sm">Bütün mağaza elanlarına bax</Link>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {result.items.map((listing, idx) => (
                 <>
                   <ListingCard key={listing.id} listing={listing} />
-                  {/* Hər 6 kartdan sonra native ad */}
                   {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && (
-                    <NativeAdCard key={`ad-${idx}`} slotLabel={`listings-inline-${Math.floor(idx / 6)}`} />
+                    <NativeAdCard key={`ad-${idx}`} slotLabel={`parts-inline-${Math.floor(idx / 6)}`} />
                   )}
                 </>
               ))}
             </div>
           )}
 
-          {/* Leaderboard banner — pagination üstü */}
           {result.items.length > 0 && (
             <div className="mt-8">
-              <AdBanner size="leaderboard" slotLabel="listings-bottom" />
+              <AdBanner size="leaderboard" slotLabel="parts-bottom" />
             </div>
           )}
 
-          {/* Pagination placeholder */}
           <div className="mt-10 flex items-center justify-center gap-2">
             <Link
               href={query.page > 1 ? pageHref(params, query.page - 1) : "#"}
@@ -183,7 +171,7 @@ export default async function ListingsPage({
             <Link
               href={
                 result.total > result.page * result.pageSize
-                  ? pageHref(params, result.page + 1)
+                  ? pageHref(params, query.page + 1)
                   : "#"
               }
               className={`btn-secondary px-4 py-2 text-sm ${

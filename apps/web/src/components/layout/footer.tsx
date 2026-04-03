@@ -27,6 +27,7 @@ export function Footer() {
             <ul className="mt-3 space-y-2">
               {[
                 { href: "/listings", label: "Elanlar" },
+                { href: "/parts", label: "Mağaza elanları" },
                 { href: "/publish", label: "Elan yerləşdir" },
                 { href: "/pricing", label: "Elan qiymətləri" },
                 { href: "/dealer", label: "Salon paneli" }

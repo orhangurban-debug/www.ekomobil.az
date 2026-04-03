@@ -90,6 +90,7 @@ export interface ListingQuery {
   vinVerified?: boolean;
   sellerVerified?: boolean;
   sellerType?: "private" | "dealer";
+  listingKind?: ListingKind;
   compareIds?: string[];
   page?: number;
   pageSize?: number;

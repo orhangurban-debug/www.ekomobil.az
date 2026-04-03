@@ -38,7 +38,7 @@ interface QueryState {
   sort?: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
 }
 
-function buildUrl(query: QueryState) {
+function buildUrl(query: QueryState, basePath: string) {
   const params = new URLSearchParams();
   if (query.city && query.city !== "Hamısı") params.set("city", query.city);
   if (query.make && query.make !== "Hamısı") params.set("make", query.make);
@@ -61,15 +61,17 @@ function buildUrl(query: QueryState) {
   if (query.sellerVerified) params.set("sellerVerified", "1");
   if (query.sort) params.set("sort", query.sort);
   const search = params.toString();
-  return search ? `/listings?${search}` : "/listings";
+  return search ? `${basePath}?${search}` : basePath;
 }
 
 export function ListingsFiltersPanel({
   initialQuery,
-  sortOptions
+  sortOptions,
+  basePath = "/listings"
 }: {
   initialQuery: QueryState;
   sortOptions: Array<{ value: QueryState["sort"]; label: string }>;
+  basePath?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -148,14 +150,14 @@ export function ListingsFiltersPanel({
   );
 
   function apply(nextQuery = query) {
-    router.push(buildUrl(nextQuery));
+    router.push(buildUrl(nextQuery, basePath));
     setOpen(false);
   }
 
   function reset() {
     const nextQuery: QueryState = { city: "Hamısı", make: "Hamısı", model: "Hamısı", sort: "recent" };
     setQuery(nextQuery);
-    router.push("/listings");
+    router.push(basePath);
     setOpen(false);
   }
 

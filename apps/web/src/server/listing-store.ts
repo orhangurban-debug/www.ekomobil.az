@@ -122,6 +122,9 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   const pageSize = query.pageSize ?? 9;
   let result = [...items];
 
+  const listingKind = query.listingKind ?? "vehicle";
+  result = result.filter((item) => (item.listingKind ?? "vehicle") === listingKind);
+
   if (query.city && query.city !== "Hamısı") result = result.filter((item) => item.city === query.city);
   if (query.make && query.make !== "Hamısı") result = result.filter((item) => item.make === query.make);
   if (query.model && query.model !== "Hamısı") result = result.filter((item) => item.model.toLowerCase() === query.model!.toLowerCase());
@@ -194,6 +197,9 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     const pool = getPgPool();
     const values: unknown[] = [];
     const where: string[] = ["l.status = 'active'"];
+    const listingKind = query.listingKind ?? "vehicle";
+    values.push(listingKind);
+    where.push(`COALESCE(l.listing_kind, 'vehicle') = $${values.length}`);
 
     if (query.city && query.city !== "Hamısı") {
       values.push(query.city);

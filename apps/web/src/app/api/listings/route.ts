@@ -5,6 +5,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { isPaidPlan } from "@/lib/listing-plans";
 import { createListingFallback, createListingRecord, listListings } from "@/server/listing-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
+import type { ListingKind } from "@/lib/marketplace-types";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -20,6 +21,7 @@ export async function GET(req: Request) {
     maxYear: searchParams.get("maxYear") ? Number(searchParams.get("maxYear")) : undefined,
     vinVerified: searchParams.get("vinVerified") === "1" ? true : undefined,
     sellerVerified: searchParams.get("sellerVerified") === "1" ? true : undefined,
+    listingKind: (searchParams.get("listingKind") as ListingKind | null) ?? undefined,
     sort: (searchParams.get("sort") as
       | "trust_desc"
       | "price_asc"
