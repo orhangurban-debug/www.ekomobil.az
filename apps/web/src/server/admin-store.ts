@@ -458,6 +458,28 @@ export async function updateAdminBusinessProfile(input: {
   );
 }
 
+export async function bulkUpdateAdminBusinessProfiles(input: {
+  dealerIds: string[];
+  verified?: boolean;
+  showWhatsapp?: boolean;
+  showWebsite?: boolean;
+}): Promise<number> {
+  if (input.dealerIds.length === 0) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `
+      UPDATE dealer_profiles
+      SET
+        verified = COALESCE($2, verified),
+        show_whatsapp = COALESCE($3, show_whatsapp),
+        show_website = COALESCE($4, show_website)
+      WHERE id = ANY($1::text[])
+    `,
+    [input.dealerIds, input.verified ?? null, input.showWhatsapp ?? null, input.showWebsite ?? null]
+  );
+  return result.rowCount ?? 0;
+}
+
 export async function getCrmSnapshot(): Promise<CrmSnapshot> {
   try {
     const pool = getPgPool();

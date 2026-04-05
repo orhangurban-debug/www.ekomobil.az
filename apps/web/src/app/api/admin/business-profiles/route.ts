@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { listAdminBusinessProfilesPaged, updateAdminBusinessProfile } from "@/server/admin-store";
+import {
+  bulkUpdateAdminBusinessProfiles,
+  listAdminBusinessProfilesPaged,
+  updateAdminBusinessProfile
+} from "@/server/admin-store";
 
 export async function GET(req: Request) {
   const auth = requireApiRoles(req, ["admin", "support"]);
@@ -21,12 +25,38 @@ export async function POST(req: Request) {
 
   const body = (await req.json()) as {
     dealerId?: string;
+    dealerIds?: string[];
     verified?: boolean;
     showWhatsapp?: boolean;
     showWebsite?: boolean;
   };
-  if (!body.dealerId) {
-    return NextResponse.json({ ok: false, error: "dealerId tələb olunur." }, { status: 400 });
+  if (!body.dealerId && (!Array.isArray(body.dealerIds) || body.dealerIds.length === 0)) {
+    return NextResponse.json({ ok: false, error: "dealerId və ya dealerIds tələb olunur." }, { status: 400 });
+  }
+
+  if (Array.isArray(body.dealerIds) && body.dealerIds.length > 0) {
+    const updatedCount = await bulkUpdateAdminBusinessProfiles({
+      dealerIds: body.dealerIds,
+      verified: body.verified,
+      showWhatsapp: body.showWhatsapp,
+      showWebsite: body.showWebsite
+    });
+
+    await createAdminAuditLog({
+      actorUserId: auth.user.id,
+      actorRole: auth.user.role,
+      actionType: "business_profile_bulk_updated",
+      entityType: "dealer_profile",
+      metadata: {
+        dealerIds: body.dealerIds,
+        updatedCount,
+        verified: body.verified,
+        showWhatsapp: body.showWhatsapp,
+        showWebsite: body.showWebsite
+      }
+    });
+
+    return NextResponse.json({ ok: true, updatedCount });
   }
 
   await updateAdminBusinessProfile({
