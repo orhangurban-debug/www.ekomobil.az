@@ -40,13 +40,26 @@ export default async function PublicDealerPage({
     <div className="min-h-screen bg-slate-50">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <div className="border-b border-slate-200 bg-white">
+        {profile.coverUrl && (
+          <div className="h-40 w-full overflow-hidden bg-slate-100 sm:h-52">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profile.coverUrl} alt={`${profile.name} cover`} className="h-full w-full object-cover" />
+          </div>
+        )}
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-5">
               {/* Avatar — brand initials */}
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#0891B2] text-2xl font-bold text-white shadow-sm">
-                {profile.name.slice(0, 2).toUpperCase()}
-              </div>
+              {profile.logoUrl ? (
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={profile.logoUrl} alt={`${profile.name} logo`} className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#0891B2] text-2xl font-bold text-white shadow-sm">
+                  {profile.name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
                   {profile.name}
@@ -61,6 +74,37 @@ export default async function PublicDealerPage({
                     {profile.city}
                   </span>
                   <SlaLabel minutes={profile.responseSlaMinutes} />
+                </div>
+                {profile.description && (
+                  <p className="mt-3 max-w-2xl text-sm text-slate-600">{profile.description}</p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {profile.showWhatsapp && profile.whatsappPhone && (
+                    <a
+                      href={`https://wa.me/${profile.whatsappPhone.replace(/[^\d]/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                    >
+                      WhatsApp ilə yaz
+                    </a>
+                  )}
+                  {profile.showWebsite && profile.websiteUrl && (
+                    <a
+                      href={profile.websiteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                    >
+                      Website
+                    </a>
+                  )}
+                  {profile.address && (
+                    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">{profile.address}</span>
+                  )}
+                  {profile.workingHours && (
+                    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">{profile.workingHours}</span>
+                  )}
                 </div>
               </div>
             </div>

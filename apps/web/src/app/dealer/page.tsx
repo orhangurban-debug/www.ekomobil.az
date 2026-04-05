@@ -1,9 +1,11 @@
 import { requirePageRoles } from "@/lib/rbac";
 import { getDealerDashboard } from "@/server/dealer-store";
+import { getDealerProfileSettingsForOwner } from "@/server/dealer-store";
 import { LeadStageActions } from "@/components/dealer/lead-stage-actions";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
-import { getEffectiveDealerPlan } from "@/server/business-plan-store";
+import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
+import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -55,8 +57,12 @@ export default async function DealerPortalPage() {
     );
   }
 
-  const dashboard = await getDealerDashboard(auth.user.id);
-  const dealerPlan = await getEffectiveDealerPlan(auth.user.id);
+  const [dashboard, dealerPlan, profileSettings, profileEntitlements] = await Promise.all([
+    getDealerDashboard(auth.user.id),
+    getEffectiveDealerPlan(auth.user.id),
+    getDealerProfileSettingsForOwner(auth.user.id),
+    getEffectiveBusinessProfileEntitlements(auth.user.id)
+  ]);
   const totalActive = dashboard.inventory.filter((i) => i.status === "active").length;
   const totalLeads = dashboard.leads.length;
   const newLeads = dashboard.leads.filter((l) => l.stage === "new").length;
@@ -110,6 +116,12 @@ export default async function DealerPortalPage() {
       {!dealerPlan.analyticsEnabled && (
         <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.
+        </div>
+      )}
+
+      {profileSettings && (
+        <div className="mb-8">
+          <DealerProfileSettingsForm initialProfile={profileSettings} entitlements={profileEntitlements} />
         </div>
       )}
 

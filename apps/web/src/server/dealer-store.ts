@@ -4,13 +4,24 @@ import { demoLeads, demoListings } from "@/lib/demo-marketplace";
 import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { createListingRecord } from "@/server/listing-store";
+import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 
 interface DealerProfileRow {
   id: string;
+  owner_user_id: string | null;
   name: string;
   city: string;
   verified: boolean;
   response_sla_minutes: number;
+  logo_url?: string | null;
+  cover_url?: string | null;
+  description?: string | null;
+  whatsapp_phone?: string | null;
+  website_url?: string | null;
+  address?: string | null;
+  working_hours?: string | null;
+  show_whatsapp?: boolean | null;
+  show_website?: boolean | null;
 }
 
 interface LeadRow {
@@ -59,7 +70,7 @@ export async function getDealerDashboard(userId: string): Promise<{
     const pool = getPgPool();
     const dealerResult = await pool.query<DealerProfileRow>(
       `
-        SELECT id, name, city, verified, response_sla_minutes
+        SELECT id, owner_user_id, name, city, verified, response_sla_minutes
         FROM dealer_profiles
         WHERE owner_user_id = $1
         LIMIT 1
@@ -330,6 +341,15 @@ export interface PublicDealerProfile {
   responseSlaMinutes: number;
   activeListingCount: number;
   memberSince: string | null;
+  logoUrl?: string;
+  coverUrl?: string;
+  description?: string;
+  whatsappPhone?: string;
+  websiteUrl?: string;
+  address?: string;
+  workingHours?: string;
+  showWhatsapp: boolean;
+  showWebsite: boolean;
   inventory: ListingSummary[];
 }
 
@@ -343,8 +363,14 @@ export async function getPublicDealerProfile(
     const dealerResult = await pool.query<{
       id: string; name: string; city: string; verified: boolean;
       response_sla_minutes: number; created_at: Date | null;
+      logo_url: string | null; cover_url: string | null; description: string | null;
+      whatsapp_phone: string | null; website_url: string | null;
+      address: string | null; working_hours: string | null;
+      show_whatsapp: boolean | null; show_website: boolean | null;
     }>(
-      `SELECT id, name, city, verified, response_sla_minutes, created_at
+      `SELECT id, name, city, verified, response_sla_minutes, created_at,
+              logo_url, cover_url, description, whatsapp_phone, website_url,
+              address, working_hours, show_whatsapp, show_website
        FROM dealer_profiles WHERE id = $1 LIMIT 1`,
       [dealerId]
     );
@@ -413,9 +439,148 @@ export async function getPublicDealerProfile(
       verified: dealer.verified, responseSlaMinutes: dealer.response_sla_minutes,
       activeListingCount: inventory.length,
       memberSince: dealer.created_at?.toISOString() ?? null,
+      logoUrl: dealer.logo_url ?? undefined,
+      coverUrl: dealer.cover_url ?? undefined,
+      description: dealer.description ?? undefined,
+      whatsappPhone: dealer.whatsapp_phone ?? undefined,
+      websiteUrl: dealer.website_url ?? undefined,
+      address: dealer.address ?? undefined,
+      workingHours: dealer.working_hours ?? undefined,
+      showWhatsapp: dealer.show_whatsapp ?? false,
+      showWebsite: dealer.show_website ?? false,
       inventory
     };
   } catch {
     return null;
   }
+}
+
+export interface DealerProfileSettings {
+  dealerId: string;
+  ownerUserId: string;
+  name: string;
+  city: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  description?: string;
+  whatsappPhone?: string;
+  websiteUrl?: string;
+  address?: string;
+  workingHours?: string;
+  showWhatsapp: boolean;
+  showWebsite: boolean;
+}
+
+export async function getDealerProfileSettingsForOwner(userId: string): Promise<DealerProfileSettings | null> {
+  await ensureSeedData();
+  const pool = getPgPool();
+  const result = await pool.query<DealerProfileRow>(
+    `
+      SELECT
+        id, owner_user_id, name, city, verified, response_sla_minutes,
+        logo_url, cover_url, description, whatsapp_phone, website_url,
+        address, working_hours, show_whatsapp, show_website
+      FROM dealer_profiles
+      WHERE owner_user_id = $1
+      LIMIT 1
+    `,
+    [userId]
+  );
+  const row = result.rows[0];
+  if (!row || !row.owner_user_id) return null;
+  return {
+    dealerId: row.id,
+    ownerUserId: row.owner_user_id,
+    name: row.name,
+    city: row.city,
+    logoUrl: row.logo_url ?? undefined,
+    coverUrl: row.cover_url ?? undefined,
+    description: row.description ?? undefined,
+    whatsappPhone: row.whatsapp_phone ?? undefined,
+    websiteUrl: row.website_url ?? undefined,
+    address: row.address ?? undefined,
+    workingHours: row.working_hours ?? undefined,
+    showWhatsapp: row.show_whatsapp ?? false,
+    showWebsite: row.show_website ?? false
+  };
+}
+
+function normalizePhone(raw?: string): string | undefined {
+  const v = raw?.trim();
+  if (!v) return undefined;
+  return v.replace(/[^\d+]/g, "");
+}
+
+function normalizeUrl(raw?: string): string | undefined {
+  const v = raw?.trim();
+  if (!v) return undefined;
+  if (/^https?:\/\//i.test(v)) return v;
+  return `https://${v}`;
+}
+
+export async function updateDealerProfileSettings(input: {
+  ownerUserId: string;
+  name?: string;
+  city?: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  description?: string;
+  whatsappPhone?: string;
+  websiteUrl?: string;
+  address?: string;
+  workingHours?: string;
+  showWhatsapp?: boolean;
+  showWebsite?: boolean;
+  entitlements: BusinessProfileEntitlements;
+}): Promise<DealerProfileSettings | null> {
+  await ensureSeedData();
+  const pool = getPgPool();
+
+  const current = await getDealerProfileSettingsForOwner(input.ownerUserId);
+  if (!current) return null;
+
+  const nextLogo = input.entitlements.canUseLogo ? normalizeUrl(input.logoUrl) ?? null : null;
+  const nextCover = input.entitlements.canUseCover ? normalizeUrl(input.coverUrl) ?? null : null;
+  const nextDescription = input.entitlements.canUseDescription ? input.description?.trim() ?? null : null;
+  const nextWhatsapp = input.entitlements.canUseWhatsapp ? normalizePhone(input.whatsappPhone) ?? null : null;
+  const nextWebsite = input.entitlements.canUseWebsite ? normalizeUrl(input.websiteUrl) ?? null : null;
+  const nextAddress = input.entitlements.canUseAddress ? input.address?.trim() ?? null : null;
+  const nextWorkingHours = input.entitlements.canUseWorkingHours ? input.workingHours?.trim() ?? null : null;
+  const nextShowWhatsapp = input.entitlements.canUseWhatsapp ? Boolean(input.showWhatsapp && nextWhatsapp) : false;
+  const nextShowWebsite = input.entitlements.canUseWebsite ? Boolean(input.showWebsite && nextWebsite) : false;
+
+  await pool.query(
+    `
+      UPDATE dealer_profiles
+      SET
+        name = COALESCE($2, name),
+        city = COALESCE($3, city),
+        logo_url = $4,
+        cover_url = $5,
+        description = $6,
+        whatsapp_phone = $7,
+        website_url = $8,
+        address = $9,
+        working_hours = $10,
+        show_whatsapp = $11,
+        show_website = $12
+      WHERE owner_user_id = $1
+    `,
+    [
+      input.ownerUserId,
+      input.name?.trim() || null,
+      input.city?.trim() || null,
+      nextLogo,
+      nextCover,
+      nextDescription,
+      nextWhatsapp,
+      nextWebsite,
+      nextAddress,
+      nextWorkingHours,
+      nextShowWhatsapp,
+      nextShowWebsite
+    ]
+  );
+
+  return getDealerProfileSettingsForOwner(input.ownerUserId);
 }

@@ -31,6 +31,16 @@ export interface BusinessPlanSubscriptionRecord {
   updatedAt?: string;
 }
 
+export interface BusinessProfileEntitlements {
+  canUseDescription: boolean;
+  canUseLogo: boolean;
+  canUseCover: boolean;
+  canUseWhatsapp: boolean;
+  canUseWebsite: boolean;
+  canUseAddress: boolean;
+  canUseWorkingHours: boolean;
+}
+
 function dealerPlanFromTier(tier: string | undefined): DealerPlanId {
   if (tier === "enterprise") return "korporativ";
   if (tier === "pro") return "peşəkar";
@@ -86,6 +96,52 @@ export async function getEffectivePartsPlan(userId: string): Promise<PartsStoreP
   const sub = await getActiveSubscription(userId, "parts_store");
   if (!sub) return getPartsFallbackPlan();
   return PARTS_STORE_PLANS.find((p) => p.id === (sub.plan_id as PartsStorePlanId)) ?? getPartsFallbackPlan();
+}
+
+function getDealerProfileEntitlements(plan: DealerPlan): BusinessProfileEntitlements {
+  const proOrMore = plan.id === "peşəkar" || plan.id === "korporativ";
+  const corporate = plan.id === "korporativ";
+  return {
+    canUseDescription: true,
+    canUseLogo: true,
+    canUseCover: corporate,
+    canUseWhatsapp: proOrMore,
+    canUseWebsite: proOrMore,
+    canUseAddress: corporate,
+    canUseWorkingHours: proOrMore
+  };
+}
+
+function getPartsProfileEntitlements(plan: PartsStorePlan): BusinessProfileEntitlements {
+  const proOrMore = plan.id === "peşəkar" || plan.id === "şəbəkə";
+  const network = plan.id === "şəbəkə";
+  return {
+    canUseDescription: true,
+    canUseLogo: true,
+    canUseCover: network,
+    canUseWhatsapp: proOrMore,
+    canUseWebsite: proOrMore,
+    canUseAddress: network,
+    canUseWorkingHours: proOrMore
+  };
+}
+
+export async function getEffectiveBusinessProfileEntitlements(userId: string): Promise<BusinessProfileEntitlements> {
+  const [dealerPlan, partsPlan] = await Promise.all([
+    getEffectiveDealerPlan(userId),
+    getEffectivePartsPlan(userId)
+  ]);
+  const dealer = getDealerProfileEntitlements(dealerPlan);
+  const parts = getPartsProfileEntitlements(partsPlan);
+  return {
+    canUseDescription: dealer.canUseDescription || parts.canUseDescription,
+    canUseLogo: dealer.canUseLogo || parts.canUseLogo,
+    canUseCover: dealer.canUseCover || parts.canUseCover,
+    canUseWhatsapp: dealer.canUseWhatsapp || parts.canUseWhatsapp,
+    canUseWebsite: dealer.canUseWebsite || parts.canUseWebsite,
+    canUseAddress: dealer.canUseAddress || parts.canUseAddress,
+    canUseWorkingHours: dealer.canUseWorkingHours || parts.canUseWorkingHours
+  };
 }
 
 function mapSubRow(row: SubscriptionRow): BusinessPlanSubscriptionRecord {
