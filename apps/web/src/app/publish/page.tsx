@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
@@ -268,7 +269,7 @@ export default function PublishPage() {
 
         <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
           Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
-          <a href="/auction/sell" className="font-semibold text-[#0891B2] hover:underline">Auksion lotu yarat</a>{" "}
+          <Link href="/auction/sell" className="font-semibold text-[#0891B2] hover:underline">Auksion lotu yarat</Link>{" "}
           axınından istifadə edin. Auksionda əsas satış ödənişi platformadan keçmir.
         </div>
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">

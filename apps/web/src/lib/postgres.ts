@@ -10,7 +10,7 @@ function readPositiveInt(name: string, fallback: number): number {
 }
 
 function createPool(): Pool {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = normalizeDatabaseUrl(process.env.DATABASE_URL);
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set. Please configure PostgreSQL connection.");
   }
@@ -21,6 +21,23 @@ function createPool(): Pool {
     idleTimeoutMillis: readPositiveInt("PG_IDLE_TIMEOUT_MS", 30000),
     connectionTimeoutMillis: readPositiveInt("PG_CONNECTION_TIMEOUT_MS", 5000)
   });
+}
+
+function normalizeDatabaseUrl(raw?: string): string | undefined {
+  if (!raw) return raw;
+  try {
+    const url = new URL(raw);
+    const mode = (url.searchParams.get("sslmode") ?? "").toLowerCase();
+    const hasLibpqCompat = url.searchParams.has("uselibpqcompat");
+    // Keep secure defaults stable across upcoming pg/libpq behavior change.
+    if ((mode === "prefer" || mode === "require" || mode === "verify-ca") && !hasLibpqCompat) {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+    return url.toString();
+  } catch {
+    // Fallback for non-URL DSN formats
+    return raw;
+  }
 }
 
 export function getPgPool(): Pool {

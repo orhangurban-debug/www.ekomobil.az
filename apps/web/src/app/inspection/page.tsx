@@ -1,13 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function InspectionPage() {
   const searchParams = useSearchParams();
+  const listingIdFromParams = searchParams.get("listingId") ?? "";
   const [form, setForm] = useState({
-    listingId: "",
+    listingId: listingIdFromParams,
     customerName: "",
     customerPhone: "",
     customerEmail: "",
@@ -15,11 +16,6 @@ export default function InspectionPage() {
     note: ""
   });
   const [state, setState] = useState<"idle" | "saved" | "error">("idle");
-
-  useEffect(() => {
-    const lid = searchParams.get("listingId");
-    if (lid) setForm((p) => ({ ...p, listingId: lid }));
-  }, [searchParams]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

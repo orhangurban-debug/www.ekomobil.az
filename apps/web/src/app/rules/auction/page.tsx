@@ -60,7 +60,7 @@ export default function AuctionFrameworkPage() {
             <li>Auksion bitəndən sonra nəticə təsdiq edilir.</li>
           </ol>
           <p className="mt-3 text-sm text-slate-600">
-            Qeyd: ayrıca "sorğu topla sonra auksionu başlat" mərhələsi məcburi deyil. Satıcı birbaşa lot yarada bilər; alıcı
+            Qeyd: ayrıca &quot;sorğu topla sonra auksionu başlat&quot; mərhələsi məcburi deyil. Satıcı birbaşa lot yarada bilər; alıcı
             iştirak etməzsə lot satışsız bağlanır və yalnız lot haqqı tətbiq olunur.
           </p>
         </section>

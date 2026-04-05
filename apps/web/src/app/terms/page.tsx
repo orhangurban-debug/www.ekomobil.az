@@ -71,8 +71,8 @@ export default function TermsPage() {
 
           <Section id="parties" title="1. Tərəflər">
             <p>
-              Bu razılaşma <strong>{COMPANY_NAME}</strong> ("EkoMobil", "platforma", "biz") ilə
-              ekomobil.az domenini istifadə edən hər bir fiziki və ya hüquqi şəxs ("istifadəçi", "siz")
+              Bu razılaşma <strong>{COMPANY_NAME}</strong> (&quot;EkoMobil&quot;, &quot;platforma&quot;, &quot;biz&quot;) ilə
+              ekomobil.az domenini istifadə edən hər bir fiziki və ya hüquqi şəxs (&quot;istifadəçi&quot;, &quot;siz&quot;)
               arasındadır.
             </p>
             <p>
@@ -150,7 +150,7 @@ export default function TermsPage() {
             <Sub title="Elan aktivlik müddəti">
               <p className="text-sm">
                 Hər elan seçilmiş plana uyğun müddət ərzində aktivdir (30–90 gün). Müddət bitdikdə elan
-                avtomatik arxivlənir; satış baş versə istifadəçi elanı "Satıldı" kimi qeyd etməlidir.
+                avtomatik arxivlənir; satış baş versə istifadəçi elanı &quot;Satıldı&quot; kimi qeyd etməlidir.
                 Arxivlənmiş elan yenidən aktivləşdirilə bilər (ödənişlə).
               </p>
             </Sub>
@@ -323,7 +323,7 @@ export default function TermsPage() {
             <p>
               Cari versiyaya həmişə{" "}
               <Link href="/terms" className="text-[#0891B2] hover:underline">ekomobil.az/terms</Link>{" "}
-              ünvanından daxil ola bilərsiniz. Yuxarıdakı "Son yenilənmə" tarixi hər dəyişiklikdə güncəllənir.
+              ünvanından daxil ola bilərsiniz. Yuxarıdakı &quot;Son yenilənmə&quot; tarixi hər dəyişiklikdə güncəllənir.
             </p>
           </Section>
 

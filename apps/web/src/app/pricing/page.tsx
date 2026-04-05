@@ -770,7 +770,7 @@ export default function PricingPage() {
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-fuchsia-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">①</span>
-                <span><strong>SKU kataloqu:</strong> Hər elan bir hissə tipidir (SKU). Satılanda stok azalır, elan silinmir — "stokda yoxdur" olur.</span>
+                <span><strong>SKU kataloqu:</strong> Hər elan bir hissə tipidir (SKU). Satılanda stok azalır, elan silinmir — &quot;stokda yoxdur&quot; olur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">②</span>
@@ -778,7 +778,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">③</span>
-                <span><strong>Az foto lazımdır:</strong> Hissə elanlarında 5-12 şəkil tam kifayətdir. 25-40 şəkil gərəksiзdir — avtomobil elanı ilə qarışdırmayın.</span>
+                <span><strong>Az foto lazımdır:</strong> Hissə elanlarında 4-8 şəkil tam kifayətdir. 25-40 şəkil gərəksizdir — avtomobil elanı ilə qarışdırmayın.</span>
               </div>
             </div>
           </div>

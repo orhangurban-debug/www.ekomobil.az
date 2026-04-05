@@ -107,9 +107,6 @@ function CarPlaceholder({ title, year, fuelType }: { title: string; year: number
 }
 
 function TrustRing({ score }: { score: number }) {
-  const color =
-    score >= 80 ? "#16a34a" :
-    score >= 60 ? "#d97706" : "#dc2626";
   const bg =
     score >= 80 ? "bg-emerald-500" :
     score >= 60 ? "bg-amber-500" : "bg-red-500";

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { AuctionListingDocumentRecord } from "@/lib/auction-documents";
 
 interface Props {
@@ -30,7 +30,7 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  async function loadDocs() {
+  const loadDocs = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/auctions/${auctionId}/dispute-evidence`);
@@ -41,9 +41,9 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [auctionId]);
 
-  useEffect(() => { void loadDocs(); }, [auctionId]);
+  useEffect(() => { void loadDocs(); }, [loadDocs]);
 
   async function onUpload(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();

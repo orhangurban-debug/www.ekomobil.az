@@ -23,7 +23,6 @@ export function ListingStatsPanel({ listingId, initialStats }: ListingStatsPanel
     if (!alreadyViewed) {
       void trackListingStat(listingId, "view");
       window.sessionStorage.setItem(viewKey, "1");
-      setStats((prev) => ({ ...prev, viewCount: prev.viewCount + 1 }));
     }
 
     function onStatBump(event: Event) {

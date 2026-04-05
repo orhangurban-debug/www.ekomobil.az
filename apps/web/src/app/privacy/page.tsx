@@ -272,7 +272,7 @@ export default function PrivacyPage() {
             <p>
               Bu siyasəti vaxtaşırı yeniləyə bilərik. Əhəmiyyətli dəyişikliklər baş versə, effektiv
               tarixdən ən azı <strong>14 gün əvvəl</strong> e-poçt bildirişi göndərəcəyik.
-              Yuxarıdakı "Son yenilənmə" tarixi hər dəfə güncəllənir.
+              Yuxarıdakı &quot;Son yenilənmə&quot; tarixi hər dəfə güncəllənir.
             </p>
           </Section>
 

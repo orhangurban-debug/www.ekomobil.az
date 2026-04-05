@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listListings } from "@/server/listing-store";
 import { getCarInsights, getBrandContext, type CarModelInsights, type BrandContext } from "@/lib/car-insights";
 import { generateCarInsightsAi } from "@/lib/ai/gemini";
-import { getPowertrainInfo, hasElectricComponent, requiresCharging, POWERTRAIN_CATALOG, type PowertrainCategory } from "@/lib/powertrain-types";
+import { getPowertrainInfo, hasElectricComponent, requiresCharging, type PowertrainCategory } from "@/lib/powertrain-types";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -158,31 +158,6 @@ function SpecRow({
 
 // ── Rating comparison row ─────────────────────────────────────────────────
 
-function RatingRow({
-  label,
-  values,
-  colors
-}: {
-  label: string;
-  values: (number | undefined)[];
-  colors: string[];
-}) {
-  return (
-    <div className="grid items-center py-3" style={{ gridTemplateColumns: `7rem repeat(${values.length}, 1fr)` }}>
-      <span className="text-xs font-medium text-slate-400">{label}</span>
-      {values.map((v, i) =>
-        v !== undefined ? (
-          <div key={i} className="px-3">
-            <RatingBar value={v} color={colors[i]} />
-          </div>
-        ) : (
-          <div key={i} className="px-3 text-xs text-slate-300">—</div>
-        )
-      )}
-    </div>
-  );
-}
-
 // ── List column ───────────────────────────────────────────────────────────
 
 function ListColumn({
@@ -298,7 +273,7 @@ export default async function ComparePage({
           </svg>
           <h1 className="text-xl font-bold text-slate-900">Müqayisə üçün elan seçilməyib</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Elan kartındakı <strong>"Müqayisə et"</strong> düyməsi ilə 2–4 avtomobil seçin.
+            Elan kartındakı <strong>&quot;Müqayisə et&quot;</strong> düyməsi ilə 2–4 avtomobil seçin.
           </p>
           <p className="mt-1 text-xs text-slate-400">
             Seçilmiş modellər üçün texniki məlumat, etibarlılıq analizi, zəif nöqtələr və beynəlxalq sahibkar statistikası göstəriləcək.

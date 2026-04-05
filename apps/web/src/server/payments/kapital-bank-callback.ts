@@ -80,10 +80,7 @@ export function signInternalCallback(paymentId: string, status: string): string 
  * Until merchant onboarding is complete and their SDK/docs are available,
  * we rely on remote order status lookup (more secure than callback-only trust).
  */
-export function verifyKapitalBankCallbackPlaceholder(_input: {
-  body?: unknown;
-  signature?: string | null;
-}): { ok: true; mode: "placeholder" } {
+export function verifyKapitalBankCallbackPlaceholder(): { ok: true; mode: "placeholder" } {
   return { ok: true, mode: "placeholder" };
 }
 

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getPlanById, type PlanType } from "@/lib/listing-plans";
+import { getPlanById } from "@/lib/listing-plans";
 import {
   type PaymentProviderPayload,
   type ListingPlanPaymentRecord,
