@@ -3,6 +3,7 @@ import { getDealerDashboard } from "@/server/dealer-store";
 import { LeadStageActions } from "@/components/dealer/lead-stage-actions";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
+import { getEffectiveDealerPlan } from "@/server/business-plan-store";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -55,6 +56,7 @@ export default async function DealerPortalPage() {
   }
 
   const dashboard = await getDealerDashboard(auth.user.id);
+  const dealerPlan = await getEffectiveDealerPlan(auth.user.id);
   const totalActive = dashboard.inventory.filter((i) => i.status === "active").length;
   const totalLeads = dashboard.leads.length;
   const newLeads = dashboard.leads.filter((l) => l.stage === "new").length;
@@ -69,9 +71,19 @@ export default async function DealerPortalPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Salon Paneli</h1>
           <p className="text-slate-500 mt-1">{dashboard.dealerName} • {dashboard.city}</p>
+          <p className="mt-1 text-xs text-slate-400">
+            Aktiv plan: <span className="font-semibold text-slate-600">{dealerPlan.nameAz}</span>
+          </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/dealer/import" className="btn-secondary">CSV import</Link>
+          {dealerPlan.analyticsEnabled ? (
+            <Link href="/dealer/analytics" className="btn-secondary">Analitika</Link>
+          ) : null}
+          {dealerPlan.csvImportEnabled ? (
+            <Link href="/dealer/import" className="btn-secondary">CSV import</Link>
+          ) : (
+            <span className="btn-secondary pointer-events-none opacity-60">CSV import (Peşəkar+)</span>
+          )}
           <Link href="/publish" className="btn-primary">+ Yeni elan</Link>
         </div>
       </div>
@@ -82,7 +94,11 @@ export default async function DealerPortalPage() {
           { label: "Aktiv elan", value: totalActive, icon: "🚗" },
           { label: "Ümumi lead", value: totalLeads, icon: "📋" },
           { label: "Yeni lead", value: newLeads, icon: "🔔" },
-          { label: "Ort. cavab (dəq)", value: avgResponse, icon: "⏱" }
+          {
+            label: dealerPlan.analyticsEnabled ? "Ort. cavab (dəq)" : "Analitika",
+            value: dealerPlan.analyticsEnabled ? avgResponse : "—",
+            icon: "⏱"
+          }
         ].map((kpi) => (
           <div key={kpi.label} className="card p-5">
             <div className="text-2xl mb-1">{kpi.icon}</div>
@@ -91,6 +107,11 @@ export default async function DealerPortalPage() {
           </div>
         ))}
       </div>
+      {!dealerPlan.analyticsEnabled && (
+        <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.
+        </div>
+      )}
 
       {/* Inventory */}
       <div className="card overflow-hidden mb-8">

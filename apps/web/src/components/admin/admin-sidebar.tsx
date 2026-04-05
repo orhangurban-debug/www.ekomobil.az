@@ -21,6 +21,7 @@ const sections: Array<{
     title: "Biznes",
     items: [
       { href: "/admin/finance", label: "Maliyyə" },
+      { href: "/admin/business-plans", label: "Biznes plan abunələri" },
       { href: "/admin/crm", label: "CRM" },
       { href: "/admin/audit", label: "Audit jurnalı" },
       { href: "/admin/settings", label: "Sistem parametrləri" }

@@ -7,7 +7,7 @@ Toyota Camry 2020,Tam baxımlı sedan,Toyota,Camry,2020,Bakı,28500,64000,Benzin
 
 export default function DealerImportPage() {
   const [csv, setCsv] = useState(sampleCsv);
-  const [result, setResult] = useState<{ created?: number; errors?: string[] } | null>(null);
+  const [result, setResult] = useState<{ created?: number; errors?: string[]; error?: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -19,8 +19,13 @@ export default function DealerImportPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ csv })
     });
-    const payload = (await response.json()) as { created?: number; errors?: string[] };
-    setResult(payload);
+    const payload = (await response.json()) as { ok?: boolean; created?: number; errors?: string[]; error?: string };
+    if (!response.ok || payload.ok === false) {
+      setResult({ created: 0, errors: payload.errors, error: payload.error ?? "CSV import mümkün olmadı." });
+      setLoading(false);
+      return;
+    }
+    setResult({ created: payload.created, errors: payload.errors });
     setLoading(false);
   }
 
@@ -47,6 +52,7 @@ export default function DealerImportPage() {
         {result && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
             <div className="text-sm font-medium text-slate-900">Yaradılan elan sayı: {result.created ?? 0}</div>
+            {result.error && <div className="mt-2 text-sm text-red-700">{result.error}</div>}
             {result.errors && result.errors.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-red-700">
                 {result.errors.map((error) => <li key={error}>• {error}</li>)}

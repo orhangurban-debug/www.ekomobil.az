@@ -4,6 +4,7 @@ import { ListingInput, validateListingInput, validatePartListingInput, type Part
 import { getServerSessionUser } from "@/lib/auth";
 import { isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { getEffectivePartsPlan } from "@/server/business-plan-store";
 import {
   createListingFallback,
   createListingRecord,
@@ -110,7 +111,21 @@ export async function POST(req: Request) {
       sellerType?: "private" | "dealer";
       planType?: "free" | "standard" | "vip";
     };
-    const validation = validatePartListingInput(partPayload);
+    if ((partPayload.sellerType ?? "private") === "dealer" && !["dealer", "admin"].includes(sessionUser.role)) {
+      return NextResponse.json(
+        { ok: false, error: "Mağaza/diler kimi hissə elanı üçün dealer hesabı tələb olunur." },
+        { status: 403 }
+      );
+    }
+
+    const effectivePartsPlan =
+      (partPayload.sellerType ?? "private") === "dealer"
+        ? await getEffectivePartsPlan(sessionUser.id)
+        : { perListingMaxImages: 4 };
+
+    const validation = validatePartListingInput(partPayload, {
+      maxImageCount: effectivePartsPlan.perListingMaxImages
+    });
     if (!validation.isValid) {
       return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
     }

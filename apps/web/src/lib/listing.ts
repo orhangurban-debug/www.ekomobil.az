@@ -89,7 +89,10 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
   };
 }
 
-export function validatePartListingInput(input: PartListingPublishInput): ListingValidationResult {
+export function validatePartListingInput(
+  input: PartListingPublishInput,
+  options?: { maxImageCount?: number }
+): ListingValidationResult {
   const errors: string[] = [];
   const title = input?.title?.trim() ?? "";
   const city = input?.city?.trim() ?? "";
@@ -130,6 +133,13 @@ export function validatePartListingInput(input: PartListingPublishInput): Listin
     }
   );
   errors.push(...mediaResult.missingRequirements);
+  if (
+    typeof options?.maxImageCount === "number" &&
+    Number.isFinite(options.maxImageCount) &&
+    (input?.mediaProtocol?.imageCount ?? 0) > options.maxImageCount
+  ) {
+    errors.push(`Bu plan üçün maksimum ${options.maxImageCount} şəkil əlavə etmək olar.`);
+  }
 
   return {
     isValid: errors.length === 0,

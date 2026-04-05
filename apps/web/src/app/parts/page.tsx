@@ -5,6 +5,8 @@ import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
 import { listListings } from "@/server/listing-store";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
+import { getServerSessionUser } from "@/lib/auth";
+import { getEffectivePartsPlan } from "@/server/business-plan-store";
 
 export const metadata: Metadata = {
   title: "Mağaza elanları",
@@ -53,6 +55,10 @@ export default async function PartsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const sessionUser = await getServerSessionUser();
+  const canSeePartsAnalytics = sessionUser && ["dealer", "admin"].includes(sessionUser.role)
+    ? (await getEffectivePartsPlan(sessionUser.id)).analyticsEnabled
+    : false;
   const query = {
     city: typeof params.city === "string" ? params.city : undefined,
     search: typeof params.q === "string" ? params.q : undefined,
@@ -105,9 +111,16 @@ export default async function PartsPage({
             <h1 className="section-title">Mağaza elanları</h1>
             <p className="section-subtitle">{result.total} hissə və aksesuar elanı tapıldı</p>
           </div>
-          <Link href="/parts/publish" className="btn-primary text-sm">
-            + Hissə elanı yerləşdir
-          </Link>
+          <div className="flex gap-2">
+            {canSeePartsAnalytics && (
+              <Link href="/parts/analytics" className="btn-secondary text-sm">
+                Analitika
+              </Link>
+            )}
+            <Link href="/parts/publish" className="btn-primary text-sm">
+              + Hissə elanı yerləşdir
+            </Link>
+          </div>
         </div>
       </div>
 

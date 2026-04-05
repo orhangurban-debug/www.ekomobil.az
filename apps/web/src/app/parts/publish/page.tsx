@@ -190,7 +190,15 @@ export default function PartsPublishPage() {
           </div>
           <div>
             <label className="label">Şəkil sayı</label>
-            <input className="input-field" type="number" min={4} value={mediaImageCount} onChange={(e) => setMediaImageCount(e.target.value ? Number(e.target.value) : "")} />
+            <input
+              className="input-field"
+              type="number"
+              min={4}
+              max={8}
+              value={mediaImageCount}
+              onChange={(e) => setMediaImageCount(e.target.value ? Number(e.target.value) : "")}
+            />
+            <p className="mt-1 text-xs text-slate-400">Plan üzrə hissə elanlarında şəkil limiti 4-8 aralığındadır.</p>
           </div>
         </div>
 

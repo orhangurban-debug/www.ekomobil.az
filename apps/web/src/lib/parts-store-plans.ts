@@ -33,6 +33,8 @@ export interface PartsStorePlan {
   gracePeriodDays: number;
   /** Hazırda real işləyən xüsusiyyətlər */
   features: string[];
+  /** Analitika panelinin əlçatanlığı */
+  analyticsEnabled: boolean;
   /**
    * Yol xəritəsindədir — bu plan üçün tezliklə aktiv olacaq xüsusiyyətlər.
    * Pricing UI-da ayrıca "Tezliklə" bloku kimi göstərilir.
@@ -48,16 +50,18 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     priceAzn: 19,
     billingCycle: "monthly",
     maxActiveListings: 50,
-    perListingMaxImages: 5,
+    perListingMaxImages: 4,
     gracePeriodDays: 7,
     features: [
       "50 aktiv hissə elanı (SKU)",
-      "Elan başına 5 şəkil",
+      "Elan başına 4 şəkil",
       "Mağaza profil səhifəsi",
       "Doğrulanmış mağaza nişanı",
       "Sifariş sorğuları qutusu"
     ],
+    analyticsEnabled: false,
     comingSoon: [
+      "Baxış statistikası (mağaza paneli)",
       "Stok miqdarı izləmə",
       "Kateqoriya ağacı",
       "CSV toplu yükləmə"
@@ -69,17 +73,18 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     priceAzn: 39,
     billingCycle: "monthly",
     maxActiveListings: 300,
-    perListingMaxImages: 8,
+    perListingMaxImages: 6,
     gracePeriodDays: 14,
     highlight: true,
     features: [
       "300 aktiv hissə elanı (SKU)",
-      "Elan başına 8 şəkil",
+      "Elan başına 6 şəkil",
       "Mağaza profil səhifəsi",
       "Doğrulanmış mağaza nişanı",
       "Sifariş sorğuları qutusu",
       "Baxış statistikası"
     ],
+    analyticsEnabled: true,
     comingSoon: [
       "Stok miqdarı izləmə (qty)",
       "Uyğunluq məlumatı (marka/model/il)",
@@ -93,17 +98,18 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     priceAzn: 79,
     billingCycle: "monthly",
     maxActiveListings: 1000,
-    perListingMaxImages: 12,
+    perListingMaxImages: 8,
     gracePeriodDays: 21,
     features: [
       "1000 aktiv hissə elanı (SKU)",
-      "Elan başına 12 şəkil",
+      "Elan başına 8 şəkil",
       "Mağaza profil səhifəsi",
       "Doğrulanmış mağaza nişanı",
       "Sifariş sorğuları qutusu",
       "Baxış statistikası",
       "Prioritet dəstək"
     ],
+    analyticsEnabled: true,
     comingSoon: [
       "Stok izləmə + topdan sifariş",
       "Uyğunluq məlumatı (tam dəstək)",
