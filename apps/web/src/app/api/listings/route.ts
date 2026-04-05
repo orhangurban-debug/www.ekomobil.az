@@ -3,6 +3,7 @@ import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
 import { isPaidPlan } from "@/lib/listing-plans";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import {
   createListingFallback,
   createListingRecord,
@@ -12,6 +13,21 @@ import {
 } from "@/server/listing-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
+
+const SUSPICIOUS_TEXT_PATTERNS: RegExp[] = [
+  /whatsapp/i,
+  /telegram/i,
+  /t\.me\//i,
+  /instagram\.com/i,
+  /@[\w.]{3,}/i,
+  /https?:\/\//i,
+  /\+?\d[\d\s\-()]{6,}/
+];
+
+function containsSuspiciousText(value: string | undefined): boolean {
+  if (!value) return false;
+  return SUSPICIOUS_TEXT_PATTERNS.some((pattern) => pattern.test(value));
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -68,12 +84,24 @@ export async function POST(req: Request) {
 
   const sessionUser = await getServerSessionUser();
   const requestedPlanType = (payload as { planType?: "free" | "standard" | "vip" }).planType ?? "free";
+  const clientIp = getClientIp(req);
 
-  if (isPaidPlan(requestedPlanType) && !sessionUser) {
+  // Listing creation is always account-bound to reduce multi-account abuse and improve accountability.
+  if (!sessionUser) {
     return NextResponse.json(
-      { ok: false, error: "Paid plan seçimi üçün əvvəlcə daxil olun." },
+      { ok: false, error: "Elan yerləşdirmək üçün hesabınıza daxil olun." },
       { status: 401 }
     );
+  }
+
+  const limiterKey = `listing-create:${sessionUser.id}:${clientIp}`;
+  const limitCheck = await checkRateLimit(
+    limiterKey,
+    requestedPlanType === "free" ? 6 : 20,
+    24 * 60
+  );
+  if (!limitCheck.ok) {
+    return rateLimitResponse(limitCheck.retryAfterSeconds ?? 60);
   }
 
   if ("listingKind" in payload && payload.listingKind === "part") {
@@ -89,12 +117,22 @@ export async function POST(req: Request) {
 
     const category = partPayload.partCategory?.trim() || "Avtomobil hissəsi";
     const partLine = partPayload.partName?.trim() || "Ümumi";
+    if (containsSuspiciousText(partPayload.title) || containsSuspiciousText(partPayload.description)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Elan mətnində xarici əlaqə/link və ya şübhəli kontakt məlumatı var. Bu məlumatları platforma daxili əlaqə ilə paylaşın."
+        },
+        { status: 400 }
+      );
+    }
     const hasDuplicatePart = await hasRecentPartDuplicate({
-      userId: sessionUser?.id,
+      userId: sessionUser.id,
       partOemCode: partPayload.partOemCode,
       partSku: partPayload.partSku,
       partCategory: category,
-      partName: partLine
+      partName: partLine,
+      globalScope: requestedPlanType === "free"
     });
     if (hasDuplicatePart) {
       return NextResponse.json(
@@ -196,13 +234,23 @@ export async function POST(req: Request) {
   if (!validation.isValid) {
     return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
   }
+  if (containsSuspiciousText(vehiclePayload.title) || containsSuspiciousText(vehiclePayload.description)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Elan mətnində xarici əlaqə/link və ya şübhəli kontakt məlumatı var. Bu məlumatları platforma daxili əlaqə ilə paylaşın."
+      },
+      { status: 400 }
+    );
+  }
 
   const hasDuplicateVehicle = await hasRecentVehicleDuplicate({
-    userId: sessionUser?.id,
+    userId: sessionUser.id,
     vin: vehiclePayload.vehicle.vin,
     make: vehiclePayload.vehicle.make,
     model: vehiclePayload.vehicle.model,
-    year: vehiclePayload.vehicle.year
+    year: vehiclePayload.vehicle.year,
+    globalScope: requestedPlanType === "free"
   });
   if (hasDuplicateVehicle) {
     return NextResponse.json(

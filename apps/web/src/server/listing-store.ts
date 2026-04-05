@@ -672,6 +672,7 @@ export async function hasRecentVehicleDuplicate(input: {
   make: string;
   model: string;
   year: number;
+  globalScope?: boolean;
 }): Promise<boolean> {
   try {
     await ensureSeedData();
@@ -682,11 +683,13 @@ export async function hasRecentVehicleDuplicate(input: {
       `COALESCE(l.listing_kind, 'vehicle') = 'vehicle'`
     ];
 
-    if (input.userId) {
-      values.push(input.userId);
-      where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
-    } else {
-      where.push(`l.owner_user_id IS NULL`);
+    if (!input.globalScope) {
+      if (input.userId) {
+        values.push(input.userId);
+        where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
+      } else {
+        where.push(`l.owner_user_id IS NULL`);
+      }
     }
 
     const cleanVin = input.vin.trim().toUpperCase();
@@ -718,6 +721,7 @@ export async function hasRecentPartDuplicate(input: {
   partSku?: string;
   partCategory: string;
   partName: string;
+  globalScope?: boolean;
 }): Promise<boolean> {
   try {
     await ensureSeedData();
@@ -728,11 +732,13 @@ export async function hasRecentPartDuplicate(input: {
       `COALESCE(l.listing_kind, 'vehicle') = 'part'`
     ];
 
-    if (input.userId) {
-      values.push(input.userId);
-      where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
-    } else {
-      where.push(`l.owner_user_id IS NULL`);
+    if (!input.globalScope) {
+      if (input.userId) {
+        values.push(input.userId);
+        where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
+      } else {
+        where.push(`l.owner_user_id IS NULL`);
+      }
     }
 
     const oem = input.partOemCode?.trim();

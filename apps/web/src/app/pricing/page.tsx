@@ -239,18 +239,55 @@ export default function PricingPage() {
   return (
     <div className="bg-slate-50">
       {/* ─── Page hero ─────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-white px-4 py-14 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          Şəffaf qiymət siyasəti
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-slate-500">
-          Sadə, ədalətli, gizli ödənişsiz. Fərdi satıcılar üçün pulsuz başlayır, biznes üçün aylıq abunə.
-        </p>
+      <div className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-14 text-center">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#0891B2]/10 blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#0891B2]/20 bg-[#0891B2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0891B2]">
+            Professional pricing
+          </span>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Şəffaf və peşəkar qiymət siyasəti
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+            Sadə, ədalətli, gizli ödənişsiz. Fərdi satıcı üçün çevik elan planları, biznes üçün ölçülənə bilən abunə və
+            irəlilətmə xidmətləri.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            {[
+              "Gizli komissiya yoxdur",
+              "Dinamik qiymət cədvəli",
+              "Biznes üçün aylıq planlar"
+            ].map((item) => (
+              <span key={item} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
+        <section className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fərdi satıcı</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">Pulsuz başla</p>
+            <p className="mt-1 text-xs text-slate-500">1 aktiv pulsuz elan, sonra Standart/VIP ilə genişləndir.</p>
+          </div>
+          <div className="rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">İrəlilətmə</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">Boost + VIP + Premium</p>
+            <p className="mt-1 text-xs text-slate-600">Elanın görünürlüğünü plan üzərindən mərhələli artır.</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Biznes hesab</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">Aylıq sabit model</p>
+            <p className="mt-1 text-xs text-emerald-700">Salon və mağaza üçün öngörülebilən aylıq xərclər.</p>
+          </div>
+        </section>
         {/* Quick nav */}
-        <nav className="flex flex-wrap justify-center gap-2">
+        <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
           {[
             { href: "#listings", label: "Elan planları" },
             { href: "#boost", label: "İrəliləmə xidmətləri" },
@@ -261,7 +298,7 @@ export default function PricingPage() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
             >
               {item.label}
             </a>
