@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import { getPgPool } from "@/lib/postgres";
+import { createAdminAuditLog } from "@/server/admin-audit-store";
 
 function isAuthorizedCronRequest(req: Request): boolean {
   const configuredSecret = process.env.CRON_SECRET?.trim();
@@ -23,11 +24,19 @@ function isAuthorizedCronRequest(req: Request): boolean {
 interface ExpirySummary {
   archived: number;
   nearExpiry: number;
+  expiredBusinessSubscriptions: number;
+  nearExpiryBusinessSubscriptions: number;
   errors: string[];
 }
 
 async function runExpireListings(): Promise<ExpirySummary> {
-  const summary: ExpirySummary = { archived: 0, nearExpiry: 0, errors: [] };
+  const summary: ExpirySummary = {
+    archived: 0,
+    nearExpiry: 0,
+    expiredBusinessSubscriptions: 0,
+    nearExpiryBusinessSubscriptions: 0,
+    errors: []
+  };
 
   try {
     const pool = getPgPool();
@@ -57,6 +66,32 @@ async function runExpireListings(): Promise<ExpirySummary> {
         AND plan_expires_at BETWEEN NOW() AND NOW() + INTERVAL '3 days'
     `);
     summary.nearExpiry = Number(nearResult.rows[0]?.count ?? 0);
+
+    const expireSubsResult = await pool.query<{ count: string }>(`
+      UPDATE business_plan_subscriptions
+      SET status = 'expired', updated_at = NOW()
+      WHERE status = 'active'
+        AND expires_at IS NOT NULL
+        AND expires_at < NOW()
+      RETURNING id
+    `);
+    summary.expiredBusinessSubscriptions = expireSubsResult.rowCount ?? 0;
+
+    const nearSubsResult = await pool.query<{ count: string }>(`
+      SELECT COUNT(*)::text as count
+      FROM business_plan_subscriptions
+      WHERE status = 'active'
+        AND expires_at IS NOT NULL
+        AND expires_at BETWEEN NOW() AND NOW() + INTERVAL '3 days'
+    `);
+    summary.nearExpiryBusinessSubscriptions = Number(nearSubsResult.rows[0]?.count ?? 0);
+
+    await createAdminAuditLog({
+      actorRole: "system",
+      actionType: "cron_expiry_health",
+      entityType: "subscription",
+      metadata: summary
+    });
 
   } catch (err) {
     summary.errors.push(

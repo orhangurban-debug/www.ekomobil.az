@@ -24,9 +24,22 @@ export default async function AdminFinancePage() {
         <FinanceCard label="Ümumi gəlir" value={`${finance.totalRevenueAzn.toLocaleString("az-AZ")} ₼`} />
         <FinanceCard label="Elan planı gəliri" value={`${finance.listingPlanRevenueAzn.toLocaleString("az-AZ")} ₼`} />
         <FinanceCard label="Auksion gəliri" value={`${finance.auctionRevenueAzn.toLocaleString("az-AZ")} ₼`} />
+        <FinanceCard
+          label="Biznes abunə MRR (təxmini)"
+          value={`${finance.businessSubscriptionsRevenueAzn.toLocaleString("az-AZ")} ₼`}
+        />
+        <FinanceCard label="Aktiv salon abunələri" value={String(finance.activeDealerSubscriptions)} />
+        <FinanceCard label="Aktiv mağaza abunələri" value={String(finance.activePartsSubscriptions)} />
+        <FinanceCard label="7 günə bitən abunələr" value={String(finance.expiringSubscriptions7d)} />
         <FinanceCard label="Öhdəlik haqları" value={`${finance.obligationRevenueAzn.toLocaleString("az-AZ")} ₼`} />
         <FinanceCard label="Seller bond" value={`${finance.sellerBondRevenueAzn.toLocaleString("az-AZ")} ₼`} />
       </div>
+      {finance.expiringSubscriptions7d > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Xəbərdarlıq: Növbəti 7 gün ərzində bitəcək <strong>{finance.expiringSubscriptions7d}</strong> biznes abunəsi var.
+          Auto-expiry cron bunu izləyir, lakin kommersiya komandası üçün manual renew follow-up tövsiyə olunur.
+        </div>
+      )}
     </div>
   );
 }

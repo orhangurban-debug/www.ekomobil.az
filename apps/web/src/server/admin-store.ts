@@ -1,5 +1,7 @@
 import { getPgPool } from "@/lib/postgres";
 import type { UserRole } from "@/lib/auth";
+import { DEALER_PLANS } from "@/lib/dealer-plans";
+import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 
 export interface AdminOverview {
   usersTotal: number;
@@ -27,7 +29,35 @@ export interface FinanceSnapshot {
   auctionRevenueAzn: number;
   obligationRevenueAzn: number;
   sellerBondRevenueAzn: number;
+  businessSubscriptionsRevenueAzn: number;
+  activeDealerSubscriptions: number;
+  activePartsSubscriptions: number;
+  expiringSubscriptions7d: number;
   totalRevenueAzn: number;
+}
+
+export interface AdminUserLookup {
+  id: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AdminBusinessProfileRow {
+  dealerId: string;
+  ownerUserId?: string;
+  ownerEmail?: string;
+  name: string;
+  city: string;
+  verified: boolean;
+  logoUrl?: string;
+  coverUrl?: string;
+  whatsappPhone?: string;
+  websiteUrl?: string;
+  showWhatsapp: boolean;
+  showWebsite: boolean;
+  dealerPlanId?: string;
+  partsPlanId?: string;
+  updatedAt: string;
 }
 
 export interface CrmSnapshot {
@@ -208,7 +238,7 @@ export async function updateAdminUserStatus(userId: string, status: string): Pro
 export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
   try {
     const pool = getPgPool();
-    const [listing, auction] = await Promise.all([
+    const [listing, auction, subs] = await Promise.all([
       pool.query<{ total: string }>(
         `SELECT COALESCE(SUM(amount_azn),0)::text AS total
          FROM listing_plan_payments
@@ -226,17 +256,39 @@ export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
          FROM auction_financial_events
          WHERE status = 'succeeded'`
       )
+      ,
+      pool.query<{
+        active_dealer: string;
+        active_parts: string;
+        expiring_7d: string;
+      }>(
+        `SELECT
+           SUM(CASE WHEN business_type = 'dealer' AND status = 'active' AND (expires_at IS NULL OR expires_at >= NOW()) THEN 1 ELSE 0 END)::text AS active_dealer,
+           SUM(CASE WHEN business_type = 'parts_store' AND status = 'active' AND (expires_at IS NULL OR expires_at >= NOW()) THEN 1 ELSE 0 END)::text AS active_parts,
+           SUM(CASE WHEN status = 'active' AND expires_at IS NOT NULL AND expires_at BETWEEN NOW() AND NOW() + INTERVAL '7 days' THEN 1 ELSE 0 END)::text AS expiring_7d
+         FROM business_plan_subscriptions`
+      )
     ]);
     const listingPlanRevenueAzn = n(listing.rows[0]?.total);
     const auctionRevenueAzn = n(auction.rows[0]?.auction_revenue);
     const obligationRevenueAzn = n(auction.rows[0]?.obligation_revenue);
     const sellerBondRevenueAzn = n(auction.rows[0]?.bond_revenue);
+    const activeDealerSubscriptions = n(subs.rows[0]?.active_dealer);
+    const activePartsSubscriptions = n(subs.rows[0]?.active_parts);
+    const expiringSubscriptions7d = n(subs.rows[0]?.expiring_7d);
+    const dealerMrr = activeDealerSubscriptions * (DEALER_PLANS.find((p) => p.id === "baza")?.priceAzn ?? 0);
+    const partsMrr = activePartsSubscriptions * (PARTS_STORE_PLANS.find((p) => p.id === "baza")?.priceAzn ?? 0);
+    const businessSubscriptionsRevenueAzn = dealerMrr + partsMrr;
     return {
       listingPlanRevenueAzn,
       auctionRevenueAzn,
       obligationRevenueAzn,
       sellerBondRevenueAzn,
-      totalRevenueAzn: listingPlanRevenueAzn + auctionRevenueAzn
+      businessSubscriptionsRevenueAzn,
+      activeDealerSubscriptions,
+      activePartsSubscriptions,
+      expiringSubscriptions7d,
+      totalRevenueAzn: listingPlanRevenueAzn + auctionRevenueAzn + businessSubscriptionsRevenueAzn
     };
   } catch {
     return {
@@ -244,9 +296,166 @@ export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
       auctionRevenueAzn: 0,
       obligationRevenueAzn: 0,
       sellerBondRevenueAzn: 0,
+      businessSubscriptionsRevenueAzn: 0,
+      activeDealerSubscriptions: 0,
+      activePartsSubscriptions: 0,
+      expiringSubscriptions7d: 0,
       totalRevenueAzn: 0
     };
   }
+}
+
+export async function listAdminUsersLookup(query: string, limit = 20): Promise<AdminUserLookup[]> {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ id: string; email: string; role: string }>(
+      `
+        SELECT id, email, role
+        FROM users
+        WHERE LOWER(email) LIKE $1
+        ORDER BY created_at DESC
+        LIMIT $2
+      `,
+      [`%${q}%`, Math.max(1, Math.min(limit, 50))]
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: row.role as UserRole
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function listAdminBusinessProfilesPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+}): Promise<PaginatedResult<AdminBusinessProfileRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(dp.name) LIKE $${values.length}
+      OR LOWER(dp.city) LIKE $${values.length}
+      OR LOWER(COALESCE(u.email, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(dp.website_url, '')) LIKE $${values.length}
+    )`);
+  }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM dealer_profiles dp
+     LEFT JOIN users u ON u.id = dp.owner_user_id
+     ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    dealer_id: string;
+    owner_user_id: string | null;
+    owner_email: string | null;
+    name: string;
+    city: string;
+    verified: boolean;
+    logo_url: string | null;
+    cover_url: string | null;
+    whatsapp_phone: string | null;
+    website_url: string | null;
+    show_whatsapp: boolean | null;
+    show_website: boolean | null;
+    dealer_plan_id: string | null;
+    parts_plan_id: string | null;
+    updated_at: Date;
+  }>(
+    `
+      SELECT
+        dp.id AS dealer_id,
+        dp.owner_user_id,
+        u.email AS owner_email,
+        dp.name, dp.city, dp.verified, dp.logo_url, dp.cover_url, dp.whatsapp_phone, dp.website_url,
+        dp.show_whatsapp, dp.show_website,
+        (
+          SELECT s.plan_id
+          FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id
+            AND s.business_type = 'dealer'
+            AND s.status = 'active'
+            AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          ORDER BY s.updated_at DESC
+          LIMIT 1
+        ) AS dealer_plan_id,
+        (
+          SELECT s.plan_id
+          FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id
+            AND s.business_type = 'parts_store'
+            AND s.status = 'active'
+            AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          ORDER BY s.updated_at DESC
+          LIMIT 1
+        ) AS parts_plan_id,
+        NOW() AS updated_at
+      FROM dealer_profiles dp
+      LEFT JOIN users u ON u.id = dp.owner_user_id
+      ${whereSql}
+      ORDER BY dp.created_at DESC
+      LIMIT $${values.length - 1} OFFSET $${values.length}
+    `,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      dealerId: row.dealer_id,
+      ownerUserId: row.owner_user_id ?? undefined,
+      ownerEmail: row.owner_email ?? undefined,
+      name: row.name,
+      city: row.city,
+      verified: row.verified,
+      logoUrl: row.logo_url ?? undefined,
+      coverUrl: row.cover_url ?? undefined,
+      whatsappPhone: row.whatsapp_phone ?? undefined,
+      websiteUrl: row.website_url ?? undefined,
+      showWhatsapp: row.show_whatsapp ?? false,
+      showWebsite: row.show_website ?? false,
+      dealerPlanId: row.dealer_plan_id ?? undefined,
+      partsPlanId: row.parts_plan_id ?? undefined,
+      updatedAt: row.updated_at.toISOString()
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function updateAdminBusinessProfile(input: {
+  dealerId: string;
+  verified?: boolean;
+  showWhatsapp?: boolean;
+  showWebsite?: boolean;
+}): Promise<void> {
+  const pool = getPgPool();
+  await pool.query(
+    `
+      UPDATE dealer_profiles
+      SET
+        verified = COALESCE($2, verified),
+        show_whatsapp = COALESCE($3, show_whatsapp),
+        show_website = COALESCE($4, show_website)
+      WHERE id = $1
+    `,
+    [input.dealerId, input.verified ?? null, input.showWhatsapp ?? null, input.showWebsite ?? null]
+  );
 }
 
 export async function getCrmSnapshot(): Promise<CrmSnapshot> {

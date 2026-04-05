@@ -27,6 +27,9 @@ function planOptionsForType(type: SubscriptionItem["businessType"]) {
 export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItems: SubscriptionItem[] }) {
   const [items, setItems] = useState(initialItems);
   const [ownerUserId, setOwnerUserId] = useState("");
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [ownerCandidates, setOwnerCandidates] = useState<Array<{ id: string; email: string; role: string }>>([]);
+  const [searchingOwner, setSearchingOwner] = useState(false);
   const [businessType, setBusinessType] = useState<"dealer" | "parts_store">("dealer");
   const [planId, setPlanId] = useState<string>(DEALER_PLANS[0]?.id ?? "baza");
   const [status, setStatus] = useState<SubscriptionItem["status"]>("active");
@@ -36,6 +39,37 @@ export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItem
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const currentPlanOptions = useMemo(() => planOptionsForType(businessType), [businessType]);
+
+  async function lookupOwnerByEmail() {
+    const q = ownerSearch.trim();
+    if (!q) {
+      setOwnerCandidates([]);
+      return;
+    }
+    setSearchingOwner(true);
+    try {
+      const response = await fetch(`/api/admin/users/search?q=${encodeURIComponent(q)}`);
+      const payload = (await response.json()) as {
+        ok: boolean;
+        items?: Array<{ id: string; email: string; role: string }>;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok) {
+        setFeedback(payload.error ?? "Axtarış mümkün olmadı.");
+        return;
+      }
+      setOwnerCandidates(payload.items ?? []);
+      if ((payload.items ?? []).length === 0) {
+        setFeedback("Bu email ilə istifadəçi tapılmadı.");
+      } else {
+        setFeedback(null);
+      }
+    } catch {
+      setFeedback("Axtarış zamanı server xətası oldu.");
+    } finally {
+      setSearchingOwner(false);
+    }
+  }
 
   async function submit() {
     if (!ownerUserId.trim()) {
@@ -78,6 +112,37 @@ export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItem
     <div className="space-y-5">
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="text-base font-semibold text-slate-900">Yeni / yenilə abunə</h3>
+        <div className="mt-3 grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-[1fr_auto]">
+          <input
+            className="input-field"
+            value={ownerSearch}
+            onChange={(e) => setOwnerSearch(e.target.value)}
+            placeholder="Owner email ilə axtar"
+          />
+          <button type="button" className="btn-secondary" onClick={lookupOwnerByEmail} disabled={searchingOwner}>
+            {searchingOwner ? "Axtarılır..." : "Email ilə axtar"}
+          </button>
+          {ownerCandidates.length > 0 && (
+            <div className="md:col-span-2">
+              <select
+                className="input-field"
+                defaultValue=""
+                onChange={(e) => {
+                  const nextId = e.target.value;
+                  if (!nextId) return;
+                  setOwnerUserId(nextId);
+                }}
+              >
+                <option value="">Tapılmış owner seçin</option>
+                {ownerCandidates.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>
+                    {candidate.email} ({candidate.role}) - {candidate.id}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <label className="space-y-1">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Owner user ID</span>
