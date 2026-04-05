@@ -4,6 +4,7 @@ export type PlanType = "free" | "standard" | "vip";
 export type PriceInsight = "below_market" | "market_rate" | "above_market";
 export type MileageFlagSeverity = "info" | "warning" | "high_risk";
 export type ListingKind = "vehicle" | "part";
+export type PartCondition = "new" | "used" | "refurbished";
 
 export interface ListingRecord {
   id: string;
@@ -28,6 +29,14 @@ export interface ListingRecord {
   condition?: string;
   /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
   listingKind?: ListingKind;
+  partCategory?: string;
+  partSubcategory?: string;
+  partBrand?: string;
+  partCondition?: PartCondition;
+  partOemCode?: string;
+  partSku?: string;
+  partQuantity?: number;
+  partCompatibility?: string;
   planType?: PlanType;
   planExpiresAt?: string;
   createdAt: string;
@@ -91,6 +100,11 @@ export interface ListingQuery {
   sellerVerified?: boolean;
   sellerType?: "private" | "dealer";
   listingKind?: ListingKind;
+  partCategory?: string;
+  partSubcategory?: string;
+  partBrand?: string;
+  partCondition?: PartCondition;
+  inStock?: boolean;
   compareIds?: string[];
   page?: number;
   pageSize?: number;

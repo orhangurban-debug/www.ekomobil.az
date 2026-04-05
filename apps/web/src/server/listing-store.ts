@@ -60,6 +60,14 @@ interface ListingRow {
   risk_summary?: string | null;
   last_verified_at?: Date | null;
   listing_kind?: string | null;
+  part_category?: string | null;
+  part_subcategory?: string | null;
+  part_brand?: string | null;
+  part_condition?: "new" | "used" | "refurbished" | null;
+  part_oem_code?: string | null;
+  part_sku?: string | null;
+  part_quantity?: number | null;
+  part_compatibility?: string | null;
 }
 
 interface ServiceRecordRow {
@@ -99,6 +107,14 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     color: row.color ?? undefined,
     condition: row.condition ?? undefined,
     listingKind: row.listing_kind === "part" ? "part" : "vehicle",
+    partCategory: row.part_category ?? undefined,
+    partSubcategory: row.part_subcategory ?? undefined,
+    partBrand: row.part_brand ?? undefined,
+    partCondition: row.part_condition ?? undefined,
+    partOemCode: row.part_oem_code ?? undefined,
+    partSku: row.part_sku ?? undefined,
+    partQuantity: row.part_quantity ?? undefined,
+    partCompatibility: row.part_compatibility ?? undefined,
     planType: (row.plan_type as PlanType) ?? "free",
     planExpiresAt: row.plan_expires_at?.toISOString(),
     createdAt: row.created_at.toISOString(),
@@ -144,6 +160,11 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   if (query.vinVerified) result = result.filter((item) => item.vinVerified);
   if (query.sellerVerified) result = result.filter((item) => item.sellerVerified);
   if (query.sellerType) result = result.filter((item) => item.sellerType === query.sellerType);
+  if (query.partCategory) result = result.filter((item) => item.partCategory === query.partCategory);
+  if (query.partSubcategory) result = result.filter((item) => item.partSubcategory === query.partSubcategory);
+  if (query.partBrand) result = result.filter((item) => item.partBrand === query.partBrand);
+  if (query.partCondition) result = result.filter((item) => item.partCondition === query.partCondition);
+  if (query.inStock) result = result.filter((item) => (item.partQuantity ?? 0) > 0);
   if (query.minMileage) result = result.filter((item) => item.mileageKm >= query.minMileage!);
   if (query.maxMileage) result = result.filter((item) => item.mileageKm <= query.maxMileage!);
   if (query.bodyType) result = result.filter((item) => item.bodyType === query.bodyType);
@@ -215,7 +236,13 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     }
     if (query.search) {
       values.push(`%${query.search.toLowerCase()}%`);
-      where.push(`LOWER(l.title || ' ' || l.make || ' ' || l.model) LIKE $${values.length}`);
+      where.push(
+        `LOWER(
+          l.title || ' ' || l.make || ' ' || l.model || ' ' ||
+          COALESCE(l.part_category, '') || ' ' || COALESCE(l.part_subcategory, '') || ' ' ||
+          COALESCE(l.part_brand, '') || ' ' || COALESCE(l.part_oem_code, '') || ' ' || COALESCE(l.part_sku, '')
+        ) LIKE $${values.length}`
+      );
     }
     if (query.compareIds && query.compareIds.length > 0) {
       values.push(query.compareIds);
@@ -250,6 +277,25 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     if (query.sellerType) {
       values.push(query.sellerType);
       where.push(`l.seller_type = $${values.length}`);
+    }
+    if (query.partCategory) {
+      values.push(query.partCategory);
+      where.push(`COALESCE(l.part_category, '') = $${values.length}`);
+    }
+    if (query.partSubcategory) {
+      values.push(query.partSubcategory);
+      where.push(`COALESCE(l.part_subcategory, '') = $${values.length}`);
+    }
+    if (query.partBrand) {
+      values.push(query.partBrand);
+      where.push(`COALESCE(l.part_brand, '') = $${values.length}`);
+    }
+    if (query.partCondition) {
+      values.push(query.partCondition);
+      where.push(`COALESCE(l.part_condition, '') = $${values.length}`);
+    }
+    if (query.inStock) {
+      where.push(`COALESCE(l.part_quantity, 0) > 0`);
     }
     if (query.minMileage) {
       values.push(query.minMileage);
@@ -308,7 +354,8 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -357,7 +404,8 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -434,6 +482,14 @@ export async function createListingRecord(input: {
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
+  partCategory?: string;
+  partSubcategory?: string;
+  partBrand?: string;
+  partCondition?: "new" | "used" | "refurbished";
+  partOemCode?: string;
+  partSku?: string;
+  partQuantity?: number;
+  partCompatibility?: string;
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -460,9 +516,10 @@ export async function createListingRecord(input: {
       `
         INSERT INTO listings (
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
-          mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind
+          mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
+          part_category, part_subcategory, part_brand, part_condition, part_oem_code, part_sku, part_quantity, part_compatibility
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       `,
       [
         id,
@@ -483,7 +540,15 @@ export async function createListingRecord(input: {
         status,
         planType,
         planExpiresAt,
-        input.listingKind ?? "vehicle"
+        input.listingKind ?? "vehicle",
+        input.partCategory ?? null,
+        input.partSubcategory ?? null,
+        input.partBrand ?? null,
+        input.partCondition ?? null,
+        input.partOemCode ?? null,
+        input.partSku ?? null,
+        input.partQuantity ?? null,
+        input.partCompatibility ?? null
       ]
     );
 
@@ -529,7 +594,8 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -562,7 +628,8 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
             SELECT lm.url
@@ -606,6 +673,14 @@ export function createListingFallback(input: {
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
+  partCategory?: string;
+  partSubcategory?: string;
+  partBrand?: string;
+  partCondition?: "new" | "used" | "refurbished";
+  partOemCode?: string;
+  partSku?: string;
+  partQuantity?: number;
+  partCompatibility?: string;
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -624,6 +699,14 @@ export function createListingFallback(input: {
   const item: ListingDetail = {
     id,
     listingKind: input.listingKind ?? "vehicle",
+    partCategory: input.partCategory,
+    partSubcategory: input.partSubcategory,
+    partBrand: input.partBrand,
+    partCondition: input.partCondition,
+    partOemCode: input.partOemCode,
+    partSku: input.partSku,
+    partQuantity: input.partQuantity,
+    partCompatibility: input.partCompatibility,
     title: input.title,
     description: input.description,
     priceAzn: input.priceAzn,

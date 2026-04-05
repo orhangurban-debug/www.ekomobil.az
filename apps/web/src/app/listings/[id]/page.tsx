@@ -71,6 +71,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   if (!listing) notFound();
   const related = await getRelatedListings(listing.relatedIds);
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
+  const isPart = listing.listingKind === "part";
 
   const scoreColor =
     listing.trustScore >= 80 ? "#16a34a" :
@@ -87,7 +88,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <nav className="mb-6 flex items-center gap-2 text-sm text-slate-500">
         <Link href="/" className="hover:text-slate-900 transition">Ana səhifə</Link>
         <span>/</span>
-        <Link href="/listings" className="hover:text-slate-900 transition">Elanlar</Link>
+        <Link href={isPart ? "/parts" : "/listings"} className="hover:text-slate-900 transition">{isPart ? "Mağaza elanları" : "Elanlar"}</Link>
         <span>/</span>
         <span className="text-slate-900">{listing.title}</span>
       </nav>
@@ -149,12 +150,35 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             </div>
             <div className="divide-y divide-slate-100">
               {[
-                ["Buraxılış ili", listing.year],
-                ["Yürüş", `${listing.mileageKm.toLocaleString()} km`],
-                ["Yanacaq növü", listing.fuelType],
-                ["Ötürücü qutsu", listing.transmission],
-                ["Şəhər", listing.city],
-                ...(listing.vin ? [["VIN kodu", listing.vin] as [string, string]] : [])
+                ...(isPart
+                  ? [
+                      ["Kateqoriya", listing.partCategory || "—"],
+                      ["Alt kateqoriya", listing.partSubcategory || "—"],
+                      ["Brend", listing.partBrand || "—"],
+                      [
+                        "Vəziyyət",
+                        listing.partCondition === "new"
+                          ? "Yeni"
+                          : listing.partCondition === "used"
+                            ? "İşlənmiş"
+                            : listing.partCondition === "refurbished"
+                              ? "Bərpa olunmuş"
+                              : "—"
+                      ],
+                      ["OEM kodu", listing.partOemCode || "—"],
+                      ["SKU", listing.partSku || "—"],
+                      ["Stok", listing.partQuantity !== undefined ? String(listing.partQuantity) : "—"],
+                      ["Uyğunluq", listing.partCompatibility || "—"],
+                      ["Şəhər", listing.city]
+                    ]
+                  : [
+                      ["Buraxılış ili", listing.year],
+                      ["Yürüş", `${listing.mileageKm.toLocaleString()} km`],
+                      ["Yanacaq növü", listing.fuelType],
+                      ["Ötürücü qutsu", listing.transmission],
+                      ["Şəhər", listing.city],
+                      ...(listing.vin ? [["VIN kodu", listing.vin] as [string, string]] : [])
+                    ])
               ].map(([label, value]) => (
                 <div key={String(label)} className="flex justify-between px-6 py-3 text-sm">
                   <span className="text-slate-500">{label}</span>
@@ -186,17 +210,19 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <a href="#seller-contact" className="btn-primary w-full justify-center py-3 flex">
                 Satıcı ilə əlaqə
               </a>
-              <TestDriveButton listingId={listing.id} />
-              <div className="pt-1">
-                <AddToCompareButton listingId={listing.id} />
-              </div>
+              {!isPart && <TestDriveButton listingId={listing.id} />}
+              {!isPart && (
+                <div className="pt-1">
+                  <AddToCompareButton listingId={listing.id} />
+                </div>
+              )}
             </div>
           </div>
 
           {/* Trust card */}
           <div className="card p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-slate-900">Avto-Bioqrafiya</h2>
+              <h2 className="font-semibold text-slate-900">{isPart ? "Məhsul etibar siqnalları" : "Avto-Bioqrafiya"}</h2>
               <div
                 className="flex h-12 w-12 flex-col items-center justify-center rounded-full text-white font-bold text-sm shadow"
                 style={{ background: scoreColor }}
@@ -331,9 +357,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           <div className="rounded-xl border border-slate-200 bg-white p-4 sticky bottom-4 shadow-card">
             <div className="mb-2 text-sm font-semibold text-slate-900">Sürətli əməliyyat</div>
             <div className="grid gap-2">
-              <Link href={`/inspection?listingId=${listing.id}`} className="btn-secondary w-full justify-center py-3 block text-center">
-                Ekspertiza sifariş et
-              </Link>
+              {!isPart && (
+                <Link href={`/inspection?listingId=${listing.id}`} className="btn-secondary w-full justify-center py-3 block text-center">
+                  Ekspertiza sifariş et
+                </Link>
+              )}
               {isOwner && (
                 <BoostListingButton
                   listingId={listing.id}
@@ -382,7 +410,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <h2 className="section-title">Bənzər elanlar</h2>
               <p className="section-subtitle">Bu modelə və şəhərə uyğun alternativlər</p>
             </div>
-            <Link href="/listings" className="btn-secondary text-sm">Hamısına bax</Link>
+            <Link href={isPart ? "/parts" : "/listings"} className="btn-secondary text-sm">Hamısına bax</Link>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {related.map((item) => (

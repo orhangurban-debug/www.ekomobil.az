@@ -12,6 +12,7 @@ export async function GET(req: Request) {
   const query = {
     city: searchParams.get("city") || undefined,
     make: searchParams.get("make") || undefined,
+    model: searchParams.get("model") || undefined,
     search: searchParams.get("q") || undefined,
     fuelType: searchParams.get("fuelType") || undefined,
     transmission: searchParams.get("transmission") || undefined,
@@ -21,6 +22,12 @@ export async function GET(req: Request) {
     maxYear: searchParams.get("maxYear") ? Number(searchParams.get("maxYear")) : undefined,
     vinVerified: searchParams.get("vinVerified") === "1" ? true : undefined,
     sellerVerified: searchParams.get("sellerVerified") === "1" ? true : undefined,
+    sellerType: (searchParams.get("sellerType") as "private" | "dealer" | null) ?? undefined,
+    partCategory: searchParams.get("partCategory") || undefined,
+    partSubcategory: searchParams.get("partSubcategory") || undefined,
+    partBrand: searchParams.get("partBrand") || undefined,
+    partCondition: (searchParams.get("partCondition") as "new" | "used" | "refurbished" | null) ?? undefined,
+    inStock: searchParams.get("inStock") === "1" ? true : undefined,
     listingKind: (searchParams.get("listingKind") as ListingKind | null) ?? undefined,
     sort: (searchParams.get("sort") as
       | "trust_desc"
@@ -108,6 +115,14 @@ export async function POST(req: Request) {
       planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
       status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
       listingKind: "part" as const,
+      partCategory: category,
+      partSubcategory: partPayload.partSubcategory?.trim() || undefined,
+      partBrand: partPayload.partBrand?.trim() || undefined,
+      partCondition: partPayload.partCondition || undefined,
+      partOemCode: partPayload.partOemCode?.trim() || undefined,
+      partSku: partPayload.partSku?.trim() || undefined,
+      partQuantity: partPayload.partQuantity ?? 0,
+      partCompatibility: partPayload.partCompatibility?.trim() || undefined,
       trust: {
         trustScore,
         vinVerified: false,

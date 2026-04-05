@@ -12,7 +12,14 @@ export interface PartListingPublishInput {
   priceAzn: number;
   city: string;
   partCategory?: string;
+  partSubcategory?: string;
   partName?: string;
+  partBrand?: string;
+  partCondition?: "new" | "used" | "refurbished";
+  partOemCode?: string;
+  partSku?: string;
+  partQuantity?: number;
+  partCompatibility?: string;
   sellerVerified: boolean;
   mediaProtocol: MediaProtocolInput;
 }
@@ -92,6 +99,18 @@ export function validatePartListingInput(input: PartListingPublishInput): Listin
     errors.push("Qiymət 0-dan böyük olmalıdır.");
   }
   if (!city) errors.push("Şəhər tələb olunur.");
+  if (!input?.partCategory?.trim()) errors.push("Kateqoriya tələb olunur.");
+  if (!input?.partName?.trim()) errors.push("Məhsul adı tələb olunur.");
+  if (!input?.partCondition) errors.push("Məhsul vəziyyəti seçilməlidir.");
+  if (!input?.partOemCode?.trim() && !input?.partSku?.trim()) {
+    errors.push("Ən azı OEM kodu və ya SKU daxil edilməlidir.");
+  }
+  if (
+    input?.partQuantity !== undefined &&
+    (!Number.isInteger(input.partQuantity) || input.partQuantity < 0 || input.partQuantity > 100000)
+  ) {
+    errors.push("Stok sayı 0 ilə 100000 aralığında tam ədəd olmalıdır.");
+  }
 
   const mediaResult = validatePartListingMediaProtocol(
     input?.mediaProtocol ?? {

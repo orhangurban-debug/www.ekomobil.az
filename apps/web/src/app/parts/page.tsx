@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
-import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
+import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
 import { listListings } from "@/server/listing-store";
+import { PART_CONDITIONS } from "@/lib/parts-catalog";
 
 export const metadata: Metadata = {
   title: "Mağaza elanları",
@@ -12,18 +13,6 @@ export const metadata: Metadata = {
     canonical: "/parts"
   }
 };
-
-const sortOptions: Array<{
-  value: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
-  label: string;
-}> = [
-  { value: "trust_desc", label: "Etibar: yüksəkdən aşağı" },
-  { value: "price_asc", label: "Qiymət: ucuzdan bahalıya" },
-  { value: "price_desc", label: "Qiymət: bahalıdan ucuza" },
-  { value: "year_desc", label: "İl: yenidən köhnəyə" },
-  { value: "mileage_asc", label: "Yürüş: azdan çoxa" },
-  { value: "recent", label: "Ən yenilər" }
-];
 
 function chipHref(
   searchParams: Record<string, string | string[] | undefined>,
@@ -66,31 +55,22 @@ export default async function PartsPage({
   const params = await searchParams;
   const query = {
     city: typeof params.city === "string" ? params.city : undefined,
-    make: typeof params.make === "string" ? params.make : undefined,
-    model: typeof params.model === "string" ? params.model : undefined,
     search: typeof params.q === "string" ? params.q : undefined,
     minPrice: typeof params.minPrice === "string" ? Number(params.minPrice) : undefined,
     maxPrice: typeof params.maxPrice === "string" ? Number(params.maxPrice) : undefined,
-    minYear: typeof params.minYear === "string" ? Number(params.minYear) : undefined,
-    maxYear: typeof params.maxYear === "string" ? Number(params.maxYear) : undefined,
-    minMileage: typeof params.minMileage === "string" ? Number(params.minMileage) : undefined,
-    maxMileage: typeof params.maxMileage === "string" ? Number(params.maxMileage) : undefined,
-    fuelType: typeof params.fuelType === "string" ? params.fuelType : undefined,
-    transmission: typeof params.transmission === "string" ? params.transmission : undefined,
-    bodyType: typeof params.bodyType === "string" ? params.bodyType : undefined,
-    driveType: typeof params.driveType === "string" ? params.driveType : undefined,
-    color: typeof params.color === "string" ? params.color : undefined,
-    condition: typeof params.condition === "string" ? params.condition : undefined,
     sellerType: (typeof params.sellerType === "string" ? params.sellerType : undefined) as "private" | "dealer" | undefined,
-    vinVerified: params.vinVerified === "1" ? true : undefined,
     sellerVerified: params.sellerVerified === "1" ? true : undefined,
+    partCategory: typeof params.partCategory === "string" ? params.partCategory : undefined,
+    partSubcategory: typeof params.partSubcategory === "string" ? params.partSubcategory : undefined,
+    partBrand: typeof params.partBrand === "string" ? params.partBrand : undefined,
+    partCondition:
+      (typeof params.partCondition === "string" ? params.partCondition : undefined) as "new" | "used" | "refurbished" | undefined,
+    inStock: params.inStock === "1" ? true : undefined,
     listingKind: "part" as const,
     sort: (typeof params.sort === "string" ? params.sort : "recent") as
       | "trust_desc"
       | "price_asc"
       | "price_desc"
-      | "year_desc"
-      | "mileage_asc"
       | "recent",
     page: typeof params.page === "string" ? Number(params.page) : 1,
     pageSize: 9
@@ -98,25 +78,34 @@ export default async function PartsPage({
   const result = await listListings(query);
   const activeChips = [
     query.city && query.city !== "Hamısı" ? { label: query.city, href: chipHref(params, "city") } : null,
-    query.make && query.make !== "Hamısı" ? { label: query.make, href: chipHref(params, "make") } : null,
-    query.model && query.model !== "Hamısı" ? { label: query.model, href: chipHref(params, "model") } : null,
-    query.bodyType ? { label: query.bodyType, href: chipHref(params, "bodyType") } : null,
-    query.fuelType ? { label: query.fuelType, href: chipHref(params, "fuelType") } : null,
+    query.partCategory ? { label: query.partCategory, href: chipHref(params, "partCategory") } : null,
+    query.partSubcategory ? { label: query.partSubcategory, href: chipHref(params, "partSubcategory") } : null,
+    query.partBrand ? { label: query.partBrand, href: chipHref(params, "partBrand") } : null,
+    query.partCondition
+      ? { label: PART_CONDITIONS.find((item) => item.value === query.partCondition)?.label ?? query.partCondition, href: chipHref(params, "partCondition") }
+      : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,
-    query.vinVerified ? { label: "VIN mövcuddur", href: chipHref(params, "vinVerified") } : null,
-    query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null
+    query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null,
+    query.inStock ? { label: "Stokda var", href: chipHref(params, "inStock") } : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="section-title">Mağaza elanları</h1>
-        <p className="section-subtitle">{result.total} hissə və aksesuar elanı tapıldı</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="section-title">Mağaza elanları</h1>
+            <p className="section-subtitle">{result.total} hissə və aksesuar elanı tapıldı</p>
+          </div>
+          <Link href="/parts/publish" className="btn-primary text-sm">
+            + Hissə elanı yerləşdir
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
         <aside className="w-full shrink-0 lg:w-64">
-          <ListingsFiltersPanel initialQuery={query} sortOptions={sortOptions} basePath="/parts" />
+          <PartsFiltersPanel initialQuery={query} />
         </aside>
 
         <div className="flex-1">
