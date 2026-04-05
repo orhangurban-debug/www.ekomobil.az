@@ -664,6 +664,107 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
   }
 }
 
+const DUPLICATE_LOOKBACK_DAYS = 90;
+
+export async function hasRecentVehicleDuplicate(input: {
+  userId?: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+}): Promise<boolean> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const values: unknown[] = [DUPLICATE_LOOKBACK_DAYS];
+    const where: string[] = [
+      `l.created_at >= NOW() - ($1::text || ' days')::interval`,
+      `COALESCE(l.listing_kind, 'vehicle') = 'vehicle'`
+    ];
+
+    if (input.userId) {
+      values.push(input.userId);
+      where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
+    } else {
+      where.push(`l.owner_user_id IS NULL`);
+    }
+
+    const cleanVin = input.vin.trim().toUpperCase();
+    if (cleanVin) {
+      values.push(cleanVin);
+      where.push(`UPPER(l.vin) = $${values.length}`);
+    } else {
+      values.push(input.make.trim());
+      where.push(`LOWER(l.make) = LOWER($${values.length})`);
+      values.push(input.model.trim());
+      where.push(`LOWER(l.model) = LOWER($${values.length})`);
+      values.push(input.year);
+      where.push(`l.year = $${values.length}`);
+    }
+
+    const r = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text as count FROM listings l WHERE ${where.join(" AND ")}`,
+      values
+    );
+    return Number(r.rows[0]?.count ?? "0") > 0;
+  } catch {
+    return false;
+  }
+}
+
+export async function hasRecentPartDuplicate(input: {
+  userId?: string;
+  partOemCode?: string;
+  partSku?: string;
+  partCategory: string;
+  partName: string;
+}): Promise<boolean> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const values: unknown[] = [DUPLICATE_LOOKBACK_DAYS];
+    const where: string[] = [
+      `l.created_at >= NOW() - ($1::text || ' days')::interval`,
+      `COALESCE(l.listing_kind, 'vehicle') = 'part'`
+    ];
+
+    if (input.userId) {
+      values.push(input.userId);
+      where.push(`(l.owner_user_id = $${values.length} OR l.dealer_profile_id IN (SELECT id FROM dealer_profiles WHERE owner_user_id = $${values.length}))`);
+    } else {
+      where.push(`l.owner_user_id IS NULL`);
+    }
+
+    const oem = input.partOemCode?.trim();
+    const sku = input.partSku?.trim();
+    if (oem || sku) {
+      const oemParts: string[] = [];
+      if (oem) {
+        values.push(oem);
+        oemParts.push(`LOWER(COALESCE(l.part_oem_code, '')) = LOWER($${values.length})`);
+      }
+      if (sku) {
+        values.push(sku);
+        oemParts.push(`LOWER(COALESCE(l.part_sku, '')) = LOWER($${values.length})`);
+      }
+      where.push(`(${oemParts.join(" OR ")})`);
+    } else {
+      values.push(input.partCategory.trim());
+      where.push(`LOWER(COALESCE(l.part_category, '')) = LOWER($${values.length})`);
+      values.push(input.partName.trim());
+      where.push(`LOWER(l.model) = LOWER($${values.length})`);
+    }
+
+    const r = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text as count FROM listings l WHERE ${where.join(" AND ")}`,
+      values
+    );
+    return Number(r.rows[0]?.count ?? "0") > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function createListingFallback(input: {
   ownerUserId?: string;
   dealerProfileId?: string;

@@ -3,7 +3,13 @@ import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
 import { isPaidPlan } from "@/lib/listing-plans";
-import { createListingFallback, createListingRecord, listListings } from "@/server/listing-store";
+import {
+  createListingFallback,
+  createListingRecord,
+  hasRecentPartDuplicate,
+  hasRecentVehicleDuplicate,
+  listListings
+} from "@/server/listing-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
 
@@ -83,6 +89,23 @@ export async function POST(req: Request) {
 
     const category = partPayload.partCategory?.trim() || "Avtomobil hissəsi";
     const partLine = partPayload.partName?.trim() || "Ümumi";
+    const hasDuplicatePart = await hasRecentPartDuplicate({
+      userId: sessionUser?.id,
+      partOemCode: partPayload.partOemCode,
+      partSku: partPayload.partSku,
+      partCategory: category,
+      partName: partLine
+    });
+    if (hasDuplicatePart) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Bu məhsul üçün son 90 gün ərzində eyni və ya oxşar elan artıq mövcuddur. Mövcud elanı redaktə edin."
+        },
+        { status: 409 }
+      );
+    }
     const dummyVehicle: VehicleIdentity = {
       vin: "PARTS-NOVIN",
       make: category,
@@ -172,6 +195,24 @@ export async function POST(req: Request) {
   const validation = validateListingInput(vehiclePayload);
   if (!validation.isValid) {
     return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
+  }
+
+  const hasDuplicateVehicle = await hasRecentVehicleDuplicate({
+    userId: sessionUser?.id,
+    vin: vehiclePayload.vehicle.vin,
+    make: vehiclePayload.vehicle.make,
+    model: vehiclePayload.vehicle.model,
+    year: vehiclePayload.vehicle.year
+  });
+  if (hasDuplicateVehicle) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Bu avtomobil üçün son 90 gün ərzində elan artıq mövcuddur. Dublikat yaratmaq əvəzinə mövcud elanı yeniləyin."
+      },
+      { status: 409 }
+    );
   }
 
   const trustSignals = buildTrustSignals({
