@@ -84,6 +84,11 @@ export function Footer() {
                   info@ekomobil.az
                 </a>
               </li>
+              <li>
+                <Link href="/trust#support-request" className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">
+                  Müraciət göndər
+                </Link>
+              </li>
               <li className="text-sm text-[#3E2F28]/80">Bakı, Azərbaycan</li>
             </ul>
           </div>

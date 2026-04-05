@@ -15,6 +15,7 @@ const sections: Array<{
       { href: "/admin/listings", label: "Elanlar" },
       { href: "/admin/auctions", label: "Auksion" },
       { href: "/admin/incidents", label: "İnsidentlər və Moderasiya" },
+      { href: "/admin/support-requests", label: "Müraciət inbox" },
     ]
   },
   {

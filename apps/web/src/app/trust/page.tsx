@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { SupportRequestForm } from "@/components/support/support-request-form";
 
 export const metadata: Metadata = {
   title: "Etibar mexanizmləri",
@@ -60,6 +61,10 @@ export default function TrustPage() {
           Ana səhifəyə qayıt
         </Link>
       </div>
+
+      <section id="support-request" className="mt-12 scroll-mt-24">
+        <SupportRequestForm />
+      </section>
     </div>
   );
 }

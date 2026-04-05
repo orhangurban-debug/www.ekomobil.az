@@ -80,6 +80,37 @@ export interface AdminLeadRow {
   listingTitle?: string;
 }
 
+export interface AdminSupportRequestRow {
+  id: string;
+  requestType: string;
+  subject: string;
+  message: string;
+  status: string;
+  priority: string;
+  source: string;
+  reporterUserId?: string;
+  reporterName?: string;
+  reporterEmail?: string;
+  reporterPhone?: string;
+  listingId?: string;
+  assignedToUserId?: string;
+  assignedToEmail?: string;
+  adminResponse?: string;
+  responseAt?: string;
+  resolvedAt?: string;
+  lastActivityAt: string;
+  createdAt: string;
+}
+
+export interface AdminSupportSnapshot {
+  total: number;
+  newCount: number;
+  inProgressCount: number;
+  waitingUserCount: number;
+  resolvedCount: number;
+  urgentCount: number;
+}
+
 export interface AdminListingRow {
   id: string;
   title: string;
@@ -515,6 +546,184 @@ export async function getCrmSnapshot(): Promise<CrmSnapshot> {
       avgResponseMinutes: 0
     };
   }
+}
+
+export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{
+      total: string;
+      c_new: string;
+      c_progress: string;
+      c_waiting: string;
+      c_resolved: string;
+      c_urgent: string;
+    }>(
+      `SELECT
+         COUNT(*)::text AS total,
+         SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END)::text AS c_new,
+         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END)::text AS c_progress,
+         SUM(CASE WHEN status = 'waiting_user' THEN 1 ELSE 0 END)::text AS c_waiting,
+         SUM(CASE WHEN status IN ('resolved', 'closed') THEN 1 ELSE 0 END)::text AS c_resolved,
+         SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END)::text AS c_urgent
+       FROM support_requests`
+    );
+    return {
+      total: n(result.rows[0]?.total),
+      newCount: n(result.rows[0]?.c_new),
+      inProgressCount: n(result.rows[0]?.c_progress),
+      waitingUserCount: n(result.rows[0]?.c_waiting),
+      resolvedCount: n(result.rows[0]?.c_resolved),
+      urgentCount: n(result.rows[0]?.c_urgent)
+    };
+  } catch {
+    return {
+      total: 0,
+      newCount: 0,
+      inProgressCount: 0,
+      waitingUserCount: 0,
+      resolvedCount: 0,
+      urgentCount: 0
+    };
+  }
+}
+
+export async function listAdminSupportRequestsPaged(input: {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: string;
+  priority?: string;
+  requestType?: string;
+  assigned?: "yes" | "no";
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminSupportRequestRow>> {
+  const page = clampPage(input.page);
+  const pageSize = clampPageSize(input.pageSize);
+  const offset = (page - 1) * pageSize;
+  const where: string[] = [];
+  const values: Array<string | number> = [];
+  if (input.q?.trim()) {
+    values.push(`%${input.q.trim().toLowerCase()}%`);
+    where.push(`(
+      LOWER(sr.subject) LIKE $${values.length}
+      OR LOWER(sr.message) LIKE $${values.length}
+      OR LOWER(COALESCE(sr.reporter_name, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(sr.reporter_email, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(sr.reporter_phone, '')) LIKE $${values.length}
+      OR LOWER(COALESCE(au.email, '')) LIKE $${values.length}
+    )`);
+  }
+  if (input.status?.trim()) {
+    values.push(input.status.trim());
+    where.push(`sr.status = $${values.length}`);
+  }
+  if (input.priority?.trim()) {
+    values.push(input.priority.trim());
+    where.push(`sr.priority = $${values.length}`);
+  }
+  if (input.requestType?.trim()) {
+    values.push(input.requestType.trim());
+    where.push(`sr.request_type = $${values.length}`);
+  }
+  if (input.assigned === "yes") where.push(`sr.assigned_to_user_id IS NOT NULL`);
+  if (input.assigned === "no") where.push(`sr.assigned_to_user_id IS NULL`);
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
+  const pool = getPgPool();
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total
+     FROM support_requests sr
+     LEFT JOIN users au ON au.id = sr.assigned_to_user_id
+     ${whereSql}`,
+    values
+  );
+  values.push(pageSize, offset);
+  const result = await pool.query<{
+    id: string;
+    request_type: string;
+    subject: string;
+    message: string;
+    status: string;
+    priority: string;
+    source: string;
+    reporter_user_id: string | null;
+    reporter_name: string | null;
+    reporter_email: string | null;
+    reporter_phone: string | null;
+    listing_id: string | null;
+    assigned_to_user_id: string | null;
+    assigned_to_email: string | null;
+    admin_response: string | null;
+    response_at: Date | null;
+    resolved_at: Date | null;
+    last_activity_at: Date;
+    created_at: Date;
+  }>(
+    `SELECT
+       sr.id, sr.request_type, sr.subject, sr.message, sr.status, sr.priority, sr.source,
+       sr.reporter_user_id, sr.reporter_name, sr.reporter_email, sr.reporter_phone, sr.listing_id,
+       sr.assigned_to_user_id, au.email AS assigned_to_email,
+       sr.admin_response, sr.response_at, sr.resolved_at, sr.last_activity_at, sr.created_at
+     FROM support_requests sr
+     LEFT JOIN users au ON au.id = sr.assigned_to_user_id
+     ${whereSql}
+     ORDER BY sr.last_activity_at ${sortDir}
+     LIMIT $${values.length - 1} OFFSET $${values.length}`,
+    values
+  );
+  const total = n(countResult.rows[0]?.total);
+  return {
+    items: result.rows.map((row) => ({
+      id: row.id,
+      requestType: row.request_type,
+      subject: row.subject,
+      message: row.message,
+      status: row.status,
+      priority: row.priority,
+      source: row.source,
+      reporterUserId: row.reporter_user_id ?? undefined,
+      reporterName: row.reporter_name ?? undefined,
+      reporterEmail: row.reporter_email ?? undefined,
+      reporterPhone: row.reporter_phone ?? undefined,
+      listingId: row.listing_id ?? undefined,
+      assignedToUserId: row.assigned_to_user_id ?? undefined,
+      assignedToEmail: row.assigned_to_email ?? undefined,
+      adminResponse: row.admin_response ?? undefined,
+      responseAt: row.response_at ? row.response_at.toISOString() : undefined,
+      resolvedAt: row.resolved_at ? row.resolved_at.toISOString() : undefined,
+      lastActivityAt: row.last_activity_at.toISOString(),
+      createdAt: row.created_at.toISOString()
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize))
+  };
+}
+
+export async function updateAdminSupportRequest(input: {
+  id: string;
+  status?: string;
+  priority?: string;
+  assignedToUserId?: string | null;
+  adminResponse?: string;
+}): Promise<void> {
+  const pool = getPgPool();
+  await pool.query(
+    `UPDATE support_requests
+     SET
+       status = COALESCE($2, status),
+       priority = COALESCE($3, priority),
+       assigned_to_user_id = COALESCE($4, assigned_to_user_id),
+       admin_response = COALESCE($5, admin_response),
+       response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
+       resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
+       last_activity_at = NOW(),
+       updated_at = NOW()
+     WHERE id = $1`,
+    [input.id, input.status ?? null, input.priority ?? null, input.assignedToUserId ?? null, input.adminResponse ?? null]
+  );
 }
 
 export async function listAdminLeads(limit = 100): Promise<AdminLeadRow[]> {

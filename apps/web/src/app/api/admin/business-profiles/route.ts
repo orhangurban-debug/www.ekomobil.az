@@ -59,8 +59,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, updatedCount });
   }
 
+  const dealerId = body.dealerId;
+  if (!dealerId) {
+    return NextResponse.json({ ok: false, error: "dealerId tələb olunur." }, { status: 400 });
+  }
+
   await updateAdminBusinessProfile({
-    dealerId: body.dealerId,
+    dealerId,
     verified: body.verified,
     showWhatsapp: body.showWhatsapp,
     showWebsite: body.showWebsite
@@ -71,7 +76,7 @@ export async function POST(req: Request) {
     actorRole: auth.user.role,
     actionType: "business_profile_updated",
     entityType: "dealer_profile",
-    entityId: body.dealerId,
+    entityId: dealerId,
     metadata: {
       verified: body.verified,
       showWhatsapp: body.showWhatsapp,
