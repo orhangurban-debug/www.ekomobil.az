@@ -16,6 +16,7 @@ const sections: Array<{
       { href: "/admin/auctions", label: "Auksion" },
       { href: "/admin/incidents", label: "İnsidentlər və Moderasiya" },
       { href: "/admin/support-requests", label: "Müraciət inbox" },
+      { href: "/admin/brand-kit", label: "Brend Kit (Rəng və Loqo)" },
     ]
   },
   {

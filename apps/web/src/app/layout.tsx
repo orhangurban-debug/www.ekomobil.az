@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     "@type": "Organization",
     name: "EkoMobil",
     url: APP_URL,
-    logo: `${APP_URL}/icon`,
+    logo: `${APP_URL}/brand/ekomobil-logo.png`,
     sameAs: []
   };
 

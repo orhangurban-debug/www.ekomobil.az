@@ -1,21 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
     <footer className="mt-24 bg-[#E5D3B3] border-t border-[#d4c4a8]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
-          {/* Brand – Eko #3E2F28, Mobil #0891B2 */}
+          {/* Brand logo */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0891B2]">
-                <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0M6 14H5.5M14 14h.5" />
-                </svg>
-              </div>
-              <span className="font-bold">
-                <span className="text-[#3E2F28]">Eko</span><span className="text-[#0891B2]">Mobil</span>
-              </span>
+              <Image
+                src="/brand/ekomobil-logo.png"
+                alt="EkoMobil loqosu"
+                width={1024}
+                height={768}
+                className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm"
+              />
             </Link>
             <p className="mt-3 text-sm text-[#3E2F28]/80 leading-relaxed">
               Azərbaycanda etibar əsaslı avtomobil alqı-satqı platforması.
