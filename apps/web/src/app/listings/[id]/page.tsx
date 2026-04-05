@@ -5,9 +5,11 @@ import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { LeadCaptureForm } from "@/components/listings/lead-capture-form";
 import { TestDriveButton } from "@/components/listings/test-drive-button";
+import { ListingStatsPanel } from "@/components/listings/listing-stats-panel";
 import { ListingCard } from "@/components/listings/listing-card";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
+import { getListingStats } from "@/server/listing-stats-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
 
 const priceInsightMap = {
@@ -69,7 +71,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     getServerSessionUser()
   ]);
   if (!listing) notFound();
-  const related = await getRelatedListings(listing.relatedIds);
+  const [related, stats] = await Promise.all([
+    getRelatedListings(listing.relatedIds),
+    getListingStats(listing.id)
+  ]);
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
   const isPart = listing.listingKind === "part";
 
@@ -163,6 +168,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                             ? "İşlənmiş"
                             : listing.partCondition === "refurbished"
                               ? "Bərpa olunmuş"
+                              : "—"
+                      ],
+                      [
+                        "Orijinallıq",
+                        listing.partAuthenticity === "original"
+                          ? "Orijinal (OE)"
+                          : listing.partAuthenticity === "oem"
+                            ? "OEM/Firma"
+                            : listing.partAuthenticity === "aftermarket"
+                              ? "Aftermarket"
                               : "—"
                       ],
                       ["OEM kodu", listing.partOemCode || "—"],
@@ -290,6 +305,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               )}
             </div>
           </div>
+
+          <ListingStatsPanel listingId={listing.id} initialStats={stats} />
 
           {/* VIN check resources */}
           {vinCheck && (

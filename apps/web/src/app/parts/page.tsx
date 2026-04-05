@@ -4,7 +4,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
 import { listListings } from "@/server/listing-store";
-import { PART_CONDITIONS } from "@/lib/parts-catalog";
+import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 
 export const metadata: Metadata = {
   title: "Mağaza elanları",
@@ -65,6 +65,8 @@ export default async function PartsPage({
     partBrand: typeof params.partBrand === "string" ? params.partBrand : undefined,
     partCondition:
       (typeof params.partCondition === "string" ? params.partCondition : undefined) as "new" | "used" | "refurbished" | undefined,
+    partAuthenticity:
+      (typeof params.partAuthenticity === "string" ? params.partAuthenticity : undefined) as "original" | "oem" | "aftermarket" | undefined,
     inStock: params.inStock === "1" ? true : undefined,
     listingKind: "part" as const,
     sort: (typeof params.sort === "string" ? params.sort : "recent") as
@@ -83,6 +85,12 @@ export default async function PartsPage({
     query.partBrand ? { label: query.partBrand, href: chipHref(params, "partBrand") } : null,
     query.partCondition
       ? { label: PART_CONDITIONS.find((item) => item.value === query.partCondition)?.label ?? query.partCondition, href: chipHref(params, "partCondition") }
+      : null,
+    query.partAuthenticity
+      ? {
+          label: PART_AUTHENTICITY_OPTIONS.find((item) => item.value === query.partAuthenticity)?.label ?? query.partAuthenticity,
+          href: chipHref(params, "partAuthenticity")
+        }
       : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null,

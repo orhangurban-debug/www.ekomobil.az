@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AZERBAIJAN_CITIES } from "@/lib/car-data";
-import { PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
+import { PART_AUTHENTICITY_OPTIONS, PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
 
 interface PartsQueryState {
   city?: string;
@@ -16,6 +16,7 @@ interface PartsQueryState {
   partSubcategory?: string;
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
+  partAuthenticity?: "original" | "oem" | "aftermarket";
   inStock?: boolean;
   sort?: "trust_desc" | "price_asc" | "price_desc" | "recent";
 }
@@ -32,6 +33,7 @@ function buildUrl(query: PartsQueryState) {
   if (query.partSubcategory) params.set("partSubcategory", query.partSubcategory);
   if (query.partBrand) params.set("partBrand", query.partBrand);
   if (query.partCondition) params.set("partCondition", query.partCondition);
+  if (query.partAuthenticity) params.set("partAuthenticity", query.partAuthenticity);
   if (query.inStock) params.set("inStock", "1");
   if (query.sort) params.set("sort", query.sort);
   const search = params.toString();
@@ -56,6 +58,7 @@ export function PartsFiltersPanel({
     partSubcategory: initialQuery.partSubcategory,
     partBrand: initialQuery.partBrand,
     partCondition: initialQuery.partCondition,
+    partAuthenticity: initialQuery.partAuthenticity,
     inStock: initialQuery.inStock,
     sort: initialQuery.sort ?? "recent"
   });
@@ -78,6 +81,7 @@ export function PartsFiltersPanel({
         query.partSubcategory,
         query.partBrand,
         query.partCondition,
+        query.partAuthenticity,
         query.inStock
       ].filter(Boolean).length,
     [query]
@@ -165,6 +169,25 @@ export function PartsFiltersPanel({
         >
           <option value="">Hamısı</option>
           {PART_CONDITIONS.map((item) => (
+            <option key={item.value} value={item.value}>{item.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="label">Orijinallıq</label>
+        <select
+          className="input-field"
+          value={query.partAuthenticity ?? ""}
+          onChange={(e) =>
+            setQuery((prev) => ({
+              ...prev,
+              partAuthenticity: (e.target.value || undefined) as PartsQueryState["partAuthenticity"]
+            }))
+          }
+        >
+          <option value="">Hamısı</option>
+          {PART_AUTHENTICITY_OPTIONS.map((item) => (
             <option key={item.value} value={item.value}>{item.label}</option>
           ))}
         </select>

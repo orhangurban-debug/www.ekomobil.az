@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { trackListingStat } from "@/lib/listing-stats-client";
 
 export function LeadCaptureForm({ listingId }: { listingId: string }) {
   const [form, setForm] = useState({ customerName: "", customerPhone: "", customerEmail: "", note: "" });
@@ -16,6 +17,7 @@ export function LeadCaptureForm({ listingId }: { listingId: string }) {
         body: JSON.stringify(form)
       });
       if (response.ok) {
+        void trackListingStat(listingId, "contact_click");
         setState("saved");
         setForm({ customerName: "", customerPhone: "", customerEmail: "", note: "" });
       } else {

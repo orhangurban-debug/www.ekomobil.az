@@ -10,7 +10,14 @@ export const PART_CATEGORIES = [
   "Salon və aksesuar",
   "Akkumulyator və enerji",
   "Soyutma və kondisioner",
-  "Transmissiya və debriyaj"
+  "Transmissiya və debriyaj",
+  "Səsboğucu və egzoz",
+  "Təhlükəsizlik sistemləri",
+  "Detailing və kimyəvi məhsullar",
+  "Alətlər və servis avadanlığı",
+  "12V/220V avto elektronika",
+  "Motosiklet və ATV hissələri",
+  "Universal məhsullar"
 ] as const;
 
 export const PART_SUBCATEGORIES_BY_CATEGORY: Record<string, string[]> = {
@@ -26,6 +33,14 @@ export const PART_SUBCATEGORIES_BY_CATEGORY: Record<string, string[]> = {
   "Akkumulyator və enerji": ["Akkumulyator", "Şarj cihazı", "Klem", "İnverter"],
   "Soyutma və kondisioner": ["Radiator", "Termostat", "Ventilyator", "Kondisioner kompressoru", "Freon komponentləri"],
   "Transmissiya və debriyaj": ["Sürət qutusu", "Debriyaj komplekti", "Şrus", "Diferensial", "Kardan"]
+  ,
+  "Səsboğucu və egzoz": ["Səsboğucu", "Katalizator", "Lambda sensoru", "Egzoz borusu", "Dəstək və asqılar"],
+  "Təhlükəsizlik sistemləri": ["Airbag", "Kəmər mexanizmi", "ABS/ESP modul", "Kamera və sensor", "İmmobilayzer"],
+  "Detailing və kimyəvi məhsullar": ["Yuma şampunu", "Polish", "Boya qoruyucu", "Salon təmizləyici", "Texniki maye"],
+  "Alətlər və servis avadanlığı": ["Diaqnostika cihazı", "Kompressor", "Domkrat", "Açar dəsti", "Servis stendi"],
+  "12V/220V avto elektronika": ["DVR", "Radar detektor", "Şarj adapteri", "LED lent", "GPS/Naviqasiya"],
+  "Motosiklet və ATV hissələri": ["Zəncir dəsti", "Təkər", "Filtr", "Əyləc", "Aksesuar"],
+  "Universal məhsullar": ["Bolt/qayka", "Bərkidici", "Universal filtr", "Universal aksesuar", "Digər"]
 };
 
 export const PART_BRANDS = [
@@ -39,5 +54,11 @@ export const PART_CONDITIONS: Array<{ value: "new" | "used" | "refurbished"; lab
   { value: "new", label: "Yeni" },
   { value: "used", label: "İşlənmiş" },
   { value: "refurbished", label: "Bərpa olunmuş" }
+];
+
+export const PART_AUTHENTICITY_OPTIONS: Array<{ value: "original" | "oem" | "aftermarket"; label: string }> = [
+  { value: "original", label: "Orijinal (OE)" },
+  { value: "oem", label: "OEM/Firma" },
+  { value: "aftermarket", label: "Aftermarket" }
 ];
 

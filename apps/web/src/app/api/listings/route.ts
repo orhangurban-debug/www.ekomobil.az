@@ -27,6 +27,7 @@ export async function GET(req: Request) {
     partSubcategory: searchParams.get("partSubcategory") || undefined,
     partBrand: searchParams.get("partBrand") || undefined,
     partCondition: (searchParams.get("partCondition") as "new" | "used" | "refurbished" | null) ?? undefined,
+    partAuthenticity: (searchParams.get("partAuthenticity") as "original" | "oem" | "aftermarket" | null) ?? undefined,
     inStock: searchParams.get("inStock") === "1" ? true : undefined,
     listingKind: (searchParams.get("listingKind") as ListingKind | null) ?? undefined,
     sort: (searchParams.get("sort") as
@@ -119,6 +120,7 @@ export async function POST(req: Request) {
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,
       partBrand: partPayload.partBrand?.trim() || undefined,
       partCondition: partPayload.partCondition || undefined,
+      partAuthenticity: partPayload.partAuthenticity || undefined,
       partOemCode: partPayload.partOemCode?.trim() || undefined,
       partSku: partPayload.partSku?.trim() || undefined,
       partQuantity: partPayload.partQuantity ?? 0,

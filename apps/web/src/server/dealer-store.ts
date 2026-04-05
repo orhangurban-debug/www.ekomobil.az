@@ -94,6 +94,7 @@ export async function getDealerDashboard(userId: string): Promise<{
       part_subcategory: string | null;
       part_brand: string | null;
       part_condition: "new" | "used" | "refurbished" | null;
+      part_authenticity: "original" | "oem" | "aftermarket" | null;
       part_oem_code: string | null;
       part_sku: string | null;
       part_quantity: number | null;
@@ -109,7 +110,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility, l.created_at, l.updated_at,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
         FROM listings l
@@ -157,6 +158,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         partSubcategory: row.part_subcategory ?? undefined,
         partBrand: row.part_brand ?? undefined,
         partCondition: row.part_condition ?? undefined,
+        partAuthenticity: row.part_authenticity ?? undefined,
         partOemCode: row.part_oem_code ?? undefined,
         partSku: row.part_sku ?? undefined,
         partQuantity: row.part_quantity ?? undefined,
@@ -357,6 +359,7 @@ export async function getPublicDealerProfile(
       dealer_profile_id: string | null; plan_type: string | null;
       listing_kind: string | null; part_category: string | null; part_subcategory: string | null;
       part_brand: string | null; part_condition: "new" | "used" | "refurbished" | null;
+      part_authenticity: "original" | "oem" | "aftermarket" | null;
       part_oem_code: string | null; part_sku: string | null; part_quantity: number | null;
       part_compatibility: string | null; created_at: Date; updated_at: Date;
       trust_score: number | null; vin_verified: boolean | null;
@@ -365,7 +368,7 @@ export async function getPublicDealerProfile(
       `SELECT l.id, l.title, l.description, l.price_azn, l.city, l.year,
               l.mileage_km, l.fuel_type, l.transmission, l.make, l.model,
               l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-              l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+              l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
               l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility, l.created_at, l.updated_at,
               ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
        FROM listings l
@@ -390,6 +393,7 @@ export async function getPublicDealerProfile(
       partSubcategory: r.part_subcategory ?? undefined,
       partBrand: r.part_brand ?? undefined,
       partCondition: r.part_condition ?? undefined,
+      partAuthenticity: r.part_authenticity ?? undefined,
       partOemCode: r.part_oem_code ?? undefined,
       partSku: r.part_sku ?? undefined,
       partQuantity: r.part_quantity ?? undefined,

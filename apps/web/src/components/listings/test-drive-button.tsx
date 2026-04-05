@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackListingStat } from "@/lib/listing-stats-client";
 
 export function TestDriveButton({ listingId }: { listingId: string }) {
   const router = useRouter();
@@ -37,7 +38,10 @@ export function TestDriveButton({ listingId }: { listingId: string }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          void trackListingStat(listingId, "test_drive_click");
+          setOpen(true);
+        }}
         className="btn-secondary w-full justify-center py-3"
       >
         Test sürüşü sifariş et

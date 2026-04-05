@@ -64,6 +64,7 @@ interface ListingRow {
   part_subcategory?: string | null;
   part_brand?: string | null;
   part_condition?: "new" | "used" | "refurbished" | null;
+  part_authenticity?: "original" | "oem" | "aftermarket" | null;
   part_oem_code?: string | null;
   part_sku?: string | null;
   part_quantity?: number | null;
@@ -111,6 +112,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     partSubcategory: row.part_subcategory ?? undefined,
     partBrand: row.part_brand ?? undefined,
     partCondition: row.part_condition ?? undefined,
+    partAuthenticity: row.part_authenticity ?? undefined,
     partOemCode: row.part_oem_code ?? undefined,
     partSku: row.part_sku ?? undefined,
     partQuantity: row.part_quantity ?? undefined,
@@ -164,6 +166,7 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   if (query.partSubcategory) result = result.filter((item) => item.partSubcategory === query.partSubcategory);
   if (query.partBrand) result = result.filter((item) => item.partBrand === query.partBrand);
   if (query.partCondition) result = result.filter((item) => item.partCondition === query.partCondition);
+  if (query.partAuthenticity) result = result.filter((item) => item.partAuthenticity === query.partAuthenticity);
   if (query.inStock) result = result.filter((item) => (item.partQuantity ?? 0) > 0);
   if (query.minMileage) result = result.filter((item) => item.mileageKm >= query.minMileage!);
   if (query.maxMileage) result = result.filter((item) => item.mileageKm <= query.maxMileage!);
@@ -294,6 +297,10 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       values.push(query.partCondition);
       where.push(`COALESCE(l.part_condition, '') = $${values.length}`);
     }
+    if (query.partAuthenticity) {
+      values.push(query.partAuthenticity);
+      where.push(`COALESCE(l.part_authenticity, '') = $${values.length}`);
+    }
     if (query.inStock) {
       where.push(`COALESCE(l.part_quantity, 0) > 0`);
     }
@@ -354,7 +361,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
@@ -404,7 +411,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
@@ -486,6 +493,7 @@ export async function createListingRecord(input: {
   partSubcategory?: string;
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
+  partAuthenticity?: "original" | "oem" | "aftermarket";
   partOemCode?: string;
   partSku?: string;
   partQuantity?: number;
@@ -517,9 +525,9 @@ export async function createListingRecord(input: {
         INSERT INTO listings (
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
           mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
-          part_category, part_subcategory, part_brand, part_condition, part_oem_code, part_sku, part_quantity, part_compatibility
+          part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
       `,
       [
         id,
@@ -545,6 +553,7 @@ export async function createListingRecord(input: {
         input.partSubcategory ?? null,
         input.partBrand ?? null,
         input.partCondition ?? null,
+        input.partAuthenticity ?? null,
         input.partOemCode ?? null,
         input.partSku ?? null,
         input.partQuantity ?? null,
@@ -594,7 +603,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
@@ -628,7 +637,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition,
-          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition,
+          l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
           (
@@ -677,6 +686,7 @@ export function createListingFallback(input: {
   partSubcategory?: string;
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
+  partAuthenticity?: "original" | "oem" | "aftermarket";
   partOemCode?: string;
   partSku?: string;
   partQuantity?: number;
@@ -703,6 +713,7 @@ export function createListingFallback(input: {
     partSubcategory: input.partSubcategory,
     partBrand: input.partBrand,
     partCondition: input.partCondition,
+    partAuthenticity: input.partAuthenticity,
     partOemCode: input.partOemCode,
     partSku: input.partSku,
     partQuantity: input.partQuantity,

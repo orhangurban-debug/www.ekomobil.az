@@ -5,6 +5,7 @@ export type PriceInsight = "below_market" | "market_rate" | "above_market";
 export type MileageFlagSeverity = "info" | "warning" | "high_risk";
 export type ListingKind = "vehicle" | "part";
 export type PartCondition = "new" | "used" | "refurbished";
+export type PartAuthenticity = "original" | "oem" | "aftermarket";
 
 export interface ListingRecord {
   id: string;
@@ -33,6 +34,7 @@ export interface ListingRecord {
   partSubcategory?: string;
   partBrand?: string;
   partCondition?: PartCondition;
+  partAuthenticity?: PartAuthenticity;
   partOemCode?: string;
   partSku?: string;
   partQuantity?: number;
@@ -104,6 +106,7 @@ export interface ListingQuery {
   partSubcategory?: string;
   partBrand?: string;
   partCondition?: PartCondition;
+  partAuthenticity?: PartAuthenticity;
   inStock?: boolean;
   compareIds?: string[];
   page?: number;

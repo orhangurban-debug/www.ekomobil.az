@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
+import { PART_AUTHENTICITY_OPTIONS, PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
 
 export default function PartsPublishPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function PartsPublishPage() {
   const [partName, setPartName] = useState("");
   const [partBrand, setPartBrand] = useState("");
   const [partCondition, setPartCondition] = useState<"new" | "used" | "refurbished">("new");
+  const [partAuthenticity, setPartAuthenticity] = useState<"original" | "oem" | "aftermarket">("oem");
   const [partOemCode, setPartOemCode] = useState("");
   const [partSku, setPartSku] = useState("");
   const [partQuantity, setPartQuantity] = useState<number | "">(1);
@@ -49,6 +50,7 @@ export default function PartsPublishPage() {
         partName: partName.trim(),
         partBrand: partBrand || undefined,
         partCondition,
+        partAuthenticity,
         partOemCode: partOemCode.trim() || undefined,
         partSku: partSku.trim() || undefined,
         partQuantity: Number(partQuantity || 0),
@@ -126,10 +128,18 @@ export default function PartsPublishPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Brend</label>
-            <select className="input-field" value={partBrand} onChange={(e) => setPartBrand(e.target.value)}>
+            <select className="input-field" value={partBrand} onChange={(e) => setPartBrand(e.target.value)} required>
               <option value="">Seçin</option>
               {PART_BRANDS.map((item) => (
                 <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Orijinallıq</label>
+            <select className="input-field" value={partAuthenticity} onChange={(e) => setPartAuthenticity(e.target.value as "original" | "oem" | "aftermarket")}>
+              {PART_AUTHENTICITY_OPTIONS.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
           </div>

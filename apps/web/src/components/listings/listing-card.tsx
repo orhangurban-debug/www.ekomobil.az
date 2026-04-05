@@ -24,6 +24,7 @@ export interface ListingCardData {
   partCategory?: string;
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
+  partAuthenticity?: "original" | "oem" | "aftermarket";
   partQuantity?: number;
   partOemCode?: string;
   partSku?: string;
@@ -169,6 +170,14 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
         : listing.partCondition === "refurbished"
           ? "Bərpa olunmuş"
           : null;
+  const partAuthenticityLabel =
+    listing.partAuthenticity === "original"
+      ? "Orijinal"
+      : listing.partAuthenticity === "oem"
+        ? "OEM/Firma"
+        : listing.partAuthenticity === "aftermarket"
+          ? "Aftermarket"
+          : null;
 
   return (
     <Link
@@ -222,6 +231,8 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
             {listing.partCategory && <span className="badge-neutral">{listing.partCategory}</span>}
             {listing.partBrand && <span>{listing.partBrand}</span>}
             {partConditionLabel && <span>{partConditionLabel}</span>}
+            {partAuthenticityLabel && <span>{partAuthenticityLabel}</span>}
+            {listing.partOemCode && <span className="font-mono">{listing.partOemCode}</span>}
             {listing.partQuantity !== undefined && (
               <span className={listing.partQuantity > 0 ? "text-emerald-600 font-medium" : "text-red-600 font-medium"}>
                 {listing.partQuantity > 0 ? `Stok: ${listing.partQuantity}` : "Stokda yoxdur"}

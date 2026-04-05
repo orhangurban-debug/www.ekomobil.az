@@ -16,6 +16,7 @@ export interface PartListingPublishInput {
   partName?: string;
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
+  partAuthenticity?: "original" | "oem" | "aftermarket";
   partOemCode?: string;
   partSku?: string;
   partQuantity?: number;
@@ -101,7 +102,9 @@ export function validatePartListingInput(input: PartListingPublishInput): Listin
   if (!city) errors.push("Şəhər tələb olunur.");
   if (!input?.partCategory?.trim()) errors.push("Kateqoriya tələb olunur.");
   if (!input?.partName?.trim()) errors.push("Məhsul adı tələb olunur.");
+  if (!input?.partBrand?.trim()) errors.push("Firma/Brend tələb olunur.");
   if (!input?.partCondition) errors.push("Məhsul vəziyyəti seçilməlidir.");
+  if (!input?.partAuthenticity) errors.push("Məhsulun orijinallıq növü seçilməlidir.");
   if (!input?.partOemCode?.trim() && !input?.partSku?.trim()) {
     errors.push("Ən azı OEM kodu və ya SKU daxil edilməlidir.");
   }
