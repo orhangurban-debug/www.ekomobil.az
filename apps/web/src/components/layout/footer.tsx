@@ -8,11 +8,13 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
           {/* Brand logo */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <img
-                src={logoUrl}
-                alt="EkoMobil loqosu"
-                className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm"
-              />
+              <span className="brand-logo-surface brand-logo-surface-soft">
+                <img
+                  src={logoUrl}
+                  alt="EkoMobil loqosu"
+                  className="h-10 w-auto rounded-md object-contain"
+                />
+              </span>
             </Link>
             <p className="mt-3 text-sm text-[#3E2F28]/80 leading-relaxed">
               Azərbaycanda etibar əsaslı avtomobil alqı-satqı platforması.

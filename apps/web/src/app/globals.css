@@ -37,6 +37,29 @@
 }
 
 @layer components {
+  .brand-logo-surface {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(8, 145, 178, 0.2);
+    padding: 0.125rem 0.25rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+
+  .brand-logo-surface-light {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .brand-logo-surface-soft {
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .brand-logo-surface-dark {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
   .btn-primary {
     display: inline-flex;
     align-items: center;
