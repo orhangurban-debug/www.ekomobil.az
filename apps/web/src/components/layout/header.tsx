@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
@@ -89,14 +88,9 @@ export function Header({
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brend loqo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <Image
+          <img
             src={logoUrl}
             alt="EkoMobil loqosu"
-            width={1024}
-            height={768}
-            priority
-            loader={({ src }) => src}
-            unoptimized
             className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm transition group-hover:border-[#0891B2]/40"
           />
         </Link>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function Footer({ logoUrl }: { logoUrl: string }) {
   return (
@@ -9,13 +8,9 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
           {/* Brand logo */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <Image
+              <img
                 src={logoUrl}
                 alt="EkoMobil loqosu"
-                width={1024}
-                height={768}
-                loader={({ src }) => src}
-                unoptimized
                 className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm"
               />
             </Link>
