@@ -5,6 +5,7 @@ Bu sənəd bank credential-ları gələnə qədər daxili hazırlıq işlərini 
 ## 1) Callback əlçatanlıq yoxlaması (tamamlanıb)
 
 - `https://ekomobil.az/api/payments/kapital-bank/callback` -> `400` (route işləyir, input gözləyir)
+- `https://ekomobil.az/api/payments/business-plan/callback` -> `400`
 - `https://ekomobil.az/api/payments/auction-deposit/callback` -> `400`
 - `https://ekomobil.az/api/payments/auction-service/callback` -> `400`
 - `https://ekomobil.az/api/payments/auction-preauth/callback` -> `400`

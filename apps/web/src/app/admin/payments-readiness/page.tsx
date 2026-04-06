@@ -53,6 +53,9 @@ export default async function AdminPaymentsReadinessPage() {
             <strong>Listing callback:</strong> <span className="font-mono">{readiness.callbackUrls.listingPlan}</span>
           </div>
           <div className="rounded-lg bg-slate-50 px-3 py-2">
+            <strong>Business plan callback:</strong> <span className="font-mono">{readiness.callbackUrls.businessPlan}</span>
+          </div>
+          <div className="rounded-lg bg-slate-50 px-3 py-2">
             <strong>Auction deposit callback:</strong> <span className="font-mono">{readiness.callbackUrls.auctionDeposit}</span>
           </div>
           <div className="rounded-lg bg-slate-50 px-3 py-2">

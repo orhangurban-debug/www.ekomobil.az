@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PART_AUTHENTICITY_OPTIONS, PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
+import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
 
 export default function PartsPublishPage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function PartsPublishPage() {
   const [partCompatibility, setPartCompatibility] = useState("");
   const [sellerType, setSellerType] = useState<"private" | "dealer">("dealer");
   const [mediaImageCount, setMediaImageCount] = useState<number | "">(4);
+  const [planType, setPlanType] = useState<PlanType>("free");
 
   const subcategories = useMemo(() => {
     if (!partCategory) return [];
@@ -56,6 +58,7 @@ export default function PartsPublishPage() {
         partQuantity: Number(partQuantity || 0),
         partCompatibility: partCompatibility.trim() || undefined,
         sellerType,
+        planType,
         sellerVerified: false,
         mediaProtocol: {
           imageCount: Number(mediaImageCount || 0),
@@ -72,9 +75,39 @@ export default function PartsPublishPage() {
       })
     });
 
-    const payload = (await response.json()) as { ok: boolean; id?: string; errors?: string[]; error?: string };
+    const payload = (await response.json()) as {
+      ok: boolean;
+      id?: string;
+      errors?: string[];
+      error?: string;
+      paymentRequired?: boolean;
+    };
     if (!response.ok || !payload.ok || !payload.id) {
       setError(payload.errors?.[0] || payload.error || "Hissə elanı yaradıla bilmədi.");
+      setSubmitting(false);
+      return;
+    }
+    if (payload.paymentRequired) {
+      const paymentResponse = await fetch("/api/payments/listing-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listingId: payload.id,
+          planType,
+          source: "publish"
+        })
+      });
+      const paymentPayload = (await paymentResponse.json()) as {
+        ok: boolean;
+        error?: string;
+        checkoutUrl?: string;
+      };
+      if (paymentPayload.ok && paymentPayload.checkoutUrl) {
+        router.push(paymentPayload.checkoutUrl);
+        router.refresh();
+        return;
+      }
+      setError(paymentPayload.error || "Ödəniş axını başladılmadı.");
       setSubmitting(false);
       return;
     }
@@ -200,6 +233,32 @@ export default function PartsPublishPage() {
             />
             <p className="mt-1 text-xs text-slate-400">Plan üzrə hissə elanlarında şəkil limiti 4-8 aralığındadır.</p>
           </div>
+        </div>
+
+        <div>
+          <label className="label">Elan planı</label>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {LISTING_PLANS.map((plan) => (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => setPlanType(plan.id)}
+                className={`rounded-lg border p-3 text-left ${
+                  planType === plan.id
+                    ? "border-[#0891B2] bg-[#0891B2]/5"
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
+                <p className="text-xs text-slate-500">
+                  {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼ / ${plan.durationDays} gün`}
+                </p>
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Paid plan seçiləndə elan əvvəl draft olaraq yaranır və ödənişdən sonra aktivləşir.
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

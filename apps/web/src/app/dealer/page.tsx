@@ -6,6 +6,8 @@ import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
 import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
 import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
+import { DEALER_PLANS } from "@/lib/dealer-plans";
+import { BusinessPlanCheckoutButton } from "@/components/business/business-plan-checkout-button";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -69,6 +71,7 @@ export default async function DealerPortalPage() {
   const avgResponse = dashboard.leads.length > 0
     ? Math.round(dashboard.leads.reduce((s, l) => s + (l.responseTimeMinutes ?? 0), 0) / dashboard.leads.length)
     : 0;
+  const availableDealerPlans = DEALER_PLANS.filter((plan) => plan.id !== dealerPlan.id);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -95,6 +98,34 @@ export default async function DealerPortalPage() {
       </div>
 
       {/* KPI cards */}
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">Salon abunə ödənişi</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Aylıq planınızı özünüz yeniləyə və ya yuxarı plana keçə bilərsiniz.
+            </p>
+          </div>
+          <Link href="/pricing#dealers" className="btn-secondary">Bütün planlar</Link>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {availableDealerPlans.map((plan) => (
+            <div key={plan.id} className="rounded-xl border border-slate-200 p-4">
+              <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
+              <p className="mt-1 text-xs text-slate-500">{plan.priceAzn} ₼ / ay</p>
+              <div className="mt-3">
+                <BusinessPlanCheckoutButton
+                  businessType="dealer"
+                  planId={plan.id}
+                  label={`${plan.nameAz} planını al`}
+                  className="btn-primary w-full justify-center"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
         {[
           { label: "Aktiv elan", value: totalActive, icon: "🚗" },

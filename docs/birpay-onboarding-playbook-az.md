@@ -24,6 +24,7 @@ Bu sənəd bank (BirPay/Kapital Bank) inteqrasiya prosesində texniki və əməl
   - `https://api.birpay.az`
 - Callback/Webhook URL-lər:
   - Listing callback
+  - Business plan callback
   - Auction deposit callback
   - Auction service callback
   - Preauth callback
@@ -35,7 +36,7 @@ Bu sənəd bank (BirPay/Kapital Bank) inteqrasiya prosesində texniki və əməl
 
 Banka göndərilən cədvəldə aşağıdakı sütunlar olmalıdır:
 
-- `channel` (listing_plan / auction_deposit / auction_service)
+- `channel` (listing_plan / business_plan / auction_deposit / auction_service)
 - `internalPaymentId`
 - `orderId`
 - `remoteOrderId` (varsa)
