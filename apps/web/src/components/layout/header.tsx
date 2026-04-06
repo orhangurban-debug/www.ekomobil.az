@@ -18,7 +18,15 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/favorites", label: "Favorilər" }
 ];
 
-export function Header({ userEmail, userRole }: { userEmail?: string; userRole?: string }) {
+export function Header({
+  userEmail,
+  userRole,
+  logoUrl
+}: {
+  userEmail?: string;
+  userRole?: string;
+  logoUrl: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,11 +90,13 @@ export function Header({ userEmail, userRole }: { userEmail?: string; userRole?:
         {/* Brend loqo */}
         <Link href="/" className="flex items-center gap-2 group">
           <Image
-            src="/brand/ekomobil-logo.png"
+            src={logoUrl}
             alt="EkoMobil loqosu"
             width={1024}
             height={768}
             priority
+            loader={({ src }) => src}
+            unoptimized
             className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm transition group-hover:border-[#0891B2]/40"
           />
         </Link>

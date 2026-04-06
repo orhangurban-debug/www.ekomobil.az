@@ -58,7 +58,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Link href="/admin/incidents" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Moderasiya</p>
           <h3 className="mt-2 font-bold text-slate-900">İnsident qutusu</h3>
@@ -73,6 +73,11 @@ export default async function AdminDashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">İdarəetmə</p>
           <h3 className="mt-2 font-bold text-slate-900">Admin audit xətti</h3>
           <p className="mt-1 text-sm text-slate-500">Kim nəyi nə vaxt dəyişdi izləmə jurnalı.</p>
+        </Link>
+        <Link href="/admin/brand-kit" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Brend idarəsi</p>
+          <h3 className="mt-2 font-bold text-slate-900">Brand Kit redaktoru</h3>
+          <p className="mt-1 text-sm text-slate-500">Loqo, rənglər və vizualları mərkəzdən dəyişin.</p>
         </Link>
       </div>
     </div>

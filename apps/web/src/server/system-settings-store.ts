@@ -1,11 +1,14 @@
 import type { SystemSettingsRow, PenaltyAmountsJson, AuctionPaymentMode } from "@/lib/auction-system-settings";
 import { DEFAULT_PENALTY_AMOUNTS } from "@/lib/auction-system-settings";
+import type { BrandSettings } from "@/lib/brand-settings";
+import { DEFAULT_BRAND_SETTINGS, parseBrandSettings } from "@/lib/brand-settings";
 import { getPgPool } from "@/lib/postgres";
 
 interface SystemSettingsDbRow {
   id: number;
   auction_mode: string;
   penalty_amounts: PenaltyAmountsJson;
+  brand_settings?: unknown;
   updated_at: Date;
 }
 
@@ -63,4 +66,32 @@ export async function updateSystemSettings(input: {
     penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts),
     updatedAt: row.updated_at.toISOString()
   };
+}
+
+export async function getBrandSettings(): Promise<BrandSettings> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ brand_settings: unknown }>(
+      `SELECT brand_settings FROM system_settings WHERE id = 1 LIMIT 1`
+    );
+    const raw = result.rows[0]?.brand_settings;
+    return parseBrandSettings(raw ?? DEFAULT_BRAND_SETTINGS);
+  } catch {
+    return { ...DEFAULT_BRAND_SETTINGS };
+  }
+}
+
+export async function updateBrandSettings(input: BrandSettings): Promise<BrandSettings> {
+  const pool = getPgPool();
+  const payload = parseBrandSettings(input);
+  const result = await pool.query<{ brand_settings: unknown }>(
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, brand_settings, updated_at)
+     VALUES (1, 'BETA_FIN_ONLY', '{"vehicle":80,"part":15}'::jsonb, $1::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       brand_settings = EXCLUDED.brand_settings,
+       updated_at = NOW()
+     RETURNING brand_settings`,
+    [JSON.stringify(payload)]
+  );
+  return parseBrandSettings(result.rows[0]?.brand_settings ?? payload);
 }

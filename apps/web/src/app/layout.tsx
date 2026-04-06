@@ -1,12 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { ReactNode } from "react";
+import { type CSSProperties, ReactNode } from "react";
 import { AiChatPanel } from "@/components/ai/ai-chat-panel";
 import { CompareBar } from "@/components/compare/compare-bar";
 import { CompareProvider } from "@/components/compare/compare-context";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getServerSessionUser } from "@/lib/auth";
+import { getBrandSettings } from "@/server/system-settings-store";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://ekomobil.az";
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
@@ -57,27 +58,46 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const user = await getServerSessionUser();
+  const [user, brand] = await Promise.all([getServerSessionUser(), getBrandSettings()]);
+  const absoluteLogoUrl = brand.logoUrl.startsWith("http")
+    ? brand.logoUrl
+    : `${APP_URL}${brand.logoUrl.startsWith("/") ? "" : "/"}${brand.logoUrl}`;
+  const absoluteFaviconUrl = brand.faviconUrl.startsWith("http")
+    ? brand.faviconUrl
+    : `${APP_URL}${brand.faviconUrl.startsWith("/") ? "" : "/"}${brand.faviconUrl}`;
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "EkoMobil",
     url: APP_URL,
-    logo: `${APP_URL}/brand/ekomobil-logo.png`,
+    logo: absoluteLogoUrl,
     sameAs: []
   };
+  const dynamicThemeVars = {
+    "--color-ocean-teal-500": brand.primaryColor,
+    "--color-ocean-teal-600": brand.primaryHoverColor,
+    "--color-brand-500": brand.primaryColor,
+    "--color-brand-600": brand.primaryColor,
+    "--color-brand-700": brand.primaryHoverColor,
+    "--color-deep-base": brand.deepBaseColor,
+    "--color-soft-brown": brand.softBrownColor,
+    "--color-page-canvas": brand.canvasColor
+  } as CSSProperties;
 
   return (
     <html lang="az">
-      <body className="min-h-screen flex flex-col">
+      <head>
+        <link rel="icon" href={absoluteFaviconUrl} />
+      </head>
+      <body className="min-h-screen flex flex-col" style={dynamicThemeVars}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
         <CompareProvider>
-          <Header userEmail={user?.email} userRole={user?.role} />
+          <Header userEmail={user?.email} userRole={user?.role} logoUrl={brand.logoUrl} />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer logoUrl={brand.logoUrl} />
           <CompareBar />
           <AiChatPanel />
         </CompareProvider>

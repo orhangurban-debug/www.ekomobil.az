@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export function Footer() {
+export function Footer({ logoUrl }: { logoUrl: string }) {
   return (
     <footer className="mt-24 bg-[#E5D3B3] border-t border-[#d4c4a8]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -10,10 +10,12 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/brand/ekomobil-logo.png"
+                src={logoUrl}
                 alt="EkoMobil loqosu"
                 width={1024}
                 height={768}
+                loader={({ src }) => src}
+                unoptimized
                 className="h-10 w-auto rounded-md border border-[#0891B2]/20 shadow-sm"
               />
             </Link>
