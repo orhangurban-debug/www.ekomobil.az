@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
-import { finalizeAuctionDeposit, getAuctionDeposit } from "@/server/auction-payment-store";
+import {
+  finalizeAuctionDeposit,
+  getAuctionDeposit,
+  getAuctionDepositByRemoteOrderId
+} from "@/server/auction-payment-store";
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
-import { resolveKapitalBankPaymentStatus } from "@/server/payments/kapital-bank-callback";
+import {
+  resolveKapitalBankPaymentStatus,
+  verifyKapitalBankWebhookSignature
+} from "@/server/payments/kapital-bank-callback";
 import { getAuctionListing } from "@/server/auction-store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const depositId = url.searchParams.get("depositId");
-  if (!depositId) {
+  const incomingId = url.searchParams.get("depositId");
+  if (!incomingId) {
     return NextResponse.json({ ok: false, error: "depositId tələb olunur" }, { status: 400 });
   }
-  const deposit = await getAuctionDeposit(depositId);
+  const deposit = (await getAuctionDeposit(incomingId))
+    ?? (await getAuctionDepositByRemoteOrderId(incomingId));
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
   }
@@ -25,7 +33,7 @@ export async function GET(req: Request) {
   }
 
   const result = await finalizeAuctionDeposit({
-    depositId,
+    depositId: deposit.id,
     status: resolved.status,
     paymentReference: resolved.providerReference ?? url.searchParams.get("reference") ?? undefined
   });
@@ -44,7 +52,7 @@ export async function GET(req: Request) {
     }).catch(() => undefined);
   }
 
-  const redirectUrl = new URL(`/payments/auction-deposit/${depositId}`, req.url);
+  const redirectUrl = new URL(`/payments/auction-deposit/${deposit.id}`, req.url);
   if (result.deposit?.status === "held") {
     redirectUrl.searchParams.set("status", "success");
   }
@@ -52,23 +60,44 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as {
+  const raw = await req.text();
+  let parsed: unknown = {};
+  if (raw.trim().length > 0) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {};
+    }
+  }
+  const body = parsed as {
     depositId?: string;
     status?: string;
     reference?: string;
     signature?: string;
+    id?: string;
+    payload?: { id?: string; status?: string };
   };
-  if (!body.depositId) {
+  const incomingId = body.depositId ?? body.id ?? body.payload?.id ?? null;
+  if (!incomingId) {
     return NextResponse.json({ ok: false, error: "depositId tələb olunur" }, { status: 400 });
   }
-  const deposit = await getAuctionDeposit(body.depositId);
+  const deposit = (await getAuctionDeposit(incomingId))
+    ?? (await getAuctionDepositByRemoteOrderId(incomingId));
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
+  }
+  const verify = verifyKapitalBankWebhookSignature({
+    rawBody: raw,
+    signature: req.headers.get("x-signature") ?? body.signature,
+    providerPayload: deposit.providerPayload
+  });
+  if (!verify.ok) {
+    return NextResponse.json({ ok: false, error: verify.reason ?? "Webhook imzası keçərsizdir" }, { status: 401 });
   }
   let resolved;
   try {
     resolved = await resolveKapitalBankPaymentStatus({
-      fallbackStatus: body.status ?? null,
+      fallbackStatus: body.status ?? body.payload?.status ?? null,
       providerPayload: deposit.providerPayload
     });
   } catch {
@@ -76,9 +105,9 @@ export async function POST(req: Request) {
   }
 
   const result = await finalizeAuctionDeposit({
-    depositId: body.depositId,
+    depositId: deposit.id,
     status: resolved.status,
-    paymentReference: resolved.providerReference ?? body.reference
+    paymentReference: resolved.providerReference ?? body.reference ?? body.payload?.id
   });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });

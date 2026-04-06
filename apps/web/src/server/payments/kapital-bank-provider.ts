@@ -3,9 +3,11 @@ import {
   getKapitalBankApiBaseUrl,
   getKapitalBankAppUrl,
   getKapitalBankConfig,
+  isBirPayApiBaseUrl,
   isKapitalBankLiveReady
 } from "@/lib/kapital-bank";
 import type { PaymentCheckoutStrategy, PaymentProviderPayload } from "@/lib/payments";
+import { createBirPayPayment, getBirPayPayment } from "@/server/payments/birpay-client";
 
 interface BuildKapitalBankSessionInput {
   internalPaymentId: string;
@@ -100,6 +102,37 @@ export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankS
     return session;
   }
 
+  if (isBirPayApiBaseUrl(config)) {
+    const birpay = await createBirPayPayment({
+      merchantOrderId: input.internalPaymentId,
+      amountAzn: input.amountAzn,
+      description: input.description,
+      callbackUrl: session.payload.callbackUrl,
+      successUrl: session.payload.successUrl,
+      cancelUrl: session.payload.cancelUrl
+    });
+    const payloadWithoutDigest: Omit<PaymentProviderPayload, "requestDigest"> = {
+      ...session.payload,
+      remoteOrderId: birpay.paymentId,
+      paymentPageUrl: birpay.confirmationUrl,
+      providerHost: getKapitalBankApiBaseUrl(config),
+      notes: [
+        "BirPay V1.4 payment yaradıldı.",
+        "Hosted redirect URL real BirPay confirmation URL-dir."
+      ]
+    };
+    const payload: PaymentProviderPayload = {
+      ...payloadWithoutDigest,
+      requestDigest: buildRequestDigest(payloadWithoutDigest)
+    };
+    return {
+      checkoutUrl: birpay.confirmationUrl,
+      checkoutStrategy: "hosted_redirect_pending",
+      providerMode: "live",
+      payload
+    };
+  }
+
   const response = await fetch(`${getKapitalBankApiBaseUrl(config)}/api/order`, {
     method: "POST",
     headers: {
@@ -167,6 +200,9 @@ export async function getKapitalBankOrderStatus(input: {
   remoteOrderPassword: string;
 }): Promise<{ status: string; raw: unknown }> {
   const config = getKapitalBankConfig();
+  if (isBirPayApiBaseUrl(config)) {
+    return getBirPayPayment(input.remoteOrderId);
+  }
   const url = `${getKapitalBankApiBaseUrl(config)}/api/order/${encodeURIComponent(input.remoteOrderId)}?password=${encodeURIComponent(input.remoteOrderPassword)}`;
   const response = await fetch(url, {
     method: "GET",

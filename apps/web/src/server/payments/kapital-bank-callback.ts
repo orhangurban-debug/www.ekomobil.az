@@ -10,6 +10,30 @@ export function toKapitalBankInternalStatus(status: string | null): "succeeded" 
 }
 
 export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed" | "cancelled" {
+  const normalized = status.trim().toLowerCase();
+  switch (normalized) {
+    case "succeeded":
+    case "success":
+    case "paid":
+    case "captured":
+    case "authorized":
+    case "fullypaid":
+    case "closed":
+      return "succeeded";
+    case "cancelled":
+    case "canceled":
+    case "cancel":
+    case "refused":
+    case "expired":
+      return "cancelled";
+    case "pending":
+    case "processing":
+    case "created":
+    case "new":
+      return "failed";
+    default:
+      break;
+  }
   switch (status) {
     case "FullyPaid":
     case "Closed":
@@ -84,6 +108,42 @@ export function verifyKapitalBankCallbackPlaceholder(): { ok: true; mode: "place
   return { ok: true, mode: "placeholder" };
 }
 
+function toBase64(signature: string): Buffer {
+  return Buffer.from(signature.replace(/^sha256=/i, "").trim(), "base64");
+}
+
+function toHex(signature: string): Buffer {
+  return Buffer.from(signature.trim(), "hex");
+}
+
+function isBirPayPayload(payload?: PaymentProviderPayload): boolean {
+  return Boolean(payload?.providerHost?.toLowerCase().includes("birpay.az"));
+}
+
+export function verifyKapitalBankWebhookSignature(input: {
+  rawBody: string;
+  signature: string | null | undefined;
+  providerPayload?: PaymentProviderPayload;
+}): { ok: boolean; reason?: string } {
+  if (!isBirPayPayload(input.providerPayload) || input.providerPayload?.mode !== "live") {
+    return { ok: true };
+  }
+  const secret = process.env.KAPITAL_BANK_SECRET;
+  if (!secret) return { ok: false, reason: "KAPITAL_BANK_SECRET konfiqurasiya edilməyib" };
+  if (!input.signature) return { ok: false, reason: "Webhook imzası yoxdur" };
+  const expected = createHmac("sha256", secret).update(input.rawBody, "utf8").digest();
+  try {
+    const candidate = input.signature.includes("=") || input.signature.includes("/")
+      ? toBase64(input.signature)
+      : toHex(input.signature);
+    if (candidate.length !== expected.length) return { ok: false, reason: "Webhook imzası keçərsizdir" };
+    if (!timingSafeEqual(candidate, expected)) return { ok: false, reason: "Webhook imzası keçərsizdir" };
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "Webhook imzası keçərsizdir" };
+  }
+}
+
 export async function resolveKapitalBankPaymentStatus(input: {
   fallbackStatus?: string | null;
   providerPayload?: PaymentProviderPayload;
@@ -98,12 +158,15 @@ export async function resolveKapitalBankPaymentStatus(input: {
 
   // In live mode we must resolve from the bank-side order state.
   // Accepting callback-provided fallback statuses in live mode is unsafe.
-  if (providerMode === "live" && (!remoteOrderId || !remoteOrderPassword)) {
+  if (providerMode === "live" && !remoteOrderId) {
     throw new Error("Live rejimdə bank sifariş identifikatoru tapılmadı");
   }
 
-  if (remoteOrderId && remoteOrderPassword) {
-    const remote = await getKapitalBankOrderStatus({ remoteOrderId, remoteOrderPassword });
+  if (remoteOrderId) {
+    const remote = await getKapitalBankOrderStatus({
+      remoteOrderId,
+      remoteOrderPassword: remoteOrderPassword ?? ""
+    });
     return {
       status: mapKapitalBankOrderStatus(remote.status),
       providerReference: remoteOrderId,

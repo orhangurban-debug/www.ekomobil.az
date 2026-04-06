@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
-import { finalizeAuctionServicePayment, getAuctionServicePayment } from "@/server/auction-payment-store";
+import {
+  finalizeAuctionServicePayment,
+  getAuctionServicePayment,
+  getAuctionServicePaymentByRemoteOrderId
+} from "@/server/auction-payment-store";
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
-import { resolveKapitalBankPaymentStatus } from "@/server/payments/kapital-bank-callback";
+import {
+  resolveKapitalBankPaymentStatus,
+  verifyKapitalBankWebhookSignature
+} from "@/server/payments/kapital-bank-callback";
 import { getAuctionListing } from "@/server/auction-store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const paymentId = url.searchParams.get("paymentId");
-  if (!paymentId) {
+  const incomingId = url.searchParams.get("paymentId");
+  if (!incomingId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
-  const payment = await getAuctionServicePayment(paymentId);
+  const payment = (await getAuctionServicePayment(incomingId))
+    ?? (await getAuctionServicePaymentByRemoteOrderId(incomingId));
   if (!payment) {
     return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
   }
@@ -25,7 +33,7 @@ export async function GET(req: Request) {
   }
 
   const result = await finalizeAuctionServicePayment({
-    paymentId,
+    paymentId: payment.id,
     status: resolved.status,
     paymentReference: resolved.providerReference ?? url.searchParams.get("reference") ?? undefined
   });
@@ -48,7 +56,7 @@ export async function GET(req: Request) {
     }).catch(() => undefined);
   }
 
-  const redirectUrl = new URL(`/payments/auction-service/${paymentId}`, req.url);
+  const redirectUrl = new URL(`/payments/auction-service/${payment.id}`, req.url);
   if (result.payment?.status === "succeeded") {
     redirectUrl.searchParams.set("status", "success");
   }
@@ -56,23 +64,44 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as {
+  const raw = await req.text();
+  let parsed: unknown = {};
+  if (raw.trim().length > 0) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {};
+    }
+  }
+  const body = parsed as {
     paymentId?: string;
     status?: string;
     reference?: string;
     signature?: string;
+    id?: string;
+    payload?: { id?: string; status?: string };
   };
-  if (!body.paymentId) {
+  const incomingId = body.paymentId ?? body.id ?? body.payload?.id ?? null;
+  if (!incomingId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
-  const payment = await getAuctionServicePayment(body.paymentId);
+  const payment = (await getAuctionServicePayment(incomingId))
+    ?? (await getAuctionServicePaymentByRemoteOrderId(incomingId));
   if (!payment) {
     return NextResponse.json({ ok: false, error: "Ödəniş tapılmadı" }, { status: 404 });
+  }
+  const verify = verifyKapitalBankWebhookSignature({
+    rawBody: raw,
+    signature: req.headers.get("x-signature") ?? body.signature,
+    providerPayload: payment.providerPayload
+  });
+  if (!verify.ok) {
+    return NextResponse.json({ ok: false, error: verify.reason ?? "Webhook imzası keçərsizdir" }, { status: 401 });
   }
   let resolved;
   try {
     resolved = await resolveKapitalBankPaymentStatus({
-      fallbackStatus: body.status ?? null,
+      fallbackStatus: body.status ?? body.payload?.status ?? null,
       providerPayload: payment.providerPayload
     });
   } catch {
@@ -80,9 +109,9 @@ export async function POST(req: Request) {
   }
 
   const result = await finalizeAuctionServicePayment({
-    paymentId: body.paymentId,
+    paymentId: payment.id,
     status: resolved.status,
-    paymentReference: resolved.providerReference ?? body.reference
+    paymentReference: resolved.providerReference ?? body.reference ?? body.payload?.id
   });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });

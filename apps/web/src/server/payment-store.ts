@@ -146,6 +146,30 @@ export async function getListingPlanPayment(paymentId: string): Promise<ListingP
   }
 }
 
+export async function getListingPlanPaymentByRemoteOrderId(remoteOrderId: string): Promise<ListingPlanPaymentRecord | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<PaymentRow>(
+      `SELECT *
+       FROM listing_plan_payments
+       WHERE provider_reference = $1
+          OR provider_payload->>'remoteOrderId' = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [remoteOrderId]
+    );
+    return result.rows[0] ? mapRow(result.rows[0]) : null;
+  } catch {
+    return (
+      getCreatedPayments().find(
+        (item) =>
+          item.providerReference === remoteOrderId ||
+          item.providerPayload?.remoteOrderId === remoteOrderId
+      ) ?? null
+    );
+  }
+}
+
 async function setListingPlanPaymentStatus(
   paymentId: string,
   status: ListingPlanPaymentStatus,

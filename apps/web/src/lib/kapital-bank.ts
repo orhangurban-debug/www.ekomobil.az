@@ -42,6 +42,11 @@ export function getKapitalBankApiBaseUrl(config = getKapitalBankConfig()): strin
   return (config.apiBaseUrl?.replace(/\/$/, "") || "https://e-commerce.kapitalbank.az");
 }
 
+export function isBirPayApiBaseUrl(config = getKapitalBankConfig()): boolean {
+  const base = getKapitalBankApiBaseUrl(config).toLowerCase();
+  return base.includes("birpay.az");
+}
+
 export function getKapitalBankAppUrl(pathname: string, config = getKapitalBankConfig()): string {
   const baseUrl = config.publicBaseUrl?.replace(/\/$/, "");
   const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;

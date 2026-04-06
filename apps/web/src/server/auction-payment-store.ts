@@ -263,6 +263,29 @@ export async function getAuctionServicePayment(paymentId: string): Promise<Aucti
   }
 }
 
+export async function getAuctionServicePaymentByRemoteOrderId(remoteOrderId: string): Promise<AuctionFinancialEventRecord | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<AuctionFinancialEventRow>(
+      `SELECT *
+       FROM auction_financial_events
+       WHERE payment_reference = $1
+          OR provider_payload->>'remoteOrderId' = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [remoteOrderId]
+    );
+    return result.rows[0] ? mapFinancialEventRow(result.rows[0]) : null;
+  } catch (error) {
+    assertAuctionMemoryFallbackAllowed(error);
+    return (
+      getAuctionFinancialEventsMemory().find(
+        (item) => item.paymentReference === remoteOrderId || item.providerPayload?.remoteOrderId === remoteOrderId
+      ) ?? null
+    );
+  }
+}
+
 export async function finalizeAuctionServicePayment(input: {
   paymentId: string;
   status: "succeeded" | "failed" | "cancelled";
@@ -526,6 +549,29 @@ export async function getAuctionDeposit(depositId: string): Promise<AuctionDepos
   } catch (error) {
     assertAuctionMemoryFallbackAllowed(error);
     return getAuctionDepositsMemory().find((item) => item.id === depositId) ?? null;
+  }
+}
+
+export async function getAuctionDepositByRemoteOrderId(remoteOrderId: string): Promise<AuctionDepositRecord | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<AuctionDepositRow>(
+      `SELECT *
+       FROM auction_deposits
+       WHERE payment_reference = $1
+          OR provider_payload->>'remoteOrderId' = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [remoteOrderId]
+    );
+    return result.rows[0] ? mapDepositRow(result.rows[0]) : null;
+  } catch (error) {
+    assertAuctionMemoryFallbackAllowed(error);
+    return (
+      getAuctionDepositsMemory().find(
+        (item) => item.paymentReference === remoteOrderId || item.providerPayload?.remoteOrderId === remoteOrderId
+      ) ?? null
+    );
   }
 }
 

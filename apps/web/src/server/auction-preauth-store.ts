@@ -75,6 +75,24 @@ export async function getAuctionPreauth(preauthId: string): Promise<AuctionPreau
   return result.rows[0] ? mapPreauthRow(result.rows[0]) : null;
 }
 
+export async function getAuctionPreauthByRemoteOrderId(remoteOrderId: string): Promise<AuctionPreauthRecord | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<AuctionPreauthRow>(
+      `SELECT *
+       FROM auction_preauth_transactions
+       WHERE payment_reference = $1
+          OR provider_payload->>'remoteOrderId' = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [remoteOrderId]
+    );
+    return result.rows[0] ? mapPreauthRow(result.rows[0]) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listHeldPreauthForAuction(auctionId: string): Promise<
   Array<{ id: string; userId: string; amountAzn: number }>
 > {

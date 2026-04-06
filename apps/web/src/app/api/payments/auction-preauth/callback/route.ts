@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
-import { finalizeAuctionPreauth, getAuctionPreauth } from "@/server/auction-preauth-store";
 import {
-  resolveKapitalBankPaymentStatus
+  finalizeAuctionPreauth,
+  getAuctionPreauth,
+  getAuctionPreauthByRemoteOrderId
+} from "@/server/auction-preauth-store";
+import {
+  resolveKapitalBankPaymentStatus,
+  verifyKapitalBankWebhookSignature
 } from "@/server/payments/kapital-bank-callback";
 
 async function handle(preauthId: string, status: string | null, reference?: string | null) {
-  const preauth = await getAuctionPreauth(preauthId);
+  const preauth = (await getAuctionPreauth(preauthId))
+    ?? (await getAuctionPreauthByRemoteOrderId(preauthId));
   if (!preauth) {
     return { ok: false as const, statusCode: 404, body: { ok: false, error: "Pre-auth tapılmadı" } };
   }
@@ -52,17 +58,42 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as {
+  const raw = await req.text();
+  let parsed: unknown = {};
+  if (raw.trim().length > 0) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {};
+    }
+  }
+  const body = parsed as {
     preauthId?: string;
     status?: string;
     reference?: string;
     signature?: string;
+    id?: string;
+    payload?: { id?: string; status?: string };
   };
-  if (!body.preauthId) {
+  const incomingId = body.preauthId ?? body.id ?? body.payload?.id ?? null;
+  if (!incomingId) {
     return NextResponse.json({ ok: false, error: "preauthId tələb olunur" }, { status: 400 });
   }
+  const preauth = (await getAuctionPreauth(incomingId))
+    ?? (await getAuctionPreauthByRemoteOrderId(incomingId));
+  if (!preauth) {
+    return NextResponse.json({ ok: false, error: "Pre-auth tapılmadı" }, { status: 404 });
+  }
+  const verify = verifyKapitalBankWebhookSignature({
+    rawBody: raw,
+    signature: req.headers.get("x-signature") ?? body.signature,
+    providerPayload: preauth.providerPayload
+  });
+  if (!verify.ok) {
+    return NextResponse.json({ ok: false, error: verify.reason ?? "Webhook imzası keçərsizdir" }, { status: 401 });
+  }
 
-  const result = await handle(body.preauthId, body.status ?? null, body.reference);
+  const result = await handle(preauth.id, body.status ?? body.payload?.status ?? null, body.reference ?? body.payload?.id);
   if (!result.ok) {
     return NextResponse.json(result.body, { status: result.statusCode });
   }
