@@ -42,12 +42,16 @@ async function handle(preauthId: string, status: string | null, reference?: stri
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const preauthId = url.searchParams.get("preauthId");
+  const preauthId = url.searchParams.get("preauthId") ?? url.searchParams.get("ID");
   if (!preauthId) {
     return NextResponse.json({ ok: false, error: "preauthId tələb olunur" }, { status: 400 });
   }
 
-  const result = await handle(preauthId, url.searchParams.get("status"), url.searchParams.get("reference"));
+  const result = await handle(
+    preauthId,
+    url.searchParams.get("status") ?? url.searchParams.get("STATUS"),
+    url.searchParams.get("reference") ?? url.searchParams.get("ID")
+  );
   if (!result.ok) {
     return NextResponse.json(result.body, { status: result.statusCode });
   }

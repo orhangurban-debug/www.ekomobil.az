@@ -121,6 +121,7 @@ export async function createPendingPreauthHold(input: {
     internalPaymentId: id,
     amountAzn: input.amountAzn,
     description: "Auction bidder pre-auth",
+    orderTypeRid: "Order_DMS",
     checkoutPagePath: `/payments/auction-preauth/${id}`,
     callbackPath: "/api/payments/auction-preauth/callback",
     successPath: `/payments/auction-preauth/${id}?status=success`,

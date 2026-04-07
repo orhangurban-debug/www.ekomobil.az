@@ -11,7 +11,7 @@ import {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const incomingId = url.searchParams.get("paymentId");
+  const incomingId = url.searchParams.get("paymentId") ?? url.searchParams.get("ID");
   if (!incomingId) {
     return NextResponse.json({ ok: false, error: "paymentId tələb olunur" }, { status: 400 });
   }
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   let resolved;
   try {
     resolved = await resolveKapitalBankPaymentStatus({
-      fallbackStatus: url.searchParams.get("status"),
+      fallbackStatus: url.searchParams.get("status") ?? url.searchParams.get("STATUS"),
       providerPayload: payment.providerPayload
     });
   } catch {
@@ -35,7 +35,11 @@ export async function GET(req: Request) {
   const result = await finalizeBusinessPlanPayment({
     paymentId: payment.id,
     status: resolved.status,
-    providerReference: resolved.providerReference ?? url.searchParams.get("reference") ?? undefined
+    providerReference:
+      resolved.providerReference ??
+      url.searchParams.get("reference") ??
+      url.searchParams.get("ID") ??
+      undefined
   });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });

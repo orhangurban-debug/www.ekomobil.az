@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getKapitalBankConfig, getKapitalBankStatusLabel, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getPlanById } from "@/lib/listing-plans";
 import { getListingPlanPayment } from "@/server/payment-store";
@@ -19,6 +19,14 @@ export default async function ListingPlanPaymentPage({
   const config = getKapitalBankConfig();
   const plan = getPlanById(payment.planType);
   const isLiveReady = isKapitalBankLiveReady(config);
+  const hostedPaymentUrl =
+    !query.status && payment.status === "redirect_ready"
+      ? payment.providerPayload?.paymentPageUrl
+      : undefined;
+
+  if (hostedPaymentUrl) {
+    redirect(hostedPaymentUrl);
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">

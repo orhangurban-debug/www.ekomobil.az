@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getAuctionDeposit } from "@/server/auction-payment-store";
 import { signInternalCallback } from "@/server/payments/kapital-bank-callback";
@@ -28,9 +28,17 @@ export default async function AuctionDepositPage({
 
   const config = getKapitalBankConfig();
   const isLiveReady = isKapitalBankLiveReady(config);
+  const hostedPaymentUrl =
+    !query.status && deposit.status === "redirect_ready"
+      ? deposit.providerPayload?.paymentPageUrl
+      : undefined;
 
   const mockSuccessSig = signInternalCallback(deposit.id, "succeeded");
   const mockFailSig = signInternalCallback(deposit.id, "failed");
+
+  if (hostedPaymentUrl) {
+    redirect(hostedPaymentUrl);
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">

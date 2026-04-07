@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getAuctionServicePayment } from "@/server/auction-payment-store";
 import { signInternalCallback } from "@/server/payments/kapital-bank-callback";
@@ -39,10 +39,18 @@ export default async function AuctionServicePaymentPage({
 
   const config = getKapitalBankConfig();
   const isLiveReady = isKapitalBankLiveReady(config);
+  const hostedPaymentUrl =
+    !query.status && payment.status === "redirect_ready"
+      ? payment.providerPayload?.paymentPageUrl
+      : undefined;
 
   // Pre-compute signed mock tokens server-side (never expose in client JS)
   const mockSuccessSig = signInternalCallback(payment.id, "succeeded");
   const mockFailSig = signInternalCallback(payment.id, "failed");
+
+  if (hostedPaymentUrl) {
+    redirect(hostedPaymentUrl);
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">

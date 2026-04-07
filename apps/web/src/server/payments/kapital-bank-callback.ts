@@ -3,14 +3,14 @@ import type { PaymentProviderPayload } from "@/lib/payments";
 import { getKapitalBankOrderStatus } from "@/server/payments/kapital-bank-provider";
 
 export function toKapitalBankInternalStatus(status: string | null): "succeeded" | "failed" | "cancelled" {
-  const normalized = status?.toLowerCase();
+  const normalized = status?.toLowerCase().replace(/\s+/g, "");
   if (normalized === "ok" || normalized === "success" || normalized === "succeeded") return "succeeded";
   if (normalized === "cancel" || normalized === "cancelled") return "cancelled";
   return "failed";
 }
 
 export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed" | "cancelled" {
-  const normalized = status.trim().toLowerCase();
+  const normalized = status.trim().toLowerCase().replace(/\s+/g, "");
   switch (normalized) {
     case "succeeded":
     case "success":
@@ -18,18 +18,26 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "captured":
     case "authorized":
     case "fullypaid":
+    case "fullypaid.":
     case "closed":
+    case "partiallypaid":
       return "succeeded";
     case "cancelled":
     case "canceled":
     case "cancel":
+    case "rejected":
+    case "refused":
+    case "declined":
     case "refused":
     case "expired":
+    case "voided":
+    case "refunded":
       return "cancelled";
     case "pending":
     case "processing":
     case "created":
     case "new":
+    case "beingprepared":
       return "failed";
     default:
       break;
@@ -38,10 +46,15 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "FullyPaid":
     case "Closed":
     case "Authorized":
+    case "Partially paid":
+    case "Fully paid":
       return "succeeded";
     case "Cancelled":
+    case "Rejected":
     case "Refused":
     case "Expired":
+    case "Voided":
+    case "Refunded":
       return "cancelled";
     default:
       return "failed";

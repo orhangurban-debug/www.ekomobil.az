@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   getKapitalBankApiBaseUrl,
+  getKapitalBankApiRoot,
   getKapitalBankAppUrl,
   getKapitalBankConfig,
   isBirPayApiBaseUrl,
@@ -17,6 +18,8 @@ interface BuildKapitalBankSessionInput {
   callbackPath: string;
   successPath?: string;
   cancelPath?: string;
+  orderTypeRid?: "Order_SMS" | "Order_DMS";
+  title?: string;
 }
 
 export interface KapitalBankCheckoutSession {
@@ -55,6 +58,7 @@ export function buildKapitalBankCheckoutSession(input: BuildKapitalBankSessionIn
   const payloadBase: Omit<PaymentProviderPayload, "requestDigest"> = {
     providerPaymentId: input.internalPaymentId,
     orderId,
+    orderTypeRid: input.orderTypeRid ?? "Order_SMS",
     mode,
     amountAzn: input.amountAzn,
     amountMinor: toMinorUnits(input.amountAzn),
@@ -91,7 +95,9 @@ export function buildKapitalBankCheckoutSession(input: BuildKapitalBankSessionIn
 }
 
 function getBasicAuthHeader(config = getKapitalBankConfig()): string {
-  const login = `${config.terminalId}/${config.username}`;
+  const login = config.username?.includes("/")
+    ? config.username
+    : `${config.terminalId}/${config.username}`;
   return `Basic ${Buffer.from(`${login}:${config.password ?? ""}`, "utf8").toString("base64")}`;
 }
 
@@ -133,7 +139,7 @@ export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankS
     };
   }
 
-  const response = await fetch(`${getKapitalBankApiBaseUrl(config)}/api/order`, {
+  const response = await fetch(`${getKapitalBankApiRoot(config)}/order`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -141,12 +147,14 @@ export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankS
     },
     body: JSON.stringify({
       order: {
-        typeRid: "Order_SMS",
+        typeRid: input.orderTypeRid ?? "Order_SMS",
         amount: input.amountAzn.toFixed(2),
         currency: "AZN",
         language: "az",
+        title: input.title ?? "EkoMobil",
         description: input.description,
-        hppRedirectUrl: session.payload.successUrl
+        initiationEnvKind: "Browser",
+        hppRedirectUrl: session.payload.callbackUrl
       }
     }),
     cache: "no-store"
@@ -172,6 +180,7 @@ export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankS
 
   const payloadWithoutDigest: Omit<PaymentProviderPayload, "requestDigest"> = {
     ...session.payload,
+    orderTypeRid: input.orderTypeRid ?? "Order_SMS",
     remoteOrderId,
     remoteOrderPassword,
     paymentPageUrl,
@@ -203,7 +212,7 @@ export async function getKapitalBankOrderStatus(input: {
   if (isBirPayApiBaseUrl(config)) {
     return getBirPayPayment(input.remoteOrderId);
   }
-  const url = `${getKapitalBankApiBaseUrl(config)}/api/order/${encodeURIComponent(input.remoteOrderId)}?password=${encodeURIComponent(input.remoteOrderPassword)}`;
+  const url = `${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}?tranDetailLevel=2&tokenDetailLevel=2&orderDetailLevel=2`;
   const response = await fetch(url, {
     method: "GET",
     headers: {
@@ -220,4 +229,68 @@ export async function getKapitalBankOrderStatus(input: {
     ? String((raw as { order?: { status?: string } }).order?.status ?? "")
     : "";
   return { status, raw };
+}
+
+export async function executeKapitalBankOrderTransaction(input: {
+  remoteOrderId: string;
+  tran: Record<string, unknown>;
+}): Promise<{ raw: unknown }> {
+  const config = getKapitalBankConfig();
+  const response = await fetch(`${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}/exec-tran`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: getBasicAuthHeader(config)
+    },
+    body: JSON.stringify({ tran: input.tran }),
+    cache: "no-store"
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Kapital Bank exec-tran failed: ${response.status} ${text}`.slice(0, 500));
+  }
+  return { raw: await response.json() };
+}
+
+export async function clearKapitalBankPreauth(input: {
+  remoteOrderId: string;
+  amountAzn?: number;
+}): Promise<{ raw: unknown }> {
+  return executeKapitalBankOrderTransaction({
+    remoteOrderId: input.remoteOrderId,
+    tran: {
+      phase: "Clearing",
+      ...(typeof input.amountAzn === "number" ? { amount: input.amountAzn.toFixed(2) } : {})
+    }
+  });
+}
+
+export async function refundKapitalBankOrder(input: {
+  remoteOrderId: string;
+  amountAzn?: number;
+}): Promise<{ raw: unknown }> {
+  return executeKapitalBankOrderTransaction({
+    remoteOrderId: input.remoteOrderId,
+    tran: {
+      phase: "Single",
+      type: "Refund",
+      ...(typeof input.amountAzn === "number" ? { amount: input.amountAzn.toFixed(2) } : {})
+    }
+  });
+}
+
+export async function reverseKapitalBankOrder(input: {
+  remoteOrderId: string;
+  phase?: "Single" | "Auth" | "Clearing";
+  voidKind?: "Full" | "Partial";
+  amountAzn?: number;
+}): Promise<{ raw: unknown }> {
+  return executeKapitalBankOrderTransaction({
+    remoteOrderId: input.remoteOrderId,
+    tran: {
+      phase: input.phase ?? "Single",
+      voidKind: input.voidKind ?? "Full",
+      ...(typeof input.amountAzn === "number" ? { amount: input.amountAzn.toFixed(2) } : {})
+    }
+  });
 }

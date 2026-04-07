@@ -13,6 +13,7 @@ export type PaymentCheckoutStrategy = "internal_placeholder" | "hosted_redirect_
 export interface PaymentProviderPayload {
   providerPaymentId: string;
   orderId: string;
+  orderTypeRid?: "Order_SMS" | "Order_DMS" | "Order_REC" | "DMSN3D" | "OCT";
   mode: PaymentProviderMode;
   amountAzn: number;
   amountMinor: number;

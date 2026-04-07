@@ -29,22 +29,24 @@ export function getKapitalBankConfig(): KapitalBankConfig {
 export function isKapitalBankLiveReady(config = getKapitalBankConfig()): boolean {
   return Boolean(
     config.mode === "live" &&
-      config.merchantId &&
-      config.terminalId &&
       config.username &&
       config.password &&
-      config.secret &&
       config.publicBaseUrl
   );
 }
 
 export function getKapitalBankApiBaseUrl(config = getKapitalBankConfig()): string {
-  return (config.apiBaseUrl?.replace(/\/$/, "") || "https://e-commerce.kapitalbank.az");
+  return (config.apiBaseUrl?.replace(/\/$/, "") || "https://txpgtst.kapitalbank.az/api");
 }
 
 export function isBirPayApiBaseUrl(config = getKapitalBankConfig()): boolean {
   const base = getKapitalBankApiBaseUrl(config).toLowerCase();
   return base.includes("birpay.az");
+}
+
+export function getKapitalBankApiRoot(config = getKapitalBankConfig()): string {
+  const base = getKapitalBankApiBaseUrl(config);
+  return base.endsWith("/api") ? base : `${base}/api`;
 }
 
 export function getKapitalBankAppUrl(pathname: string, config = getKapitalBankConfig()): string {
