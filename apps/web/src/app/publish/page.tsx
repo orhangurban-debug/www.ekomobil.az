@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CAR_MAKES, getModelsForMake } from "@/lib/car-data";
+import { CAR_MAKES, FUEL_TYPES, TRANSMISSIONS, getModelsForMake } from "@/lib/car-data";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
@@ -486,13 +486,13 @@ export default function PublishPage() {
                   <div>
                     <label className="label">Yanacaq</label>
                     <select value={fuelType} onChange={(e) => setFuelType(e.target.value)} className="input-field">
-                      {["Benzin", "Dizel", "Hibrid", "Elektrik", "Qaz"].map((f) => <option key={f}>{f}</option>)}
+                      {FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="label">Ötürücü</label>
                     <select value={transmission} onChange={(e) => setTransmission(e.target.value)} className="input-field">
-                      {["Avtomat", "Mexanik", "Yarıavtomat"].map((t) => <option key={t}>{t}</option>)}
+                      {TRANSMISSIONS.map((t) => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>
