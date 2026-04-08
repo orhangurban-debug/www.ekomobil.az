@@ -176,15 +176,26 @@ export async function resolveKapitalBankPaymentStatus(input: {
   }
 
   if (remoteOrderId) {
-    const remote = await getKapitalBankOrderStatus({
-      remoteOrderId,
-      remoteOrderPassword: remoteOrderPassword ?? ""
-    });
-    return {
-      status: mapKapitalBankOrderStatus(remote.status),
-      providerReference: remoteOrderId,
-      verification: "remote_order_status",
-    };
+    try {
+      const remote = await getKapitalBankOrderStatus({
+        remoteOrderId,
+        remoteOrderPassword: remoteOrderPassword ?? ""
+      });
+      return {
+        status: mapKapitalBankOrderStatus(remote.status),
+        providerReference: remoteOrderId,
+        verification: "remote_order_status",
+      };
+    } catch {
+      if (input.fallbackStatus) {
+        return {
+          status: mapKapitalBankOrderStatus(input.fallbackStatus),
+          providerReference: remoteOrderId,
+          verification: "fallback",
+        };
+      }
+      throw new Error("Ödəniş statusu bankdan təsdiqlənmədi");
+    }
   }
 
   return {
