@@ -16,25 +16,38 @@ export interface MediaProtocolResult {
   missingRequirements: string[];
 }
 
-export function validateMediaProtocol(input: MediaProtocolInput): MediaProtocolResult {
+interface ValidateMediaProtocolOptions {
+  minimumImageCount?: number;
+  requireVideo?: boolean;
+}
+
+export function validateMediaProtocol(
+  input: MediaProtocolInput,
+  options?: ValidateMediaProtocolOptions
+): MediaProtocolResult {
   const missingRequirements: string[] = [];
+  const minimumImageCount = options?.minimumImageCount ?? 8;
+  const requireVideo = options?.requireVideo ?? false;
 
-  if (input.imageCount < 20) {
-    missingRequirements.push("At least 20 photos are required.");
+  if (input.imageCount < minimumImageCount) {
+    missingRequirements.push(`Ən azı ${minimumImageCount} şəkil əlavə edin.`);
   }
 
-  if (input.engineVideoDurationSec < 15 || input.engineVideoDurationSec > 30) {
-    missingRequirements.push("Engine video must be between 15 and 30 seconds.");
+  if (
+    requireVideo &&
+    (input.engineVideoDurationSec < 15 || input.engineVideoDurationSec > 30)
+  ) {
+    missingRequirements.push("Mühərrik videosu 15-30 saniyə aralığında olmalıdır.");
   }
 
-  if (!input.hasFrontAngle) missingRequirements.push("Front angle photo is missing.");
-  if (!input.hasRearAngle) missingRequirements.push("Rear angle photo is missing.");
-  if (!input.hasLeftSide) missingRequirements.push("Left side photo is missing.");
-  if (!input.hasRightSide) missingRequirements.push("Right side photo is missing.");
-  if (!input.hasDashboard) missingRequirements.push("Dashboard photo is missing.");
-  if (!input.hasInterior) missingRequirements.push("Interior photo is missing.");
-  if (!input.hasOdometer) missingRequirements.push("Odometer photo is missing.");
-  if (!input.hasTrunk) missingRequirements.push("Trunk photo is missing.");
+  if (!input.hasFrontAngle) missingRequirements.push("Ön görünüş şəkli işarələnməyib.");
+  if (!input.hasRearAngle) missingRequirements.push("Arxa görünüş şəkli işarələnməyib.");
+  if (!input.hasLeftSide) missingRequirements.push("Sol tərəf şəkli işarələnməyib.");
+  if (!input.hasRightSide) missingRequirements.push("Sağ tərəf şəkli işarələnməyib.");
+  if (!input.hasDashboard) missingRequirements.push("Ön panel şəkli işarələnməyib.");
+  if (!input.hasInterior) missingRequirements.push("Salon şəkli işarələnməyib.");
+  if (!input.hasOdometer) missingRequirements.push("Odometr şəkli işarələnməyib.");
+  if (!input.hasTrunk) missingRequirements.push("Baqaj şəkli işarələnməyib.");
 
   return {
     isComplete: missingRequirements.length === 0,

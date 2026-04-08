@@ -95,9 +95,9 @@ export const LISTING_PLANS: ListingPlan[] = [
     priorityMultiplier: 1,
     isHighlighted: false,
     featuredInHome: false,
-    maxImages: 8,
+    maxImages: 15,
     maxImageSizeKb: 10240,     // 10 MB giriş → ~800 KB çıxış
-    storageMb: 8,
+    storageMb: 15,
     videoEnabled: false,
     maxVideos: 0,
     maxVideoSizeMb: 0,

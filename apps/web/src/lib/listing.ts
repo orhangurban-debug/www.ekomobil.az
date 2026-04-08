@@ -51,19 +51,19 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
   const year = input?.vehicle?.year;
   const priceAzn = input?.priceAzn;
 
-  if (!title) errors.push("Title is required.");
+  if (!title) errors.push("Başlıq tələb olunur.");
   if (typeof priceAzn !== "number" || Number.isNaN(priceAzn) || priceAzn <= 0) {
-    errors.push("Price must be greater than 0.");
+    errors.push("Qiymət 0-dan böyük olmalıdır.");
   }
-  if (!city) errors.push("City is required.");
-  if (!vin) errors.push("VIN is required.");
+  if (!city) errors.push("Şəhər seçilməlidir.");
+  if (!vin) errors.push("VIN kodu tələb olunur.");
   if (typeof declaredMileageKm !== "number" || Number.isNaN(declaredMileageKm)) {
-    errors.push("Mileage is required.");
+    errors.push("Yürüş məlumatı tələb olunur.");
   } else if (declaredMileageKm < 0) {
-    errors.push("Mileage cannot be negative.");
+    errors.push("Yürüş mənfi ola bilməz.");
   }
   if (typeof year !== "number" || Number.isNaN(year) || year < 1950 || year > new Date().getFullYear() + 1) {
-    errors.push("Vehicle year is out of allowed range.");
+    errors.push("Avtomobil ili icazə verilən aralıqda deyil.");
   }
 
   const mediaResult = validateMediaProtocol(
@@ -78,7 +78,8 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
       hasInterior: false,
       hasOdometer: false,
       hasTrunk: false
-    }
+    },
+    { minimumImageCount: 8, requireVideo: false }
   );
   errors.push(...mediaResult.missingRequirements);
 

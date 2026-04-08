@@ -28,16 +28,16 @@ interface TrustApiResponse {
 }
 
 const initialMedia: MediaProtocolInput = {
-  imageCount: 20,
-  engineVideoDurationSec: 20,
-  hasFrontAngle: true,
-  hasRearAngle: true,
-  hasLeftSide: true,
-  hasRightSide: true,
-  hasDashboard: true,
-  hasInterior: true,
-  hasOdometer: true,
-  hasTrunk: true
+  imageCount: 0,
+  engineVideoDurationSec: 0,
+  hasFrontAngle: false,
+  hasRearAngle: false,
+  hasLeftSide: false,
+  hasRightSide: false,
+  hasDashboard: false,
+  hasInterior: false,
+  hasOdometer: false,
+  hasTrunk: false
 };
 
 const mediaAngles: { key: keyof MediaProtocolInput; label: string }[] = [
@@ -45,7 +45,7 @@ const mediaAngles: { key: keyof MediaProtocolInput; label: string }[] = [
   { key: "hasRearAngle", label: "Arxa" },
   { key: "hasLeftSide", label: "Sol tərəf" },
   { key: "hasRightSide", label: "Sağ tərəf" },
-  { key: "hasDashboard", label: "Torpan" },
+  { key: "hasDashboard", label: "Ön panel" },
   { key: "hasInterior", label: "Salon" },
   { key: "hasOdometer", label: "Odometr" },
   { key: "hasTrunk", label: "Baqaj" }
@@ -105,6 +105,9 @@ export default function PublishPage() {
   const [planType, setPlanType] = useState<PlanType>("free");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<TrustApiResponse | null>(null);
+  const [vehicleValidationVisible, setVehicleValidationVisible] = useState(false);
+  const [mediaValidationVisible, setMediaValidationVisible] = useState(false);
+  const [reviewErrors, setReviewErrors] = useState<string[]>([]);
 
   // ── Image upload state ──────────────────────────────────────────────────
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -112,7 +115,37 @@ export default function PublishPage() {
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const mediaCheck = useMemo(() => validateMediaProtocol(media), [media]);
+  const currentPlan = useMemo(
+    () => LISTING_PLANS.find((plan) => plan.id === planType) ?? LISTING_PLANS[0],
+    [planType]
+  );
+  const minimumRequiredImages = useMemo(() => Math.min(currentPlan.maxImages, 8), [currentPlan.maxImages]);
+  const mediaCheck = useMemo(
+    () => validateMediaProtocol(media, { minimumImageCount: minimumRequiredImages, requireVideo: false }),
+    [media, minimumRequiredImages]
+  );
+  const vehicleStepErrors = useMemo(() => {
+    const errors: string[] = [];
+    if (!title.trim()) errors.push("Elan başlığını daxil edin.");
+    if (!make.trim()) errors.push("Markanı daxil edin.");
+    if (!model.trim()) errors.push("Modeli daxil edin.");
+    if (!priceAzn || priceAzn <= 0) errors.push("Qiyməti 0-dan böyük daxil edin.");
+    if (!city.trim()) errors.push("Şəhəri seçin.");
+    if (!vin.trim()) {
+      errors.push("VIN kodunu daxil edin.");
+    } else if (vin.trim().length !== 17) {
+      errors.push("VIN kodu 17 simvol olmalıdır.");
+    }
+    if (!declaredMileageKm && declaredMileageKm !== 0) {
+      errors.push("Yürüş məlumatını daxil edin.");
+    } else if (declaredMileageKm < 0) {
+      errors.push("Yürüş mənfi ola bilməz.");
+    }
+    if (year < 1950 || year > 2026) {
+      errors.push("Avtomobil ilini düzgün daxil edin.");
+    }
+    return errors;
+  }, [city, declaredMileageKm, make, model, priceAzn, title, vin, year]);
 
   const referenceNote = useMemo(() => {
     const notes: string[] = [];
@@ -129,6 +162,25 @@ export default function PublishPage() {
 
   function updateBoolean(field: keyof MediaProtocolInput, value: boolean) {
     setMedia((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleVehicleNext() {
+    setVehicleValidationVisible(true);
+    if (vehicleStepErrors.length > 0) return;
+    setReviewErrors([]);
+    setStep("Media");
+  }
+
+  function handleMediaNext() {
+    setMediaValidationVisible(true);
+    if (!mediaCheck.isComplete) return;
+    setReviewErrors([]);
+    setStep("Plan");
+  }
+
+  function handlePlanNext() {
+    setReviewErrors([]);
+    setStep("Yoxlama");
   }
 
   const handleImageFiles = useCallback(
@@ -168,8 +220,22 @@ export default function PublishPage() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setResult(null);
+    setReviewErrors([]);
+    setVehicleValidationVisible(true);
+    setMediaValidationVisible(true);
+
+    if (vehicleStepErrors.length > 0) {
+      setStep("Avtomobil");
+      return;
+    }
+
+    if (!mediaCheck.isComplete) {
+      setStep("Media");
+      return;
+    }
+
+    setSubmitting(true);
     await trackEvent("listing_publish_attempted", { vin, city, sellerVerified, vinVerified });
 
     const response = await fetch("/api/trust/evaluate", {
@@ -188,7 +254,6 @@ export default function PublishPage() {
     });
 
     const payload = (await response.json()) as TrustApiResponse;
-    setResult(payload);
     if (payload.ok) {
       await trackEvent("listing_published", { vin, city, trustScore: payload.trustScore ?? null });
 
@@ -239,10 +304,7 @@ export default function PublishPage() {
             router.refresh();
             return;
           }
-          setResult({
-            ok: false,
-            errors: [paymentPayload.error || "Ödəniş axını başladılmadı."]
-          });
+          setReviewErrors([paymentPayload.error || "Ödəniş axını başladılmadı."]);
           setSubmitting(false);
           return;
         }
@@ -251,11 +313,11 @@ export default function PublishPage() {
         router.refresh();
         return;
       }
-      setResult({
-        ok: false,
-        errors: createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]
-      });
+      setReviewErrors(createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]);
+      setSubmitting(false);
+      return;
     }
+    setReviewErrors(payload.errors ?? ["Məlumatlarda düzəliş lazımdır."]);
     setSubmitting(false);
   }
 
@@ -317,6 +379,7 @@ export default function PublishPage() {
                 <div>
                   <label className="label">VIN kodu</label>
                   <input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} className="input-field font-mono tracking-widest uppercase" placeholder="17 simvol" maxLength={17} />
+                  <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır. Elan dərci üçün bu məlumat tələb olunur.</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -411,7 +474,20 @@ export default function PublishPage() {
                   </select>
                 </div>
 
-                <button type="button" onClick={() => setStep("Media")} className="btn-primary w-full justify-center py-3">
+                {vehicleValidationVisible && vehicleStepErrors.length > 0 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-medium text-amber-800">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
+                    <ul className="mt-2 space-y-1">
+                      {vehicleStepErrors.map((error) => (
+                        <li key={error} className="text-sm text-amber-700">
+                          - {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <button type="button" onClick={handleVehicleNext} className="btn-primary w-full justify-center py-3">
                   Növbəti: Media
                 </button>
               </div>
@@ -504,7 +580,7 @@ export default function PublishPage() {
                         )
                       },
                       {
-                        label: "Salon / Torpan", priority: "Vacib", tip: "Sürücü qapısı açıq. Torpan, sükan, ekranlar aydın.",
+                        label: "Salon / ön panel", priority: "Vacib", tip: "Sürücü qapısı açıq. Ön panel, sükan və ekranlar aydın görünsün.",
                         icon: (
                           <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
                             <rect x="10" y="10" width="60" height="32" rx="4" fill="#0891B2" opacity=".1" stroke="#0891B2" strokeWidth=".5"/>
@@ -580,9 +656,12 @@ export default function PublishPage() {
                   <div className="mb-2 flex items-center justify-between">
                     <label className="label mb-0">Şəkillər</label>
                     <span className="text-xs text-slate-400">
-                      {uploadedImages.length} / {LISTING_PLANS.find(p => p.id === planType)?.maxImages ?? 8} şəkil
+                      {uploadedImages.length} / {currentPlan.maxImages} şəkil
                     </span>
                   </div>
+                  <p className="mb-2 text-xs text-slate-500">
+                    Minimum <strong>{minimumRequiredImages} əsas şəkil</strong> əlavə edin. Daha çox şəkil elanın keyfiyyətini artırır.
+                  </p>
 
                   {/* Drop zone */}
                   <div
@@ -683,6 +762,9 @@ export default function PublishPage() {
                 {/* ── Angle checklist ─────────────────────────────────────── */}
                 <div>
                   <label className="label mb-3">Çəkilmiş bucaqları işarələyin</label>
+                  <p className="mb-3 text-xs text-slate-500">
+                    "Ön panel" dedikdə sükan, cihazlar paneli və mərkəzi ekranın göründüyü ön salon şəkli nəzərdə tutulur.
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
@@ -721,7 +803,7 @@ export default function PublishPage() {
                   </div>
                 )}
 
-                {!mediaCheck.isComplete && (
+                {mediaValidationVisible && !mediaCheck.isComplete && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                     <p className="text-sm font-medium text-amber-800 mb-2">Çatışmayan tələblər:</p>
                     <ul className="space-y-1">
@@ -739,7 +821,7 @@ export default function PublishPage() {
                   <button type="button" onClick={() => setStep("Avtomobil")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
-                  <button type="button" onClick={() => setStep("Plan")} className="btn-primary flex-1 justify-center py-3">
+                  <button type="button" onClick={handleMediaNext} className="btn-primary flex-1 justify-center py-3">
                     Növbəti: Plan
                   </button>
                 </div>
@@ -758,6 +840,9 @@ export default function PublishPage() {
                     <span className="font-semibold text-slate-700">Pulsuz plan:</span>{" "}
                     eyni anda yalnız <strong>{FREE_LISTING_CONCURRENT_LIMIT} aktiv pulsuz elan</strong> yerləşdirə bilərsiniz.
                     İkinci elan üçün ilk elanın müddəti bitməli, yaxud Standart/VIP plan seçilməlidir.
+                  </p>
+                  <p>
+                    <span className="font-semibold text-slate-700">Şəkil limiti:</span> Pulsuz plan üçün də indi {LISTING_PLANS[0].maxImages} şəkil əlavə etmək olar.
                   </p>
                   <p>
                     <span className="font-semibold text-slate-700">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0891B2] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
@@ -792,7 +877,7 @@ export default function PublishPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-slate-900">{plan.nameAz}</span>
                           <span className="font-bold text-slate-900 shrink-0">
-                            {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼/dəfə`}
+                            {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
                           </span>
                         </div>
                         {/* Plan details chips */}
@@ -803,6 +888,11 @@ export default function PublishPage() {
                           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                             {plan.maxImages} şəkil
                           </span>
+                          {plan.priceAzn > 0 && (
+                            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                              birdəfəlik ödəniş
+                            </span>
+                          )}
                           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                             {plan.maxImageSizeKb >= 1024 ? `${(plan.maxImageSizeKb/1024).toFixed(0)} MB` : `${plan.maxImageSizeKb} KB`}/foto
                           </span>
@@ -826,7 +916,7 @@ export default function PublishPage() {
                   <button type="button" onClick={() => setStep("Media")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
-                  <button type="button" onClick={() => setStep("Yoxlama")} className="btn-primary flex-1 justify-center py-3">
+                  <button type="button" onClick={handlePlanNext} className="btn-primary flex-1 justify-center py-3">
                     Növbəti: Yoxlama
                   </button>
                 </div>
@@ -862,6 +952,19 @@ export default function PublishPage() {
                   ))}
                 </div>
 
+                {reviewErrors.length > 0 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-medium text-amber-800">Dərc etməzdən əvvəl bunları düzəldin:</p>
+                    <ul className="mt-2 space-y-1">
+                      {reviewErrors.map((error) => (
+                        <li key={error} className="text-sm text-amber-700">
+                          - {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setStep("Plan")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
@@ -884,43 +987,19 @@ export default function PublishPage() {
         ) : (
           /* Result screen */
           <div className="card p-8 text-center space-y-6">
-            {result.ok ? (
-              <>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Elan qəbul edildi!</h2>
-                  <p className="mt-2 text-slate-500">Etibar xalınız: <strong className="text-brand-700">{result.trustScore}/100</strong></p>
-                </div>
-                {result.signals?.mileageFlag && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 text-left">
-                    <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                  <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Elan bloklandi</h2>
-                  <p className="mt-2 text-sm text-slate-500">Aşağıdakı səhvlər düzəldilməlidir:</p>
-                </div>
-                <ul className="text-left space-y-2">
-                  {result.errors?.map((err) => (
-                    <li key={err} className="flex items-start gap-2 text-sm text-red-700">
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
-                      {err}
-                    </li>
-                  ))}
-                </ul>
-              </>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Elan qəbul edildi!</h2>
+              <p className="mt-2 text-slate-500">Etibar xalınız: <strong className="text-brand-700">{result.trustScore}/100</strong></p>
+            </div>
+            {result.signals?.mileageFlag && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 text-left">
+                <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
+              </div>
             )}
             <button onClick={() => { setResult(null); setStep("Avtomobil"); }} className="btn-secondary">
               Yenidən cəhd et
