@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CAR_MAKES, getModelsForMake } from "@/lib/car-data";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
@@ -146,6 +147,7 @@ export default function PublishPage() {
     }
     return errors;
   }, [city, declaredMileageKm, make, model, priceAzn, title, vin, year]);
+  const availableModels = useMemo(() => getModelsForMake(make), [make]);
 
   const referenceNote = useMemo(() => {
     const notes: string[] = [];
@@ -357,11 +359,39 @@ export default function PublishPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="label">Marka</label>
-                    <input value={make} onChange={(e) => setMake(e.target.value)} className="input-field" placeholder="Toyota" required />
+                    <select
+                      value={make}
+                      onChange={(e) => {
+                        setMake(e.target.value);
+                        setModel("");
+                      }}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Marka seçin</option>
+                      {CAR_MAKES.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="label">Model</label>
-                    <input value={model} onChange={(e) => setModel(e.target.value)} className="input-field" placeholder="Corolla" required />
+                    <select
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className="input-field"
+                      disabled={!make}
+                      required
+                    >
+                      <option value="">{make ? "Model seçin" : "Əvvəl marka seçin"}</option>
+                      {availableModels.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
