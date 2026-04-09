@@ -11,7 +11,8 @@ import {
   DRIVE_TYPES,
   INTERIOR_MATERIALS,
   FUEL_TYPES,
-  TRANSMISSIONS,
+  getCompatibleEngineTypes,
+  getCompatibleTransmissions,
   getModelsForMake
 } from "@/lib/car-data";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
@@ -126,6 +127,7 @@ export default function PublishPage() {
   const [year, setYear] = useState(2020);
   const [declaredMileageKm, setDeclaredMileageKm] = useState(0);
   const [fuelType, setFuelType] = useState("Benzin");
+  const [engineType, setEngineType] = useState("Atmosfer");
   const [transmission, setTransmission] = useState("Avtomat");
   const [bodyType, setBodyType] = useState("");
   const [driveType, setDriveType] = useState("");
@@ -197,6 +199,9 @@ export default function PublishPage() {
     return errors;
   }, [city, declaredMileageKm, engineVolumeCc, make, model, ownersCount, priceAzn, title, vin, year]);
   const availableModels = useMemo(() => getModelsForMake(make), [make]);
+  const availableEngineTypes = useMemo(() => getCompatibleEngineTypes(fuelType), [fuelType]);
+  const availableTransmissions = useMemo(() => getCompatibleTransmissions(fuelType), [fuelType]);
+  const isElectricPowertrain = fuelType === "Elektrik";
 
   const referenceNote = useMemo(() => {
     const notes: string[] = [];
@@ -318,6 +323,7 @@ export default function PublishPage() {
           priceAzn,
           city,
           fuelType,
+          engineType,
           transmission,
           bodyType: bodyType || undefined,
           driveType: driveType || undefined,
@@ -656,21 +662,41 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                   <div>
                     <label className="label">Qiymət (₼)</label>
                     <input type="number" value={priceAzn || ""} onChange={(e) => setPriceAzn(Number(e.target.value))} className="input-field" placeholder="19800" required />
                   </div>
                   <div>
                     <label className="label">Yanacaq</label>
-                    <select value={fuelType} onChange={(e) => setFuelType(e.target.value)} className="input-field">
+                    <select
+                      value={fuelType}
+                      onChange={(e) => {
+                        const nextFuelType = e.target.value;
+                        setFuelType(nextFuelType);
+                        const nextCompatibleEngines = getCompatibleEngineTypes(nextFuelType);
+                        const nextCompatibleTransmissions = getCompatibleTransmissions(nextFuelType);
+                        setEngineType(nextCompatibleEngines[0] ?? "");
+                        setTransmission(nextCompatibleTransmissions[0] ?? "");
+                        if (nextFuelType === "Elektrik") {
+                          setEngineVolumeCc("");
+                        }
+                      }}
+                      className="input-field"
+                    >
                       {FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Mühərrik növü</label>
+                    <select value={engineType} onChange={(e) => setEngineType(e.target.value)} className="input-field">
+                      {availableEngineTypes.map((t) => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="label">Ötürücü</label>
                     <select value={transmission} onChange={(e) => setTransmission(e.target.value)} className="input-field">
-                      {TRANSMISSIONS.map((t) => <option key={t}>{t}</option>)}
+                      {availableTransmissions.map((t) => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>
@@ -719,7 +745,11 @@ export default function PublishPage() {
                       className="input-field"
                       placeholder="məs: 2000"
                       min={0}
+                      disabled={isElectricPowertrain}
                     />
+                    {isElectricPowertrain && (
+                      <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillərdə mühərrik həcmi tətbiq edilmir.</p>
+                    )}
                   </div>
                   <div>
                     <label className="label">Salon materialı</label>
@@ -1227,7 +1257,7 @@ export default function PublishPage() {
                     ["Elan başlığı", title],
                     ["Marka / Model", `${make} ${model}`],
                     ["İl / Yürüş", `${year} / ${declaredMileageKm.toLocaleString()} km`],
-                    ["Yanacaq / Ötürücü", `${fuelType} / ${transmission}`],
+                    ["Yanacaq / Mühərrik / Ötürücü", `${fuelType} / ${engineType} / ${transmission}`],
                     ["Ban / Ötürmə", `${bodyType || "—"} / ${driveType || "—"}`],
                     ["Rəng / Vəziyyət", `${color || "—"} / ${vehicleCondition || "—"}`],
                     ["Mühərrik / Salon", `${engineVolumeCc === "" ? "—" : `${engineVolumeCc} cc`} / ${interiorMaterial || "—"}`],

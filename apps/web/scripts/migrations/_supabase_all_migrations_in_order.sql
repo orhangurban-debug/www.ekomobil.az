@@ -711,6 +711,11 @@ CREATE INDEX IF NOT EXISTS idx_listings_owners_count ON listings (owners_count);
 CREATE INDEX IF NOT EXISTS idx_listings_has_service_book ON listings (has_service_book);
 CREATE INDEX IF NOT EXISTS idx_listings_has_repair_history ON listings (has_repair_history);
 
+ALTER TABLE listings
+  ADD COLUMN IF NOT EXISTS engine_type TEXT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_listings_engine_type ON listings (engine_type);
+
 -- =============================================================================
 -- SON
 -- =============================================================================

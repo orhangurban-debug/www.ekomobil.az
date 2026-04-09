@@ -1001,9 +1001,35 @@ export async function bulkUpdateListingStatus(listingIds: string[], status: stri
   if (listingIds.length === 0) return 0;
   const pool = getPgPool();
   const result = await pool.query(
-    `UPDATE listings
-     SET status = $2, updated_at = NOW()
-     WHERE id = ANY($1::text[])`,
+    `
+      UPDATE listings l
+      SET
+        status = $2,
+        updated_at = NOW(),
+        plan_expires_at = CASE
+          WHEN $2 = 'active' THEN
+            CASE COALESCE(l.plan_type, 'free')
+              WHEN 'vip' THEN NOW() + INTERVAL '90 days'
+              WHEN 'standard' THEN NOW() + INTERVAL '60 days'
+              ELSE NOW() + INTERVAL '30 days'
+            END
+          ELSE l.plan_expires_at
+        END
+      WHERE l.id = ANY($1::text[])
+        AND (
+          $2 <> 'active'
+          OR COALESCE(l.plan_type, 'free') <> 'free'
+          OR l.owner_user_id IS NULL
+          OR (
+            SELECT COUNT(*)
+            FROM listings x
+            WHERE x.owner_user_id = l.owner_user_id
+              AND x.id <> l.id
+              AND COALESCE(x.plan_type, 'free') = 'free'
+              AND x.status = 'active'
+          ) = 0
+        )
+    `,
     [listingIds, status]
   );
   return result.rowCount ?? 0;

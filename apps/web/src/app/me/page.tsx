@@ -17,6 +17,17 @@ export default async function ProfilePage() {
   const myListings = await listListingsForUser(user.id);
   const deepKyc = await getUserKycProfile(user.id);
   const auctionNotifications = await listAuctionNotificationsForUser(user.id, 8);
+  const hasNonActiveListings = myListings.some((item) => item.status !== "active");
+
+  const statusMeta: Record<string, { label: string; cls: string }> = {
+    active: { label: "Aktiv", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    pending_review: { label: "Yoxlamada", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    draft: { label: "Qaralama", cls: "bg-slate-100 text-slate-600 border-slate-200" },
+    sold: { label: "Satılıb", cls: "bg-brand-50 text-brand-700 border-brand-200" },
+    rejected: { label: "Rədd edilib", cls: "bg-red-50 text-red-700 border-red-200" },
+    archived: { label: "Arxiv", cls: "bg-slate-100 text-slate-500 border-slate-200" },
+    inactive: { label: "Deaktiv", cls: "bg-slate-100 text-slate-500 border-slate-200" }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -113,6 +124,11 @@ export default async function ProfilePage() {
               <h2 className="font-semibold text-slate-900">Mənim elanlarım</h2>
               <Link href="/publish" className="btn-secondary text-sm">Yeni elan</Link>
             </div>
+            {hasNonActiveListings && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Yeni elanlar əvvəlcə yoxlamaya düşür. Statusu &quot;Yoxlamada&quot; olan elanlar təsdiqdən sonra ümumi axtarışda görünəcək.
+              </div>
+            )}
             {myListings.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center">
                 <p className="text-sm text-slate-500">Hələ elanınız yoxdur.</p>
@@ -120,13 +136,18 @@ export default async function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {myListings.slice(0, 4).map((item) => (
+                {myListings.map((item) => (
                   <div key={item.id} className="rounded-xl border border-slate-200 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <Link href={`/listings/${item.id}`} className="font-medium text-slate-900 hover:text-brand-600">
-                          {item.title}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/listings/${item.id}`} className="font-medium text-slate-900 hover:text-brand-600">
+                            {item.title}
+                          </Link>
+                          <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusMeta[item.status]?.cls ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                            {statusMeta[item.status]?.label ?? item.status}
+                          </span>
+                        </div>
                         <div className="mt-1 text-xs text-slate-500">{item.city} • {item.year}</div>
                       </div>
                       <div className="flex shrink-0 items-center gap-4">
@@ -142,11 +163,6 @@ export default async function ProfilePage() {
                     </div>
                   </div>
                 ))}
-                {myListings.length > 4 && (
-                  <Link href="/listings" className="flex w-full items-center justify-center gap-1 rounded-xl border border-slate-200 py-2.5 text-sm text-slate-500 hover:border-brand-300 hover:text-brand-600">
-                    Daha {myListings.length - 4} elan var →
-                  </Link>
-                )}
               </div>
             )}
           </section>

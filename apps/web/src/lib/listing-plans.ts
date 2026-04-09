@@ -5,7 +5,7 @@
  *
  * İSTİFADƏÇİ (fərdi satıcı):
  *   • Hər elan ayrıca plan seçir: Pulsuz / Standart / VIP.
- *   • Eyni anda yalnız 1 aktiv PULSUZ elanı ola bilər.
+ *   • Eyni anda yalnız 1 aktiv və ya yoxlamada olan PULSUZ elanı ola bilər.
  *     İkinci pulsuz elan yerləşdirmək üçün birinci elanın müddəti bitməlidir
  *     və ya Standart/VIP plana yüksəlməlidir.
  *   • Ödənişli planlar (Standart/VIP) isə limitsiz sayda eyni vaxtda aktiv
@@ -33,7 +33,7 @@
 export type PlanType = "free" | "standard" | "vip";
 
 /**
- * Eyni anda bir istifadəçinin sahib ola biləcəyi maksimum PULSUZ aktiv elan sayı.
+ * Eyni anda bir istifadəçinin sahib ola biləcəyi maksimum PULSUZ aktiv/yoxlamada elan sayı.
  * Ödənişli elanların sayında limit yoxdur.
  */
 export const FREE_LISTING_CONCURRENT_LIMIT = 1;

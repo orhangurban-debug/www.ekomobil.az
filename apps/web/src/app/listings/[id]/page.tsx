@@ -220,6 +220,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       ["Buraxılış ili", listing.year],
                       ["Yürüş", `${listing.mileageKm.toLocaleString()} km`],
                       ["Yanacaq növü", listing.fuelType],
+                      ["Mühərrik növü", listing.engineType || "—"],
                       ["Ötürücü qutsu", listing.transmission],
                       ["Mühərrik həcmi", listing.engineVolumeCc ? `${listing.engineVolumeCc} cc` : "—"],
                       ["Salon materialı", listing.interiorMaterial || "—"],
