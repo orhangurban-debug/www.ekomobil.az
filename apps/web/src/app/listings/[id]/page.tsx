@@ -224,6 +224,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       ["Mühərrik həcmi", listing.engineVolumeCc ? `${listing.engineVolumeCc} cc` : "—"],
                       ["Salon materialı", listing.interiorMaterial || "—"],
                       ["Lyuk", listing.hasSunroof ? "Var" : "Yox"],
+                      ["Kredit", listing.creditAvailable ? "Mümkündür" : "Yox"],
+                      ["Barter", listing.barterAvailable ? "Mümkündür" : "Yox"],
                       ["Şəhər", listing.city],
                       ...(listing.vin ? [["VIN kodu", listing.vin] as [string, string]] : [])
                     ])

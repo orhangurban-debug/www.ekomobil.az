@@ -48,6 +48,8 @@ interface ListingRow {
   engine_volume_cc?: number | null;
   interior_material?: string | null;
   has_sunroof?: boolean | null;
+  credit_available?: boolean | null;
+  barter_available?: boolean | null;
   created_at: Date;
   updated_at: Date;
   plan_type?: string | null;
@@ -121,6 +123,9 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     engineVolumeCc: row.engine_volume_cc ?? undefined,
     interiorMaterial: row.interior_material ?? undefined,
     hasSunroof: row.has_sunroof ?? undefined,
+    creditAvailable: row.credit_available ?? undefined,
+    barterAvailable: row.barter_available ?? undefined,
+    vinProvided: Boolean(row.vin && row.vin !== "PARTS-NOVIN"),
     listingKind: row.listing_kind === "part" ? "part" : "vehicle",
     partCategory: row.part_category ?? undefined,
     partSubcategory: row.part_subcategory ?? undefined,
@@ -192,6 +197,9 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   if (query.maxEngineVolumeCc) result = result.filter((item) => (item.engineVolumeCc ?? 0) <= query.maxEngineVolumeCc!);
   if (query.interiorMaterial) result = result.filter((item) => item.interiorMaterial === query.interiorMaterial);
   if (query.hasSunroof) result = result.filter((item) => item.hasSunroof === true);
+  if (query.creditAvailable) result = result.filter((item) => item.creditAvailable === true);
+  if (query.barterAvailable) result = result.filter((item) => item.barterAvailable === true);
+  if (query.vinProvided) result = result.filter((item) => item.vinProvided === true);
 
   switch (query.sort) {
     case "price_asc":
@@ -361,6 +369,15 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     if (query.hasSunroof) {
       where.push(`COALESCE(l.has_sunroof, false) = true`);
     }
+    if (query.creditAvailable) {
+      where.push(`COALESCE(l.credit_available, false) = true`);
+    }
+    if (query.barterAvailable) {
+      where.push(`COALESCE(l.barter_available, false) = true`);
+    }
+    if (query.vinProvided) {
+      where.push(`COALESCE(NULLIF(TRIM(l.vin), ''), 'PARTS-NOVIN') <> 'PARTS-NOVIN'`);
+    }
 
     const planOrder = "CASE COALESCE(l.plan_type, 'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END ASC";
     const sortMap: Record<string, string> = {
@@ -394,6 +411,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
+          l.credit_available, l.barter_available,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -444,6 +462,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
+          l.credit_available, l.barter_available,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -526,6 +545,9 @@ export async function createListingRecord(input: {
   engineVolumeCc?: number;
   interiorMaterial?: string;
   hasSunroof?: boolean;
+  creditAvailable?: boolean;
+  barterAvailable?: boolean;
+  vinProvided?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -567,9 +589,9 @@ export async function createListingRecord(input: {
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
           mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
           part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility,
-          body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof
+          body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)
       `,
       [
         id,
@@ -606,7 +628,9 @@ export async function createListingRecord(input: {
         input.condition ?? null,
         input.engineVolumeCc ?? null,
         input.interiorMaterial ?? null,
-        input.hasSunroof ?? null
+        input.hasSunroof ?? null,
+        input.creditAvailable ?? null,
+        input.barterAvailable ?? null
       ]
     );
 
@@ -668,6 +692,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
+          l.credit_available, l.barter_available,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -702,6 +727,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
+          l.credit_available, l.barter_available,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -858,6 +884,9 @@ export function createListingFallback(input: {
   engineVolumeCc?: number;
   interiorMaterial?: string;
   hasSunroof?: boolean;
+  creditAvailable?: boolean;
+  barterAvailable?: boolean;
+  vinProvided?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -918,6 +947,9 @@ export function createListingFallback(input: {
     engineVolumeCc: input.engineVolumeCc,
     interiorMaterial: input.interiorMaterial,
     hasSunroof: input.hasSunroof,
+    creditAvailable: input.creditAvailable,
+    barterAvailable: input.barterAvailable,
+    vinProvided: input.vinProvided ?? Boolean(input.vin),
     ownerUserId: input.ownerUserId,
     dealerProfileId: input.dealerProfileId,
     planType,

@@ -37,8 +37,10 @@ interface QueryState {
   maxEngineVolumeCc?: number;
   interiorMaterial?: string;
   hasSunroof?: boolean;
+  creditAvailable?: boolean;
+  barterAvailable?: boolean;
+  vinProvided?: boolean;
   sellerType?: "private" | "dealer";
-  vinVerified?: boolean;
   sellerVerified?: boolean;
   sort?: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
 }
@@ -65,8 +67,10 @@ function buildUrl(query: QueryState, basePath: string) {
   if (query.maxEngineVolumeCc) params.set("maxEngineVolumeCc", String(query.maxEngineVolumeCc));
   if (query.interiorMaterial) params.set("interiorMaterial", query.interiorMaterial);
   if (query.hasSunroof) params.set("hasSunroof", "1");
+  if (query.creditAvailable) params.set("creditAvailable", "1");
+  if (query.barterAvailable) params.set("barterAvailable", "1");
+  if (query.vinProvided) params.set("vinProvided", "1");
   if (query.sellerType) params.set("sellerType", query.sellerType);
-  if (query.vinVerified) params.set("vinVerified", "1");
   if (query.sellerVerified) params.set("sellerVerified", "1");
   if (query.sort) params.set("sort", query.sort);
   const search = params.toString();
@@ -106,8 +110,10 @@ export function ListingsFiltersPanel({
     maxEngineVolumeCc: initialQuery.maxEngineVolumeCc,
     interiorMaterial: initialQuery.interiorMaterial,
     hasSunroof: initialQuery.hasSunroof,
+    creditAvailable: initialQuery.creditAvailable,
+    barterAvailable: initialQuery.barterAvailable,
+    vinProvided: initialQuery.vinProvided,
     sellerType: initialQuery.sellerType,
-    vinVerified: initialQuery.vinVerified,
     sellerVerified: initialQuery.sellerVerified,
     sort: initialQuery.sort ?? "recent"
   });
@@ -141,8 +147,10 @@ export function ListingsFiltersPanel({
         query.maxEngineVolumeCc,
         query.interiorMaterial,
         query.hasSunroof,
+        query.creditAvailable,
+        query.barterAvailable,
+        query.vinProvided,
         query.sellerType,
-        query.vinVerified,
         query.sellerVerified
       ].filter(Boolean).length,
     [query]
@@ -163,8 +171,10 @@ export function ListingsFiltersPanel({
         query.maxEngineVolumeCc,
         query.interiorMaterial,
         query.hasSunroof,
+        query.creditAvailable,
+        query.barterAvailable,
+        query.vinProvided,
         query.sellerType,
-        query.vinVerified,
         query.sellerVerified
       ].filter(Boolean).length,
     [query]
@@ -489,11 +499,29 @@ export function ListingsFiltersPanel({
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
-                  checked={query.vinVerified ?? false}
-                  onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))}
+                  checked={query.vinProvided ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, vinProvided: e.target.checked || undefined }))}
                   className="h-4 w-4 rounded accent-[#0891B2]"
                 />
-                VIN mövcuddur
+                VIN daxil edilib
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.creditAvailable ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, creditAvailable: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Kreditə uyğundur
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.barterAvailable ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, barterAvailable: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Barter mümkündür
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input

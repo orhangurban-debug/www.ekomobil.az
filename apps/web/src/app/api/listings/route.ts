@@ -47,6 +47,9 @@ export async function GET(req: Request) {
     maxEngineVolumeCc: searchParams.get("maxEngineVolumeCc") ? Number(searchParams.get("maxEngineVolumeCc")) : undefined,
     interiorMaterial: searchParams.get("interiorMaterial") || undefined,
     hasSunroof: searchParams.get("hasSunroof") === "1" ? true : undefined,
+    creditAvailable: searchParams.get("creditAvailable") === "1" ? true : undefined,
+    barterAvailable: searchParams.get("barterAvailable") === "1" ? true : undefined,
+    vinProvided: searchParams.get("vinProvided") === "1" ? true : undefined,
     minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
     maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
     minYear: searchParams.get("minYear") ? Number(searchParams.get("minYear")) : undefined,
@@ -91,6 +94,8 @@ export async function POST(req: Request) {
         engineVolumeCc?: number;
         interiorMaterial?: string;
         hasSunroof?: boolean;
+        creditAvailable?: boolean;
+        barterAvailable?: boolean;
         imageUrls?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
@@ -269,6 +274,8 @@ export async function POST(req: Request) {
     engineVolumeCc?: number;
     interiorMaterial?: string;
     hasSunroof?: boolean;
+    creditAvailable?: boolean;
+    barterAvailable?: boolean;
     imageUrls?: string[];
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
@@ -329,6 +336,7 @@ export async function POST(req: Request) {
     fuelType: vehiclePayload.fuelType || "Benzin",
     transmission: vehiclePayload.transmission || "Avtomat",
     vin: vehiclePayload.vehicle.vin.trim().toUpperCase(),
+    vinProvided: Boolean(vehiclePayload.vehicle.vin.trim()),
     sellerType: vehiclePayload.sellerType || "private",
     bodyType: vehiclePayload.bodyType?.trim() || undefined,
     driveType: vehiclePayload.driveType?.trim() || undefined,
@@ -340,6 +348,8 @@ export async function POST(req: Request) {
         : undefined,
     interiorMaterial: vehiclePayload.interiorMaterial?.trim() || undefined,
     hasSunroof: vehiclePayload.hasSunroof === true ? true : undefined,
+    creditAvailable: vehiclePayload.creditAvailable === true ? true : undefined,
+    barterAvailable: vehiclePayload.barterAvailable === true ? true : undefined,
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,

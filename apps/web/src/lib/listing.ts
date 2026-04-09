@@ -58,9 +58,7 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
     errors.push("Qiymət 0-dan böyük olmalıdır.");
   }
   if (!city) errors.push("Şəhər seçilməlidir.");
-  if (!vin) {
-    errors.push("VIN kodu tələb olunur.");
-  } else if (!VIN_PATTERN.test(vin.toUpperCase())) {
+  if (vin && !VIN_PATTERN.test(vin.toUpperCase())) {
     errors.push("VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.");
   }
   if (typeof declaredMileageKm !== "number" || Number.isNaN(declaredMileageKm)) {

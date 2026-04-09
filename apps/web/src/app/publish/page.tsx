@@ -134,6 +134,8 @@ export default function PublishPage() {
   const [engineVolumeCc, setEngineVolumeCc] = useState<number | "">("");
   const [interiorMaterial, setInteriorMaterial] = useState("");
   const [hasSunroof, setHasSunroof] = useState(false);
+  const [creditAvailable, setCreditAvailable] = useState(false);
+  const [barterAvailable, setBarterAvailable] = useState(false);
   const vinVerified = false;
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
@@ -166,9 +168,7 @@ export default function PublishPage() {
     if (!model.trim()) errors.push("Modeli daxil edin.");
     if (!priceAzn || priceAzn <= 0) errors.push("Qiyməti 0-dan böyük daxil edin.");
     if (!city.trim()) errors.push("Şəhəri seçin.");
-    if (!vin.trim()) {
-      errors.push("VIN kodunu daxil edin.");
-    } else if (!VIN_PATTERN.test(vin.trim().toUpperCase())) {
+    if (vin.trim() && !VIN_PATTERN.test(vin.trim().toUpperCase())) {
       errors.push("VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.");
     }
     if (!declaredMileageKm && declaredMileageKm !== 0) {
@@ -314,8 +314,10 @@ export default function PublishPage() {
           engineVolumeCc: engineVolumeCc === "" ? undefined : engineVolumeCc,
           interiorMaterial: interiorMaterial || undefined,
           hasSunroof,
+          creditAvailable,
+          barterAvailable,
           sellerType: "private",
-          vehicle: { vin: vin || crypto.randomUUID().slice(0, 17), make, model, year, declaredMileageKm },
+          vehicle: { vin: vin.trim().toUpperCase(), make, model, year, declaredMileageKm },
           vinVerified,
           sellerVerified,
           mediaProtocol: media,
@@ -465,6 +467,9 @@ export default function PublishPage() {
                     maxLength={17}
                   />
                   <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
+                  <p className="mt-1 text-xs text-[#0891B2]">
+                    VIN məcburi deyil, amma əlavə edildikdə elan alıcı üçün daha etibarlı görünür.
+                  </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -616,6 +621,27 @@ export default function PublishPage() {
                   />
                   Lyuku var
                 </label>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={creditAvailable}
+                      onChange={(e) => setCreditAvailable(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Kreditə uyğundur
+                  </label>
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={barterAvailable}
+                      onChange={(e) => setBarterAvailable(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Barter mümkündür
+                  </label>
+                </div>
 
                 <div>
                   <label className="label">Şəhər</label>
@@ -1088,6 +1114,7 @@ export default function PublishPage() {
                     ["Rəng / Vəziyyət", `${color || "—"} / ${vehicleCondition || "—"}`],
                     ["Mühərrik / Salon", `${engineVolumeCc === "" ? "—" : `${engineVolumeCc} cc`} / ${interiorMaterial || "—"}`],
                     ["Lyuk", hasSunroof ? "Var" : "Yox"],
+                    ["Kredit / Barter", `${creditAvailable ? "Var" : "Yox"} / ${barterAvailable ? "Var" : "Yox"}`],
                     ["Qiymət", `${priceAzn.toLocaleString()} ₼`],
                     ["Şəhər", city],
                     ["VIN", vin || "—"],

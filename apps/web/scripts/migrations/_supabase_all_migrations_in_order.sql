@@ -683,6 +683,13 @@ CREATE INDEX IF NOT EXISTS idx_listings_engine_volume_cc ON listings (engine_vol
 CREATE INDEX IF NOT EXISTS idx_listings_interior_material ON listings (interior_material);
 CREATE INDEX IF NOT EXISTS idx_listings_has_sunroof ON listings (has_sunroof);
 
+ALTER TABLE listings
+  ADD COLUMN IF NOT EXISTS credit_available BOOLEAN NULL,
+  ADD COLUMN IF NOT EXISTS barter_available BOOLEAN NULL;
+
+CREATE INDEX IF NOT EXISTS idx_listings_credit_available ON listings (credit_available);
+CREATE INDEX IF NOT EXISTS idx_listings_barter_available ON listings (barter_available);
+
 -- =============================================================================
 -- SON
 -- =============================================================================

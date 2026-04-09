@@ -31,6 +31,9 @@ export interface ListingRecord {
   engineVolumeCc?: number;
   interiorMaterial?: string;
   hasSunroof?: boolean;
+  creditAvailable?: boolean;
+  barterAvailable?: boolean;
+  vinProvided?: boolean;
   /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
   listingKind?: ListingKind;
   partCategory?: string;
@@ -99,6 +102,9 @@ export interface ListingQuery {
   maxEngineVolumeCc?: number;
   interiorMaterial?: string;
   hasSunroof?: boolean;
+  creditAvailable?: boolean;
+  barterAvailable?: boolean;
+  vinProvided?: boolean;
   minPrice?: number;
   maxPrice?: number;
   minYear?: number;
