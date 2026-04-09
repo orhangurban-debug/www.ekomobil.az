@@ -275,7 +275,17 @@ export async function POST(req: Request) {
         paymentRequired: isPaidPlan(requestedPlanType),
         requestedPlanType
       });
-    } catch {
+    } catch (error) {
+      console.error("Failed to persist part listing", error);
+      if (process.env.NODE_ENV === "production") {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+          },
+          { status: 500 }
+        );
+      }
       const created = createListingFallback(createInput);
       return NextResponse.json({
         ok: true,
@@ -473,7 +483,17 @@ export async function POST(req: Request) {
       paymentRequired: isPaidPlan(requestedPlanType),
       requestedPlanType
     });
-  } catch {
+  } catch (error) {
+    console.error("Failed to persist vehicle listing", error);
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+        },
+        { status: 500 }
+      );
+    }
     const created = createListingFallback(createInput);
     return NextResponse.json({
       ok: true,
