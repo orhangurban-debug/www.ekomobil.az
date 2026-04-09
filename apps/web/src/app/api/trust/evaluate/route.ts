@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   let manualReview = null;
   if (signals.mileageFlag?.severity === "high_risk") {
     manualReview = await enqueueManualReview({
-      listingId: payload.listingId ?? payload.vehicle.vin || crypto.randomUUID(),
+      listingId: payload.listingId ?? (payload.vehicle.vin || crypto.randomUUID()),
       reasonCode: signals.mileageFlag.reasonCode,
       message: signals.mileageFlag.message
     });
