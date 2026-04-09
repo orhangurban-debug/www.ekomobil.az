@@ -8,6 +8,8 @@ import { LeadCaptureForm } from "@/components/listings/lead-capture-form";
 import { TestDriveButton } from "@/components/listings/test-drive-button";
 import { ListingStatsPanel } from "@/components/listings/listing-stats-panel";
 import { ListingCard } from "@/components/listings/listing-card";
+import { ListingGallery } from "@/components/listings/listing-gallery";
+import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
 import { getListingStats } from "@/server/listing-stats-store";
@@ -100,56 +102,19 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         <span className="text-slate-900">{listing.title}</span>
       </nav>
 
+      {/* Admin moderation bar */}
+      {user && ["admin", "support"].includes(user.role) && (
+        <AdminListingActions
+          listingId={listing.id}
+          currentStatus={listing.status}
+          listingTitle={listing.title}
+        />
+      )}
+
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left — images */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Main image placeholder */}
-          <div className="card overflow-hidden">
-            {listing.imageUrl ? (
-              <div className="relative h-80 bg-slate-100">
-                <Image
-                  src={listing.imageUrl}
-                  alt={listing.title}
-                  fill
-                  unoptimized={listing.imageUrl.startsWith("data:")}
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                />
-              </div>
-            ) : (
-              <div className="flex h-80 items-center justify-center bg-slate-100">
-                <svg className="h-24 w-24 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
-                </svg>
-              </div>
-            )}
-          </div>
-
-          {/* Thumbnail row placeholder */}
-          {listing.imageUrl ? (
-            <div className="grid grid-cols-4 gap-2">
-              <div className="relative h-20 overflow-hidden rounded-xl border border-slate-200">
-                <Image
-                  src={listing.imageUrl}
-                  alt={listing.title}
-                  fill
-                  unoptimized={listing.imageUrl.startsWith("data:")}
-                  className="object-cover"
-                  sizes="180px"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-20 rounded-xl bg-slate-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
-                  </svg>
-                </div>
-              ))}
-            </div>
-          )}
+          <ListingGallery urls={listing.mediaUrls} title={listing.title} />
 
           {/* Description */}
           <div className="card p-6">
