@@ -1035,6 +1035,114 @@ export async function bulkUpdateListingStatus(listingIds: string[], status: stri
   return result.rowCount ?? 0;
 }
 
+export async function getAdminListing(id: string): Promise<AdminListingRow & {
+  description: string;
+  make: string;
+  model: string;
+  vin: string | null;
+  ownerUserId: string | null;
+  ownerEmail: string | null;
+} | null> {
+  const pool = getPgPool();
+  const result = await pool.query<{
+    id: string;
+    title: string;
+    status: string;
+    seller_type: string;
+    listing_kind: string | null;
+    price_azn: number;
+    city: string;
+    year: number;
+    plan_type: string | null;
+    created_at: Date;
+    description: string;
+    make: string;
+    model: string;
+    vin: string | null;
+    owner_user_id: string | null;
+    owner_email: string | null;
+  }>(
+    `SELECT l.id, l.title, l.status, l.seller_type, l.listing_kind, l.price_azn, l.city, l.year,
+            l.plan_type, l.created_at, l.description, l.make, l.model, l.vin, l.owner_user_id,
+            u.email AS owner_email
+     FROM listings l
+     LEFT JOIN users u ON u.id = l.owner_user_id
+     WHERE l.id = $1`,
+    [id]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    sellerType: row.seller_type,
+    listingKind: row.listing_kind === "part" ? "part" : "vehicle",
+    priceAzn: row.price_azn,
+    city: row.city,
+    year: row.year,
+    planType: row.plan_type ?? undefined,
+    createdAt: row.created_at.toISOString(),
+    description: row.description,
+    make: row.make,
+    model: row.model,
+    vin: row.vin,
+    ownerUserId: row.owner_user_id,
+    ownerEmail: row.owner_email
+  };
+}
+
+export async function updateSingleAdminListing(id: string, updates: {
+  status?: string;
+  priceAzn?: number;
+  title?: string;
+  city?: string;
+}): Promise<boolean> {
+  const pool = getPgPool();
+  const sets: string[] = ["updated_at = NOW()"];
+  const values: (string | number)[] = [];
+
+  if (updates.status !== undefined) {
+    values.push(updates.status);
+    sets.push(`status = $${values.length}`);
+    if (updates.status === "active") {
+      sets.push(`plan_expires_at = CASE COALESCE(plan_type, 'free')
+        WHEN 'vip' THEN NOW() + INTERVAL '90 days'
+        WHEN 'standard' THEN NOW() + INTERVAL '60 days'
+        ELSE NOW() + INTERVAL '30 days'
+      END`);
+    }
+  }
+  if (updates.priceAzn !== undefined) {
+    values.push(updates.priceAzn);
+    sets.push(`price_azn = $${values.length}`);
+  }
+  if (updates.title !== undefined) {
+    values.push(updates.title);
+    sets.push(`title = $${values.length}`);
+  }
+  if (updates.city !== undefined) {
+    values.push(updates.city);
+    sets.push(`city = $${values.length}`);
+  }
+
+  values.push(id);
+  const result = await pool.query(
+    `UPDATE listings SET ${sets.join(", ")} WHERE id = $${values.length}`,
+    values
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function deleteAdminListing(id: string): Promise<boolean> {
+  const pool = getPgPool();
+  await pool.query("DELETE FROM listing_trust_signals WHERE listing_id = $1", [id]);
+  await pool.query("DELETE FROM listing_media WHERE listing_id = $1", [id]);
+  await pool.query("DELETE FROM listing_service_records WHERE listing_id = $1", [id]);
+  const result = await pool.query("DELETE FROM listings WHERE id = $1", [id]);
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function listAdminLeadsPaged(input: {
   page?: number;
   pageSize?: number;
