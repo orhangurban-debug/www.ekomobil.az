@@ -11,13 +11,22 @@ export default function RegisterPage() {
     email: "",
     city: "Bakı",
     phone: "",
-    password: ""
+    password: "",
+    phoneOtpChallengeId: "",
+    phoneOtpCode: ""
   });
   const [loading, setLoading] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!form.phoneOtpChallengeId) {
+      setError("Əvvəl telefon təsdiq kodunu göndərin.");
+      return;
+    }
     setLoading(true);
     setError(null);
     const response = await fetch("/api/auth/register", {
@@ -32,6 +41,36 @@ export default function RegisterPage() {
       return;
     }
     router.push("/me");
+  }
+
+  async function sendPhoneOtp() {
+    if (!form.phone.trim()) {
+      setError("Əvvəl telefon nömrəsini daxil edin.");
+      return;
+    }
+    setSendingOtp(true);
+    setError(null);
+    const response = await fetch("/api/auth/phone/send-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: form.phone })
+    });
+    const payload = (await response.json()) as {
+      ok: boolean;
+      challengeId?: string;
+      error?: string;
+      code?: string;
+    };
+    if (!payload.ok || !payload.challengeId) {
+      setError(payload.error || "Təsdiq kodu göndərilmədi.");
+      setSendingOtp(false);
+      return;
+    }
+    const challengeId = payload.challengeId;
+    setForm((prev) => ({ ...prev, phoneOtpChallengeId: challengeId }));
+    setOtpHintCode(payload.code ?? null);
+    setOtpSent(true);
+    setSendingOtp(false);
   }
 
   return (
@@ -71,8 +110,30 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="label">Telefon</label>
-            <input className="input-field" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+994..." />
+            <input className="input-field" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+994..." required />
+            <button
+              type="button"
+              onClick={() => void sendPhoneOtp()}
+              disabled={sendingOtp}
+              className="btn-secondary mt-2 text-xs"
+            >
+              {sendingOtp ? "Kod göndərilir..." : otpSent ? "Kodu yenidən göndər" : "Telefonu təsdiqlə"}
+            </button>
           </div>
+        </div>
+        <div>
+          <label className="label">Telefon OTP kodu</label>
+          <input
+            className="input-field"
+            value={form.phoneOtpCode}
+            onChange={(e) => setForm((p) => ({ ...p, phoneOtpCode: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
+            placeholder="6 rəqəmli kod"
+            maxLength={6}
+            required
+          />
+          {otpHintCode && (
+            <p className="mt-1 text-xs text-slate-500">Dev kodu: <span className="font-mono">{otpHintCode}</span></p>
+          )}
         </div>
         <div>
           <label className="label">Şifrə</label>

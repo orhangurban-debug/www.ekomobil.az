@@ -1,4 +1,4 @@
-import { randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomInt, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
 
@@ -23,6 +23,15 @@ export interface GoogleOAuthIdentity {
   email: string;
   fullName?: string;
   avatarUrl?: string;
+}
+
+interface PhoneOtpChallengeRow {
+  id: string;
+  phone_normalized: string;
+  otp_code: string;
+  attempts: number;
+  expires_at: Date;
+  consumed_at: Date | null;
 }
 
 const OWNER_ADMIN_EMAILS = new Set(["orhangurban@gmail.com"]);
@@ -94,6 +103,8 @@ export async function createUserAccount(input: {
   fullName?: string;
   city?: string;
   phone?: string;
+  phoneNormalized?: string;
+  phoneVerified?: boolean;
 }): Promise<UserRecord> {
   await ensureSeedData();
   const pool = getPgPool();
@@ -110,8 +121,8 @@ export async function createUserAccount(input: {
       phone: string | null;
     }>(
       `
-        INSERT INTO users (id, email, password_hash, role, email_verified, phone)
-        VALUES ($1, $2, $3, $4, false, $5)
+        INSERT INTO users (id, email, password_hash, role, email_verified, phone, phone_verified, phone_normalized)
+        VALUES ($1, $2, $3, $4, false, $5, $6, $7)
         RETURNING id, email, role, email_verified, phone
       `,
       [
@@ -119,7 +130,9 @@ export async function createUserAccount(input: {
         input.email,
         hashPassword(input.password),
         input.role ?? (isOwnerAdminEmail(input.email) ? "admin" : "viewer"),
-        input.phone ?? null
+        input.phone ?? null,
+        input.phoneVerified === true,
+        input.phoneNormalized ?? null
       ]
     );
 
@@ -139,6 +152,94 @@ export async function createUserAccount(input: {
   } finally {
     client.release();
   }
+}
+
+export function normalizePhoneNumber(input: string): string {
+  const trimmed = input.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (!digits) return "";
+  if (trimmed.startsWith("+")) return `+${digits}`;
+  if (digits.startsWith("00")) return `+${digits.slice(2)}`;
+  if (digits.startsWith("994")) return `+${digits}`;
+  return `+994${digits.startsWith("0") ? digits.slice(1) : digits}`;
+}
+
+function createOtpCode(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+export async function createPhoneOtpChallenge(input: {
+  phoneNormalized: string;
+}): Promise<{ challengeId: string; expiresAt: string; codeForDev?: string }> {
+  await ensureSeedData();
+  const challengeId = randomUUID();
+  const code = createOtpCode();
+  const pool = getPgPool();
+  const result = await pool.query<{ expires_at: Date }>(
+    `
+      INSERT INTO phone_otp_challenges (id, phone_normalized, otp_code, expires_at)
+      VALUES ($1, $2, $3, NOW() + INTERVAL '10 minutes')
+      RETURNING expires_at
+    `,
+    [challengeId, input.phoneNormalized, code]
+  );
+  return {
+    challengeId,
+    expiresAt: result.rows[0]?.expires_at?.toISOString() ?? new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    codeForDev: process.env.NODE_ENV === "production" ? undefined : code
+  };
+}
+
+export async function consumePhoneOtpChallenge(input: {
+  challengeId: string;
+  phoneNormalized: string;
+  otpCode: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  await ensureSeedData();
+  const pool = getPgPool();
+  const challengeResult = await pool.query<PhoneOtpChallengeRow>(
+    `
+      SELECT id, phone_normalized, otp_code, attempts, expires_at, consumed_at
+      FROM phone_otp_challenges
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [input.challengeId]
+  );
+  const challenge = challengeResult.rows[0];
+  if (!challenge) return { ok: false, error: "Telefon təsdiqi tapılmadı." };
+  if (challenge.consumed_at) return { ok: false, error: "Telefon təsdiq kodu artıq istifadə olunub." };
+  if (challenge.phone_normalized !== input.phoneNormalized) return { ok: false, error: "Telefon nömrəsi uyğun gəlmir." };
+  if (challenge.expires_at.getTime() < Date.now()) return { ok: false, error: "Telefon təsdiq kodunun müddəti bitib." };
+  if (challenge.attempts >= 5) return { ok: false, error: "Çox səhv cəhd edildi. Yeni kod istəyin." };
+
+  if (challenge.otp_code !== input.otpCode.trim()) {
+    await pool.query(`UPDATE phone_otp_challenges SET attempts = attempts + 1, updated_at = NOW() WHERE id = $1`, [
+      challenge.id
+    ]);
+    return { ok: false, error: "Təsdiq kodu yanlışdır." };
+  }
+
+  await pool.query(
+    `UPDATE phone_otp_challenges SET consumed_at = NOW(), verified_at = NOW(), updated_at = NOW() WHERE id = $1`,
+    [challenge.id]
+  );
+  return { ok: true };
+}
+
+export async function isPhoneAlreadyUsed(phoneNormalized: string): Promise<boolean> {
+  await ensureSeedData();
+  const pool = getPgPool();
+  const result = await pool.query<{ exists: number }>(
+    `
+      SELECT 1 as exists
+      FROM users
+      WHERE phone_normalized = $1
+      LIMIT 1
+    `,
+    [phoneNormalized]
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {

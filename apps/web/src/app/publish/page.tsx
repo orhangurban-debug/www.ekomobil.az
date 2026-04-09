@@ -313,6 +313,7 @@ export default function PublishPage() {
     if (payload.ok) {
       await trackEvent("listing_published", { vin, city, trustScore: payload.trustScore ?? null });
       const imageUrls = await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)));
+      const imageHashes = uploadedImages.map((entry) => entry.perceptualHash);
 
       const createResponse = await fetch("/api/listings", {
         method: "POST",
@@ -349,6 +350,7 @@ export default function PublishPage() {
           sellerVerified,
           mediaProtocol: media,
           imageUrls,
+          imageHashes,
           planType
         })
       });

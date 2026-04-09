@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
-import { createUserAccount } from "@/server/user-store";
+import { consumePhoneOtpChallenge, createUserAccount, isPhoneAlreadyUsed, normalizePhoneNumber } from "@/server/user-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { registerSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
@@ -30,12 +30,35 @@ export async function POST(req: Request) {
   }
 
   try {
+    const normalizedPhone = normalizePhoneNumber(parsed.phone);
+    if (!normalizedPhone) {
+      return NextResponse.json({ ok: false, error: "Telefon nömrəsi düzgün deyil." }, { status: 400 });
+    }
+
+    const otpCheck = await consumePhoneOtpChallenge({
+      challengeId: parsed.phoneOtpChallengeId,
+      phoneNormalized: normalizedPhone,
+      otpCode: parsed.phoneOtpCode
+    });
+    if (!otpCheck.ok) {
+      return NextResponse.json({ ok: false, error: otpCheck.error }, { status: 400 });
+    }
+
+    if (await isPhoneAlreadyUsed(normalizedPhone)) {
+      return NextResponse.json(
+        { ok: false, error: "Bu telefon nömrəsi ilə artıq hesab mövcuddur." },
+        { status: 409 }
+      );
+    }
+
     const user = await createUserAccount({
       email: parsed.email,
       password: parsed.password,
       fullName: parsed.fullName,
       city: parsed.city,
       phone: parsed.phone,
+      phoneNormalized: normalizedPhone,
+      phoneVerified: true
     });
 
     const token = createSessionToken({ id: user.id, email: user.email, role: user.role });
@@ -49,6 +72,9 @@ export async function POST(req: Request) {
     });
     return res;
   } catch {
-    return NextResponse.json({ ok: false, error: "Hesab yaradıla bilmədi. Email artıq istifadə olunur." }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Hesab yaradıla bilmədi. Email və ya telefon artıq istifadə olunur." },
+      { status: 400 }
+    );
   }
 }

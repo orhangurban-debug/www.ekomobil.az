@@ -11,6 +11,7 @@ import {
   countConcurrentFreeVehicleListingsForUser,
   createListingRecord,
   hasRecentPartDuplicate,
+  hasRecentImageHashDuplicate,
   hasRecentVehicleDuplicate,
   listListings
 } from "@/server/listing-store";
@@ -120,6 +121,7 @@ export async function POST(req: Request) {
         hasServiceBook?: boolean;
         hasRepairHistory?: boolean;
         imageUrls?: string[];
+        imageHashes?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
       })
@@ -311,6 +313,7 @@ export async function POST(req: Request) {
     hasServiceBook?: boolean;
     hasRepairHistory?: boolean;
     imageUrls?: string[];
+    imageHashes?: string[];
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
   };
@@ -346,6 +349,22 @@ export async function POST(req: Request) {
       },
       { status: 409 }
     );
+  }
+
+  if (!isPaidPlan(requestedPlanType) && Array.isArray(vehiclePayload.imageHashes) && vehiclePayload.imageHashes.length > 0) {
+    const hasImageDuplicate = await hasRecentImageHashDuplicate({
+      imageHashes: vehiclePayload.imageHashes,
+      lookbackDays: 90
+    });
+    if (hasImageDuplicate) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Bu elanın şəkilləri son 90 gün ərzində yerləşdirilmiş başqa elanla çox oxşardır."
+        },
+        { status: 409 }
+      );
+    }
   }
 
   if (!isPaidPlan(requestedPlanType)) {
@@ -432,6 +451,7 @@ export async function POST(req: Request) {
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,
     imageUrls: vehiclePayload.imageUrls,
+    imageHashes: vehiclePayload.imageHashes,
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",

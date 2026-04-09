@@ -637,6 +637,7 @@ export async function createListingRecord(input: {
   partQuantity?: number;
   partCompatibility?: string;
   imageUrls?: string[];
+  imageHashes?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -747,14 +748,16 @@ export async function createListingRecord(input: {
       .map(sanitizeMediaUrl)
       .filter((entry): entry is string => Boolean(entry))
       .slice(0, 24);
+    const imageHashes = (input.imageHashes ?? []).map((entry) => entry.trim().toLowerCase()).slice(0, 24);
     if (imageUrls.length > 0) {
       for (let index = 0; index < imageUrls.length; index += 1) {
+        const perceptualHash = imageHashes[index];
         await client.query(
           `
-            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order)
-            VALUES ($1, $2, 'image', $3, $4)
+            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash)
+            VALUES ($1, $2, 'image', $3, $4, $5)
           `,
-          [randomUUID(), id, imageUrls[index], index]
+          [randomUUID(), id, imageUrls[index], index, perceptualHash ?? null]
         );
       }
     }
@@ -985,6 +988,37 @@ export async function hasRecentPartDuplicate(input: {
   }
 }
 
+export async function hasRecentImageHashDuplicate(input: {
+  imageHashes: string[];
+  lookbackDays?: number;
+}): Promise<boolean> {
+  const normalizedHashes = input.imageHashes
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => /^[0-9a-f]{16}$/.test(entry));
+  if (normalizedHashes.length === 0) return false;
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const lookbackDays = Math.max(1, Math.min(365, input.lookbackDays ?? 90));
+    const result = await pool.query<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM listing_media lm
+        JOIN listings l ON l.id = lm.listing_id
+        WHERE lm.media_type = 'image'
+          AND lm.perceptual_hash = ANY($1::text[])
+          AND l.created_at >= NOW() - ($2::text || ' days')::interval
+          AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
+      `,
+      [normalizedHashes, lookbackDays]
+    );
+    return Number(result.rows[0]?.count ?? "0") > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function createListingFallback(input: {
   ownerUserId?: string;
   dealerProfileId?: string;
@@ -1033,6 +1067,7 @@ export function createListingFallback(input: {
   partQuantity?: number;
   partCompatibility?: string;
   imageUrls?: string[];
+  imageHashes?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
