@@ -10,6 +10,7 @@ import {
   FUEL_TYPES,
   TRANSMISSIONS,
   DRIVE_TYPES,
+  INTERIOR_MATERIALS,
   COLORS,
   CONDITIONS,
   getModelsForMake
@@ -32,6 +33,10 @@ interface QueryState {
   driveType?: string;
   color?: string;
   condition?: string;
+  minEngineVolumeCc?: number;
+  maxEngineVolumeCc?: number;
+  interiorMaterial?: string;
+  hasSunroof?: boolean;
   sellerType?: "private" | "dealer";
   vinVerified?: boolean;
   sellerVerified?: boolean;
@@ -56,6 +61,10 @@ function buildUrl(query: QueryState, basePath: string) {
   if (query.driveType) params.set("driveType", query.driveType);
   if (query.color) params.set("color", query.color);
   if (query.condition) params.set("condition", query.condition);
+  if (query.minEngineVolumeCc) params.set("minEngineVolumeCc", String(query.minEngineVolumeCc));
+  if (query.maxEngineVolumeCc) params.set("maxEngineVolumeCc", String(query.maxEngineVolumeCc));
+  if (query.interiorMaterial) params.set("interiorMaterial", query.interiorMaterial);
+  if (query.hasSunroof) params.set("hasSunroof", "1");
   if (query.sellerType) params.set("sellerType", query.sellerType);
   if (query.vinVerified) params.set("vinVerified", "1");
   if (query.sellerVerified) params.set("sellerVerified", "1");
@@ -93,6 +102,10 @@ export function ListingsFiltersPanel({
     driveType: initialQuery.driveType,
     color: initialQuery.color,
     condition: initialQuery.condition,
+    minEngineVolumeCc: initialQuery.minEngineVolumeCc,
+    maxEngineVolumeCc: initialQuery.maxEngineVolumeCc,
+    interiorMaterial: initialQuery.interiorMaterial,
+    hasSunroof: initialQuery.hasSunroof,
     sellerType: initialQuery.sellerType,
     vinVerified: initialQuery.vinVerified,
     sellerVerified: initialQuery.sellerVerified,
@@ -124,6 +137,10 @@ export function ListingsFiltersPanel({
         query.driveType,
         query.color,
         query.condition,
+        query.minEngineVolumeCc,
+        query.maxEngineVolumeCc,
+        query.interiorMaterial,
+        query.hasSunroof,
         query.sellerType,
         query.vinVerified,
         query.sellerVerified
@@ -142,6 +159,10 @@ export function ListingsFiltersPanel({
         query.driveType,
         query.color,
         query.condition,
+        query.minEngineVolumeCc,
+        query.maxEngineVolumeCc,
+        query.interiorMaterial,
+        query.hasSunroof,
         query.sellerType,
         query.vinVerified,
         query.sellerVerified
@@ -413,6 +434,40 @@ export function ListingsFiltersPanel({
             </div>
 
             <div>
+              <label className="label">Mühərrik həcmi (cc)</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  className="input-field"
+                  type="number"
+                  value={query.minEngineVolumeCc ?? ""}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, minEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
+                  placeholder="Min"
+                />
+                <input
+                  className="input-field"
+                  type="number"
+                  value={query.maxEngineVolumeCc ?? ""}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, maxEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
+                  placeholder="Max"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="label">Salon materialı</label>
+              <select
+                className="input-field"
+                value={query.interiorMaterial ?? ""}
+                onChange={(e) => setQuery((prev) => ({ ...prev, interiorMaterial: e.target.value || undefined }))}
+              >
+                <option value="">Hamısı</option>
+                {INTERIOR_MATERIALS.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className="label">Satıcı tipi</label>
               <select className="input-field" value={query.sellerType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, sellerType: (e.target.value || undefined) as "private" | "dealer" | undefined }))}>
                 <option value="">Hamısı</option>
@@ -422,6 +477,15 @@ export function ListingsFiltersPanel({
             </div>
 
             <div className="space-y-2 border-t border-slate-100 pt-2">
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.hasSunroof ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, hasSunroof: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Lyuku var
+              </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"

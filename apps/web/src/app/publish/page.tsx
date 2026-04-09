@@ -3,7 +3,17 @@
 import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CAR_MAKES, FUEL_TYPES, TRANSMISSIONS, getModelsForMake } from "@/lib/car-data";
+import {
+  BODY_TYPES,
+  CAR_MAKES,
+  COLORS,
+  CONDITIONS,
+  DRIVE_TYPES,
+  INTERIOR_MATERIALS,
+  FUEL_TYPES,
+  TRANSMISSIONS,
+  getModelsForMake
+} from "@/lib/car-data";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
@@ -51,6 +61,23 @@ const mediaAngles: { key: keyof MediaProtocolInput; label: string }[] = [
   { key: "hasOdometer", label: "Odometr" },
   { key: "hasTrunk", label: "Baqaj" }
 ];
+
+const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
+
+async function fileToDataUrl(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Şəkil oxuna bilmədi"));
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("Şəkil oxuna bilmədi"));
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 function StepIndicator({ current }: { current: Step }) {
   const idx = STEPS.indexOf(current);
@@ -100,6 +127,13 @@ export default function PublishPage() {
   const [declaredMileageKm, setDeclaredMileageKm] = useState(0);
   const [fuelType, setFuelType] = useState("Benzin");
   const [transmission, setTransmission] = useState("Avtomat");
+  const [bodyType, setBodyType] = useState("");
+  const [driveType, setDriveType] = useState("");
+  const [color, setColor] = useState("");
+  const [vehicleCondition, setVehicleCondition] = useState("");
+  const [engineVolumeCc, setEngineVolumeCc] = useState<number | "">("");
+  const [interiorMaterial, setInteriorMaterial] = useState("");
+  const [hasSunroof, setHasSunroof] = useState(false);
   const vinVerified = false;
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
@@ -134,19 +168,22 @@ export default function PublishPage() {
     if (!city.trim()) errors.push("Şəhəri seçin.");
     if (!vin.trim()) {
       errors.push("VIN kodunu daxil edin.");
-    } else if (vin.trim().length !== 17) {
-      errors.push("VIN kodu 17 simvol olmalıdır.");
+    } else if (!VIN_PATTERN.test(vin.trim().toUpperCase())) {
+      errors.push("VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.");
     }
     if (!declaredMileageKm && declaredMileageKm !== 0) {
       errors.push("Yürüş məlumatını daxil edin.");
     } else if (declaredMileageKm < 0) {
       errors.push("Yürüş mənfi ola bilməz.");
     }
+    if (engineVolumeCc !== "" && engineVolumeCc < 0) {
+      errors.push("Mühərrik həcmi mənfi ola bilməz.");
+    }
     if (year < 1950 || year > 2026) {
       errors.push("Avtomobil ilini düzgün daxil edin.");
     }
     return errors;
-  }, [city, declaredMileageKm, make, model, priceAzn, title, vin, year]);
+  }, [city, declaredMileageKm, engineVolumeCc, make, model, priceAzn, title, vin, year]);
   const availableModels = useMemo(() => getModelsForMake(make), [make]);
 
   const referenceNote = useMemo(() => {
@@ -258,6 +295,7 @@ export default function PublishPage() {
     const payload = (await response.json()) as TrustApiResponse;
     if (payload.ok) {
       await trackEvent("listing_published", { vin, city, trustScore: payload.trustScore ?? null });
+      const imageUrls = await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)));
 
       const createResponse = await fetch("/api/listings", {
         method: "POST",
@@ -269,11 +307,19 @@ export default function PublishPage() {
           city,
           fuelType,
           transmission,
+          bodyType: bodyType || undefined,
+          driveType: driveType || undefined,
+          color: color || undefined,
+          condition: vehicleCondition || undefined,
+          engineVolumeCc: engineVolumeCc === "" ? undefined : engineVolumeCc,
+          interiorMaterial: interiorMaterial || undefined,
+          hasSunroof,
           sellerType: "private",
           vehicle: { vin: vin || crypto.randomUUID().slice(0, 17), make, model, year, declaredMileageKm },
           vinVerified,
           sellerVerified,
           mediaProtocol: media,
+          imageUrls,
           planType
         })
       });
@@ -408,8 +454,17 @@ export default function PublishPage() {
 
                 <div>
                   <label className="label">VIN kodu</label>
-                  <input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} className="input-field font-mono tracking-widest uppercase" placeholder="17 simvol" maxLength={17} />
-                  <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır. Elan dərci üçün bu məlumat tələb olunur.</p>
+                  <input
+                    value={vin}
+                    onChange={(e) => {
+                      const normalized = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "");
+                      setVin(normalized);
+                    }}
+                    className="input-field font-mono tracking-widest uppercase"
+                    placeholder="17 simvol"
+                    maxLength={17}
+                  />
+                  <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -496,6 +551,71 @@ export default function PublishPage() {
                     </select>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Ban növü</label>
+                    <select value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="input-field">
+                      <option value="">Seçilməyib</option>
+                      {BODY_TYPES.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Ötürmə növü</label>
+                    <select value={driveType} onChange={(e) => setDriveType(e.target.value)} className="input-field">
+                      <option value="">Seçilməyib</option>
+                      {DRIVE_TYPES.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Rəng</label>
+                    <select value={color} onChange={(e) => setColor(e.target.value)} className="input-field">
+                      <option value="">Seçilməyib</option>
+                      {COLORS.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Vəziyyət</label>
+                    <select value={vehicleCondition} onChange={(e) => setVehicleCondition(e.target.value)} className="input-field">
+                      <option value="">Seçilməyib</option>
+                      {CONDITIONS.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Mühərrik həcmi (cc)</label>
+                    <input
+                      type="number"
+                      value={engineVolumeCc}
+                      onChange={(e) => setEngineVolumeCc(e.target.value ? Number(e.target.value) : "")}
+                      className="input-field"
+                      placeholder="məs: 2000"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Salon materialı</label>
+                    <select value={interiorMaterial} onChange={(e) => setInteriorMaterial(e.target.value)} className="input-field">
+                      <option value="">Seçilməyib</option>
+                      {INTERIOR_MATERIALS.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={hasSunroof}
+                    onChange={(e) => setHasSunroof(e.target.checked)}
+                    className="h-4 w-4 rounded accent-[#0891B2]"
+                  />
+                  Lyuku var
+                </label>
 
                 <div>
                   <label className="label">Şəhər</label>
@@ -793,7 +913,7 @@ export default function PublishPage() {
                 <div>
                   <label className="label mb-3">Çəkilmiş bucaqları işarələyin</label>
                   <p className="mb-3 text-xs text-slate-500">
-                    "Ön panel" dedikdə sükan, cihazlar paneli və mərkəzi ekranın göründüyü ön salon şəkli nəzərdə tutulur.
+                    &quot;Ön panel&quot; dedikdə sükan, cihazlar paneli və mərkəzi ekranın göründüyü ön salon şəkli nəzərdə tutulur.
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
@@ -964,6 +1084,10 @@ export default function PublishPage() {
                     ["Marka / Model", `${make} ${model}`],
                     ["İl / Yürüş", `${year} / ${declaredMileageKm.toLocaleString()} km`],
                     ["Yanacaq / Ötürücü", `${fuelType} / ${transmission}`],
+                    ["Ban / Ötürmə", `${bodyType || "—"} / ${driveType || "—"}`],
+                    ["Rəng / Vəziyyət", `${color || "—"} / ${vehicleCondition || "—"}`],
+                    ["Mühərrik / Salon", `${engineVolumeCc === "" ? "—" : `${engineVolumeCc} cc`} / ${interiorMaterial || "—"}`],
+                    ["Lyuk", hasSunroof ? "Var" : "Yox"],
                     ["Qiymət", `${priceAzn.toLocaleString()} ₼`],
                     ["Şəhər", city],
                     ["VIN", vin || "—"],

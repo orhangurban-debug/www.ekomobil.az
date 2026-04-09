@@ -39,10 +39,20 @@ export async function GET(req: Request) {
     search: searchParams.get("q") || undefined,
     fuelType: searchParams.get("fuelType") || undefined,
     transmission: searchParams.get("transmission") || undefined,
+    bodyType: searchParams.get("bodyType") || undefined,
+    driveType: searchParams.get("driveType") || undefined,
+    color: searchParams.get("color") || undefined,
+    condition: searchParams.get("condition") || undefined,
+    minEngineVolumeCc: searchParams.get("minEngineVolumeCc") ? Number(searchParams.get("minEngineVolumeCc")) : undefined,
+    maxEngineVolumeCc: searchParams.get("maxEngineVolumeCc") ? Number(searchParams.get("maxEngineVolumeCc")) : undefined,
+    interiorMaterial: searchParams.get("interiorMaterial") || undefined,
+    hasSunroof: searchParams.get("hasSunroof") === "1" ? true : undefined,
     minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
     maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
     minYear: searchParams.get("minYear") ? Number(searchParams.get("minYear")) : undefined,
     maxYear: searchParams.get("maxYear") ? Number(searchParams.get("maxYear")) : undefined,
+    minMileage: searchParams.get("minMileage") ? Number(searchParams.get("minMileage")) : undefined,
+    maxMileage: searchParams.get("maxMileage") ? Number(searchParams.get("maxMileage")) : undefined,
     vinVerified: searchParams.get("vinVerified") === "1" ? true : undefined,
     sellerVerified: searchParams.get("sellerVerified") === "1" ? true : undefined,
     sellerType: (searchParams.get("sellerType") as "private" | "dealer" | null) ?? undefined,
@@ -74,11 +84,20 @@ export async function POST(req: Request) {
         description?: string;
         fuelType?: string;
         transmission?: string;
+        bodyType?: string;
+        driveType?: string;
+        color?: string;
+        condition?: string;
+        engineVolumeCc?: number;
+        interiorMaterial?: string;
+        hasSunroof?: boolean;
+        imageUrls?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
       })
     | (PartListingPublishInput & {
         description?: string;
+        imageUrls?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
       });
@@ -108,6 +127,7 @@ export async function POST(req: Request) {
   if ("listingKind" in payload && payload.listingKind === "part") {
     const partPayload = payload as PartListingPublishInput & {
       description?: string;
+      imageUrls?: string[];
       sellerType?: "private" | "dealer";
       planType?: "free" | "standard" | "vip";
     };
@@ -190,7 +210,7 @@ export async function POST(req: Request) {
       vin: "PARTS-NOVIN",
       sellerType: partPayload.sellerType || "private",
       planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
-      status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
+      status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
       listingKind: "part" as const,
       partCategory: category,
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,
@@ -201,6 +221,7 @@ export async function POST(req: Request) {
       partSku: partPayload.partSku?.trim() || undefined,
       partQuantity: partPayload.partQuantity ?? 0,
       partCompatibility: partPayload.partCompatibility?.trim() || undefined,
+      imageUrls: partPayload.imageUrls,
       trust: {
         trustScore,
         vinVerified: false,
@@ -241,6 +262,14 @@ export async function POST(req: Request) {
     description?: string;
     fuelType?: string;
     transmission?: string;
+    bodyType?: string;
+    driveType?: string;
+    color?: string;
+    condition?: string;
+    engineVolumeCc?: number;
+    interiorMaterial?: string;
+    hasSunroof?: boolean;
+    imageUrls?: string[];
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
   };
@@ -299,11 +328,22 @@ export async function POST(req: Request) {
     mileageKm: vehiclePayload.vehicle.declaredMileageKm,
     fuelType: vehiclePayload.fuelType || "Benzin",
     transmission: vehiclePayload.transmission || "Avtomat",
-    vin: vehiclePayload.vehicle.vin,
+    vin: vehiclePayload.vehicle.vin.trim().toUpperCase(),
     sellerType: vehiclePayload.sellerType || "private",
+    bodyType: vehiclePayload.bodyType?.trim() || undefined,
+    driveType: vehiclePayload.driveType?.trim() || undefined,
+    color: vehiclePayload.color?.trim() || undefined,
+    condition: vehiclePayload.condition?.trim() || undefined,
+    engineVolumeCc:
+      typeof vehiclePayload.engineVolumeCc === "number" && Number.isFinite(vehiclePayload.engineVolumeCc)
+        ? Math.max(0, Math.round(vehiclePayload.engineVolumeCc))
+        : undefined,
+    interiorMaterial: vehiclePayload.interiorMaterial?.trim() || undefined,
+    hasSunroof: vehiclePayload.hasSunroof === true ? true : undefined,
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
-    status: (isPaidPlan(requestedPlanType) ? "draft" : "active") as "draft" | "active",
+    status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,
+    imageUrls: vehiclePayload.imageUrls,
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",

@@ -5,6 +5,8 @@ import {
 } from "@/lib/media-protocol";
 import { MileageEvent, VehicleIdentity } from "@/lib/vehicle";
 
+const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
+
 export interface PartListingPublishInput {
   listingKind: "part";
   title: string;
@@ -56,7 +58,11 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
     errors.push("Qiymət 0-dan böyük olmalıdır.");
   }
   if (!city) errors.push("Şəhər seçilməlidir.");
-  if (!vin) errors.push("VIN kodu tələb olunur.");
+  if (!vin) {
+    errors.push("VIN kodu tələb olunur.");
+  } else if (!VIN_PATTERN.test(vin.toUpperCase())) {
+    errors.push("VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.");
+  }
   if (typeof declaredMileageKm !== "number" || Number.isNaN(declaredMileageKm)) {
     errors.push("Yürüş məlumatı tələb olunur.");
   } else if (declaredMileageKm < 0) {

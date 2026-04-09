@@ -44,6 +44,14 @@ export const CONDITIONS = [
   "Qəzasız", "Rənglənmiş", "Qəzalı"
 ] as const;
 
+export const INTERIOR_MATERIALS = [
+  "Parça",
+  "Dəri",
+  "Alkantara",
+  "Kombinə",
+  "Vinil"
+] as const;
+
 export const AZERBAIJAN_CITIES = [
   "Bakı", "Sumqayıt", "Gəncə", "Mingəçevir", "Lənkəran", "Naxçıvan", "Şəki",
   "Yevlax", "Xankəndi", "Bərdə", "Cəlilabad", "Şirvan", "Ağcabədi", "Quba",
@@ -57,6 +65,7 @@ export type Transmission = (typeof TRANSMISSIONS)[number];
 export type DriveType = (typeof DRIVE_TYPES)[number];
 export type Color = (typeof COLORS)[number];
 export type Condition = (typeof CONDITIONS)[number];
+export type InteriorMaterial = (typeof INTERIOR_MATERIALS)[number];
 
 /**
  * Marka → Model siyahısı

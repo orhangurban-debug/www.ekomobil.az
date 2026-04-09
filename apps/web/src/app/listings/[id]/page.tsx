@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
@@ -86,6 +87,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     listing.vin && listing.vin !== "PARTS-NOVIN" && isVinFormatValid(listing.vin)
       ? getVinCheckLinks(listing.vin)
       : null;
+  const hasVinEntered = Boolean(listing.vin && listing.vin !== "PARTS-NOVIN");
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -103,23 +105,51 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         <div className="lg:col-span-2 space-y-4">
           {/* Main image placeholder */}
           <div className="card overflow-hidden">
-            <div className="flex h-80 items-center justify-center bg-slate-100">
-              <svg className="h-24 w-24 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
-              </svg>
-            </div>
+            {listing.imageUrl ? (
+              <div className="relative h-80 bg-slate-100">
+                <Image
+                  src={listing.imageUrl}
+                  alt={listing.title}
+                  fill
+                  unoptimized={listing.imageUrl.startsWith("data:")}
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                />
+              </div>
+            ) : (
+              <div className="flex h-80 items-center justify-center bg-slate-100">
+                <svg className="h-24 w-24 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
+                </svg>
+              </div>
+            )}
           </div>
 
           {/* Thumbnail row placeholder */}
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 rounded-xl bg-slate-100 flex items-center justify-center">
-                <svg className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
-                </svg>
+          {listing.imageUrl ? (
+            <div className="grid grid-cols-4 gap-2">
+              <div className="relative h-20 overflow-hidden rounded-xl border border-slate-200">
+                <Image
+                  src={listing.imageUrl}
+                  alt={listing.title}
+                  fill
+                  unoptimized={listing.imageUrl.startsWith("data:")}
+                  className="object-cover"
+                  sizes="180px"
+                />
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-20 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Description */}
           <div className="card p-6">
@@ -191,6 +221,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       ["Yürüş", `${listing.mileageKm.toLocaleString()} km`],
                       ["Yanacaq növü", listing.fuelType],
                       ["Ötürücü qutsu", listing.transmission],
+                      ["Mühərrik həcmi", listing.engineVolumeCc ? `${listing.engineVolumeCc} cc` : "—"],
+                      ["Salon materialı", listing.interiorMaterial || "—"],
+                      ["Lyuk", listing.hasSunroof ? "Var" : "Yox"],
                       ["Şəhər", listing.city],
                       ...(listing.vin ? [["VIN kodu", listing.vin] as [string, string]] : [])
                     ])
@@ -250,7 +283,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {[
                 {
                   label: "VIN Nömrəsi",
-                  ok: listing.vinVerified,
+                  ok: hasVinEntered,
                   okText: "Daxil edilib",
                   failText: "Daxil edilməyib"
                 },

@@ -1,4 +1,4 @@
-export type ListingStatus = "active" | "draft" | "sold";
+export type ListingStatus = "active" | "draft" | "sold" | "pending_review" | "rejected" | "archived" | "inactive";
 export type SellerType = "private" | "dealer";
 export type PlanType = "free" | "standard" | "vip";
 export type PriceInsight = "below_market" | "market_rate" | "above_market";
@@ -28,6 +28,9 @@ export interface ListingRecord {
   driveType?: string;
   color?: string;
   condition?: string;
+  engineVolumeCc?: number;
+  interiorMaterial?: string;
+  hasSunroof?: boolean;
   /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
   listingKind?: ListingKind;
   partCategory?: string;
@@ -92,6 +95,10 @@ export interface ListingQuery {
   driveType?: string;
   color?: string;
   condition?: string;
+  minEngineVolumeCc?: number;
+  maxEngineVolumeCc?: number;
+  interiorMaterial?: string;
+  hasSunroof?: boolean;
   minPrice?: number;
   maxPrice?: number;
   minYear?: number;

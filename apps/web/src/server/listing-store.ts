@@ -45,6 +45,9 @@ interface ListingRow {
   drive_type?: string | null;
   color?: string | null;
   condition?: string | null;
+  engine_volume_cc?: number | null;
+  interior_material?: string | null;
+  has_sunroof?: boolean | null;
   created_at: Date;
   updated_at: Date;
   plan_type?: string | null;
@@ -85,6 +88,14 @@ function inferPriceInsight(priceAzn: number): PriceInsight {
   return "market_rate";
 }
 
+function sanitizeMediaUrl(url: string): string | null {
+  const normalized = url.trim();
+  if (!normalized) return null;
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  if (/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(normalized)) return normalized;
+  return null;
+}
+
 function mapRowToSummary(row: ListingRow): ListingSummary {
   return {
     id: row.id,
@@ -107,6 +118,9 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     driveType: row.drive_type ?? undefined,
     color: row.color ?? undefined,
     condition: row.condition ?? undefined,
+    engineVolumeCc: row.engine_volume_cc ?? undefined,
+    interiorMaterial: row.interior_material ?? undefined,
+    hasSunroof: row.has_sunroof ?? undefined,
     listingKind: row.listing_kind === "part" ? "part" : "vehicle",
     partCategory: row.part_category ?? undefined,
     partSubcategory: row.part_subcategory ?? undefined,
@@ -174,6 +188,10 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   if (query.driveType) result = result.filter((item) => item.driveType === query.driveType);
   if (query.color) result = result.filter((item) => item.color === query.color);
   if (query.condition) result = result.filter((item) => item.condition === query.condition);
+  if (query.minEngineVolumeCc) result = result.filter((item) => (item.engineVolumeCc ?? 0) >= query.minEngineVolumeCc!);
+  if (query.maxEngineVolumeCc) result = result.filter((item) => (item.engineVolumeCc ?? 0) <= query.maxEngineVolumeCc!);
+  if (query.interiorMaterial) result = result.filter((item) => item.interiorMaterial === query.interiorMaterial);
+  if (query.hasSunroof) result = result.filter((item) => item.hasSunroof === true);
 
   switch (query.sort) {
     case "price_asc":
@@ -328,6 +346,21 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       values.push(query.condition);
       where.push(`COALESCE(l.condition, '') = $${values.length}`);
     }
+    if (query.minEngineVolumeCc) {
+      values.push(query.minEngineVolumeCc);
+      where.push(`COALESCE(l.engine_volume_cc, 0) >= $${values.length}`);
+    }
+    if (query.maxEngineVolumeCc) {
+      values.push(query.maxEngineVolumeCc);
+      where.push(`COALESCE(l.engine_volume_cc, 0) <= $${values.length}`);
+    }
+    if (query.interiorMaterial) {
+      values.push(query.interiorMaterial);
+      where.push(`COALESCE(l.interior_material, '') = $${values.length}`);
+    }
+    if (query.hasSunroof) {
+      where.push(`COALESCE(l.has_sunroof, false) = true`);
+    }
 
     const planOrder = "CASE COALESCE(l.plan_type, 'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END ASC";
     const sortMap: Record<string, string> = {
@@ -360,7 +393,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.body_type, l.drive_type, l.color, l.condition,
+          l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -410,7 +443,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.body_type, l.drive_type, l.color, l.condition,
+          l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -486,6 +519,13 @@ export async function createListingRecord(input: {
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
+  bodyType?: string;
+  driveType?: string;
+  color?: string;
+  condition?: string;
+  engineVolumeCc?: number;
+  interiorMaterial?: string;
+  hasSunroof?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -498,6 +538,7 @@ export async function createListingRecord(input: {
   partSku?: string;
   partQuantity?: number;
   partCompatibility?: string;
+  imageUrls?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -525,9 +566,10 @@ export async function createListingRecord(input: {
         INSERT INTO listings (
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
           mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
-          part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility
+          part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility,
+          body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
       `,
       [
         id,
@@ -557,7 +599,14 @@ export async function createListingRecord(input: {
         input.partOemCode ?? null,
         input.partSku ?? null,
         input.partQuantity ?? null,
-        input.partCompatibility ?? null
+        input.partCompatibility ?? null,
+        input.bodyType ?? null,
+        input.driveType ?? null,
+        input.color ?? null,
+        input.condition ?? null,
+        input.engineVolumeCc ?? null,
+        input.interiorMaterial ?? null,
+        input.hasSunroof ?? null
       ]
     );
 
@@ -582,6 +631,22 @@ export async function createListingRecord(input: {
       ]
     );
 
+    const imageUrls = (input.imageUrls ?? [])
+      .map(sanitizeMediaUrl)
+      .filter((entry): entry is string => Boolean(entry))
+      .slice(0, 24);
+    if (imageUrls.length > 0) {
+      for (let index = 0; index < imageUrls.length; index += 1) {
+        await client.query(
+          `
+            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order)
+            VALUES ($1, $2, 'image', $3, $4)
+          `,
+          [randomUUID(), id, imageUrls[index], index]
+        );
+      }
+    }
+
     await client.query("COMMIT");
     return { id };
   } catch (error) {
@@ -602,7 +667,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.body_type, l.drive_type, l.color, l.condition,
+          l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -636,7 +701,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
         SELECT
           l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
-          l.body_type, l.drive_type, l.color, l.condition,
+          l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -786,6 +851,13 @@ export function createListingFallback(input: {
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
+  bodyType?: string;
+  driveType?: string;
+  color?: string;
+  condition?: string;
+  engineVolumeCc?: number;
+  interiorMaterial?: string;
+  hasSunroof?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -798,6 +870,7 @@ export function createListingFallback(input: {
   partSku?: string;
   partQuantity?: number;
   partCompatibility?: string;
+  imageUrls?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -838,6 +911,13 @@ export function createListingFallback(input: {
     vin: input.vin,
     status,
     sellerType: input.sellerType,
+    bodyType: input.bodyType,
+    driveType: input.driveType,
+    color: input.color,
+    condition: input.condition,
+    engineVolumeCc: input.engineVolumeCc,
+    interiorMaterial: input.interiorMaterial,
+    hasSunroof: input.hasSunroof,
     ownerUserId: input.ownerUserId,
     dealerProfileId: input.dealerProfileId,
     planType,
@@ -854,6 +934,7 @@ export function createListingFallback(input: {
     riskSummary: input.trust.riskSummary,
     lastVerifiedAt: new Date().toISOString(),
     priceInsight: inferPriceInsight(input.priceAzn),
+    imageUrl: input.imageUrls?.[0],
     serviceRecords: [],
     relatedIds: []
   };
@@ -935,7 +1016,7 @@ export async function applyListingPlanForOwner(
       `UPDATE listings
        SET plan_type = $1,
            plan_expires_at = $2,
-           status = CASE WHEN $4 THEN 'active' ELSE status END,
+           status = CASE WHEN $4 THEN 'pending_review' ELSE status END,
            updated_at = NOW()
        WHERE id = $3`,
       [planType, planExpiresAt, listingId, options?.activate === true]
@@ -950,7 +1031,7 @@ export async function applyListingPlanForOwner(
     const planExpiresAt = calculatePlanExpiry(planType);
     listing.planType = planType;
     listing.planExpiresAt = planExpiresAt.toISOString();
-    if (options?.activate) listing.status = "active";
+    if (options?.activate) listing.status = "pending_review";
     listing.updatedAt = new Date().toISOString();
     return { ok: true };
   }

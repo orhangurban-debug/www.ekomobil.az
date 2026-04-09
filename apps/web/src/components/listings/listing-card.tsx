@@ -192,6 +192,7 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
             src={listing.imageUrl}
             alt={listing.title}
             fill
+            unoptimized={listing.imageUrl.startsWith("data:")}
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
