@@ -562,6 +562,17 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       [id]
     );
 
+    const mediaRows = await pool.query<{ url: string }>(
+      `
+        SELECT url
+        FROM listing_media
+        WHERE listing_id = $1 AND media_type = 'image'
+        ORDER BY sort_order ASC
+        LIMIT 24
+      `,
+      [id]
+    );
+
     const relatedRows = await pool.query<{ id: string }>(
       `
         SELECT id
@@ -573,8 +584,11 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       [id, row.make, row.city]
     );
 
+    const mediaUrls = mediaRows.rows.map((entry) => entry.url);
+
     return {
       ...mapRowToSummary(row),
+      mediaUrls,
       serviceRecords: serviceRows.rows.map((entry) => ({
         id: entry.id,
         sourceType: entry.source_type,
@@ -585,7 +599,11 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       relatedIds: relatedRows.rows.map((entry) => entry.id)
     };
   } catch {
-    return getCreatedListings().find((item) => item.id === id) ?? demoListingsDetailed.find((item) => item.id === id) ?? null;
+    const found = getCreatedListings().find((item) => item.id === id) ?? null;
+    if (found) return found;
+    const demo = demoListingsDetailed.find((item) => item.id === id);
+    if (!demo) return null;
+    return { ...demo, mediaUrls: demo.imageUrl ? [demo.imageUrl] : [] };
   }
 }
 
@@ -1145,6 +1163,7 @@ export function createListingFallback(input: {
     lastVerifiedAt: new Date().toISOString(),
     priceInsight: inferPriceInsight(input.priceAzn),
     imageUrl: input.imageUrls?.[0],
+    mediaUrls: input.imageUrls ?? [],
     serviceRecords: [],
     relatedIds: []
   };

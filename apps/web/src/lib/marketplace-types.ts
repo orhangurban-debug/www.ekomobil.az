@@ -87,6 +87,7 @@ export interface ListingSummary extends ListingRecord, ListingTrustRecord {
 }
 
 export interface ListingDetail extends ListingSummary {
+  mediaUrls: string[];
   serviceRecords: Array<{
     id: string;
     sourceType: string;
