@@ -136,6 +136,15 @@ export default function PublishPage() {
   const [hasSunroof, setHasSunroof] = useState(false);
   const [creditAvailable, setCreditAvailable] = useState(false);
   const [barterAvailable, setBarterAvailable] = useState(false);
+  const [seatHeating, setSeatHeating] = useState(false);
+  const [seatCooling, setSeatCooling] = useState(false);
+  const [camera360, setCamera360] = useState(false);
+  const [parkingSensors, setParkingSensors] = useState(false);
+  const [adaptiveCruise, setAdaptiveCruise] = useState(false);
+  const [laneAssist, setLaneAssist] = useState(false);
+  const [ownersCount, setOwnersCount] = useState<number | "">("");
+  const [hasServiceBook, setHasServiceBook] = useState(false);
+  const [hasRepairHistory, setHasRepairHistory] = useState(false);
   const vinVerified = false;
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
@@ -179,11 +188,14 @@ export default function PublishPage() {
     if (engineVolumeCc !== "" && engineVolumeCc < 0) {
       errors.push("Mühərrik həcmi mənfi ola bilməz.");
     }
+    if (ownersCount !== "" && ownersCount < 1) {
+      errors.push("Sahib sayı 1 və ya daha çox olmalıdır.");
+    }
     if (year < 1950 || year > 2026) {
       errors.push("Avtomobil ilini düzgün daxil edin.");
     }
     return errors;
-  }, [city, declaredMileageKm, engineVolumeCc, make, model, priceAzn, title, vin, year]);
+  }, [city, declaredMileageKm, engineVolumeCc, make, model, ownersCount, priceAzn, title, vin, year]);
   const availableModels = useMemo(() => getModelsForMake(make), [make]);
 
   const referenceNote = useMemo(() => {
@@ -316,6 +328,15 @@ export default function PublishPage() {
           hasSunroof,
           creditAvailable,
           barterAvailable,
+          seatHeating,
+          seatCooling,
+          camera360,
+          parkingSensors,
+          adaptiveCruise,
+          laneAssist,
+          ownersCount: ownersCount === "" ? undefined : ownersCount,
+          hasServiceBook,
+          hasRepairHistory,
           sellerType: "private",
           vehicle: { vin: vin.trim().toUpperCase(), make, model, year, declaredMileageKm },
           vinVerified,
@@ -440,6 +461,103 @@ export default function PublishPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={seatHeating}
+                      onChange={(e) => setSeatHeating(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Oturacaq isidilməsi
+                  </label>
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={seatCooling}
+                      onChange={(e) => setSeatCooling(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Oturacaq soyudulması
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={camera360}
+                      onChange={(e) => setCamera360(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    360 kamera
+                  </label>
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={parkingSensors}
+                      onChange={(e) => setParkingSensors(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Park sensoru
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={adaptiveCruise}
+                      onChange={(e) => setAdaptiveCruise(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Adaptive cruise control
+                  </label>
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={laneAssist}
+                      onChange={(e) => setLaneAssist(e.target.checked)}
+                      className="h-4 w-4 rounded accent-[#0891B2]"
+                    />
+                    Zolaq izləmə (lane assist)
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Sahib sayı</label>
+                    <input
+                      type="number"
+                      value={ownersCount}
+                      onChange={(e) => setOwnersCount(e.target.value ? Number(e.target.value) : "")}
+                      className="input-field"
+                      min={1}
+                      placeholder="məs: 2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={hasServiceBook}
+                        onChange={(e) => setHasServiceBook(e.target.checked)}
+                        className="h-4 w-4 rounded accent-[#0891B2]"
+                      />
+                      Servis kitabçası var
+                    </label>
+                    <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={hasRepairHistory}
+                        onChange={(e) => setHasRepairHistory(e.target.checked)}
+                        className="h-4 w-4 rounded accent-[#0891B2]"
+                      />
+                      Təmir tarixçəsi var
+                    </label>
                   </div>
                 </div>
 
@@ -1115,6 +1233,9 @@ export default function PublishPage() {
                     ["Mühərrik / Salon", `${engineVolumeCc === "" ? "—" : `${engineVolumeCc} cc`} / ${interiorMaterial || "—"}`],
                     ["Lyuk", hasSunroof ? "Var" : "Yox"],
                     ["Kredit / Barter", `${creditAvailable ? "Var" : "Yox"} / ${barterAvailable ? "Var" : "Yox"}`],
+                    ["Komfort paket", `${seatHeating ? "Isitmə" : "—"}, ${seatCooling ? "Soyutma" : "—"}, ${camera360 ? "360 kamera" : "—"}, ${parkingSensors ? "Park sensoru" : "—"}`],
+                    ["Sürücü asistentləri", `${adaptiveCruise ? "ACC" : "—"} / ${laneAssist ? "Lane assist" : "—"}`],
+                    ["Sahib / Tarixçə", `${ownersCount === "" ? "—" : ownersCount} / ${hasServiceBook ? "Servis kitabçası" : "—"} / ${hasRepairHistory ? "Təmir tarixçəsi" : "—"}`],
                     ["Qiymət", `${priceAzn.toLocaleString()} ₼`],
                     ["Şəhər", city],
                     ["VIN", vin || "—"],

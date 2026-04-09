@@ -34,6 +34,15 @@ export interface ListingRecord {
   creditAvailable?: boolean;
   barterAvailable?: boolean;
   vinProvided?: boolean;
+  seatHeating?: boolean;
+  seatCooling?: boolean;
+  camera360?: boolean;
+  parkingSensors?: boolean;
+  adaptiveCruise?: boolean;
+  laneAssist?: boolean;
+  ownersCount?: number;
+  hasServiceBook?: boolean;
+  hasRepairHistory?: boolean;
   /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
   listingKind?: ListingKind;
   partCategory?: string;
@@ -105,6 +114,15 @@ export interface ListingQuery {
   creditAvailable?: boolean;
   barterAvailable?: boolean;
   vinProvided?: boolean;
+  seatHeating?: boolean;
+  seatCooling?: boolean;
+  camera360?: boolean;
+  parkingSensors?: boolean;
+  adaptiveCruise?: boolean;
+  laneAssist?: boolean;
+  maxOwnersCount?: number;
+  hasServiceBook?: boolean;
+  hasRepairHistory?: boolean;
   minPrice?: number;
   maxPrice?: number;
   minYear?: number;

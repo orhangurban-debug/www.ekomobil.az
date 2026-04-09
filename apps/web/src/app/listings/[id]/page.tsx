@@ -226,6 +226,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       ["Lyuk", listing.hasSunroof ? "Var" : "Yox"],
                       ["Kredit", listing.creditAvailable ? "Mümkündür" : "Yox"],
                       ["Barter", listing.barterAvailable ? "Mümkündür" : "Yox"],
+                      ["Oturacaq isidilməsi", listing.seatHeating ? "Var" : "Yox"],
+                      ["Oturacaq soyudulması", listing.seatCooling ? "Var" : "Yox"],
+                      ["360 kamera", listing.camera360 ? "Var" : "Yox"],
+                      ["Park sensoru", listing.parkingSensors ? "Var" : "Yox"],
+                      ["Adaptive cruise", listing.adaptiveCruise ? "Var" : "Yox"],
+                      ["Lane assist", listing.laneAssist ? "Var" : "Yox"],
+                      ["Sahib sayı", listing.ownersCount ? String(listing.ownersCount) : "—"],
+                      ["Servis kitabçası", listing.hasServiceBook ? "Var" : "Yox"],
+                      ["Təmir tarixçəsi", listing.hasRepairHistory ? "Var" : "Yox"],
                       ["Şəhər", listing.city],
                       ...(listing.vin ? [["VIN kodu", listing.vin] as [string, string]] : [])
                     ])

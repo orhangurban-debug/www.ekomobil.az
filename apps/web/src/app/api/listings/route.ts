@@ -50,6 +50,15 @@ export async function GET(req: Request) {
     creditAvailable: searchParams.get("creditAvailable") === "1" ? true : undefined,
     barterAvailable: searchParams.get("barterAvailable") === "1" ? true : undefined,
     vinProvided: searchParams.get("vinProvided") === "1" ? true : undefined,
+    seatHeating: searchParams.get("seatHeating") === "1" ? true : undefined,
+    seatCooling: searchParams.get("seatCooling") === "1" ? true : undefined,
+    camera360: searchParams.get("camera360") === "1" ? true : undefined,
+    parkingSensors: searchParams.get("parkingSensors") === "1" ? true : undefined,
+    adaptiveCruise: searchParams.get("adaptiveCruise") === "1" ? true : undefined,
+    laneAssist: searchParams.get("laneAssist") === "1" ? true : undefined,
+    maxOwnersCount: searchParams.get("maxOwnersCount") ? Number(searchParams.get("maxOwnersCount")) : undefined,
+    hasServiceBook: searchParams.get("hasServiceBook") === "1" ? true : undefined,
+    hasRepairHistory: searchParams.get("hasRepairHistory") === "1" ? true : undefined,
     minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
     maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
     minYear: searchParams.get("minYear") ? Number(searchParams.get("minYear")) : undefined,
@@ -71,6 +80,7 @@ export async function GET(req: Request) {
       | "price_asc"
       | "price_desc"
       | "year_desc"
+      | "mileage_asc"
       | "recent"
       | null) ?? undefined,
     page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
@@ -96,6 +106,15 @@ export async function POST(req: Request) {
         hasSunroof?: boolean;
         creditAvailable?: boolean;
         barterAvailable?: boolean;
+        seatHeating?: boolean;
+        seatCooling?: boolean;
+        camera360?: boolean;
+        parkingSensors?: boolean;
+        adaptiveCruise?: boolean;
+        laneAssist?: boolean;
+        ownersCount?: number;
+        hasServiceBook?: boolean;
+        hasRepairHistory?: boolean;
         imageUrls?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
@@ -276,6 +295,15 @@ export async function POST(req: Request) {
     hasSunroof?: boolean;
     creditAvailable?: boolean;
     barterAvailable?: boolean;
+    seatHeating?: boolean;
+    seatCooling?: boolean;
+    camera360?: boolean;
+    parkingSensors?: boolean;
+    adaptiveCruise?: boolean;
+    laneAssist?: boolean;
+    ownersCount?: number;
+    hasServiceBook?: boolean;
+    hasRepairHistory?: boolean;
     imageUrls?: string[];
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
@@ -350,6 +378,18 @@ export async function POST(req: Request) {
     hasSunroof: vehiclePayload.hasSunroof === true ? true : undefined,
     creditAvailable: vehiclePayload.creditAvailable === true ? true : undefined,
     barterAvailable: vehiclePayload.barterAvailable === true ? true : undefined,
+    seatHeating: vehiclePayload.seatHeating === true ? true : undefined,
+    seatCooling: vehiclePayload.seatCooling === true ? true : undefined,
+    camera360: vehiclePayload.camera360 === true ? true : undefined,
+    parkingSensors: vehiclePayload.parkingSensors === true ? true : undefined,
+    adaptiveCruise: vehiclePayload.adaptiveCruise === true ? true : undefined,
+    laneAssist: vehiclePayload.laneAssist === true ? true : undefined,
+    ownersCount:
+      typeof vehiclePayload.ownersCount === "number" && Number.isFinite(vehiclePayload.ownersCount)
+        ? Math.max(1, Math.round(vehiclePayload.ownersCount))
+        : undefined,
+    hasServiceBook: vehiclePayload.hasServiceBook === true ? true : undefined,
+    hasRepairHistory: vehiclePayload.hasRepairHistory === true ? true : undefined,
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,

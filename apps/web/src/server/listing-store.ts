@@ -50,6 +50,15 @@ interface ListingRow {
   has_sunroof?: boolean | null;
   credit_available?: boolean | null;
   barter_available?: boolean | null;
+  seat_heating?: boolean | null;
+  seat_cooling?: boolean | null;
+  camera_360?: boolean | null;
+  parking_sensors?: boolean | null;
+  adaptive_cruise?: boolean | null;
+  lane_assist?: boolean | null;
+  owners_count?: number | null;
+  has_service_book?: boolean | null;
+  has_repair_history?: boolean | null;
   created_at: Date;
   updated_at: Date;
   plan_type?: string | null;
@@ -126,6 +135,15 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     creditAvailable: row.credit_available ?? undefined,
     barterAvailable: row.barter_available ?? undefined,
     vinProvided: Boolean(row.vin && row.vin !== "PARTS-NOVIN"),
+    seatHeating: row.seat_heating ?? undefined,
+    seatCooling: row.seat_cooling ?? undefined,
+    camera360: row.camera_360 ?? undefined,
+    parkingSensors: row.parking_sensors ?? undefined,
+    adaptiveCruise: row.adaptive_cruise ?? undefined,
+    laneAssist: row.lane_assist ?? undefined,
+    ownersCount: row.owners_count ?? undefined,
+    hasServiceBook: row.has_service_book ?? undefined,
+    hasRepairHistory: row.has_repair_history ?? undefined,
     listingKind: row.listing_kind === "part" ? "part" : "vehicle",
     partCategory: row.part_category ?? undefined,
     partSubcategory: row.part_subcategory ?? undefined,
@@ -200,6 +218,15 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
   if (query.creditAvailable) result = result.filter((item) => item.creditAvailable === true);
   if (query.barterAvailable) result = result.filter((item) => item.barterAvailable === true);
   if (query.vinProvided) result = result.filter((item) => item.vinProvided === true);
+  if (query.seatHeating) result = result.filter((item) => item.seatHeating === true);
+  if (query.seatCooling) result = result.filter((item) => item.seatCooling === true);
+  if (query.camera360) result = result.filter((item) => item.camera360 === true);
+  if (query.parkingSensors) result = result.filter((item) => item.parkingSensors === true);
+  if (query.adaptiveCruise) result = result.filter((item) => item.adaptiveCruise === true);
+  if (query.laneAssist) result = result.filter((item) => item.laneAssist === true);
+  if (query.maxOwnersCount) result = result.filter((item) => (item.ownersCount ?? 99) <= query.maxOwnersCount!);
+  if (query.hasServiceBook) result = result.filter((item) => item.hasServiceBook === true);
+  if (query.hasRepairHistory) result = result.filter((item) => item.hasRepairHistory === true);
 
   switch (query.sort) {
     case "price_asc":
@@ -378,6 +405,34 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     if (query.vinProvided) {
       where.push(`COALESCE(NULLIF(TRIM(l.vin), ''), 'PARTS-NOVIN') <> 'PARTS-NOVIN'`);
     }
+    if (query.seatHeating) {
+      where.push(`COALESCE(l.seat_heating, false) = true`);
+    }
+    if (query.seatCooling) {
+      where.push(`COALESCE(l.seat_cooling, false) = true`);
+    }
+    if (query.camera360) {
+      where.push(`COALESCE(l.camera_360, false) = true`);
+    }
+    if (query.parkingSensors) {
+      where.push(`COALESCE(l.parking_sensors, false) = true`);
+    }
+    if (query.adaptiveCruise) {
+      where.push(`COALESCE(l.adaptive_cruise, false) = true`);
+    }
+    if (query.laneAssist) {
+      where.push(`COALESCE(l.lane_assist, false) = true`);
+    }
+    if (query.maxOwnersCount) {
+      values.push(query.maxOwnersCount);
+      where.push(`COALESCE(l.owners_count, 999) <= $${values.length}`);
+    }
+    if (query.hasServiceBook) {
+      where.push(`COALESCE(l.has_service_book, false) = true`);
+    }
+    if (query.hasRepairHistory) {
+      where.push(`COALESCE(l.has_repair_history, false) = true`);
+    }
 
     const planOrder = "CASE COALESCE(l.plan_type, 'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END ASC";
     const sortMap: Record<string, string> = {
@@ -412,6 +467,8 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
+          l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
+          l.owners_count, l.has_service_book, l.has_repair_history,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -463,6 +520,8 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
+          l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
+          l.owners_count, l.has_service_book, l.has_repair_history,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -548,6 +607,15 @@ export async function createListingRecord(input: {
   creditAvailable?: boolean;
   barterAvailable?: boolean;
   vinProvided?: boolean;
+  seatHeating?: boolean;
+  seatCooling?: boolean;
+  camera360?: boolean;
+  parkingSensors?: boolean;
+  adaptiveCruise?: boolean;
+  laneAssist?: boolean;
+  ownersCount?: number;
+  hasServiceBook?: boolean;
+  hasRepairHistory?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -589,9 +657,11 @@ export async function createListingRecord(input: {
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
           mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
           part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility,
-          body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available
+          body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available,
+          seat_heating, seat_cooling, camera_360, parking_sensors, adaptive_cruise, lane_assist,
+          owners_count, has_service_book, has_repair_history
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46)
       `,
       [
         id,
@@ -630,7 +700,16 @@ export async function createListingRecord(input: {
         input.interiorMaterial ?? null,
         input.hasSunroof ?? null,
         input.creditAvailable ?? null,
-        input.barterAvailable ?? null
+        input.barterAvailable ?? null,
+        input.seatHeating ?? null,
+        input.seatCooling ?? null,
+        input.camera360 ?? null,
+        input.parkingSensors ?? null,
+        input.adaptiveCruise ?? null,
+        input.laneAssist ?? null,
+        input.ownersCount ?? null,
+        input.hasServiceBook ?? null,
+        input.hasRepairHistory ?? null
       ]
     );
 
@@ -693,6 +772,8 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
+          l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
+          l.owners_count, l.has_service_book, l.has_repair_history,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -728,6 +809,8 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
+          l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
+          l.owners_count, l.has_service_book, l.has_repair_history,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -887,6 +970,15 @@ export function createListingFallback(input: {
   creditAvailable?: boolean;
   barterAvailable?: boolean;
   vinProvided?: boolean;
+  seatHeating?: boolean;
+  seatCooling?: boolean;
+  camera360?: boolean;
+  parkingSensors?: boolean;
+  adaptiveCruise?: boolean;
+  laneAssist?: boolean;
+  ownersCount?: number;
+  hasServiceBook?: boolean;
+  hasRepairHistory?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
   listingKind?: ListingKind;
@@ -950,6 +1042,15 @@ export function createListingFallback(input: {
     creditAvailable: input.creditAvailable,
     barterAvailable: input.barterAvailable,
     vinProvided: input.vinProvided ?? Boolean(input.vin),
+    seatHeating: input.seatHeating,
+    seatCooling: input.seatCooling,
+    camera360: input.camera360,
+    parkingSensors: input.parkingSensors,
+    adaptiveCruise: input.adaptiveCruise,
+    laneAssist: input.laneAssist,
+    ownersCount: input.ownersCount,
+    hasServiceBook: input.hasServiceBook,
+    hasRepairHistory: input.hasRepairHistory,
     ownerUserId: input.ownerUserId,
     dealerProfileId: input.dealerProfileId,
     planType,

@@ -40,6 +40,15 @@ interface QueryState {
   creditAvailable?: boolean;
   barterAvailable?: boolean;
   vinProvided?: boolean;
+  seatHeating?: boolean;
+  seatCooling?: boolean;
+  camera360?: boolean;
+  parkingSensors?: boolean;
+  adaptiveCruise?: boolean;
+  laneAssist?: boolean;
+  maxOwnersCount?: number;
+  hasServiceBook?: boolean;
+  hasRepairHistory?: boolean;
   sellerType?: "private" | "dealer";
   sellerVerified?: boolean;
   sort?: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
@@ -70,6 +79,15 @@ function buildUrl(query: QueryState, basePath: string) {
   if (query.creditAvailable) params.set("creditAvailable", "1");
   if (query.barterAvailable) params.set("barterAvailable", "1");
   if (query.vinProvided) params.set("vinProvided", "1");
+  if (query.seatHeating) params.set("seatHeating", "1");
+  if (query.seatCooling) params.set("seatCooling", "1");
+  if (query.camera360) params.set("camera360", "1");
+  if (query.parkingSensors) params.set("parkingSensors", "1");
+  if (query.adaptiveCruise) params.set("adaptiveCruise", "1");
+  if (query.laneAssist) params.set("laneAssist", "1");
+  if (query.maxOwnersCount) params.set("maxOwnersCount", String(query.maxOwnersCount));
+  if (query.hasServiceBook) params.set("hasServiceBook", "1");
+  if (query.hasRepairHistory) params.set("hasRepairHistory", "1");
   if (query.sellerType) params.set("sellerType", query.sellerType);
   if (query.sellerVerified) params.set("sellerVerified", "1");
   if (query.sort) params.set("sort", query.sort);
@@ -113,6 +131,15 @@ export function ListingsFiltersPanel({
     creditAvailable: initialQuery.creditAvailable,
     barterAvailable: initialQuery.barterAvailable,
     vinProvided: initialQuery.vinProvided,
+    seatHeating: initialQuery.seatHeating,
+    seatCooling: initialQuery.seatCooling,
+    camera360: initialQuery.camera360,
+    parkingSensors: initialQuery.parkingSensors,
+    adaptiveCruise: initialQuery.adaptiveCruise,
+    laneAssist: initialQuery.laneAssist,
+    maxOwnersCount: initialQuery.maxOwnersCount,
+    hasServiceBook: initialQuery.hasServiceBook,
+    hasRepairHistory: initialQuery.hasRepairHistory,
     sellerType: initialQuery.sellerType,
     sellerVerified: initialQuery.sellerVerified,
     sort: initialQuery.sort ?? "recent"
@@ -150,6 +177,15 @@ export function ListingsFiltersPanel({
         query.creditAvailable,
         query.barterAvailable,
         query.vinProvided,
+        query.seatHeating,
+        query.seatCooling,
+        query.camera360,
+        query.parkingSensors,
+        query.adaptiveCruise,
+        query.laneAssist,
+        query.maxOwnersCount,
+        query.hasServiceBook,
+        query.hasRepairHistory,
         query.sellerType,
         query.sellerVerified
       ].filter(Boolean).length,
@@ -174,6 +210,15 @@ export function ListingsFiltersPanel({
         query.creditAvailable,
         query.barterAvailable,
         query.vinProvided,
+        query.seatHeating,
+        query.seatCooling,
+        query.camera360,
+        query.parkingSensors,
+        query.adaptiveCruise,
+        query.laneAssist,
+        query.maxOwnersCount,
+        query.hasServiceBook,
+        query.hasRepairHistory,
         query.sellerType,
         query.sellerVerified
       ].filter(Boolean).length,
@@ -464,6 +509,18 @@ export function ListingsFiltersPanel({
             </div>
 
             <div>
+              <label className="label">Maksimum sahib sayı</label>
+              <input
+                className="input-field"
+                type="number"
+                value={query.maxOwnersCount ?? ""}
+                onChange={(e) => setQuery((prev) => ({ ...prev, maxOwnersCount: e.target.value ? Number(e.target.value) : undefined }))}
+                placeholder="məs: 2"
+                min={1}
+              />
+            </div>
+
+            <div>
               <label className="label">Salon materialı</label>
               <select
                 className="input-field"
@@ -504,6 +561,78 @@ export function ListingsFiltersPanel({
                   className="h-4 w-4 rounded accent-[#0891B2]"
                 />
                 VIN daxil edilib
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.seatHeating ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, seatHeating: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Oturacaq isidilməsi
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.seatCooling ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, seatCooling: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Oturacaq soyudulması
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.camera360 ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, camera360: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                360 kamera
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.parkingSensors ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, parkingSensors: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Park sensoru
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.adaptiveCruise ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, adaptiveCruise: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Adaptive cruise
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.laneAssist ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, laneAssist: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Lane assist
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.hasServiceBook ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, hasServiceBook: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Servis kitabçası var
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.hasRepairHistory ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, hasRepairHistory: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0891B2]"
+                />
+                Təmir tarixçəsi var
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
