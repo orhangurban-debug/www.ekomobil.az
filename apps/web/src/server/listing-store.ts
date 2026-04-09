@@ -599,9 +599,11 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       relatedIds: relatedRows.rows.map((entry) => entry.id)
     };
   } catch {
-    const found = getCreatedListings().find((item) => item.id === id) ?? demoListingsDetailed.find((item) => item.id === id) ?? null;
-    if (found && !("mediaUrls" in found)) return { ...found, mediaUrls: found.imageUrl ? [found.imageUrl] : [] };
-    return found as (typeof found & { mediaUrls: string[] }) | null;
+    const found = getCreatedListings().find((item) => item.id === id) ?? null;
+    if (found) return found;
+    const demo = demoListingsDetailed.find((item) => item.id === id);
+    if (!demo) return null;
+    return { ...demo, mediaUrls: demo.imageUrl ? [demo.imageUrl] : [] };
   }
 }
 
@@ -1161,6 +1163,7 @@ export function createListingFallback(input: {
     lastVerifiedAt: new Date().toISOString(),
     priceInsight: inferPriceInsight(input.priceAzn),
     imageUrl: input.imageUrls?.[0],
+    mediaUrls: input.imageUrls ?? [],
     serviceRecords: [],
     relatedIds: []
   };

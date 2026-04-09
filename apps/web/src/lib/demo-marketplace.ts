@@ -41,6 +41,7 @@ const baseListings: ListingDetail[] = [
         summary: "Mühərrik yağı və filter dəyişikliyi"
       }
     ],
+    mediaUrls: [],
     relatedIds: ["2", "3", "9"]
   },
   {
@@ -74,6 +75,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["1", "6", "9"]
   },
   {
@@ -108,6 +110,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["6", "8"]
   },
   {
@@ -141,6 +144,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["7", "5"]
   },
   {
@@ -174,6 +178,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["9", "2"]
   },
   {
@@ -206,6 +211,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["3", "8"]
   },
   {
@@ -239,6 +245,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["4", "5"]
   },
   {
@@ -271,6 +278,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["6", "3"]
   },
   {
@@ -303,6 +311,7 @@ const baseListings: ListingDetail[] = [
     createdAt: "2026-03-01T10:00:00Z",
     updatedAt: "2026-03-01T10:00:00Z",
     serviceRecords: [],
+    mediaUrls: [],
     relatedIds: ["1", "2", "5"]
   }
 ];
