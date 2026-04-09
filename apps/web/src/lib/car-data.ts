@@ -24,7 +24,26 @@ export const BODY_TYPES = [
 ] as const;
 
 export const FUEL_TYPES = [
-  "Benzin", "Dizel", "Hibrid", "Plug-in Hibrid", "Elektrik", "Qaz (LPG)", "Qaz (CNG)"
+  "Benzin",
+  "Dizel",
+  "Hibrid",
+  "Mild Hibrid (MHEV)",
+  "Plug-in Hibrid",
+  "Range Extender (EREV)",
+  "Elektrik",
+  "Hidrogen (FCEV)",
+  "Qaz (LPG)",
+  "Qaz (CNG)"
+] as const;
+
+export const ENGINE_TYPES = [
+  "Atmosfer",
+  "Turbo",
+  "Kompressor",
+  "Hibrid sistem",
+  "Elektrik motoru",
+  "Range extender generator",
+  "Hidrogen yanacaq hüceyrəsi"
 ] as const;
 
 export const TRANSMISSIONS = [
@@ -61,6 +80,7 @@ export const AZERBAIJAN_CITIES = [
 export type CarMake = (typeof CAR_MAKES)[number];
 export type BodyType = (typeof BODY_TYPES)[number];
 export type FuelType = (typeof FUEL_TYPES)[number];
+export type EngineType = (typeof ENGINE_TYPES)[number];
 export type Transmission = (typeof TRANSMISSIONS)[number];
 export type DriveType = (typeof DRIVE_TYPES)[number];
 export type Color = (typeof COLORS)[number];
@@ -327,4 +347,26 @@ export const CAR_MODELS_BY_MAKE: Record<string, string[]> = {
  */
 export function getModelsForMake(make: string): string[] {
   return CAR_MODELS_BY_MAKE[make] ?? [];
+}
+
+export function getCompatibleEngineTypes(fuelType?: string): EngineType[] {
+  if (!fuelType) return [...ENGINE_TYPES];
+  if (fuelType === "Elektrik") return ["Elektrik motoru"];
+  if (fuelType === "Hidrogen (FCEV)") return ["Hidrogen yanacaq hüceyrəsi", "Elektrik motoru"];
+  if (fuelType === "Range Extender (EREV)") return ["Elektrik motoru", "Range extender generator"];
+  if (fuelType === "Hibrid" || fuelType === "Mild Hibrid (MHEV)" || fuelType === "Plug-in Hibrid") {
+    return ["Hibrid sistem", "Atmosfer", "Turbo"];
+  }
+  return ["Atmosfer", "Turbo", "Kompressor"];
+}
+
+export function getCompatibleTransmissions(fuelType?: string): Transmission[] {
+  if (!fuelType) return [...TRANSMISSIONS];
+  if (fuelType === "Elektrik" || fuelType === "Hidrogen (FCEV)" || fuelType === "Range Extender (EREV)") {
+    return ["Avtomat", "İki sürətli"];
+  }
+  if (fuelType === "Hibrid" || fuelType === "Mild Hibrid (MHEV)" || fuelType === "Plug-in Hibrid") {
+    return ["Avtomat", "Variator (CVT)", "Robotlaşdırılmış"];
+  }
+  return ["Avtomat", "Mexanik", "Variator (CVT)", "Robotlaşdırılmış"];
 }

@@ -33,6 +33,7 @@ interface ListingRow {
   year: number;
   mileage_km: number;
   fuel_type: string;
+  engine_type?: string | null;
   transmission: string;
   make: string;
   model: string;
@@ -117,6 +118,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     year: row.year,
     mileageKm: row.mileage_km,
     fuelType: row.fuel_type,
+    engineType: row.engine_type ?? undefined,
     transmission: row.transmission,
     make: row.make,
     model: row.model,
@@ -191,6 +193,7 @@ function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummar
     result = result.filter((item) => query.compareIds!.includes(item.id));
   }
   if (query.fuelType) result = result.filter((item) => item.fuelType === query.fuelType);
+  if (query.engineType) result = result.filter((item) => item.engineType === query.engineType);
   if (query.transmission) result = result.filter((item) => item.transmission === query.transmission);
   if (query.minPrice) result = result.filter((item) => item.priceAzn >= query.minPrice!);
   if (query.maxPrice) result = result.filter((item) => item.priceAzn <= query.maxPrice!);
@@ -307,6 +310,10 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     if (query.fuelType) {
       values.push(query.fuelType);
       where.push(`l.fuel_type = $${values.length}`);
+    }
+    if (query.engineType) {
+      values.push(query.engineType);
+      where.push(`COALESCE(l.engine_type, '') = $${values.length}`);
     }
     if (query.transmission) {
       values.push(query.transmission);
@@ -463,7 +470,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     const result = await pool.query<ListingRow>(
       `
         SELECT
-          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
+          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type, l.engine_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
@@ -516,7 +523,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     const listingResult = await pool.query<ListingRow>(
       `
         SELECT
-          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
+          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type, l.engine_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
@@ -594,6 +601,7 @@ export async function createListingRecord(input: {
   priceAzn: number;
   mileageKm: number;
   fuelType: string;
+  engineType?: string;
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
@@ -629,6 +637,7 @@ export async function createListingRecord(input: {
   partQuantity?: number;
   partCompatibility?: string;
   imageUrls?: string[];
+  imageHashes?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -646,7 +655,7 @@ export async function createListingRecord(input: {
 
   const status = input.status ?? "active";
   const planType = input.planType ?? "free";
-  const planExpiresAt = calculatePlanExpiry(planType);
+  const planExpiresAt = status === "active" ? calculatePlanExpiry(planType) : null;
 
   try {
     await ensureSeedData();
@@ -655,13 +664,13 @@ export async function createListingRecord(input: {
       `
         INSERT INTO listings (
           id, owner_user_id, dealer_profile_id, title, description, make, model, year, city, price_azn,
-          mileage_km, fuel_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
+          mileage_km, fuel_type, engine_type, transmission, vin, seller_type, status, plan_type, plan_expires_at, listing_kind,
           part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility,
           body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available,
           seat_heating, seat_cooling, camera_360, parking_sensors, adaptive_cruise, lane_assist,
           owners_count, has_service_book, has_repair_history
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47)
       `,
       [
         id,
@@ -676,6 +685,7 @@ export async function createListingRecord(input: {
         input.priceAzn,
         input.mileageKm,
         input.fuelType,
+        input.engineType ?? null,
         input.transmission,
         input.vin,
         input.sellerType,
@@ -738,14 +748,16 @@ export async function createListingRecord(input: {
       .map(sanitizeMediaUrl)
       .filter((entry): entry is string => Boolean(entry))
       .slice(0, 24);
+    const imageHashes = (input.imageHashes ?? []).map((entry) => entry.trim().toLowerCase()).slice(0, 24);
     if (imageUrls.length > 0) {
       for (let index = 0; index < imageUrls.length; index += 1) {
+        const perceptualHash = imageHashes[index];
         await client.query(
           `
-            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order)
-            VALUES ($1, $2, 'image', $3, $4)
+            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash)
+            VALUES ($1, $2, 'image', $3, $4, $5)
           `,
-          [randomUUID(), id, imageUrls[index], index]
+          [randomUUID(), id, imageUrls[index], index, perceptualHash ?? null]
         );
       }
     }
@@ -768,7 +780,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
     const result = await pool.query<ListingRow>(
       `
         SELECT
-          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
+          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type, l.engine_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
@@ -805,7 +817,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
     const result = await pool.query<ListingRow>(
       `
         SELECT
-          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type,
+          l.id, l.title, l.description, l.price_azn, l.city, l.year, l.mileage_km, l.fuel_type, l.engine_type,
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.body_type, l.drive_type, l.color, l.condition, l.engine_volume_cc, l.interior_material, l.has_sunroof,
           l.credit_available, l.barter_available,
@@ -835,6 +847,37 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
     return result.rows.map(mapRowToSummary);
   } catch {
     return getCreatedListings().filter((item) => item.ownerUserId === userId || item.dealerProfileId === "dealer-1");
+  }
+}
+
+export async function countConcurrentFreeVehicleListingsForUser(userId: string): Promise<number> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM listings l
+        WHERE COALESCE(l.plan_type, 'free') = 'free'
+          AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
+          AND l.status IN ('active', 'pending_review')
+          AND (
+            l.owner_user_id = $1 OR l.dealer_profile_id IN (
+              SELECT id FROM dealer_profiles WHERE owner_user_id = $1
+            )
+          )
+      `,
+      [userId]
+    );
+    return Number(result.rows[0]?.count ?? "0");
+  } catch {
+    return getCreatedListings().filter(
+      (item) =>
+        (item.ownerUserId === userId || item.dealerProfileId === "dealer-1") &&
+        (item.planType ?? "free") === "free" &&
+        (item.listingKind ?? "vehicle") === "vehicle" &&
+        (item.status === "active" || item.status === "pending_review")
+    ).length;
   }
 }
 
@@ -945,6 +988,37 @@ export async function hasRecentPartDuplicate(input: {
   }
 }
 
+export async function hasRecentImageHashDuplicate(input: {
+  imageHashes: string[];
+  lookbackDays?: number;
+}): Promise<boolean> {
+  const normalizedHashes = input.imageHashes
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => /^[0-9a-f]{16}$/.test(entry));
+  if (normalizedHashes.length === 0) return false;
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const lookbackDays = Math.max(1, Math.min(365, input.lookbackDays ?? 90));
+    const result = await pool.query<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM listing_media lm
+        JOIN listings l ON l.id = lm.listing_id
+        WHERE lm.media_type = 'image'
+          AND lm.perceptual_hash = ANY($1::text[])
+          AND l.created_at >= NOW() - ($2::text || ' days')::interval
+          AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
+      `,
+      [normalizedHashes, lookbackDays]
+    );
+    return Number(result.rows[0]?.count ?? "0") > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function createListingFallback(input: {
   ownerUserId?: string;
   dealerProfileId?: string;
@@ -957,6 +1031,7 @@ export function createListingFallback(input: {
   priceAzn: number;
   mileageKm: number;
   fuelType: string;
+  engineType?: string;
   transmission: string;
   vin: string;
   sellerType: "private" | "dealer";
@@ -992,6 +1067,7 @@ export function createListingFallback(input: {
   partQuantity?: number;
   partCompatibility?: string;
   imageUrls?: string[];
+  imageHashes?: string[];
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -1006,7 +1082,7 @@ export function createListingFallback(input: {
   const id = randomUUID();
   const status = input.status ?? "active";
   const planType = input.planType ?? "free";
-  const planExpiresAt = calculatePlanExpiry(planType);
+  const planExpiresAt = status === "active" ? calculatePlanExpiry(planType) : null;
   const item: ListingDetail = {
     id,
     listingKind: input.listingKind ?? "vehicle",
@@ -1026,6 +1102,7 @@ export function createListingFallback(input: {
     year: input.year,
     mileageKm: input.mileageKm,
     fuelType: input.fuelType,
+    engineType: input.engineType,
     transmission: input.transmission,
     make: input.make,
     model: input.model,
@@ -1054,7 +1131,7 @@ export function createListingFallback(input: {
     ownerUserId: input.ownerUserId,
     dealerProfileId: input.dealerProfileId,
     planType,
-    planExpiresAt: planExpiresAt.toISOString(),
+    planExpiresAt: planExpiresAt?.toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     trustScore: input.trust.trustScore,
@@ -1148,7 +1225,7 @@ export async function applyListingPlanForOwner(
     await pool.query(
       `UPDATE listings
        SET plan_type = $1,
-           plan_expires_at = $2,
+           plan_expires_at = CASE WHEN $4 THEN NULL ELSE $2 END,
            status = CASE WHEN $4 THEN 'pending_review' ELSE status END,
            updated_at = NOW()
        WHERE id = $3`,
@@ -1163,7 +1240,7 @@ export async function applyListingPlanForOwner(
     }
     const planExpiresAt = calculatePlanExpiry(planType);
     listing.planType = planType;
-    listing.planExpiresAt = planExpiresAt.toISOString();
+    listing.planExpiresAt = options?.activate ? undefined : planExpiresAt.toISOString();
     if (options?.activate) listing.status = "pending_review";
     listing.updatedAt = new Date().toISOString();
     return { ok: true };

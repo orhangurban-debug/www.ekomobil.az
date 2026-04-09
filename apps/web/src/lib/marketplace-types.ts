@@ -16,6 +16,7 @@ export interface ListingRecord {
   year: number;
   mileageKm: number;
   fuelType: string;
+  engineType?: string;
   transmission: string;
   make: string;
   model: string;
@@ -102,6 +103,7 @@ export interface ListingQuery {
   model?: string;
   search?: string;
   fuelType?: string;
+  engineType?: string;
   transmission?: string;
   bodyType?: string;
   driveType?: string;

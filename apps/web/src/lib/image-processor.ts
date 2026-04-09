@@ -39,6 +39,8 @@ export interface ProcessedImage {
   originalMimeType: string;
   /** Şəkil yenidən ölçüləndirilibsə true */
   wasResized: boolean;
+  /** 64-bit perceptual difference hash (hex) */
+  perceptualHash: string;
 }
 
 export interface ProcessImageError {
@@ -89,6 +91,7 @@ export async function processImageForUpload(
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, outW, outH);
     ctx.drawImage(img, 0, 0, outW, outH);
+    const perceptualHash = computeDHashHex(canvas);
 
     const blob = await canvasToBlob(canvas, cfg.outputMimeType, cfg.quality);
     if (!blob) return { ok: false, error: "Şəkil çevrilə bilmədi" };
@@ -108,7 +111,8 @@ export async function processImageForUpload(
       width: outW,
       height: outH,
       originalMimeType: file.type || "image/heic",
-      wasResized
+      wasResized,
+      perceptualHash
     };
   } catch (err) {
     return {
@@ -219,4 +223,32 @@ function canvasToBlob(
 function toJpegFilename(originalName: string): string {
   const base = originalName.replace(/\.[^/.]+$/, "");
   return `${base}.jpg`;
+}
+
+function computeDHashHex(sourceCanvas: HTMLCanvasElement): string {
+  const w = 9;
+  const h = 8;
+  const tiny = document.createElement("canvas");
+  tiny.width = w;
+  tiny.height = h;
+  const tinyCtx = tiny.getContext("2d");
+  if (!tinyCtx) return "0".repeat(16);
+  tinyCtx.drawImage(sourceCanvas, 0, 0, w, h);
+  const data = tinyCtx.getImageData(0, 0, w, h).data;
+  const bits: number[] = [];
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w - 1; x += 1) {
+      const idxA = (y * w + x) * 4;
+      const idxB = (y * w + x + 1) * 4;
+      const lumA = data[idxA] * 0.299 + data[idxA + 1] * 0.587 + data[idxA + 2] * 0.114;
+      const lumB = data[idxB] * 0.299 + data[idxB + 1] * 0.587 + data[idxB + 2] * 0.114;
+      bits.push(lumA > lumB ? 1 : 0);
+    }
+  }
+  let hex = "";
+  for (let i = 0; i < bits.length; i += 4) {
+    const nibble = (bits[i] << 3) | (bits[i + 1] << 2) | (bits[i + 2] << 1) | bits[i + 3];
+    hex += nibble.toString(16);
+  }
+  return hex.padStart(16, "0").slice(0, 16);
 }

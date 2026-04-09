@@ -8,11 +8,12 @@ import {
   AZERBAIJAN_CITIES,
   BODY_TYPES,
   FUEL_TYPES,
-  TRANSMISSIONS,
   DRIVE_TYPES,
   INTERIOR_MATERIALS,
   COLORS,
   CONDITIONS,
+  getCompatibleEngineTypes,
+  getCompatibleTransmissions,
   getModelsForMake
 } from "@/lib/car-data";
 
@@ -28,6 +29,7 @@ interface QueryState {
   minMileage?: number;
   maxMileage?: number;
   fuelType?: string;
+  engineType?: string;
   transmission?: string;
   bodyType?: string;
   driveType?: string;
@@ -67,6 +69,7 @@ function buildUrl(query: QueryState, basePath: string) {
   if (query.minMileage) params.set("minMileage", String(query.minMileage));
   if (query.maxMileage) params.set("maxMileage", String(query.maxMileage));
   if (query.fuelType) params.set("fuelType", query.fuelType);
+  if (query.engineType) params.set("engineType", query.engineType);
   if (query.transmission) params.set("transmission", query.transmission);
   if (query.bodyType) params.set("bodyType", query.bodyType);
   if (query.driveType) params.set("driveType", query.driveType);
@@ -107,6 +110,9 @@ export function ListingsFiltersPanel({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const initialFuelType = initialQuery.fuelType;
+  const initialCompatibleEngineTypes = getCompatibleEngineTypes(initialFuelType);
+  const initialCompatibleTransmissions = getCompatibleTransmissions(initialFuelType);
   const [query, setQuery] = useState<QueryState>({
     city: initialQuery.city ?? "Hamısı",
     make: initialQuery.make ?? "Hamısı",
@@ -119,7 +125,8 @@ export function ListingsFiltersPanel({
     minMileage: initialQuery.minMileage,
     maxMileage: initialQuery.maxMileage,
     fuelType: initialQuery.fuelType,
-    transmission: initialQuery.transmission,
+    engineType: initialQuery.engineType && initialCompatibleEngineTypes.some((item) => item === initialQuery.engineType) ? initialQuery.engineType : undefined,
+    transmission: initialQuery.transmission && initialCompatibleTransmissions.some((item) => item === initialQuery.transmission) ? initialQuery.transmission : undefined,
     bodyType: initialQuery.bodyType,
     driveType: initialQuery.driveType,
     color: initialQuery.color,
@@ -150,6 +157,9 @@ export function ListingsFiltersPanel({
     if (!query.make || query.make === "Hamısı") return [];
     return getModelsForMake(query.make);
   }, [query.make]);
+  const availableEngineTypes = useMemo(() => getCompatibleEngineTypes(query.fuelType), [query.fuelType]);
+  const availableTransmissions = useMemo(() => getCompatibleTransmissions(query.fuelType), [query.fuelType]);
+  const isElectricPowertrain = query.fuelType === "Elektrik";
 
   const activeCount = useMemo(
     () =>
@@ -165,6 +175,7 @@ export function ListingsFiltersPanel({
         query.minMileage,
         query.maxMileage,
         query.fuelType,
+        query.engineType,
         query.transmission,
         query.bodyType,
         query.driveType,
@@ -198,6 +209,7 @@ export function ListingsFiltersPanel({
       [
         query.city && query.city !== "Hamısı",
         query.fuelType,
+        query.engineType,
         query.transmission,
         query.bodyType,
         query.driveType,
@@ -430,7 +442,23 @@ export function ListingsFiltersPanel({
 
             <div>
               <label className="label">Yanacaq növü</label>
-              <select className="input-field" value={query.fuelType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, fuelType: e.target.value || undefined }))}>
+              <select
+                className="input-field"
+                value={query.fuelType ?? ""}
+                onChange={(e) => {
+                  const nextFuelType = e.target.value || undefined;
+                  const nextCompatibleEngineTypes = getCompatibleEngineTypes(nextFuelType);
+                  const nextCompatibleTransmissions = getCompatibleTransmissions(nextFuelType);
+                  setQuery((prev) => ({
+                    ...prev,
+                    fuelType: nextFuelType,
+                    engineType: prev.engineType && nextCompatibleEngineTypes.some((item) => item === prev.engineType) ? prev.engineType : undefined,
+                    transmission: prev.transmission && nextCompatibleTransmissions.some((item) => item === prev.transmission) ? prev.transmission : undefined,
+                    minEngineVolumeCc: nextFuelType === "Elektrik" ? undefined : prev.minEngineVolumeCc,
+                    maxEngineVolumeCc: nextFuelType === "Elektrik" ? undefined : prev.maxEngineVolumeCc
+                  }));
+                }}
+              >
                 <option value="">Hamısı</option>
                 {FUEL_TYPES.map((f) => (
                   <option key={f} value={f}>{f}</option>
@@ -439,10 +467,20 @@ export function ListingsFiltersPanel({
             </div>
 
             <div>
+              <label className="label">Mühərrik növü</label>
+              <select className="input-field" value={query.engineType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, engineType: e.target.value || undefined }))}>
+                <option value="">Hamısı</option>
+                {availableEngineTypes.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
               <label className="label">Ötürücü qutusu</label>
               <select className="input-field" value={query.transmission ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, transmission: e.target.value || undefined }))}>
                 <option value="">Hamısı</option>
-                {TRANSMISSIONS.map((t) => (
+                {availableTransmissions.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
@@ -497,6 +535,7 @@ export function ListingsFiltersPanel({
                   value={query.minEngineVolumeCc ?? ""}
                   onChange={(e) => setQuery((prev) => ({ ...prev, minEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
                   placeholder="Min"
+                  disabled={isElectricPowertrain}
                 />
                 <input
                   className="input-field"
@@ -504,8 +543,12 @@ export function ListingsFiltersPanel({
                   value={query.maxEngineVolumeCc ?? ""}
                   onChange={(e) => setQuery((prev) => ({ ...prev, maxEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
                   placeholder="Max"
+                  disabled={isElectricPowertrain}
                 />
               </div>
+              {isElectricPowertrain && (
+                <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillər üçün həcm filteri tətbiq edilmir.</p>
+              )}
             </div>
 
             <div>

@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
-import { isPaidPlan } from "@/lib/listing-plans";
+import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
+import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { getEffectivePartsPlan } from "@/server/business-plan-store";
 import {
   createListingFallback,
+  countConcurrentFreeVehicleListingsForUser,
   createListingRecord,
   hasRecentPartDuplicate,
+  hasRecentImageHashDuplicate,
   hasRecentVehicleDuplicate,
   listListings
 } from "@/server/listing-store";
@@ -38,6 +41,7 @@ export async function GET(req: Request) {
     model: searchParams.get("model") || undefined,
     search: searchParams.get("q") || undefined,
     fuelType: searchParams.get("fuelType") || undefined,
+    engineType: searchParams.get("engineType") || undefined,
     transmission: searchParams.get("transmission") || undefined,
     bodyType: searchParams.get("bodyType") || undefined,
     driveType: searchParams.get("driveType") || undefined,
@@ -96,6 +100,7 @@ export async function POST(req: Request) {
     | (ListingInput & {
         description?: string;
         fuelType?: string;
+        engineType?: string;
         transmission?: string;
         bodyType?: string;
         driveType?: string;
@@ -116,6 +121,7 @@ export async function POST(req: Request) {
         hasServiceBook?: boolean;
         hasRepairHistory?: boolean;
         imageUrls?: string[];
+        imageHashes?: string[];
         sellerType?: "private" | "dealer";
         planType?: "free" | "standard" | "vip";
       })
@@ -230,6 +236,7 @@ export async function POST(req: Request) {
       priceAzn: partPayload.priceAzn,
       mileageKm: 0,
       fuelType: "Digər",
+      engineType: undefined,
       transmission: "—",
       vin: "PARTS-NOVIN",
       sellerType: partPayload.sellerType || "private",
@@ -285,6 +292,7 @@ export async function POST(req: Request) {
   const vehiclePayload = payload as ListingInput & {
     description?: string;
     fuelType?: string;
+    engineType?: string;
     transmission?: string;
     bodyType?: string;
     driveType?: string;
@@ -305,6 +313,7 @@ export async function POST(req: Request) {
     hasServiceBook?: boolean;
     hasRepairHistory?: boolean;
     imageUrls?: string[];
+    imageHashes?: string[];
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
   };
@@ -342,6 +351,37 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!isPaidPlan(requestedPlanType) && Array.isArray(vehiclePayload.imageHashes) && vehiclePayload.imageHashes.length > 0) {
+    const hasImageDuplicate = await hasRecentImageHashDuplicate({
+      imageHashes: vehiclePayload.imageHashes,
+      lookbackDays: 90
+    });
+    if (hasImageDuplicate) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Bu elanın şəkilləri son 90 gün ərzində yerləşdirilmiş başqa elanla çox oxşardır."
+        },
+        { status: 409 }
+      );
+    }
+  }
+
+  if (!isPaidPlan(requestedPlanType)) {
+    const currentFreeListings = await countConcurrentFreeVehicleListingsForUser(sessionUser.id);
+    if (currentFreeListings >= FREE_LISTING_CONCURRENT_LIMIT) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            `Pulsuz plan limiti dolub: eyni anda maksimum ${FREE_LISTING_CONCURRENT_LIMIT} aktiv/yoxlamada pulsuz elan ola bilər. ` +
+            "Yeni pulsuz elan üçün mövcud elanın müddəti bitməli, deaktiv/arxiv edilməli və ya planı yüksəldilməlidir."
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   const trustSignals = buildTrustSignals({
     vehicle: vehiclePayload.vehicle,
     vinVerified: vehiclePayload.vinVerified,
@@ -351,6 +391,20 @@ export async function POST(req: Request) {
   });
 
   const trustScore = estimateTrustScore(trustSignals);
+  const normalizedFuelType = vehiclePayload.fuelType || "Benzin";
+  const compatibleEngineTypes = getCompatibleEngineTypes(normalizedFuelType);
+  const requestedEngineType = vehiclePayload.engineType?.trim();
+  const normalizedEngineType =
+    requestedEngineType && compatibleEngineTypes.some((item) => item === requestedEngineType)
+      ? requestedEngineType
+      : compatibleEngineTypes[0] ?? undefined;
+  const compatibleTransmissions = getCompatibleTransmissions(normalizedFuelType);
+  const requestedTransmission = vehiclePayload.transmission || "Avtomat";
+  const normalizedTransmission =
+    compatibleTransmissions.some((item) => item === requestedTransmission)
+      ? requestedTransmission
+      : compatibleTransmissions[0] ?? requestedTransmission;
+
   const createInput = {
     ownerUserId: sessionUser?.id,
     title: vehiclePayload.title,
@@ -361,8 +415,9 @@ export async function POST(req: Request) {
     city: vehiclePayload.city,
     priceAzn: vehiclePayload.priceAzn,
     mileageKm: vehiclePayload.vehicle.declaredMileageKm,
-    fuelType: vehiclePayload.fuelType || "Benzin",
-    transmission: vehiclePayload.transmission || "Avtomat",
+    fuelType: normalizedFuelType,
+    engineType: normalizedEngineType,
+    transmission: normalizedTransmission,
     vin: vehiclePayload.vehicle.vin.trim().toUpperCase(),
     vinProvided: Boolean(vehiclePayload.vehicle.vin.trim()),
     sellerType: vehiclePayload.sellerType || "private",
@@ -371,7 +426,9 @@ export async function POST(req: Request) {
     color: vehiclePayload.color?.trim() || undefined,
     condition: vehiclePayload.condition?.trim() || undefined,
     engineVolumeCc:
-      typeof vehiclePayload.engineVolumeCc === "number" && Number.isFinite(vehiclePayload.engineVolumeCc)
+      normalizedFuelType !== "Elektrik" &&
+      typeof vehiclePayload.engineVolumeCc === "number" &&
+      Number.isFinite(vehiclePayload.engineVolumeCc)
         ? Math.max(0, Math.round(vehiclePayload.engineVolumeCc))
         : undefined,
     interiorMaterial: vehiclePayload.interiorMaterial?.trim() || undefined,
@@ -394,6 +451,7 @@ export async function POST(req: Request) {
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,
     imageUrls: vehiclePayload.imageUrls,
+    imageHashes: vehiclePayload.imageHashes,
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",
