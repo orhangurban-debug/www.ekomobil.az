@@ -84,6 +84,8 @@ interface ListingRow {
   part_sku?: string | null;
   part_quantity?: number | null;
   part_compatibility?: string | null;
+  contact_phone?: string | null;
+  whatsapp_phone?: string | null;
 }
 
 interface ServiceRecordRow {
@@ -156,6 +158,8 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     partSku: row.part_sku ?? undefined,
     partQuantity: row.part_quantity ?? undefined,
     partCompatibility: row.part_compatibility ?? undefined,
+    contactPhone: row.contact_phone ?? undefined,
+    whatsappPhone: row.whatsapp_phone ?? undefined,
     planType: (row.plan_type as PlanType) ?? "free",
     planExpiresAt: row.plan_expires_at?.toISOString(),
     createdAt: row.created_at.toISOString(),
@@ -540,9 +544,18 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
-          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at
+          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, '')) AS contact_phone,
+          CASE
+            WHEN dp.id IS NOT NULL AND COALESCE(dp.show_whatsapp, FALSE) = TRUE AND NULLIF(BTRIM(dp.whatsapp_phone), '') IS NOT NULL
+              THEN dp.whatsapp_phone
+            ELSE COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, ''))
+          END AS whatsapp_phone
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+        LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN users ou ON ou.id = l.owner_user_id
+        LEFT JOIN users dpu ON dpu.id = dp.owner_user_id
         WHERE l.id = $1
         LIMIT 1
       `,
@@ -589,6 +602,8 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     return {
       ...mapRowToSummary(row),
       mediaUrls,
+      contactPhone: row.contact_phone ?? undefined,
+      whatsappPhone: row.whatsapp_phone ?? undefined,
       serviceRecords: serviceRows.rows.map((entry) => ({
         id: entry.id,
         sourceType: entry.source_type,
@@ -1272,4 +1287,63 @@ export async function updateListingPlan(
   planType: PlanType
 ): Promise<{ ok: boolean; error?: string }> {
   return applyListingPlanForOwner(listingId, userId, planType);
+}
+
+export async function updateListingForOwner(
+  listingId: string,
+  userId: string,
+  input: {
+    title?: string;
+    description?: string;
+    priceAzn?: number;
+    city?: string;
+  }
+): Promise<{ ok: boolean; error?: string }> {
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  const title = input.title?.trim();
+  const description = input.description?.trim();
+  const city = input.city?.trim();
+  const priceAzn = input.priceAzn;
+
+  if (title !== undefined && !title) return { ok: false, error: "Başlıq boş ola bilməz." };
+  if (description !== undefined && !description) return { ok: false, error: "Təsvir boş ola bilməz." };
+  if (city !== undefined && !city) return { ok: false, error: "Şəhər boş ola bilməz." };
+  if (priceAzn !== undefined && (!Number.isFinite(priceAzn) || priceAzn <= 0)) {
+    return { ok: false, error: "Qiymət düzgün deyil." };
+  }
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    await pool.query(
+      `
+        UPDATE listings
+        SET
+          title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          city = COALESCE($3, city),
+          price_azn = COALESCE($4, price_azn),
+          status = 'pending_review',
+          updated_at = NOW()
+        WHERE id = $5
+      `,
+      [title ?? null, description ?? null, city ?? null, priceAzn ?? null, listingId]
+    );
+    return { ok: true };
+  } catch {
+    const listing = getCreatedListings().find((item) => item.id === listingId);
+    if (!listing) return { ok: false, error: "Elan tapılmadı" };
+    if (listing.ownerUserId !== userId) {
+      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
+    }
+    if (title !== undefined) listing.title = title;
+    if (description !== undefined) listing.description = description;
+    if (city !== undefined) listing.city = city;
+    if (priceAzn !== undefined) listing.priceAzn = priceAzn;
+    listing.status = "pending_review";
+    listing.updatedAt = new Date().toISOString();
+    return { ok: true };
+  }
 }
