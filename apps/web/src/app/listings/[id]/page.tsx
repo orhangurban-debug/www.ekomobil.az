@@ -384,11 +384,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           <div className="rounded-xl border border-slate-200 bg-white p-4 sticky bottom-4 shadow-card">
             <div className="mb-2 text-sm font-semibold text-slate-900">Sürətli əməliyyat</div>
             <div className="grid gap-2">
-              {!isPart && (
-                <Link href={`/inspection?listingId=${listing.id}`} className="btn-secondary w-full justify-center py-3 block text-center">
-                  Ekspertiza sifariş et
-                </Link>
-              )}
               {isOwner && (
                 <BoostListingButton
                   listingId={listing.id}
