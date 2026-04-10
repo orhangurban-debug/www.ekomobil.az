@@ -9,6 +9,7 @@ import { TestDriveButton } from "@/components/listings/test-drive-button";
 import { ListingStatsPanel } from "@/components/listings/listing-stats-panel";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingGallery } from "@/components/listings/listing-gallery";
+import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
@@ -416,10 +417,19 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <div className="mb-2 text-sm font-semibold text-slate-900">Sürətli əməliyyat</div>
             <div className="grid gap-2">
               {isOwner && (
-                <BoostListingButton
-                  listingId={listing.id}
-                  currentPlan={listing.planType ?? "free"}
-                />
+                <div className="space-y-2">
+                  <OwnerEditListingButton
+                    listingId={listing.id}
+                    title={listing.title}
+                    description={listing.description}
+                    city={listing.city}
+                    priceAzn={listing.priceAzn}
+                  />
+                  <BoostListingButton
+                    listingId={listing.id}
+                    currentPlan={listing.planType ?? "free"}
+                  />
+                </div>
               )}
             </div>
           </div>

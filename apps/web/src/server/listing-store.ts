@@ -1288,3 +1288,62 @@ export async function updateListingPlan(
 ): Promise<{ ok: boolean; error?: string }> {
   return applyListingPlanForOwner(listingId, userId, planType);
 }
+
+export async function updateListingForOwner(
+  listingId: string,
+  userId: string,
+  input: {
+    title?: string;
+    description?: string;
+    priceAzn?: number;
+    city?: string;
+  }
+): Promise<{ ok: boolean; error?: string }> {
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  const title = input.title?.trim();
+  const description = input.description?.trim();
+  const city = input.city?.trim();
+  const priceAzn = input.priceAzn;
+
+  if (title !== undefined && !title) return { ok: false, error: "Başlıq boş ola bilməz." };
+  if (description !== undefined && !description) return { ok: false, error: "Təsvir boş ola bilməz." };
+  if (city !== undefined && !city) return { ok: false, error: "Şəhər boş ola bilməz." };
+  if (priceAzn !== undefined && (!Number.isFinite(priceAzn) || priceAzn <= 0)) {
+    return { ok: false, error: "Qiymət düzgün deyil." };
+  }
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    await pool.query(
+      `
+        UPDATE listings
+        SET
+          title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          city = COALESCE($3, city),
+          price_azn = COALESCE($4, price_azn),
+          status = 'pending_review',
+          updated_at = NOW()
+        WHERE id = $5
+      `,
+      [title ?? null, description ?? null, city ?? null, priceAzn ?? null, listingId]
+    );
+    return { ok: true };
+  } catch {
+    const listing = getCreatedListings().find((item) => item.id === listingId);
+    if (!listing) return { ok: false, error: "Elan tapılmadı" };
+    if (listing.ownerUserId !== userId) {
+      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
+    }
+    if (title !== undefined) listing.title = title;
+    if (description !== undefined) listing.description = description;
+    if (city !== undefined) listing.city = city;
+    if (priceAzn !== undefined) listing.priceAzn = priceAzn;
+    listing.status = "pending_review";
+    listing.updatedAt = new Date().toISOString();
+    return { ok: true };
+  }
+}
