@@ -422,8 +422,34 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     listingId={listing.id}
                     title={listing.title}
                     description={listing.description}
+                    make={listing.make}
+                    model={listing.model}
+                    year={listing.year}
+                    mileageKm={listing.mileageKm}
                     city={listing.city}
                     priceAzn={listing.priceAzn}
+                    vin={listing.vin}
+                    fuelType={listing.fuelType}
+                    engineType={listing.engineType}
+                    transmission={listing.transmission}
+                    bodyType={listing.bodyType}
+                    driveType={listing.driveType}
+                    color={listing.color}
+                    condition={listing.condition}
+                    engineVolumeCc={listing.engineVolumeCc}
+                    interiorMaterial={listing.interiorMaterial}
+                    hasSunroof={listing.hasSunroof}
+                    creditAvailable={listing.creditAvailable}
+                    barterAvailable={listing.barterAvailable}
+                    seatHeating={listing.seatHeating}
+                    seatCooling={listing.seatCooling}
+                    camera360={listing.camera360}
+                    parkingSensors={listing.parkingSensors}
+                    adaptiveCruise={listing.adaptiveCruise}
+                    laneAssist={listing.laneAssist}
+                    ownersCount={listing.ownersCount}
+                    hasServiceBook={listing.hasServiceBook}
+                    hasRepairHistory={listing.hasRepairHistory}
                   />
                   <BoostListingButton
                     listingId={listing.id}

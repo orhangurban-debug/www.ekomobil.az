@@ -11,6 +11,7 @@ import {
   PriceInsight
 } from "@/lib/marketplace-types";
 import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
+import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 
 const globalForListings = globalThis as unknown as {
@@ -1297,6 +1298,32 @@ export async function updateListingForOwner(
     description?: string;
     priceAzn?: number;
     city?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+    mileageKm?: number;
+    fuelType?: string;
+    engineType?: string;
+    transmission?: string;
+    vin?: string;
+    bodyType?: string;
+    driveType?: string;
+    color?: string;
+    condition?: string;
+    engineVolumeCc?: number;
+    interiorMaterial?: string;
+    hasSunroof?: boolean;
+    creditAvailable?: boolean;
+    barterAvailable?: boolean;
+    seatHeating?: boolean;
+    seatCooling?: boolean;
+    camera360?: boolean;
+    parkingSensors?: boolean;
+    adaptiveCruise?: boolean;
+    laneAssist?: boolean;
+    ownersCount?: number;
+    hasServiceBook?: boolean;
+    hasRepairHistory?: boolean;
   }
 ): Promise<{ ok: boolean; error?: string }> {
   const ownership = await validateListingOwnership(listingId, userId);
@@ -1305,14 +1332,61 @@ export async function updateListingForOwner(
   const title = input.title?.trim();
   const description = input.description?.trim();
   const city = input.city?.trim();
+  const make = input.make?.trim();
+  const model = input.model?.trim();
   const priceAzn = input.priceAzn;
+  const year = input.year;
+  const mileageKm = input.mileageKm;
+  const fuelType = input.fuelType?.trim();
+  const requestedEngineType = input.engineType?.trim();
+  const requestedTransmission = input.transmission?.trim();
+  const vin = input.vin !== undefined ? input.vin.trim().toUpperCase() : undefined;
+  const bodyType = input.bodyType?.trim();
+  const driveType = input.driveType?.trim();
+  const color = input.color?.trim();
+  const condition = input.condition?.trim();
+  const engineVolumeCc = input.engineVolumeCc;
+  const interiorMaterial = input.interiorMaterial?.trim();
 
   if (title !== undefined && !title) return { ok: false, error: "Başlıq boş ola bilməz." };
   if (description !== undefined && !description) return { ok: false, error: "Təsvir boş ola bilməz." };
   if (city !== undefined && !city) return { ok: false, error: "Şəhər boş ola bilməz." };
+  if (make !== undefined && !make) return { ok: false, error: "Marka boş ola bilməz." };
+  if (model !== undefined && !model) return { ok: false, error: "Model boş ola bilməz." };
   if (priceAzn !== undefined && (!Number.isFinite(priceAzn) || priceAzn <= 0)) {
     return { ok: false, error: "Qiymət düzgün deyil." };
   }
+  if (year !== undefined && (!Number.isFinite(year) || year < 1950 || year > new Date().getFullYear() + 1)) {
+    return { ok: false, error: "İl məlumatı düzgün deyil." };
+  }
+  if (mileageKm !== undefined && (!Number.isFinite(mileageKm) || mileageKm < 0)) {
+    return { ok: false, error: "Yürüş məlumatı düzgün deyil." };
+  }
+  if (vin !== undefined && vin.length > 0 && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+    return { ok: false, error: "VIN formatı düzgün deyil." };
+  }
+
+  const shouldNormalizePowertrain =
+    fuelType !== undefined || requestedEngineType !== undefined || requestedTransmission !== undefined;
+  const effectiveFuelType = fuelType ?? "Benzin";
+  const compatibleEngineTypes = shouldNormalizePowertrain ? getCompatibleEngineTypes(effectiveFuelType) : [];
+  const normalizedEngineType = shouldNormalizePowertrain
+    ? requestedEngineType && compatibleEngineTypes.some((item) => item === requestedEngineType)
+      ? requestedEngineType
+      : compatibleEngineTypes[0] ?? null
+    : null;
+  const compatibleTransmissions = shouldNormalizePowertrain ? getCompatibleTransmissions(effectiveFuelType) : [];
+  const normalizedTransmission = shouldNormalizePowertrain
+    ? requestedTransmission && compatibleTransmissions.some((item) => item === requestedTransmission)
+      ? requestedTransmission
+      : compatibleTransmissions[0] ?? requestedTransmission ?? null
+    : null;
+  const normalizedEngineVolumeCc =
+    engineVolumeCc !== undefined
+      ? effectiveFuelType !== "Elektrik"
+        ? Math.max(0, Math.round(engineVolumeCc))
+        : null
+      : undefined;
 
   try {
     await ensureSeedData();
@@ -1325,11 +1399,72 @@ export async function updateListingForOwner(
           description = COALESCE($2, description),
           city = COALESCE($3, city),
           price_azn = COALESCE($4, price_azn),
+          make = COALESCE($5, make),
+          model = COALESCE($6, model),
+          year = COALESCE($7, year),
+          mileage_km = COALESCE($8, mileage_km),
+          fuel_type = COALESCE($9, fuel_type),
+          engine_type = COALESCE($10, engine_type),
+          transmission = COALESCE($11, transmission),
+          vin = COALESCE($12, vin),
+          body_type = COALESCE($13, body_type),
+          drive_type = COALESCE($14, drive_type),
+          color = COALESCE($15, color),
+          condition = COALESCE($16, condition),
+          engine_volume_cc = CASE
+            WHEN COALESCE($9, fuel_type) = 'Elektrik' THEN NULL
+            ELSE COALESCE($17, engine_volume_cc)
+          END,
+          interior_material = COALESCE($18, interior_material),
+          has_sunroof = COALESCE($19, has_sunroof),
+          credit_available = COALESCE($20, credit_available),
+          barter_available = COALESCE($21, barter_available),
+          seat_heating = COALESCE($22, seat_heating),
+          seat_cooling = COALESCE($23, seat_cooling),
+          camera_360 = COALESCE($24, camera_360),
+          parking_sensors = COALESCE($25, parking_sensors),
+          adaptive_cruise = COALESCE($26, adaptive_cruise),
+          lane_assist = COALESCE($27, lane_assist),
+          owners_count = COALESCE($28, owners_count),
+          has_service_book = COALESCE($29, has_service_book),
+          has_repair_history = COALESCE($30, has_repair_history),
           status = 'pending_review',
           updated_at = NOW()
-        WHERE id = $5
+        WHERE id = $31
       `,
-      [title ?? null, description ?? null, city ?? null, priceAzn ?? null, listingId]
+      [
+        title ?? null,
+        description ?? null,
+        city ?? null,
+        priceAzn ?? null,
+        make ?? null,
+        model ?? null,
+        year ?? null,
+        mileageKm ?? null,
+        fuelType ?? null,
+        normalizedEngineType,
+        normalizedTransmission,
+        vin ?? null,
+        bodyType ?? null,
+        driveType ?? null,
+        color ?? null,
+        condition ?? null,
+        normalizedEngineVolumeCc,
+        interiorMaterial ?? null,
+        input.hasSunroof ?? null,
+        input.creditAvailable ?? null,
+        input.barterAvailable ?? null,
+        input.seatHeating ?? null,
+        input.seatCooling ?? null,
+        input.camera360 ?? null,
+        input.parkingSensors ?? null,
+        input.adaptiveCruise ?? null,
+        input.laneAssist ?? null,
+        input.ownersCount ?? null,
+        input.hasServiceBook ?? null,
+        input.hasRepairHistory ?? null,
+        listingId
+      ]
     );
     return { ok: true };
   } catch {
@@ -1342,6 +1477,32 @@ export async function updateListingForOwner(
     if (description !== undefined) listing.description = description;
     if (city !== undefined) listing.city = city;
     if (priceAzn !== undefined) listing.priceAzn = priceAzn;
+    if (make !== undefined) listing.make = make;
+    if (model !== undefined) listing.model = model;
+    if (year !== undefined) listing.year = year;
+    if (mileageKm !== undefined) listing.mileageKm = mileageKm;
+    if (fuelType !== undefined) listing.fuelType = fuelType;
+    if (normalizedEngineType !== null) listing.engineType = normalizedEngineType;
+    if (normalizedTransmission !== null) listing.transmission = normalizedTransmission;
+    if (vin !== undefined) listing.vin = vin;
+    if (bodyType !== undefined) listing.bodyType = bodyType;
+    if (driveType !== undefined) listing.driveType = driveType;
+    if (color !== undefined) listing.color = color;
+    if (condition !== undefined) listing.condition = condition;
+    if (normalizedEngineVolumeCc !== undefined) listing.engineVolumeCc = normalizedEngineVolumeCc ?? undefined;
+    if (interiorMaterial !== undefined) listing.interiorMaterial = interiorMaterial;
+    if (input.hasSunroof !== undefined) listing.hasSunroof = input.hasSunroof;
+    if (input.creditAvailable !== undefined) listing.creditAvailable = input.creditAvailable;
+    if (input.barterAvailable !== undefined) listing.barterAvailable = input.barterAvailable;
+    if (input.seatHeating !== undefined) listing.seatHeating = input.seatHeating;
+    if (input.seatCooling !== undefined) listing.seatCooling = input.seatCooling;
+    if (input.camera360 !== undefined) listing.camera360 = input.camera360;
+    if (input.parkingSensors !== undefined) listing.parkingSensors = input.parkingSensors;
+    if (input.adaptiveCruise !== undefined) listing.adaptiveCruise = input.adaptiveCruise;
+    if (input.laneAssist !== undefined) listing.laneAssist = input.laneAssist;
+    if (input.ownersCount !== undefined) listing.ownersCount = input.ownersCount;
+    if (input.hasServiceBook !== undefined) listing.hasServiceBook = input.hasServiceBook;
+    if (input.hasRepairHistory !== undefined) listing.hasRepairHistory = input.hasRepairHistory;
     listing.status = "pending_review";
     listing.updatedAt = new Date().toISOString();
     return { ok: true };
