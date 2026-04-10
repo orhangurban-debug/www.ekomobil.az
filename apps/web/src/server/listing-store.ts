@@ -84,6 +84,8 @@ interface ListingRow {
   part_sku?: string | null;
   part_quantity?: number | null;
   part_compatibility?: string | null;
+  contact_phone?: string | null;
+  whatsapp_phone?: string | null;
 }
 
 interface ServiceRecordRow {
@@ -156,6 +158,8 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     partSku: row.part_sku ?? undefined,
     partQuantity: row.part_quantity ?? undefined,
     partCompatibility: row.part_compatibility ?? undefined,
+    contactPhone: row.contact_phone ?? undefined,
+    whatsappPhone: row.whatsapp_phone ?? undefined,
     planType: (row.plan_type as PlanType) ?? "free",
     planExpiresAt: row.plan_expires_at?.toISOString(),
     createdAt: row.created_at.toISOString(),
@@ -540,9 +544,18 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
-          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at
+          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, '')) AS contact_phone,
+          CASE
+            WHEN dp.id IS NOT NULL AND COALESCE(dp.show_whatsapp, FALSE) = TRUE AND NULLIF(BTRIM(dp.whatsapp_phone), '') IS NOT NULL
+              THEN dp.whatsapp_phone
+            ELSE COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, ''))
+          END AS whatsapp_phone
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+        LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN users ou ON ou.id = l.owner_user_id
+        LEFT JOIN users dpu ON dpu.id = dp.owner_user_id
         WHERE l.id = $1
         LIMIT 1
       `,
@@ -589,6 +602,8 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     return {
       ...mapRowToSummary(row),
       mediaUrls,
+      contactPhone: row.contact_phone ?? undefined,
+      whatsappPhone: row.whatsapp_phone ?? undefined,
       serviceRecords: serviceRows.rows.map((entry) => ({
         id: entry.id,
         sourceType: entry.source_type,

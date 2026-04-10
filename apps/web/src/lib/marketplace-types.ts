@@ -25,6 +25,8 @@ export interface ListingRecord {
   sellerType: SellerType;
   ownerUserId?: string;
   dealerProfileId?: string;
+  contactPhone?: string;
+  whatsappPhone?: string;
   bodyType?: string;
   driveType?: string;
   color?: string;

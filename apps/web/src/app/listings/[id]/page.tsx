@@ -37,6 +37,19 @@ async function isListingOwner(
   return false;
 }
 
+function normalizePhoneForTel(value?: string): string | undefined {
+  if (!value) return undefined;
+  const cleaned = value.trim().replace(/[^\d+]/g, "");
+  return cleaned || undefined;
+}
+
+function normalizePhoneForWa(value?: string): string | undefined {
+  const tel = normalizePhoneForTel(value);
+  if (!tel) return undefined;
+  const digits = tel.replace(/[^\d]/g, "");
+  return digits || undefined;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingDetail(id);
@@ -90,6 +103,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       ? getVinCheckLinks(listing.vin)
       : null;
   const hasVinEntered = Boolean(listing.vin && listing.vin !== "PARTS-NOVIN");
+  const telPhone = normalizePhoneForTel(listing.contactPhone);
+  const whatsappPhone = normalizePhoneForWa(listing.whatsappPhone ?? listing.contactPhone);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -232,9 +247,25 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <p className="mt-1 text-sm text-slate-500">{listing.city} • {listing.year}</p>
 
             <div className="mt-5 space-y-2">
-              <a href="#seller-contact" className="btn-primary w-full justify-center py-3 flex">
-                Satıcı ilə əlaqə
-              </a>
+              {telPhone ? (
+                <a href={`tel:${telPhone}`} className="btn-primary w-full justify-center py-3 flex">
+                  Zəng et
+                </a>
+              ) : (
+                <a href="#seller-contact" className="btn-primary w-full justify-center py-3 flex">
+                  Satıcı ilə əlaqə
+                </a>
+              )}
+              {whatsappPhone && (
+                <a
+                  href={`https://wa.me/${whatsappPhone}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary w-full justify-center py-3 flex"
+                >
+                  WhatsApp ilə yaz
+                </a>
+              )}
               {!isPart && <TestDriveButton listingId={listing.id} />}
               {!isPart && (
                 <div className="pt-1">
@@ -418,7 +449,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
         <div id="seller-contact" className="card p-6 scroll-mt-24">
           <h2 className="font-semibold text-slate-900">Satıcıya sorğu göndər</h2>
-          <p className="mt-2 text-sm text-slate-500">Dealer/satıcı panelinə dərhal lead düşəcək.</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Telefon/WhatsApp vasitəsilə birbaşa əlaqə mümkün olmadıqda bu formdan istifadə edin.
+          </p>
           <div className="mt-4">
             <LeadCaptureForm listingId={listing.id} />
           </div>
