@@ -1,4 +1,6 @@
 import { getPgPool } from "@/lib/postgres";
+import type { AuctionStatus } from "@/lib/auction";
+import { settleHeldDepositsForAuctionOutcome } from "@/server/auction-deposit-settlement-store";
 import { createAuctionNotification } from "@/server/auction-notification-store";
 import { voidPreauthForLosers } from "@/server/auction-preauth-store";
 import { recordAuctionAuditLog } from "@/server/auction-store";
@@ -154,6 +156,11 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
 
     await client.query("COMMIT");
     for (const item of notificationQueue) {
+      await settleHeldDepositsForAuctionOutcome({
+        auctionId: item.auctionId,
+        outcomeStatus: item.status as AuctionStatus,
+        winnerUserId: item.winnerUserId
+      }).catch(() => undefined);
       await notifyClosedAuction(item).catch(() => undefined);
     }
     return processed;

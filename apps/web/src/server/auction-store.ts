@@ -9,6 +9,7 @@ import {
 import type { ListingDetail } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { createAuctionNotification } from "@/server/auction-notification-store";
+import { settleHeldDepositsForAuctionOutcome } from "@/server/auction-deposit-settlement-store";
 import { getListingDetail, validateListingOwnership } from "@/server/listing-store";
 import { getDeepKycStatus } from "@/server/user-kyc-store";
 import {
@@ -755,6 +756,20 @@ export async function confirmAuctionSale(input: {
         `UPDATE users SET penalty_balance_azn = penalty_balance_azn + $1 WHERE id = $2`,
         [getSellerBreachPenaltyAzn(kind), auction.sellerUserId]
       );
+    }
+
+    const depositSettlement = await settleHeldDepositsForAuctionOutcome({
+      auctionId: auction.id,
+      outcomeStatus: nextStatus,
+      winnerUserId
+    });
+    if (depositSettlement.returned > 0 || depositSettlement.forfeited > 0) {
+      await recordAuctionAuditLog({
+        auctionId: auction.id,
+        actorUserId: input.actorUserId,
+        actionType: "auction_deposit_settled",
+        detail: `returned=${depositSettlement.returned}; forfeited=${depositSettlement.forfeited}; status=${nextStatus}`
+      });
     }
 
     await notifyCounterpart(nextStatus).catch(() => undefined);
