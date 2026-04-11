@@ -10,11 +10,36 @@ import {
   getLotListingFeeAzn
 } from "@/lib/auction-fees";
 
+function InfoHint({ text }: { text: string }) {
+  return (
+    <details className="group relative inline-block">
+      <summary className="list-none cursor-pointer">
+        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 bg-white text-[10px] font-bold text-slate-500 transition hover:border-[#0891B2] hover:text-[#0891B2]">
+          i
+        </span>
+      </summary>
+      <div className="absolute left-0 z-20 mt-1.5 w-72 rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-normal leading-relaxed text-slate-600 shadow-lg">
+        {text}
+      </div>
+    </details>
+  );
+}
+
 interface SellableListing {
   id: string;
   title: string;
   priceAzn: number;
   status: string;
+  make: string;
+  model: string;
+  year: number;
+  city: string;
+  mileageKm: number;
+  fuelType: string;
+  transmission: string;
+  vinProvided: boolean;
+  trustScore: number;
+  planType?: string;
   listingKind: "vehicle" | "part";
   vinVerified: boolean;
   sellerVerified: boolean;
@@ -220,11 +245,14 @@ export function AuctionSellForm({
   return (
     <form onSubmit={onSubmit} className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div>
-        <label className="label">Elan seçin</label>
+        <label className="label flex items-center gap-2">
+          <span>Elan seçin</span>
+          <InfoHint text="Auksiona qoymaq istədiyiniz mövcud elanı seçin. Burada yalnız lot qaydalarına uyğun elanlar görünür." />
+        </label>
         <select className="input-field" value={listingId} onChange={(e) => setListingId(e.target.value)}>
           {listings.map((listing) => (
             <option key={listing.id} value={listing.id}>
-              {listing.title} — {listing.priceAzn.toLocaleString("az-AZ")} ₼
+              {listing.make} {listing.model} {listing.year} • {listing.city} • {listing.priceAzn.toLocaleString("az-AZ")} ₼
             </option>
           ))}
         </select>
@@ -233,14 +261,38 @@ export function AuctionSellForm({
       {selected && (
         <div className="rounded-xl bg-slate-50 p-4 text-sm">
           <div className="font-medium text-slate-900">{selected.title}</div>
-          <div className="mt-1 text-slate-500">
-            Başlanğıc bid: {selected.priceAzn.toLocaleString("az-AZ")} ₼
+          <div className="mt-1 text-slate-500">Başlanğıc bid: {selected.priceAzn.toLocaleString("az-AZ")} ₼</div>
+          <div className="mt-2 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">Marka/Model</span>
+              <div className="font-medium text-slate-700">{selected.make} {selected.model}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">İl / Şəhər</span>
+              <div className="font-medium text-slate-700">{selected.year} • {selected.city}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">Yürüş</span>
+              <div className="font-medium text-slate-700">{selected.mileageKm.toLocaleString("az-AZ")} km</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">Yanacaq / Ötürücü</span>
+              <div className="font-medium text-slate-700">{selected.fuelType} • {selected.transmission}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">Plan / Status</span>
+              <div className="font-medium text-slate-700">{selected.planType ?? "free"} • {selected.status}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-slate-400">Trust</span>
+              <div className="font-medium text-slate-700">{selected.trustScore}/100</div>
+            </div>
           </div>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             {selected.listingKind === "part" ? (
               <span className="badge-verified">Hissə</span>
             ) : (
-              <span className={selected.vinVerified ? "badge-verified" : "badge-warning"}>VIN</span>
+              <span className={selected.vinProvided ? "badge-verified" : "badge-warning"}>VIN daxil edilib</span>
             )}
             <span className={selected.sellerVerified ? "badge-verified" : "badge-warning"}>Satıcı</span>
             <span className={selected.mediaComplete ? "badge-verified" : "badge-warning"}>Media</span>
@@ -250,7 +302,10 @@ export function AuctionSellForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Rezerv qiymət (opsional)</label>
+          <label className="label flex items-center gap-2">
+            <span>Rezerv qiymət (opsional)</span>
+            <InfoHint text="Gizli minimum satış qiymətidir. Hərrac bu məbləğin altında bitərsə, satıcı satışdan imtina edə bilər." />
+          </label>
           <input
             type="number"
             className="input-field"
@@ -260,7 +315,10 @@ export function AuctionSellForm({
           />
         </div>
         <div>
-          <label className="label">Buy-now qiymət (opsional)</label>
+          <label className="label flex items-center gap-2">
+            <span>Buy-now qiymət (opsional)</span>
+            <InfoHint text="Alıcı bu qiyməti qəbul edərsə hərrac dərhal tamamlanır. Sürətli satış üçün istifadə olunur." />
+          </label>
           <input
             type="number"
             className="input-field"
@@ -273,11 +331,17 @@ export function AuctionSellForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Başlama vaxtı (opsional)</label>
+          <label className="label flex items-center gap-2">
+            <span>Başlama vaxtı (opsional)</span>
+            <InfoHint text="Boş saxlasanız lot dərhal aktivləşir. Gələcək tarix seçsəniz lot həmin vaxt başlayacaq." />
+          </label>
           <input type="datetime-local" className="input-field" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
         </div>
         <div>
-          <label className="label">Bitmə vaxtı (opsional)</label>
+          <label className="label flex items-center gap-2">
+            <span>Bitmə vaxtı (opsional)</span>
+            <InfoHint text="Boş saxlasanız standart olaraq 24 saatlıq hərrac yaradılır. Özünüz daha uzun/qısa müddət verə bilərsiniz." />
+          </label>
           <input type="datetime-local" className="input-field" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
         </div>
       </div>
@@ -285,11 +349,17 @@ export function AuctionSellForm({
       <div className="rounded-xl border border-slate-200 p-4">
         <label className="flex items-center gap-3 text-sm font-medium text-slate-900">
           <input type="checkbox" checked={depositRequired} onChange={(e) => setDepositRequired(e.target.checked)} />
-          Yüksək riskli lot üçün bidder deposit tələb et
+          <span className="inline-flex items-center gap-2">
+            Yüksək riskli lot üçün bidder deposit tələb et
+            <InfoHint text="Alıcıların ciddi təklif verməsi üçün öncədən depozit tələb olunur. No-show halları azalır." />
+          </span>
         </label>
         {depositRequired && (
           <div className="mt-3">
-            <label className="label">Deposit məbləği (₼)</label>
+            <label className="label flex items-center gap-2">
+              <span>Deposit məbləği (₼)</span>
+              <InfoHint text="Qalib alıcı üçün bloklanan məbləğdir. Məbləği lot dəyərinə uyğun seçin (məs: 500-2000 ₼)." />
+            </label>
             <input
               type="number"
               className="input-field"
@@ -302,13 +372,19 @@ export function AuctionSellForm({
       </div>
 
       <div className="rounded-xl border border-slate-200 p-4">
-        <div className="mb-3 text-sm font-semibold text-slate-900">VIN və servis tarixçə məlumatları (tövsiyə olunur)</div>
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <span>VIN və servis tarixçə məlumatları (tövsiyə olunur)</span>
+          <InfoHint text="Bu məlumatlar alıcı etibarını artırır və lotun daha sürətli satılmasına kömək edir. Link və ya sənəd istinadı əlavə edə bilərsiniz." />
+        </div>
         <p className="mb-3 text-xs text-slate-600">
           Satışın daha sürətli və etibarlı getməsi üçün bu məlumatları ya açıq link, ya da sənəd istinadı formatında paylaşa bilərsiniz.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="label">VIN məlumat formatı</label>
+            <label className="label flex items-center gap-2">
+              <span>VIN məlumat formatı</span>
+              <InfoHint text="VIN tarixçəsini ya açıq URL ilə, ya da sənəd referansı ilə təqdim edin." />
+            </label>
             <select
               className="input-field"
               value={vinInfoType}
@@ -336,7 +412,10 @@ export function AuctionSellForm({
             )}
           </div>
           <div>
-            <label className="label">Servis tarixçə formatı</label>
+            <label className="label flex items-center gap-2">
+              <span>Servis tarixçə formatı</span>
+              <InfoHint text="Servis qeydlərini ya açıq URL, ya da sənəd referansı ilə əlavə edin." />
+            </label>
             <select
               className="input-field"
               value={serviceHistoryType}
@@ -378,7 +457,10 @@ export function AuctionSellForm({
               }
             }}
           />
-          Yüksək dəyərli lot üçün satıcı performans bond aktiv et
+          <span className="inline-flex items-center gap-2">
+            Yüksək dəyərli lot üçün satıcı performans bond aktiv et
+            <InfoHint text="Yüksək dəyərli lotlarda satıcının öhdəliyini təmin edən zəmanət məbləğidir. Deep KYC yoxdursa adətən məcburidir." />
+          </span>
         </label>
         {isHighValue && (
           <p className="mt-2 text-xs text-amber-700">
@@ -388,7 +470,10 @@ export function AuctionSellForm({
         )}
         {sellerBondRequired && (
           <div className="mt-3">
-            <label className="label">Satıcı bond məbləği (₼)</label>
+            <label className="label flex items-center gap-2">
+              <span>Satıcı bond məbləği (₼)</span>
+              <InfoHint text="Sistem təklif etdiyi məbləği göstərir; ehtiyac olduqda daha yüksək məbləğ seçə bilərsiniz." />
+            </label>
             <input
               type="number"
               className="input-field"
@@ -441,7 +526,10 @@ export function AuctionSellForm({
       </div>
 
       <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-        <div className="text-sm font-semibold text-slate-900">Satıcı öhdəlik bəndləri</div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <span>Satıcı öhdəlik bəndləri</span>
+          <InfoHint text="Lot yaratmaq üçün bu bəndlərin hamısını qəbul etmək tələb olunur. Bu, hüquqi və əməliyyat qaydalarına uyğunluq üçündür." />
+        </div>
         <p className="text-xs text-slate-600">
           Ətraflı axın və mərhələlər:{" "}
           <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
