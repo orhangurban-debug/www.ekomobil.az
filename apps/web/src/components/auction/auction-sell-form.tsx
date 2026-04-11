@@ -170,7 +170,7 @@ export function AuctionSellForm({
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
         <h2 className="text-lg font-semibold text-slate-900">Uyğun elan tapılmadı</h2>
         <p className="mt-2 text-sm text-slate-500">
-          Auksion üçün əvvəlcə VIN, satıcı və media yoxlamasını keçmiş bir elanınız olmalıdır.
+          Auksion üçün VIN daxil edilmiş və media checklist-i tam olan bir elanınız olmalıdır.
         </p>
       </div>
     );

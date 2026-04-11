@@ -46,14 +46,13 @@ export default async function AuctionSellPage() {
         <div className="flex flex-wrap gap-x-6 gap-y-1.5">
           {checklistVehicle && (
             <>
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />VIN siqnalı tamamlanmalıdır</span>
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Satıcı siqnalı tamamlanmalıdır</span>
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />VIN daxil edilmiş olmalıdır (məcburi)</span>
             </>
           )}
           {checklistPart && (
             <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Hissə: VIN tələb olunmur</span>
           )}
-          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Media checklist tam olmalıdır</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Media checklist tam olmalıdır (məcburi)</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Lot haqqı ödənməlidir</span>
         </div>
         <div className="mt-3 flex gap-4 text-xs">

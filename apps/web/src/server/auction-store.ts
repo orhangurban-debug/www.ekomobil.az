@@ -19,13 +19,11 @@ import {
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
 
 export function meetsAuctionListingTrustGate(
-  listing: Pick<ListingDetail, "listingKind" | "vinVerified" | "sellerVerified" | "mediaComplete">
+  listing: Pick<ListingDetail, "listingKind" | "mediaComplete" | "vinProvided">
 ): boolean {
   const kind = listing.listingKind ?? "vehicle";
-  if (kind === "part") {
-    return Boolean(listing.sellerVerified && listing.mediaComplete);
-  }
-  return Boolean(listing.vinVerified && listing.sellerVerified && listing.mediaComplete);
+  if (kind === "part") return Boolean(listing.mediaComplete);
+  return Boolean(listing.mediaComplete && listing.vinProvided);
 }
 
 interface AuctionListingRow {
@@ -189,8 +187,8 @@ export async function createAuctionListing(input: {
       ok: false,
       error:
         (listing.listingKind ?? "vehicle") === "part"
-          ? "Hissə elanı üçün satıcı doğrulaması və media checklist tam olmalıdır"
-          : "Auksion üçün VIN, satıcı və media yoxlaması tam olmalıdır"
+          ? "Hissə elanı üçün media checklist tam olmalıdır."
+          : "Auksion üçün VIN daxil edilməli və media checklist tam olmalıdır."
     };
   }
 
