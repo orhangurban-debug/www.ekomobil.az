@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { getAuctionListingsMemory } from "@/server/auction-memory";
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
-import { recordAuctionAuditLog } from "@/server/auction-store";
+import { confirmAuctionSale, recordAuctionAuditLog } from "@/server/auction-store";
 
 type ReminderSeverity = "upcoming" | "overdue";
 type ReminderType = "confirmation_step" | "discipline_payment";
@@ -12,6 +12,8 @@ interface AuctionSlaCandidateRow {
   title_snapshot: string;
   status: string;
   updated_at: Date;
+  winner_user_id: string | null;
+  current_bidder_user_id: string | null;
 }
 
 interface AuctionSlaReminderRow {
@@ -201,7 +203,7 @@ async function listSlaCandidates(): Promise<AuctionSlaCandidateRow[]> {
   try {
     const pool = getPgPool();
     const result = await pool.query<AuctionSlaCandidateRow>(
-      `SELECT id, title_snapshot, status, updated_at
+      `SELECT id, title_snapshot, status, updated_at, winner_user_id, current_bidder_user_id
        FROM auction_listings
        WHERE status IN ('ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'no_show', 'seller_breach')
        ORDER BY updated_at DESC
@@ -220,9 +222,32 @@ async function listSlaCandidates(): Promise<AuctionSlaCandidateRow[]> {
         id: entry.id,
         title_snapshot: entry.titleSnapshot,
         status: entry.status,
-        updated_at: new Date(entry.updatedAt)
+        updated_at: new Date(entry.updatedAt),
+        winner_user_id: entry.winnerUserId ?? null,
+        current_bidder_user_id: entry.currentBidderUserId ?? null
       }));
   }
+}
+
+async function autoEscalateOverdueSellerResponse(input: AuctionSlaCandidateRow): Promise<boolean> {
+  if (input.status !== "buyer_confirmed") return false;
+  const actorUserId = input.winner_user_id ?? input.current_bidder_user_id;
+  if (!actorUserId) return false;
+  const result = await confirmAuctionSale({
+    auctionId: input.id,
+    actorUserId,
+    actorRole: "buyer",
+    outcome: "seller_breach",
+    note: "SLA auto-enforcement: seller did not confirm in time."
+  });
+  if (!result.ok) return false;
+  await recordAuctionAuditLog({
+    auctionId: input.id,
+    actorUserId,
+    actionType: "sla_auto_seller_breach",
+    detail: "Seller response timeout triggered automatic seller breach."
+  });
+  return true;
 }
 
 export async function runAuctionSlaReminderSweep(now = new Date()): Promise<AuctionSlaReminderSweepSummary> {
@@ -255,6 +280,9 @@ export async function runAuctionSlaReminderSweep(now = new Date()): Promise<Auct
         actionType: `sla_reminder_${reminder.severity}`,
         detail: reminder.message
       });
+      if (reminder.severity === "overdue" && reminder.reminderType === "confirmation_step") {
+        await autoEscalateOverdueSellerResponse(item).catch(() => undefined);
+      }
     }
   }
 

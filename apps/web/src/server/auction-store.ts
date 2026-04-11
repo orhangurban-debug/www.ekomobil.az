@@ -18,6 +18,8 @@ import {
 } from "@/server/auction-memory";
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
 
+const AUCTION_SELLER_BLOCK_PENALTY_AZN = Number(process.env.AUCTION_SELLER_BLOCK_PENALTY_AZN ?? "500");
+
 export function meetsAuctionListingTrustGate(
   listing: Pick<ListingDetail, "listingKind" | "mediaComplete" | "vinProvided">
 ): boolean {
@@ -71,6 +73,28 @@ interface AuctionOutcomeRow {
   resolution_note: string | null;
   created_at: Date;
   updated_at: Date;
+}
+
+interface SellerAuctionGateRow {
+  user_account_status: string;
+  penalty_balance_azn: number;
+}
+
+async function getSellerAuctionGate(userId: string): Promise<SellerAuctionGateRow | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<SellerAuctionGateRow>(
+      `SELECT user_account_status, penalty_balance_azn
+       FROM users
+       WHERE id = $1
+       LIMIT 1`,
+      [userId]
+    );
+    return result.rows[0] ?? null;
+  } catch (error) {
+    assertAuctionMemoryFallbackAllowed(error);
+    return null;
+  }
 }
 
 function mapAuctionRow(row: AuctionListingRow): AuctionListingRecord {
@@ -177,6 +201,22 @@ export async function createAuctionListing(input: {
   vinDocumentRef?: string;
   serviceHistoryDocumentRef?: string;
 }): Promise<{ ok: true; auction: AuctionListingRecord } | { ok: false; error: string }> {
+  const sellerGate = await getSellerAuctionGate(input.sellerUserId);
+  if (sellerGate) {
+    if (sellerGate.user_account_status !== "active") {
+      return {
+        ok: false,
+        error: "Hesabınız auksion satışları üçün məhdudlaşdırılıb. Dəstəyə müraciət edin."
+      };
+    }
+    if (sellerGate.penalty_balance_azn >= AUCTION_SELLER_BLOCK_PENALTY_AZN) {
+      return {
+        ok: false,
+        error: "Ödənilməmiş öhdəlik balansına görə yeni lot yaratmaq müvəqqəti bloklanıb."
+      };
+    }
+  }
+
   const ownership = await validateListingOwnership(input.listingId, input.sellerUserId);
   if (!ownership.ok) return { ok: false, error: ownership.error ?? "Elan tapılmadı" };
 
