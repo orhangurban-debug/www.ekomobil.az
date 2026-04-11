@@ -367,6 +367,10 @@ export function AuctionSellForm({
               onChange={(e) => setDepositAmountAzn(e.target.value)}
               placeholder="Məs: 500"
             />
+            <p className="mt-2 text-xs text-slate-500">
+              Depozit yalnız lot nəticəsi bağlanana qədər hold edilir: satış olmasa qaytarılır, qalib alıcı no-show olarsa
+              qalibin depoziti forfeit edilir.
+            </p>
           </div>
         )}
       </div>
@@ -469,7 +473,8 @@ export function AuctionSellForm({
           </p>
         )}
         <p className="mt-2 text-xs text-slate-500">
-          Bond satıcı üçün intizam təminatıdır: lot öhdəliyi yerinə yetirilərsə geri qaytarılır, pozuntu olarsa cəriməyə yönləndirilə bilər.
+          Bond satıcı üçün intizam təminatıdır. Bu seçim yalnız yüksək risk/yüksək dəyərli lotlar üçün tövsiyə olunur;
+          yüksək dəyər + deep KYC yoxdursa isə zəruridir.
         </p>
         {sellerBondRequired && (
           <div className="mt-3">
@@ -492,6 +497,27 @@ export function AuctionSellForm({
         Avtomobilin əsas satış ödənişi EkoMobil üzərindən keçmir. Qalib alıcı əsas məbləği birbaşa satıcıya ödəyir.
         Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq ({listingFeeAzn.toLocaleString("az-AZ")} ₼).
         Alıcı iştirak etməzsə lot satışsız bağlanır və satış komisyonu tutulmur.
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="text-sm font-semibold text-slate-900">Tez-tez verilən suallar (depozit və bond)</div>
+        <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-slate-600">
+          <li>
+            Auksionda satış olmasa depozit qaytarılır (status: <span className="font-medium">returned</span>).
+          </li>
+          <li>
+            Depozit lotun nəticəsi bağlanana qədər hold qalır; nəticə bağlanan kimi sistem avtomatik settle edir.
+          </li>
+          <li>
+            Qalib alıcı no-show olarsa qalibin depoziti forfeit, digər iştirakçıların depoyiti qaytarılır.
+          </li>
+          <li>
+            Satıcı satışdan çıxarsa (`seller_breach`) alıcı depoziti qaytarılır, satıcıya öhdəlik cəriməsi tətbiq olunur.
+          </li>
+          <li>
+            İlk və ya ikinci auksionda satış alınmasa satıcı yenidən lot yarada bilər; lot haqqı hər yeni lotda yenidən tətbiq edilir.
+          </li>
+        </ul>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
