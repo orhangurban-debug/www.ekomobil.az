@@ -54,6 +54,7 @@ export default async function AuctionSellPage() {
           )}
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Media checklist tam olmalıdır (məcburi)</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Lot haqqı ödənməlidir</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Ödənilməmiş öhdəlik balansı varsa yeni lot bloklana bilər</span>
         </div>
         <div className="mt-3 flex gap-4 text-xs">
           <Link href="/rules/auction" className="text-[#0891B2] hover:underline">Qaydalar</Link>

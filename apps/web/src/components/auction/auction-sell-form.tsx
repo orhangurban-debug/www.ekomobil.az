@@ -459,7 +459,7 @@ export function AuctionSellForm({
           />
           <span className="inline-flex items-center gap-2">
             Yüksək dəyərli lot üçün satıcı performans bond aktiv et
-            <InfoHint text="Yüksək dəyərli lotlarda satıcının öhdəliyini təmin edən zəmanət məbləğidir. Deep KYC yoxdursa adətən məcburidir." />
+            <InfoHint text="Bu məbləğ satıcının öhdəliyini təmin edən zəmanətdir. Lot yaradarkən ayrıca ödənir və qayda pozuntusu yoxdursa proses sonunda geri qaytarılır." />
           </span>
         </label>
         {isHighValue && (
@@ -468,6 +468,9 @@ export function AuctionSellForm({
             {deepKycApproved ? " Deep KYC təsdiqiniz var, bond opsionaldır." : " Deep KYC yoxdursa bond tələb olunur."}
           </p>
         )}
+        <p className="mt-2 text-xs text-slate-500">
+          Bond satıcı üçün intizam təminatıdır: lot öhdəliyi yerinə yetirilərsə geri qaytarılır, pozuntu olarsa cəriməyə yönləndirilə bilər.
+        </p>
         {sellerBondRequired && (
           <div className="mt-3">
             <label className="label flex items-center gap-2">
@@ -492,16 +495,11 @@ export function AuctionSellForm({
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">Satıcı xərc preview-u</div>
-            <p className="mt-1 text-xs text-slate-600">
-              Komisyon yalnız uğurlu satışda tutulur. Lot haqqı isə lot aktivləşməsi üçün əvvəlcədən ödənilir.
-            </p>
-          </div>
-          <Link href="/pricing#auction" className="text-xs font-medium text-[#0891B2] hover:underline">
-            Tam cədvəl →
-          </Link>
+        <div>
+          <div className="text-sm font-semibold text-slate-900">Satıcı xərc preview-u</div>
+          <p className="mt-1 text-xs text-slate-600">
+            Komisyon yalnız uğurlu satışda tutulur. Lot haqqı isə lot aktivləşməsi üçün əvvəlcədən ödənilir.
+          </p>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200">
@@ -520,9 +518,25 @@ export function AuctionSellForm({
             <div className="mt-1 text-xl font-bold text-[#0891B2]">
               {(listingFeeAzn + successFeePreviewAzn).toLocaleString("az-AZ")} ₼
             </div>
+            <div className="mt-1 text-[11px] text-slate-500">
+              {listingFeeAzn.toLocaleString("az-AZ")} + {successFeePreviewAzn.toLocaleString("az-AZ")} = {(listingFeeAzn + successFeePreviewAzn).toLocaleString("az-AZ")} ₼
+            </div>
             <div className="mt-1 text-[11px] text-slate-500">Lot haqqı dərhal, komisyon isə yalnız uğurlu satışda</div>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <span>Alıcı avtomobili necə yoxlayır?</span>
+          <InfoHint text="Platforma baxış görüşünü avtomatik təşkil etmir. Satıcı və alıcı lot daxilində əlaqələnib baxış vaxtını razılaşdırır." />
+        </div>
+        <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-slate-600">
+          <li>Alıcı lota təklif verir və satıcı ilə əlaqə üçün maraq bildirir.</li>
+          <li>Satıcı alıcı ilə danışıb görüş vaxtı/məkanını təyin edir.</li>
+          <li>Alıcı yerində texniki baxış və test sürüşü edir.</li>
+          <li>Baxış nəticəsinə görə hərrac davam edir və ya alıcı təklifdən imtina edir.</li>
+        </ol>
       </div>
 
       <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4">
