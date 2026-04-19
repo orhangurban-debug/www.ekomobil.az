@@ -29,6 +29,7 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
       "1 servis profili üçün onboarding",
       "Servis növü və xidmət taglarının seçimi",
       "Brend / sertifikasiya nişanlarının göstərilməsi",
+      "6 servis şəkli və 3 sertifikat faylı upload",
       "Servislər kataloqunda profil kartı",
       "Şəhər və xidmət növü filtrlərində görünüş",
       "Profil səhifəsində zəng və WhatsApp düymələri"
@@ -51,6 +52,7 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
       "Bir neçə xidmət istiqamətinin birlikdə yerləşdirilməsi",
       "Ops tərəfindən prioritet aktivasiya baxışı",
       "Əlavə sertifikasiya və brend məlumatı",
+      "12 servis şəkli və 6 sertifikat faylı upload",
       "Komanda / xidmət təsviri üçün geniş onboarding",
       "İlk ay pulsuz kampaniya hüququ"
     ],
@@ -71,6 +73,7 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
       "Çox filial onboarding dəstəyi",
       "Korporativ yerləşdirmə üçün fərdi setup",
       "Fərdi kommersiya və hesab idarəetməsi",
+      "20 servis şəkli və 10 sertifikat faylı upload",
       "Satış komandası ilə manual koordinasiya",
       "İlk ay pulsuz kampaniya hüququ"
     ],
@@ -94,6 +97,7 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
       "1 ekspert profili üçün onboarding",
       "Ekspertiza növü və yoxlama taglarının seçimi",
       "Sertifikasiya nişanlarının göstərilməsi",
+      "5 obyekt şəkli və 4 sertifikat faylı upload",
       "Servislər kataloqunda profil kartı",
       "Şəhər filtrlərində görünüş",
       "Profil səhifəsində zəng və WhatsApp düymələri"
@@ -116,6 +120,7 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
       "Bir neçə yoxlama istiqamətinin birlikdə təqdimatı",
       "Ops tərəfindən prioritet aktivasiya baxışı",
       "Əlavə sertifikasiya və avadanlıq məlumatı",
+      "10 obyekt şəkli və 8 sertifikat faylı upload",
       "Auksion uyğunluğu üçün manual qiymətləndirmə",
       "İlk ay pulsuz kampaniya hüququ"
     ],
@@ -136,6 +141,7 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
       "Çox ekspert / filial onboarding dəstəyi",
       "Premium tərəfdaş kimi manual yerləşdirmə",
       "Fərdi kommersiya təklifi",
+      "16 obyekt şəkli və 12 sertifikat faylı upload",
       "Prioritet dəstək və setup əlaqələndirməsi",
       "İlk ay pulsuz kampaniya hüququ"
     ],
@@ -159,6 +165,7 @@ export const MECHANIC_PLANS: ServicePlan[] = [
       "1 usta profili",
       "5 xidmət tagı seçimi",
       "Şəhər və ixtisas üzrə görünüş",
+      "3 şəkil və 1 sertifikat faylı upload",
       "Zəng / WhatsApp düyməsi",
       "Profil müraciəti və əsas məlumat sahələri",
       "Kataloqda profil kartı"
@@ -180,6 +187,7 @@ export const MECHANIC_PLANS: ServicePlan[] = [
       "15 xidmət tagı seçimi",
       "Ops tərəfindən prioritet aktivasiya baxışı",
       "Əlavə sertifikasiya nişanları",
+      "8 şəkil və 3 sertifikat faylı upload",
       "Profil təsviri üçün geniş onboarding",
       "İlk ay pulsuz kampaniya hüququ"
     ],
@@ -200,6 +208,7 @@ export const MECHANIC_PLANS: ServicePlan[] = [
       "Bir neçə ixtisasın bir profildə toplanması",
       "Kiçik komanda üçün onboarding dəstəyi",
       "EV / ECU / ADAS kimi ixtisasların birlikdə seçimi",
+      "15 şəkil və 6 sertifikat faylı upload",
       "Əlavə qeydlərlə komanda təqdimatı",
       "İlk ay pulsuz kampaniya hüququ"
     ],

@@ -64,6 +64,24 @@ type ProviderOption = {
   icon: string;
 };
 
+type UploadedSupportFile = {
+  name: string;
+  url: string;
+  mimeType: string;
+  size: number;
+};
+
+type PlanOption = {
+  value: string;
+  label: string;
+  desc: string;
+  tagLimit: number;
+  certLimit: number;
+  imageLimit: number;
+  certFileLimit: number;
+  promo: boolean;
+};
+
 // ─── Service tags by provider type ───────────────────────────────────────────
 
 const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
@@ -234,19 +252,19 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
 
 const PLAN_OPTIONS = {
   official: [
-    { value: "starter", label: "Filial — 79 ₼/ay", desc: "1 profil, ilk 30 gün pulsuz", tagLimit: 20, certLimit: 3, promo: true },
-    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "geniş onboarding, ilk 30 gün pulsuz", tagLimit: 40, certLimit: 6, promo: true },
-    { value: "premium", label: "Şəbəkə — 279 ₼/ay", desc: "korporativ paket, ilk 30 gün pulsuz", tagLimit: 80, certLimit: 12, promo: true }
+    { value: "starter", label: "Filial — 79 ₼/ay", desc: "1 profil, ilk 30 gün pulsuz", tagLimit: 20, certLimit: 3, imageLimit: 6, certFileLimit: 3, promo: true },
+    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "geniş onboarding, ilk 30 gün pulsuz", tagLimit: 40, certLimit: 6, imageLimit: 12, certFileLimit: 6, promo: true },
+    { value: "premium", label: "Şəbəkə — 279 ₼/ay", desc: "korporativ paket, ilk 30 gün pulsuz", tagLimit: 80, certLimit: 12, imageLimit: 20, certFileLimit: 10, promo: true }
   ],
   inspection: [
-    { value: "starter", label: "Solo — 39 ₼/ay", desc: "ekspert üçün start, ilk 30 gün pulsuz", tagLimit: 12, certLimit: 3, promo: true },
-    { value: "pro", label: "Mərkəz — 79 ₼/ay", desc: "aktiv mərkəz, ilk 30 gün pulsuz", tagLimit: 24, certLimit: 6, promo: true },
-    { value: "premium", label: "Şəbəkə — 149 ₼/ay", desc: "şəbəkə paket, ilk 30 gün pulsuz", tagLimit: 48, certLimit: 12, promo: true }
+    { value: "starter", label: "Solo — 39 ₼/ay", desc: "ekspert üçün start, ilk 30 gün pulsuz", tagLimit: 12, certLimit: 3, imageLimit: 5, certFileLimit: 4, promo: true },
+    { value: "pro", label: "Mərkəz — 79 ₼/ay", desc: "aktiv mərkəz, ilk 30 gün pulsuz", tagLimit: 24, certLimit: 6, imageLimit: 10, certFileLimit: 8, promo: true },
+    { value: "premium", label: "Şəbəkə — 149 ₼/ay", desc: "şəbəkə paket, ilk 30 gün pulsuz", tagLimit: 48, certLimit: 12, imageLimit: 16, certFileLimit: 12, promo: true }
   ],
   mechanic: [
-    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag", tagLimit: 5, certLimit: 1, promo: false },
-    { value: "pro", label: "Usta Pro — 19 ₼/ay", desc: "15 tag, ilk 30 gün pulsuz", tagLimit: 15, certLimit: 3, promo: true },
-    { value: "team", label: "Emalatxana — 49 ₼/ay", desc: "30 tag, komanda onboarding", tagLimit: 30, certLimit: 6, promo: true }
+    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag", tagLimit: 5, certLimit: 1, imageLimit: 3, certFileLimit: 1, promo: false },
+    { value: "pro", label: "Usta Pro — 19 ₼/ay", desc: "15 tag, ilk 30 gün pulsuz", tagLimit: 15, certLimit: 3, imageLimit: 8, certFileLimit: 3, promo: true },
+    { value: "team", label: "Emalatxana — 49 ₼/ay", desc: "30 tag, komanda onboarding", tagLimit: 30, certLimit: 6, imageLimit: 15, certFileLimit: 6, promo: true }
   ]
 };
 
@@ -275,6 +293,7 @@ export function InspectionPartnerApplicationForm() {
   const [providerName, setProviderName] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [mapLink, setMapLink] = useState("");
   const [workingHours, setWorkingHours] = useState("");
   const [experience, setExperience] = useState("");
   const [licenseInfo, setLicenseInfo] = useState("");
@@ -286,6 +305,8 @@ export function InspectionPartnerApplicationForm() {
   const [website, setWebsite] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("");
   const [notes, setNotes] = useState("");
+  const [serviceImages, setServiceImages] = useState<File[]>([]);
+  const [certificateFiles, setCertificateFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -293,7 +314,7 @@ export function InspectionPartnerApplicationForm() {
 
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
   const planGroup = providerType ? getPlanGroupForType(providerType) : "mechanic";
-  const planOptions = PLAN_OPTIONS[planGroup];
+  const planOptions = PLAN_OPTIONS[planGroup] as PlanOption[];
   const selectedPlanMeta = planOptions.find((plan) => plan.value === selectedPlan) ?? planOptions[0];
 
   const providerOptions: ProviderOption[] = [];
@@ -326,6 +347,48 @@ export function InspectionPartnerApplicationForm() {
     );
   }
 
+  function mergeSelectedFiles(input: FileList | null, kind: "image" | "certificate") {
+    if (!input) return;
+    const nextFiles = Array.from(input);
+    const existing = kind === "image" ? serviceImages : certificateFiles;
+    const limit = kind === "image" ? selectedPlanMeta.imageLimit : selectedPlanMeta.certFileLimit;
+    const merged = [...existing, ...nextFiles].slice(0, limit);
+    if (existing.length + nextFiles.length > limit) {
+      setLimitFeedback(`Bu plan üzrə maksimum ${limit} ${kind === "image" ? "şəkil" : "sertifikat faylı"} seçilə bilər.`);
+    } else {
+      setLimitFeedback(null);
+    }
+    if (kind === "image") {
+      setServiceImages(merged);
+    } else {
+      setCertificateFiles(merged);
+    }
+  }
+
+  function removeSelectedFile(index: number, kind: "image" | "certificate") {
+    if (kind === "image") {
+      setServiceImages((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+      return;
+    }
+    setCertificateFiles((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  async function uploadSelectedFiles(files: File[], kind: "image" | "certificate"): Promise<UploadedSupportFile[]> {
+    const uploaded: UploadedSupportFile[] = [];
+    for (const file of files) {
+      const form = new FormData();
+      form.set("file", file);
+      form.set("kind", kind);
+      const response = await fetch("/api/support/uploads", { method: "POST", body: form });
+      const payload = (await response.json()) as { ok: boolean; error?: string; file?: UploadedSupportFile };
+      if (!response.ok || !payload.ok || !payload.file) {
+        throw new Error(payload.error ?? "Fayl yüklənə bilmədi.");
+      }
+      uploaded.push(payload.file);
+    }
+    return uploaded;
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!providerType || !providerName.trim() || !city || !contactName.trim() || !phone.trim()) {
@@ -339,6 +402,7 @@ export function InspectionPartnerApplicationForm() {
       `Name: ${providerName.trim()}`,
       `City: ${city}`,
       `Address: ${address.trim() || "-"}`,
+      `Map link: ${mapLink.trim() || "-"}`,
       `Working hours: ${workingHours.trim() || "-"}`,
       `Experience: ${experience.trim() || "-"}`,
       `Services: ${selectedTags.join(", ") || "-"}`,
@@ -352,7 +416,7 @@ export function InspectionPartnerApplicationForm() {
       `Preferred plan: ${selectedPlanMeta?.label ?? "-"}`,
       `Launch promo: ${selectedPlanMeta?.promo ? "eligible_for_first_30_days_free" : "not_applicable"}`,
       `Notes: ${notes.trim() || "-"}`
-    ].join("\n");
+    ];
 
     const subject = `[Servis Partnyor] ${providerName.trim()} • ${providerLabel} • ${city}`;
 
@@ -360,13 +424,21 @@ export function InspectionPartnerApplicationForm() {
     setFeedback(null);
     setIsError(false);
     try {
+      const uploadedImages = await uploadSelectedFiles(serviceImages, "image");
+      const uploadedCertificates = await uploadSelectedFiles(certificateFiles, "certificate");
+      if (uploadedImages.length > 0) {
+        message.push(`Service images: ${uploadedImages.map((file) => `${file.name} → ${file.url}`).join(" | ")}`);
+      }
+      if (uploadedCertificates.length > 0) {
+        message.push(`Certificate files: ${uploadedCertificates.map((file) => `${file.name} → ${file.url}`).join(" | ")}`);
+      }
       const response = await fetch("/api/support/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "inspection_partner",
           subject,
-          message,
+          message: message.join("\n"),
           name: contactName.trim(),
           email: email.trim() || "noemail@ekomobil.az",
           phone: phone.trim()
@@ -386,6 +458,7 @@ export function InspectionPartnerApplicationForm() {
       setProviderName("");
       setCity("");
       setAddress("");
+      setMapLink("");
       setWorkingHours("");
       setExperience("");
       setLicenseInfo("");
@@ -397,6 +470,8 @@ export function InspectionPartnerApplicationForm() {
       setWebsite("");
       setSelectedPlan("");
       setNotes("");
+      setServiceImages([]);
+      setCertificateFiles([]);
     } catch {
       setIsError(true);
       setFeedback("Server xətası baş verdi. Yenidən cəhd edin.");
@@ -432,6 +507,8 @@ export function InspectionPartnerApplicationForm() {
                       setProviderType(t.value);
                       setSelectedTags([]);
                       setCertifications([]);
+                      setServiceImages([]);
+                      setCertificateFiles([]);
                       setLimitFeedback(null);
                       setSelectedPlan(PLAN_OPTIONS[nextPlanGroup][0].value);
                     }}
@@ -556,6 +633,16 @@ export function InspectionPartnerApplicationForm() {
               />
             </label>
 
+            <label className="space-y-1 md:col-span-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Google Maps / xəritə linki</span>
+              <input
+                className="input-field"
+                value={mapLink}
+                onChange={(e) => setMapLink(e.target.value)}
+                placeholder="https://maps.google.com/... və ya https://maps.app.goo.gl/..."
+              />
+            </label>
+
             <label className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Təcrübə</span>
               <select className="input-field" value={experience} onChange={(e) => setExperience(e.target.value)}>
@@ -607,11 +694,74 @@ export function InspectionPartnerApplicationForm() {
         </div>
       )}
 
-      {/* ── 4. Əlaqə məlumatları ────────────────────────────────────── */}
+      {/* ── 4. Media və sənədlər ────────────────────────────────────── */}
       {providerType && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">
             <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">4</span>
+            Şəkillər və sertifikat faylları
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Cari plan üzrə maksimum {selectedPlanMeta.imageLimit} şəkil və {selectedPlanMeta.certFileLimit} sertifikat faylı yükləyə bilərsiniz.
+          </p>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Servis şəkilləri ({serviceImages.length}/{selectedPlanMeta.imageLimit})
+              </span>
+              <input
+                className="input-field"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                multiple
+                onChange={(e) => mergeSelectedFiles(e.target.files, "image")}
+              />
+              {serviceImages.length > 0 && (
+                <div className="space-y-1">
+                  {serviceImages.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" className="text-rose-600" onClick={() => removeSelectedFile(index, "image")}>Sil</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Sertifikat faylları ({certificateFiles.length}/{selectedPlanMeta.certFileLimit})
+              </span>
+              <input
+                className="input-field"
+                type="file"
+                accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"
+                multiple
+                onChange={(e) => mergeSelectedFiles(e.target.files, "certificate")}
+              />
+              {certificateFiles.length > 0 && (
+                <div className="space-y-1">
+                  {certificateFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" className="text-rose-600" onClick={() => removeSelectedFile(index, "certificate")}>Sil</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </label>
+          </div>
+
+          {limitFeedback && <p className="mt-3 text-xs text-amber-700">{limitFeedback}</p>}
+        </div>
+      )}
+
+      {/* ── 5. Əlaqə məlumatları ────────────────────────────────────── */}
+      {providerType && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">5</span>
             Əlaqə məlumatları
           </h2>
 
@@ -676,12 +826,12 @@ export function InspectionPartnerApplicationForm() {
         </div>
       )}
 
-      {/* ── 5. Plan seçimi ──────────────────────────────────────────── */}
+      {/* ── 6. Plan seçimi ──────────────────────────────────────────── */}
       {providerType && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold text-slate-900">
-              <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">5</span>
+              <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">6</span>
               Maraqlandığınız plan
             </h2>
             <Link href="/pricing#services" className="text-xs text-[#0891B2] hover:underline">
@@ -695,7 +845,14 @@ export function InspectionPartnerApplicationForm() {
               <button
                 key={plan.value}
                 type="button"
-                onClick={() => setSelectedPlan(plan.value)}
+                onClick={() => {
+                  setSelectedPlan(plan.value);
+                  setSelectedTags((prev) => prev.slice(0, plan.tagLimit));
+                  setCertifications((prev) => prev.slice(0, plan.certLimit));
+                  setServiceImages((prev) => prev.slice(0, plan.imageLimit));
+                  setCertificateFiles((prev) => prev.slice(0, plan.certFileLimit));
+                  setLimitFeedback(null);
+                }}
                 className={`flex flex-col items-start rounded-xl border p-4 text-left transition ${
                   selectedPlan === plan.value
                     ? "border-[#0891B2] bg-[#0891B2]/5"
@@ -717,11 +874,11 @@ export function InspectionPartnerApplicationForm() {
         </div>
       )}
 
-      {/* ── 6. Əlavə qeydlər ────────────────────────────────────────── */}
+      {/* ── 7. Əlavə qeydlər ────────────────────────────────────────── */}
       {providerType && (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">6</span>
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">7</span>
             Əlavə məlumat
             <span className="ml-2 text-xs font-normal text-slate-400">(isteğe bağlı)</span>
           </h2>
