@@ -40,7 +40,7 @@ export default function InspectionPartnersPage() {
         <div>
           <p className="font-semibold text-slate-900">Növbəti addım</p>
           <p className="mt-1 text-xs leading-relaxed">
-            Müraciət 1-3 iş günü ərzində nəzərdən keçirilir. Plan seçilir, profil aktivləşdirilir.{" "}
+            Müraciət 1-3 iş günü ərzində nəzərdən keçirilir. İlk qeydiyyat üçün 30 günlük pulsuz aktivasiya da tətbiq oluna bilər.{" "}
             <Link href="/pricing#services" className="font-medium text-[#0891B2] hover:underline">
               Qiymət planlarına bax →
             </Link>

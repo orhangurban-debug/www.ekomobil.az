@@ -234,19 +234,19 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
 
 const PLAN_OPTIONS = {
   official: [
-    { value: "starter", label: "Filial — 129 ₼/ay", desc: "1 filial, baza görünüş" },
-    { value: "pro", label: "Mərkəz — 249 ₼/ay", desc: "2 filial, prioritet görünüş" },
-    { value: "premium", label: "Şəbəkə — 449 ₼/ay", desc: "6 filial, korporativ paket" }
+    { value: "starter", label: "Filial — 79 ₼/ay", desc: "1 profil, ilk 30 gün pulsuz", tagLimit: 20, certLimit: 3, promo: true },
+    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "geniş onboarding, ilk 30 gün pulsuz", tagLimit: 40, certLimit: 6, promo: true },
+    { value: "premium", label: "Şəbəkə — 279 ₼/ay", desc: "korporativ paket, ilk 30 gün pulsuz", tagLimit: 80, certLimit: 12, promo: true }
   ],
   inspection: [
-    { value: "starter", label: "Solo — 79 ₼/ay", desc: "1 profil, 20 raport/ay" },
-    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "3 profil, 80 raport/ay" },
-    { value: "premium", label: "Şəbəkə — 289 ₼/ay", desc: "8 profil, 200 raport/ay" }
+    { value: "starter", label: "Solo — 39 ₼/ay", desc: "ekspert üçün start, ilk 30 gün pulsuz", tagLimit: 12, certLimit: 3, promo: true },
+    { value: "pro", label: "Mərkəz — 79 ₼/ay", desc: "aktiv mərkəz, ilk 30 gün pulsuz", tagLimit: 24, certLimit: 6, promo: true },
+    { value: "premium", label: "Şəbəkə — 149 ₼/ay", desc: "şəbəkə paket, ilk 30 gün pulsuz", tagLimit: 48, certLimit: 12, promo: true }
   ],
   mechanic: [
-    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag" },
-    { value: "pro", label: "Usta Pro — 29 ₼/ay", desc: "1 profil, prioritet görünüş" },
-    { value: "team", label: "Emalatxana — 69 ₼/ay", desc: "4 usta, komanda profili" }
+    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag", tagLimit: 5, certLimit: 1, promo: false },
+    { value: "pro", label: "Usta Pro — 19 ₼/ay", desc: "15 tag, ilk 30 gün pulsuz", tagLimit: 15, certLimit: 3, promo: true },
+    { value: "team", label: "Emalatxana — 49 ₼/ay", desc: "30 tag, komanda onboarding", tagLimit: 30, certLimit: 6, promo: true }
   ]
 };
 
@@ -289,10 +289,12 @@ export function InspectionPartnerApplicationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const [limitFeedback, setLimitFeedback] = useState<string | null>(null);
 
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
   const planGroup = providerType ? getPlanGroupForType(providerType) : "mechanic";
   const planOptions = PLAN_OPTIONS[planGroup];
+  const selectedPlanMeta = planOptions.find((plan) => plan.value === selectedPlan) ?? planOptions[0];
 
   const providerOptions: ProviderOption[] = [];
   for (const group of PROVIDER_GROUPS) {
@@ -303,12 +305,22 @@ export function InspectionPartnerApplicationForm() {
   const providerLabel = providerOptions.find((option) => option.value === providerType)?.label ?? "";
 
   function toggleTag(tag: string) {
+    if (!selectedTags.includes(tag) && selectedTags.length >= selectedPlanMeta.tagLimit) {
+      setLimitFeedback(`Bu plan üzrə maksimum ${selectedPlanMeta.tagLimit} xidmət tagı seçilə bilər.`);
+      return;
+    }
+    setLimitFeedback(null);
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   }
 
   function toggleCert(cert: string) {
+    if (!certifications.includes(cert) && certifications.length >= selectedPlanMeta.certLimit) {
+      setLimitFeedback(`Bu plan üzrə maksimum ${selectedPlanMeta.certLimit} sertifikasiya nişanı seçilə bilər.`);
+      return;
+    }
+    setLimitFeedback(null);
     setCertifications((prev) =>
       prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert]
     );
@@ -337,7 +349,8 @@ export function InspectionPartnerApplicationForm() {
       `Phone: ${phone.trim()}`,
       `WhatsApp: ${whatsapp.trim() || phone.trim()}`,
       `Website: ${website.trim() || "-"}`,
-      `Preferred plan: ${selectedPlan || "-"}`,
+      `Preferred plan: ${selectedPlanMeta?.label ?? "-"}`,
+      `Launch promo: ${selectedPlanMeta?.promo ? "eligible_for_first_30_days_free" : "not_applicable"}`,
       `Notes: ${notes.trim() || "-"}`
     ].join("\n");
 
@@ -415,9 +428,12 @@ export function InspectionPartnerApplicationForm() {
                     key={t.value}
                     type="button"
                     onClick={() => {
+                      const nextPlanGroup = getPlanGroupForType(t.value);
                       setProviderType(t.value);
                       setSelectedTags([]);
-                      setSelectedPlan("");
+                      setCertifications([]);
+                      setLimitFeedback(null);
+                      setSelectedPlan(PLAN_OPTIONS[nextPlanGroup][0].value);
                     }}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
                       providerType === t.value
@@ -444,7 +460,7 @@ export function InspectionPartnerApplicationForm() {
             <span className="ml-2 text-xs font-normal text-slate-400">(birdən çox seçilə bilər)</span>
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            Göstərdiyiniz xidmətlərə uyğun tagları seçin. Seçilmiş: {selectedTags.length}
+            Cari plan: <span className="font-medium text-slate-700">{selectedPlanMeta.label}</span>. Seçilmiş: {selectedTags.length}/{selectedPlanMeta.tagLimit}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -477,6 +493,7 @@ export function InspectionPartnerApplicationForm() {
               ))}
             </div>
           )}
+          {limitFeedback && <p className="mt-3 text-xs text-amber-700">{limitFeedback}</p>}
         </div>
       )}
 
@@ -565,7 +582,9 @@ export function InspectionPartnerApplicationForm() {
 
           {/* Sertifikasiya tagları */}
           <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sertifikasiya / nişanlar</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Sertifikasiya / nişanlar ({certifications.length}/{selectedPlanMeta.certLimit})
+            </p>
             <div className="flex flex-wrap gap-2">
               {["ISO 9001", "Brend akkreditasiyası", "Müstəqil ekspert sertifikatı", "Tesla sertifikatı",
                 "BMW Group sertifikatı", "Mercedes-Benz sertifikatı", "Toyota akkreditasiyası",
@@ -669,7 +688,7 @@ export function InspectionPartnerApplicationForm() {
               Tam qiymət cədvəlinə bax →
             </Link>
           </div>
-          <p className="mt-1 text-xs text-slate-500">İstəsəniz müraciət sonra da plan seçə bilərsiniz.</p>
+          <p className="mt-1 text-xs text-slate-500">İlkin seçim avtomatik verilir, istəsəniz dəyişə bilərsiniz.</p>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
             {planOptions.map((plan) => (
@@ -687,6 +706,11 @@ export function InspectionPartnerApplicationForm() {
                   {plan.label}
                 </span>
                 <span className="mt-0.5 text-xs text-slate-500">{plan.desc}</span>
+                {plan.promo && (
+                  <span className="mt-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    İlk 30 gün pulsuz
+                  </span>
+                )}
               </button>
             ))}
           </div>

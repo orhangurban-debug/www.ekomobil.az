@@ -871,10 +871,10 @@ export default function PricingPage() {
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-blue-900">Ustalar üçün pulsuz başlanğıc planı mövcuddur</p>
+              <p className="text-sm font-semibold text-blue-900">Azərbaycan bazarı üçün yumşaq launch modeli</p>
               <p className="mt-1 text-xs text-blue-800 leading-relaxed">
-                Fərdi ustalar Pulsuz plan ilə başlaya bilər. Rəsmi servis mərkəzləri və ekspertiza şirkətləri
-                kommersiya subyektləri kimi Starter planı seçməlidir. Plan seçimindən asılı olmayaraq müraciət göndərin — komandamız uyğun planı sizinlə birlikdə müəyyənləşdirəcək.
+                Fərdi ustalar Pulsuz plan ilə başlaya bilər. Ödənişli plan seçən ilk tərəfdaşlar üçün isə ilk 30 gün
+                pulsuz aktivasiya tətbiq oluna bilər. Aktivləşdirmə müraciət və telefon təsdiqindən sonra manual yoxlanır.
               </p>
             </div>
           </div>
@@ -958,6 +958,11 @@ export default function PricingPage() {
                           )}
                         </div>
                         <p className="mt-1 text-xs text-slate-500">{plan.descriptionAz}</p>
+                        {plan.launchOfferAz && (
+                          <div className="mt-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                            {plan.launchOfferAz}
+                          </div>
+                        )}
                       </div>
 
                       <ul className="flex-1 space-y-2 text-sm text-slate-600">
