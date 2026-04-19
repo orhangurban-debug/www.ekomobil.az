@@ -11,12 +11,11 @@ const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE
 
 const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
-  { href: "/parts", label: "Mağaza" },
-  { href: "/services", label: "Servislər" },
   { href: "/auction", label: "Auksion", live: true },
-  { href: "/pricing", label: "Qiymətlər" },
+  { href: "/services", label: "Servislər" },
   { href: "/dealer", label: "Salonlar" },
-  { href: "/favorites", label: "Favorilər" }
+  { href: "/parts", label: "Mağaza" },
+  { href: "/pricing", label: "Qiymətlər" },
 ];
 
 export function Header({
@@ -103,12 +102,12 @@ export function Header({
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-0.5">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
                 pathname === link.href
                   ? "bg-[#0891B2]/10 text-[#0891B2]"
                   : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
@@ -120,31 +119,48 @@ export function Header({
               {link.label}
             </Link>
           ))}
+        </nav>
+
+        {/* Right actions */}
+        <div className="flex items-center gap-2">
+          {/* Favorilər icon */}
+          <Link
+            href="/favorites"
+            aria-label="Favorilər"
+            className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition ${
+              pathname === "/favorites"
+                ? "bg-[#0891B2]/10 text-[#0891B2]"
+                : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
+            }`}
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+          </Link>
+
+          {/* Müqayisə icon */}
           <Link
             href={compareHref}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition flex items-center gap-1.5 ${
+            aria-label="Müqayisə"
+            className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition relative ${
               pathname.startsWith("/compare")
                 ? "bg-[#0891B2]/10 text-[#0891B2]"
                 : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
             }`}
           >
-            Müqayisə
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
             {compareIds.length > 0 && (
-              <span className="min-w-[1.25rem] rounded-full bg-[#0891B2] px-1.5 py-0.5 text-xs font-semibold text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0891B2] text-[10px] font-bold text-white">
                 {compareIds.length}
               </span>
             )}
           </Link>
-        </nav>
 
-        {/* Right actions */}
-        <div className="flex items-center gap-3">
           {userEmail ? (
-            <div className="hidden md:flex items-center gap-3">
-              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
-                Elan yerləşdir
-              </Link>
-              <Link href="/me" className="text-sm text-[#3E2F28] hover:text-[#0891B2]">
+            <div className="hidden md:flex items-center gap-2">
+              <Link href="/me" className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[#3E2F28] transition hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]">
                 Profil
               </Link>
               {userRole === "admin" || userRole === "support" ? (
@@ -160,16 +176,19 @@ export function Header({
               >
                 {logoutLoading ? "Çıxılır..." : "Çıxış"}
               </button>
+              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
+                Elan yerləşdir
+              </Link>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/register" className="btn-secondary text-sm">
-                Qeydiyyat
-              </Link>
-              <Link href="/login" className="btn-secondary text-sm">
+              <Link href="/login" className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[#3E2F28] transition hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]">
                 Daxil ol
               </Link>
-              <Link href="/publish" className="btn-primary text-sm">
+              <Link href="/register" className="btn-secondary text-sm px-3 py-1.5">
+                Qeydiyyat
+              </Link>
+              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
                 Elan yerləşdir
               </Link>
             </div>
