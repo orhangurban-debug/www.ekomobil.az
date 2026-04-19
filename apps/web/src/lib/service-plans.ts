@@ -11,6 +11,7 @@ export interface ServicePlan {
   descriptionAz: string;
   features: string[];
   comingSoon?: string[];
+  launchOfferAz?: string;
   ctaLabel: string;
   ctaHref: string;
 }
@@ -21,61 +22,60 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
   {
     id: "official-starter",
     nameAz: "Filial",
-    priceAzn: 129,
+    priceAzn: 79,
     billingAz: "/ ay",
-    descriptionAz: "Tək filialı olan rəsmi servis üçün baza paket.",
+    descriptionAz: "Tək filialı olan rəsmi servis üçün əlçatan başlanğıc paket.",
     features: [
-      "1 filial profili",
-      "20 xidmət tagı və servis istiqaməti",
-      "Brend və sertifikasiya nişanları",
-      "Şəhər və marka filtrində görünmə",
-      "Zəng / WhatsApp / ünvan kartı",
-      "İş saatları və qəbul forması"
+      "1 servis profili üçün onboarding",
+      "Servis növü və xidmət taglarının seçimi",
+      "Brend / sertifikasiya nişanlarının göstərilməsi",
+      "Servislər kataloqunda profil kartı",
+      "Şəhər və xidmət növü filtrlərində görünüş",
+      "Profil səhifəsində zəng və WhatsApp düymələri"
     ],
     comingSoon: ["Onlayn randevu təqvimi"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Başla",
     ctaHref: "/partners/inspection"
   },
   {
     id: "official-pro",
     nameAz: "Mərkəz",
-    priceAzn: 249,
+    priceAzn: 149,
     billingAz: "/ ay",
     highlight: true,
     tagAz: "Ən populyar",
-    descriptionAz: "Aktiv rəsmi servis mərkəzləri üçün görünürlük və lead idarəetməsi.",
+    descriptionAz: "Aktiv rəsmi servis mərkəzləri üçün daha güclü onboarding və təqdimat.",
     features: [
-      "2 filial profili",
-      "50 xidmət tagı və ayrıca xidmət blokları",
-      "Vurğulanmış profil kartı",
-      "Marka/model üzrə prioritet sıralanma",
-      "Lead siyahısı və aylıq statistika",
-      "Servis qalereyası və komanda bölməsi",
-      "Ayda 2 boost yerləşdirmə",
-      "Auksion və ekspertiza yönləndirmələri"
+      "Filial paketindəki bütün imkanlar",
+      "Bir neçə xidmət istiqamətinin birlikdə yerləşdirilməsi",
+      "Ops tərəfindən prioritet aktivasiya baxışı",
+      "Əlavə sertifikasiya və brend məlumatı",
+      "Komanda / xidmət təsviri üçün geniş onboarding",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Onlayn randevu", "Müştəri CRM"],
+    comingSoon: ["Onlayn randevu", "Müştəri CRM", "Lead statistikası"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
   },
   {
     id: "official-premium",
     nameAz: "Şəbəkə",
-    priceAzn: 449,
+    priceAzn: 279,
     billingAz: "/ ay",
     tagAz: "Multi-filial",
-    descriptionAz: "Bir neçə filialı olan diler və servis şəbəkələri üçün korporativ paket.",
+    descriptionAz: "Bir neçə filialı olan rəsmi servis şəbəkələri üçün korporativ paket.",
     features: [
-      "6 filial profili",
-      "100 xidmət tagı və kampaniya blokları",
-      "Ana səhifə və premium kataloq görünüşü",
-      "4× prioritet sıralanma",
-      "Multi-user idarəetmə",
-      "CSV/API lead export",
-      "Aylıq performans hesabatı",
-      "Dedicated account manager"
+      "Mərkəz paketindəki bütün imkanlar",
+      "Çox filial onboarding dəstəyi",
+      "Korporativ yerləşdirmə üçün fərdi setup",
+      "Fərdi kommersiya və hesab idarəetməsi",
+      "Satış komandası ilə manual koordinasiya",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Servis tarixçəsi inteqrasiyası", "QR randevu sistemi"],
+    comingSoon: ["Servis tarixçəsi inteqrasiyası", "QR randevu sistemi", "Çox istifadəçili panel"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Bizimlə əlaqə",
     ctaHref: "/partners/inspection"
   }
@@ -87,60 +87,60 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
   {
     id: "insp-starter",
     nameAz: "Solo",
-    priceAzn: 79,
+    priceAzn: 39,
     billingAz: "/ ay",
-    descriptionAz: "Müstəqil ekspert və kiçik ekspertiza nöqtəsi üçün.",
+    descriptionAz: "Müstəqil ekspert və kiçik ekspertiza nöqtəsi üçün başlanğıc paket.",
     features: [
-      "1 ekspert profili",
-      "20 yoxlama raportu / ay",
-      "Sertifikasiya və avadanlıq bölməsi",
-      "Şəhər üzrə axtarış görünüşü",
-      "Zəng / WhatsApp / xəritə",
-      "Qiymət aralığı və xidmət tagları"
+      "1 ekspert profili üçün onboarding",
+      "Ekspertiza növü və yoxlama taglarının seçimi",
+      "Sertifikasiya nişanlarının göstərilməsi",
+      "Servislər kataloqunda profil kartı",
+      "Şəhər filtrlərində görünüş",
+      "Profil səhifəsində zəng və WhatsApp düymələri"
     ],
     comingSoon: ["Rəqəmsal raport şablonu"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Başla",
     ctaHref: "/partners/inspection"
   },
   {
     id: "insp-pro",
     nameAz: "Mərkəz",
-    priceAzn: 149,
+    priceAzn: 79,
     billingAz: "/ ay",
     highlight: true,
     tagAz: "Ən populyar",
-    descriptionAz: "Gündəlik aktiv yoxlama aparan ekspertiza mərkəzləri üçün.",
+    descriptionAz: "Daimi yoxlama axını olan ekspertiza mərkəzləri üçün.",
     features: [
-      "3 ekspert profili",
-      "80 yoxlama raportu / ay",
-      "Vurğulanmış profil kartı",
-      "EkoMobil auksion tərəfdaş nişanı",
-      "Lead və baxış statistikası",
-      "Sertifikasiya və raport nümunələri",
-      "Ayda 2 boost yerləşdirmə",
-      "Prioritet dəstək"
+      "Solo paketindəki bütün imkanlar",
+      "Bir neçə yoxlama istiqamətinin birlikdə təqdimatı",
+      "Ops tərəfindən prioritet aktivasiya baxışı",
+      "Əlavə sertifikasiya və avadanlıq məlumatı",
+      "Auksion uyğunluğu üçün manual qiymətləndirmə",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Müştəriyə raport göndərmə"],
+    comingSoon: ["Müştəriyə raport göndərmə", "Lead statistikası"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
   },
   {
     id: "insp-premium",
     nameAz: "Şəbəkə",
-    priceAzn: 289,
+    priceAzn: 149,
     billingAz: "/ ay",
     tagAz: "Şəbəkə",
-    descriptionAz: "Bir neçə ekspert və filialla işləyən şirkətlər üçün.",
+    descriptionAz: "Bir neçə ekspert və filialla işləyən şirkətlər üçün şəbəkə paketi.",
     features: [
-      "8 ekspert / filial profili",
-      "200 raport / ay",
-      "Auksion lotlarına raport bağlama üstünlüyü",
-      "Raport arxivi və audit izi",
-      "Premium tərəfdaş görünüşü",
-      "CSV/PDF export",
-      "Dedicated texniki dəstək"
+      "Mərkəz paketindəki bütün imkanlar",
+      "Çox ekspert / filial onboarding dəstəyi",
+      "Premium tərəfdaş kimi manual yerləşdirmə",
+      "Fərdi kommersiya təklifi",
+      "Prioritet dəstək və setup əlaqələndirməsi",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Rəqəmsal imza", "API raport inteqrasiyası"],
+    comingSoon: ["Rəqəmsal imza", "API raport inteqrasiyası", "Raport arxivi paneli"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Bizimlə əlaqə",
     ctaHref: "/partners/inspection"
   }
@@ -157,11 +157,11 @@ export const MECHANIC_PLANS: ServicePlan[] = [
     descriptionAz: "Yeni başlayan fərdi usta üçün sıfır girişli profil.",
     features: [
       "1 usta profili",
-      "5 xidmət tagı",
-      "Lokal axtarış görünüşü",
+      "5 xidmət tagı seçimi",
+      "Şəhər və ixtisas üzrə görünüş",
       "Zəng / WhatsApp düyməsi",
-      '3 şəkil və 1 "haqqımda" bloku',
-      "Şəhər və ixtisas seçimi"
+      "Profil müraciəti və əsas məlumat sahələri",
+      "Kataloqda profil kartı"
     ],
     comingSoon: ["Rəy sistemi"],
     ctaLabel: "Pulsuz başla",
@@ -170,42 +170,41 @@ export const MECHANIC_PLANS: ServicePlan[] = [
   {
     id: "usta-pro",
     nameAz: "Usta Pro",
-    priceAzn: 29,
+    priceAzn: 19,
     billingAz: "/ ay",
     highlight: true,
     tagAz: "Ən populyar",
     descriptionAz: "Daha çox müraciət almaq istəyən fərdi usta üçün.",
     features: [
-      "1 usta profili (vurğulanmış)",
-      "15 xidmət tagı",
-      "Rayon / şəhər üzrə prioritet görünüş",
-      "10 şəkil və iş nümunələri",
-      "WhatsApp birbaşa düyməsi",
-      "Sadə baxış statistikası",
-      "Ayda 1 boost yerləşdirmə",
-      "Portfolio bölməsi"
+      "Pulsuz paketindəki bütün imkanlar",
+      "15 xidmət tagı seçimi",
+      "Ops tərəfindən prioritet aktivasiya baxışı",
+      "Əlavə sertifikasiya nişanları",
+      "Profil təsviri üçün geniş onboarding",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Rəy sistemi", "Portfolio bölməsi"],
+    comingSoon: ["Rəy sistemi", "Portfolio bölməsi", "Sadə statistika"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
   },
   {
     id: "usta-team",
     nameAz: "Emalatxana",
-    priceAzn: 69,
+    priceAzn: 49,
     billingAz: "/ ay",
     tagAz: "Kiçik servis",
     descriptionAz: "2-4 nəfərlik kiçik servis və usta komandaları üçün.",
     features: [
-      "4 usta profili",
-      "30 xidmət tagı",
-      "Emalatxana profil səhifəsi",
-      "Komanda və ixtisas bölməsi",
-      "Şəhər üzrə premium sıralanma",
-      "Aylıq statistika xülasəsi",
-      "EV / ECU / ADAS alt-ixtisasları"
+      "Usta Pro paketindəki bütün imkanlar",
+      "Bir neçə ixtisasın bir profildə toplanması",
+      "Kiçik komanda üçün onboarding dəstəyi",
+      "EV / ECU / ADAS kimi ixtisasların birlikdə seçimi",
+      "Əlavə qeydlərlə komanda təqdimatı",
+      "İlk ay pulsuz kampaniya hüququ"
     ],
-    comingSoon: ["Onlayn randevu", "Müştəri loyallıq sistemi"],
+    comingSoon: ["Onlayn randevu", "Müştəri loyallıq sistemi", "Komanda idarəetməsi"],
+    launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Komanda planı seç",
     ctaHref: "/partners/inspection"
   }
