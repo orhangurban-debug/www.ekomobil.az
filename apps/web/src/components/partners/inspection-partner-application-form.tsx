@@ -58,6 +58,11 @@ const PROVIDER_GROUPS = [
 ] as const;
 
 type ProviderTypeValue = (typeof PROVIDER_GROUPS)[number]["types"][number]["value"];
+type ProviderOption = {
+  value: ProviderTypeValue;
+  label: string;
+  icon: string;
+};
 
 // ─── Service tags by provider type ───────────────────────────────────────────
 
@@ -289,8 +294,13 @@ export function InspectionPartnerApplicationForm() {
   const planGroup = providerType ? getPlanGroupForType(providerType) : "mechanic";
   const planOptions = PLAN_OPTIONS[planGroup];
 
-  const providerLabel =
-    PROVIDER_GROUPS.flatMap((g) => g.types).find((t) => t.value === providerType)?.label ?? "";
+  const providerOptions: ProviderOption[] = [];
+  for (const group of PROVIDER_GROUPS) {
+    for (const option of group.types) {
+      providerOptions.push(option);
+    }
+  }
+  const providerLabel = providerOptions.find((option) => option.value === providerType)?.label ?? "";
 
   function toggleTag(tag: string) {
     setSelectedTags((prev) =>
