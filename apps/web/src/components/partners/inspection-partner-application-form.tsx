@@ -229,19 +229,19 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
 
 const PLAN_OPTIONS = {
   official: [
-    { value: "starter", label: "Starter — 79 ₼/ay", desc: "1 profil, 5 elan" },
-    { value: "pro", label: "Pro — 149 ₼/ay", desc: "1 profil vurğulanmış, 25 elan" },
-    { value: "premium", label: "Premium — 299 ₼/ay", desc: "5 filial, limitsiz elan" }
+    { value: "starter", label: "Filial — 129 ₼/ay", desc: "1 filial, baza görünüş" },
+    { value: "pro", label: "Mərkəz — 249 ₼/ay", desc: "2 filial, prioritet görünüş" },
+    { value: "premium", label: "Şəbəkə — 449 ₼/ay", desc: "6 filial, korporativ paket" }
   ],
   inspection: [
-    { value: "starter", label: "Starter — 59 ₼/ay", desc: "1 profil, 10 hesabat/ay" },
-    { value: "pro", label: "Pro — 119 ₼/ay", desc: "3 profil, 50 hesabat/ay" },
-    { value: "premium", label: "Premium — 249 ₼/ay", desc: "10 profil, limitsiz" }
+    { value: "starter", label: "Solo — 79 ₼/ay", desc: "1 profil, 20 raport/ay" },
+    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "3 profil, 80 raport/ay" },
+    { value: "premium", label: "Şəbəkə — 289 ₼/ay", desc: "8 profil, 200 raport/ay" }
   ],
   mechanic: [
-    { value: "free", label: "Pulsuz", desc: "1 profil, 3 elan" },
-    { value: "pro", label: "Pro Usta — 39 ₼/ay", desc: "1 profil vurğulanmış, 15 elan" },
-    { value: "team", label: "Komanda — 89 ₼/ay", desc: "5 profil, 50 elan" }
+    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag" },
+    { value: "pro", label: "Usta Pro — 29 ₼/ay", desc: "1 profil, prioritet görünüş" },
+    { value: "team", label: "Emalatxana — 69 ₼/ay", desc: "4 usta, komanda profili" }
   ]
 };
 
