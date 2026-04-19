@@ -19,6 +19,23 @@ function LoginForm() {
     setGoogleLoading(true);
   }
 
+  const oauthErrorMessage =
+    oauthError === "rate_limited_google"
+      ? "Google giriş üçün çox tez-tez sorğu göndərildi. 1 dəqiqə sonra yenidən cəhd edin."
+      : oauthError === "google_not_configured"
+        ? "Google giriş hazırda aktiv deyil. Zəhmət olmasa email/şifrə ilə daxil olun."
+        : oauthError === "google_state_mismatch"
+          ? "Google giriş sessiyası uyğun gəlmədi. Yenidən cəhd edin."
+          : oauthError === "google_invalid_callback"
+            ? "Google cavab sorğusu yarımçıqdır. Yenidən cəhd edin."
+            : oauthError === "google_token_failed"
+              ? "Google token alınmadı. Bir neçə saniyə sonra yenidən cəhd edin."
+              : oauthError === "google_signin_failed"
+                ? "Google hesabı ilə giriş tamamlanmadı. Yenidən cəhd edin."
+                : oauthError === "google_access_denied"
+                  ? "Google giriş icazəsi ləğv edildi."
+                  : null;
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -76,14 +93,9 @@ function LoginForm() {
             {googleLoading ? "Google-a yönləndirilir..." : "Google ilə daxil ol"}
           </Link>
           <div className="mb-5 text-center text-xs text-slate-400">və ya email ilə giriş et</div>
-          {oauthError === "rate_limited_google" && (
+          {oauthErrorMessage && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Google giriş üçün çox tez-tez sorğu göndərildi. 1 dəqiqə sonra yenidən cəhd edin.
-            </div>
-          )}
-          {oauthError === "google_not_configured" && (
-            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Google giriş hazırda aktiv deyil. Zəhmət olmasa email/şifrə ilə daxil olun.
+              {oauthErrorMessage}
             </div>
           )}
           <form onSubmit={onSubmit} className="space-y-5">

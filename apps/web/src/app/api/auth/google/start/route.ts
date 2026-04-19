@@ -48,13 +48,19 @@ export async function GET(req: Request) {
 
   const ip = getClientIp(req);
   const browserId = getBrowserThrottleId(req);
-  const [browserBurstLimit, browserWindowLimit, ipBurstLimit, ipWindowLimit] = await Promise.all([
+  const checks = await Promise.all([
     checkRateLimit(`oauth_google_start:browser:1m:${browserId}`, 6, 1),
     checkRateLimit(`oauth_google_start:browser:10m:${browserId}`, 20, 10),
-    checkRateLimit(`oauth_google_start:ip:1m:${ip}`, 200, 1),
-    checkRateLimit(`oauth_google_start:ip:10m:${ip}`, 1000, 10)
+    ...(ip !== "unknown"
+      ? [
+          checkRateLimit(`oauth_google_start:ip:1m:${ip}`, 200, 1),
+          checkRateLimit(`oauth_google_start:ip:10m:${ip}`, 1000, 10)
+        ]
+      : [])
   ]);
-  if (!browserBurstLimit.ok || !browserWindowLimit.ok || !ipBurstLimit.ok || !ipWindowLimit.ok) {
+  const [browserBurstLimit, browserWindowLimit, ...ipLimits] = checks;
+  const ipLimited = ipLimits.some((limit) => !limit.ok);
+  if (!browserBurstLimit.ok || !browserWindowLimit.ok || ipLimited) {
     return NextResponse.redirect(new URL("/login?error=rate_limited_google", req.url));
   }
 
