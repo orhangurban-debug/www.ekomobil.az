@@ -15,7 +15,7 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/services", label: "Servislər" },
   { href: "/auction", label: "Auksion", live: true },
   { href: "/pricing", label: "Qiymətlər" },
-  { href: "/dealer", label: "Salon paneli" },
+  { href: "/dealer", label: "Salonlar" },
   { href: "/favorites", label: "Favorilər" }
 ];
 
