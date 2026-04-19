@@ -58,6 +58,16 @@ export default async function ServiceProfilePage({ params }: PageProps) {
 
         <p className="mt-5 text-sm leading-relaxed text-slate-700">{item.about}</p>
 
+        {item.imageUrls && item.imageUrls.length > 0 && (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
+              <a key={imageUrl} href={imageUrl} target="_blank" rel="noreferrer" className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                <img src={imageUrl} alt={`${item.name} şəkil ${index + 1}`} className="h-48 w-full object-cover" />
+              </a>
+            ))}
+          </div>
+        )}
+
         {/* Əlaqə düymələri — görkəmli yerdə */}
         <div className="mt-5 flex flex-wrap gap-3">
           <a
@@ -107,6 +117,12 @@ export default async function ServiceProfilePage({ params }: PageProps) {
               <dt className="text-slate-500">Şəhər</dt>
               <dd className="font-medium text-slate-800">{item.city}</dd>
             </div>
+            {item.address && (
+              <div className="flex items-start justify-between gap-4 text-sm">
+                <dt className="text-slate-500">Ünvan</dt>
+                <dd className="text-right font-medium text-slate-800">{item.address}</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between text-sm">
               <dt className="text-slate-500">Kateqoriya</dt>
               <dd className="font-medium text-slate-800">{SERVICE_PROVIDER_TYPE_LABELS[item.providerType]}</dd>
@@ -120,6 +136,18 @@ export default async function ServiceProfilePage({ params }: PageProps) {
               <dd className="font-medium text-emerald-700">{item.rating.toFixed(1)} ★ ({item.reviewCount} rəy)</dd>
             </div>
           </dl>
+          {item.mapUrl && (
+            <div className="mt-4">
+              <a
+                href={item.mapUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex rounded-lg border border-slate-200 px-3 py-2 text-sm text-[#0891B2] hover:bg-slate-50"
+              >
+                Xəritədə aç
+              </a>
+            </div>
+          )}
         </div>
       </div>
 

@@ -84,6 +84,8 @@ export interface ServiceListingRecord {
   name: string;
   providerType: ServiceProviderType;
   city: string;
+  address?: string;
+  mapUrl?: string;
   rating: number;
   reviewCount: number;
   responseMinutes: number;
@@ -92,6 +94,7 @@ export interface ServiceListingRecord {
   certifications?: string[];
   phone: string;
   whatsapp: string;
+  imageUrls?: string[];
 }
 
 // ─── Demo data ───────────────────────────────────────────────────────────────
@@ -105,11 +108,17 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.9,
     reviewCount: 124,
     responseMinutes: 18,
+    address: "Babək prospekti 22, Bakı",
+    mapUrl: "https://maps.google.com/?q=Babek+prospekti+22+Baki",
     about: "220 bəndlik texniki yoxlama və rəqəmsal ekspertiza raportu təqdim edir.",
     services: ["Diaqnostika", "Boya ölçümü", "Road test", "Ekspertiza raportu"],
     certifications: ["ISO 9001", "Müstəqil ekspert sertifikatı"],
     phone: "+994501112233",
-    whatsapp: "+994501112233"
+    whatsapp: "+994501112233",
+    imageUrls: [
+      "https://placehold.co/1200x800/e2e8f0/0f172a?text=AutoCheck+Baki+1",
+      "https://placehold.co/1200x800/cbd5e1/0f172a?text=AutoCheck+Baki+2"
+    ]
   },
   {
     slug: "toyota-baki-servis",
@@ -119,11 +128,17 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.7,
     reviewCount: 89,
     responseMinutes: 25,
+    address: "Ziya Bünyadov prospekti 118, Bakı",
+    mapUrl: "https://maps.google.com/?q=Ziya+Bunyadov+prospekti+118+Baki",
     about: "Rəsmi servis tarixçəsi, orijinal ehtiyat hissələri və zavod standartına uyğun xidmət.",
     services: ["Periodik baxım", "Rəsmi servis kitabçası", "ECU yeniləmə"],
     certifications: ["Brend akkreditasiyası"],
     phone: "+994551000200",
-    whatsapp: "+994551000200"
+    whatsapp: "+994551000200",
+    imageUrls: [
+      "https://placehold.co/1200x800/dbeafe/0f172a?text=Toyota+Servis+1",
+      "https://placehold.co/1200x800/bfdbfe/0f172a?text=Toyota+Servis+2"
+    ]
   },
   {
     slug: "usta-elektrik-ali",
@@ -133,10 +148,13 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.8,
     reviewCount: 57,
     responseMinutes: 30,
+    address: "Sülh küçəsi 8, Sumqayıt",
+    mapUrl: "https://maps.google.com/?q=Sulh+kucesi+8+Sumqayit",
     about: "Elektrik və sensor problemlərinin diaqnostika və təmiri üzrə ixtisaslaşmış usta.",
     services: ["ABS/ESP", "Starter/alternator", "Sensor diaqnostika"],
     phone: "+994709090909",
-    whatsapp: "+994709090909"
+    whatsapp: "+994709090909",
+    imageUrls: ["https://placehold.co/1200x800/fef3c7/0f172a?text=Usta+Elektrik+Ali"]
   },
   {
     slug: "demirci-center-ganja",
@@ -146,10 +164,13 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.6,
     reviewCount: 42,
     responseMinutes: 35,
+    address: "Atatürk prospekti 14, Gəncə",
+    mapUrl: "https://maps.google.com/?q=Ataturk+prospekti+14+Gence",
     about: "Kuzov düzəltmə, rəngləmə və qəza sonrası bərpa işləri.",
     services: ["Kuzov təmiri", "Rəngləmə", "Şassi bərpası"],
     phone: "+994502221100",
-    whatsapp: "+994502221100"
+    whatsapp: "+994502221100",
+    imageUrls: ["https://placehold.co/1200x800/fde68a/0f172a?text=Demirci+Center"]
   },
   {
     slug: "usta-motor-ramin",
@@ -159,10 +180,13 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.7,
     reviewCount: 76,
     responseMinutes: 22,
+    address: "Binəqədi şossesi 5, Bakı",
+    mapUrl: "https://maps.google.com/?q=Bineqedi+sossesi+5+Baki",
     about: "Mühərrik və transmissiya işlərində təcrübəli ustadır.",
     services: ["Mühərrik təmiri", "Sürətlər qutusu", "Yağlama sistemi"],
     phone: "+994507770055",
-    whatsapp: "+994507770055"
+    whatsapp: "+994507770055",
+    imageUrls: ["https://placehold.co/1200x800/e5e7eb/0f172a?text=Usta+Motor+Ramin"]
   },
   {
     slug: "ev-tech-baki",
@@ -172,11 +196,14 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.9,
     reviewCount: 38,
     responseMinutes: 20,
+    address: "Heydər Əliyev prospekti 91, Bakı",
+    mapUrl: "https://maps.google.com/?q=Heydar+Aliyev+prospekti+91+Baki",
     about: "Elektrikli və hibrid avtomobillər üzrə texniki diaqnostika, batareya yoxlaması və proqram yeniləmələri.",
     services: ["BMS diaqnostika", "Batareya balansı", "Şarj sistemi", "Hibrid kalibrasiya"],
     certifications: ["Tesla sertifikatı"],
     phone: "+994502050505",
-    whatsapp: "+994502050505"
+    whatsapp: "+994502050505",
+    imageUrls: ["https://placehold.co/1200x800/d1fae5/0f172a?text=EV+Tech+Baki"]
   },
   {
     slug: "ecu-master-nizami",
@@ -186,10 +213,13 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.8,
     reviewCount: 61,
     responseMinutes: 25,
+    address: "Nizami rayonu, Bakı",
+    mapUrl: "https://maps.google.com/?q=Nizami+rayonu+Baki",
     about: "Beyin oxunması, xəta silmə, adaptasiya, DPF/EGR söndürmə və gücləndirmə proqramlaması.",
     services: ["ECU oxuma/yazma", "DPF/EGR off", "Stage tuning", "İmmobilazer bərpası"],
     phone: "+994503030303",
-    whatsapp: "+994503030303"
+    whatsapp: "+994503030303",
+    imageUrls: ["https://placehold.co/1200x800/fce7f3/0f172a?text=ECU+Master"]
   },
   {
     slug: "adas-vision-baki",
@@ -199,10 +229,13 @@ export const demoServiceListings: ServiceListingRecord[] = [
     rating: 4.7,
     reviewCount: 29,
     responseMinutes: 40,
+    address: "Xətai rayonu, Bakı",
+    mapUrl: "https://maps.google.com/?q=Xetai+rayonu+Baki",
     about: "Ön kamera kalibrasiyası, radar hizalanması, park sensorları və sürücü yardım sistemlərinin kalibrasiyası.",
     services: ["Kamera kalibrasiyası", "Radar hizalanması", "Park sensoru", "Lane assist"],
     phone: "+994501234567",
-    whatsapp: "+994501234567"
+    whatsapp: "+994501234567",
+    imageUrls: ["https://placehold.co/1200x800/e0e7ff/0f172a?text=ADAS+Vision"]
   }
 ];
 
