@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/auth";
 import { getPgPool } from "@/lib/postgres";
 
-const ALLOWED_TYPES = new Set(["question", "problem", "complaint", "partnership", "other"]);
+const ALLOWED_TYPES = new Set([
+  "question",
+  "problem",
+  "complaint",
+  "partnership",
+  "inspection_partner",
+  "other"
+]);
 
 function getOptionalUserIdFromCookie(req: Request): string | null {
   const cookieHeader = req.headers.get("cookie") || "";

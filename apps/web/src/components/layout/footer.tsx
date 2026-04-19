@@ -31,6 +31,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
               {[
                 { href: "/listings", label: "Elanlar" },
                 { href: "/parts", label: "Mağaza elanları" },
+                { href: "/services", label: "Servislər və ustalar" },
                 { href: "/publish", label: "Elan yerləşdir" },
                 { href: "/pricing", label: "Elan qiymətləri" },
                 { href: "/dealer", label: "Salon paneli" }

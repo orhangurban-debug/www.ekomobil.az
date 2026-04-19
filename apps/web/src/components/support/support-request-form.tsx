@@ -4,6 +4,8 @@ import { useState } from "react";
 
 interface SupportRequestFormProps {
   listingId?: string;
+  initialRequestType?: string;
+  initialSubject?: string;
 }
 
 const REQUEST_TYPES: Array<{ value: string; label: string }> = [
@@ -11,12 +13,16 @@ const REQUEST_TYPES: Array<{ value: string; label: string }> = [
   { value: "problem", label: "Problem" },
   { value: "complaint", label: "Şikayət" },
   { value: "partnership", label: "Tərəfdaşlıq" },
+  { value: "inspection_partner", label: "Ekspertiza/Rəsmi servis tərəfdaşlığı" },
   { value: "other", label: "Digər" }
 ];
 
-export function SupportRequestForm({ listingId }: SupportRequestFormProps) {
-  const [requestType, setRequestType] = useState("question");
-  const [subject, setSubject] = useState("");
+export function SupportRequestForm({ listingId, initialRequestType = "question", initialSubject = "" }: SupportRequestFormProps) {
+  const safeInitialRequestType = REQUEST_TYPES.some((item) => item.value === initialRequestType)
+    ? initialRequestType
+    : "question";
+  const [requestType, setRequestType] = useState(safeInitialRequestType);
+  const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -56,12 +62,12 @@ export function SupportRequestForm({ listingId }: SupportRequestFormProps) {
         return;
       }
       setFeedback(payload.message ?? "Müraciətiniz qəbul edildi.");
-      setSubject("");
+      setSubject(initialSubject);
       setMessage("");
       setName("");
       setEmail("");
       setPhone("");
-      setRequestType("question");
+      setRequestType(safeInitialRequestType);
       setIsError(false);
     } catch {
       setIsError(true);
