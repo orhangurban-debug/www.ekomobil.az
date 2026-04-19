@@ -49,8 +49,8 @@ export async function GET(req: Request) {
   const ip = getClientIp(req);
   const browserId = getBrowserThrottleId(req);
   const checks = await Promise.all([
-    checkRateLimit(`oauth_google_start:browser:1m:${browserId}`, 6, 1),
-    checkRateLimit(`oauth_google_start:browser:10m:${browserId}`, 20, 10),
+    checkRateLimit(`oauth_google_start:browser:1m:${browserId}`, 12, 1),
+    checkRateLimit(`oauth_google_start:browser:10m:${browserId}`, 60, 10),
     ...(ip !== "unknown"
       ? [
           checkRateLimit(`oauth_google_start:ip:1m:${ip}`, 200, 1),

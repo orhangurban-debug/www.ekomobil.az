@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState, Suspense } from "react";
+import Image from "next/image";
+import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -18,6 +19,16 @@ function LoginForm() {
   function onGoogleClick() {
     setGoogleLoading(true);
   }
+
+  useEffect(() => {
+    if (oauthError) setGoogleLoading(false);
+  }, [oauthError]);
+
+  useEffect(() => {
+    if (!googleLoading) return;
+    const timer = window.setTimeout(() => setGoogleLoading(false), 8000);
+    return () => window.clearTimeout(timer);
+  }, [googleLoading]);
 
   const oauthErrorMessage =
     oauthError === "rate_limited_google"
@@ -62,15 +73,15 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0891B2] shadow-sm">
-              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">
-              <span className="text-[#3E2F28]">Eko</span><span className="text-[#0891B2]">Mobil</span>
-            </span>
+          <Link href="/" className="mb-4 inline-flex items-center justify-center">
+            <Image
+              src="/brand/ekomobil-logo.png"
+              alt="EkoMobil"
+              width={220}
+              height={56}
+              className="h-14 w-auto object-contain"
+              priority
+            />
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">Hesabınıza daxil olun</h1>
           <p className="mt-2 text-sm text-slate-500">Platforma idarəetmə üçün giriş edin</p>
