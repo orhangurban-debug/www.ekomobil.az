@@ -57,6 +57,9 @@ export default function TrustPage() {
         <Link href="/listings?vinVerified=1" className="btn-primary text-sm">
           VIN nömrəsi olan elanlara bax
         </Link>
+        <Link href="/partners/inspection" className="btn-secondary text-sm">
+          Ekspertiza tərəfdaşı kimi qoşul
+        </Link>
         <Link href="/" className="btn-secondary text-sm">
           Ana səhifəyə qayıt
         </Link>

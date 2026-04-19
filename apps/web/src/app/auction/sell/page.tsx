@@ -55,9 +55,11 @@ export default async function AuctionSellPage() {
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Media checklist tam olmalıdır (məcburi)</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Lot haqqı ödənməlidir</span>
           <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Ödənilməmiş öhdəlik balansı varsa yeni lot bloklana bilər</span>
+          <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Yüksək risk lotlarda ekspertiza sənədi tələb oluna bilər</span>
         </div>
         <div className="mt-3 flex gap-4 text-xs">
           <Link href="/rules/auction" className="text-[#0891B2] hover:underline">Qaydalar</Link>
+          <Link href="/partners/inspection" className="text-[#0891B2] hover:underline">Ekspertiza tərəfdaşı ol</Link>
           <Link href="/publish" className="text-[#0891B2] hover:underline">Elan yarat</Link>
           <Link href="/me" className="text-[#0891B2] hover:underline">Elanlarım</Link>
         </div>

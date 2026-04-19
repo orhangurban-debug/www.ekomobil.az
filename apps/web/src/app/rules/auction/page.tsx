@@ -38,6 +38,11 @@ export default function AuctionFrameworkPage() {
             məlumatların yerləşdirilməsi və yayımlanması üçün imkan yaradır; müstəqil ekspert rəyi və ya hüquqi zəmanət
             vermir.
           </p>
+          <p className="mt-3">
+            EkoMobil alqı-satqının tərəfi, escrow xidməti və ya texniki ekspertiza qərarı verən qurum deyil. Nəqliyyat
+            vasitəsinin faktiki keyfiyyəti, gizli qüsurlar və yekun alış qərarı tərəflərin və cəlb etdikləri ekspertiza
+            mərkəzlərinin məsuliyyətindədir.
+          </p>
         </section>
 
         <section>
@@ -109,6 +114,22 @@ export default function AuctionFrameworkPage() {
           <p className="mt-3">
             Tələb olunan sənədləri satıcı yükləyir və təqdim edir. Platforma sənədlərin paylaşılması və yayımlanması üçün
             texniki imkan verir.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-slate-900">Ekspertiza və rəsmi servis tərəfdaşları</h2>
+          <p className="mt-3">
+            Platformada ekspertiza şirkətləri və rəsmi servis mərkəzləri qeydiyyatdan keçib öz yoxlama xidmətlərini
+            təqdim edə bilər. Bu tərəfdaşlıq etibarlılığı artırmaq üçündür; konkret diaqnostika nəticəsinin hüquqi
+            məsuliyyəti həmin xidmət göstərən mərkəzə aiddir.
+          </p>
+          <p className="mt-3">
+            Tərəfdaş müraciəti üçün{" "}
+            <Link href="/partners/inspection" className="text-[#0891B2] hover:underline">
+              ekspertiza tərəfdaşlığı səhifəsinə
+            </Link>{" "}
+            keçid edə bilərsiniz.
           </p>
         </section>
       </div>

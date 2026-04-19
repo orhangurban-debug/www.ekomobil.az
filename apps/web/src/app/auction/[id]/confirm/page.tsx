@@ -73,6 +73,11 @@ export default async function AuctionConfirmPage({
           Əsas satış ödənişi bank köçürməsi, notariat və ya tərəflərin razılaşdığı birbaşa üsulla
           tamamlanmalıdır. EkoMobil bu məbləği qəbul etmir və saxlamır.
         </div>
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          EkoMobil alqı-satqının tərəfi deyil və nəqliyyat vasitəsinin texniki keyfiyyətinə, gizli qüsurlarına və ya
+          ekspertiza nəticəsinə hüquqi zəmanət vermir. Platforma yalnız proses, audit izi və öhdəlik statuslarının
+          qeydiyyatı üçün texniki infrastruktur təqdim edir.
+        </div>
 
         <div className="mt-6">
           <AuctionConfirmationPanel
