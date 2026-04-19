@@ -24,8 +24,15 @@ export async function GET(req: Request) {
   }
 
   const ip = getClientIp(req);
-  const limit = await checkRateLimit(`oauth_google_start:10m:${ip}`, 20, 10);
-  if (!limit.ok) {
+  const userAgent = (req.headers.get("user-agent") ?? "unknown")
+    .replace(/\s+/g, " ")
+    .slice(0, 80);
+  const keyBase = `${ip}:${userAgent}`;
+  const [burstLimit, windowLimit] = await Promise.all([
+    checkRateLimit(`oauth_google_start:1m:${keyBase}`, 10, 1),
+    checkRateLimit(`oauth_google_start:10m:${keyBase}`, 60, 10)
+  ]);
+  if (!burstLimit.ok || !windowLimit.ok) {
     return NextResponse.redirect(new URL("/login?error=rate_limited_google", req.url));
   }
 

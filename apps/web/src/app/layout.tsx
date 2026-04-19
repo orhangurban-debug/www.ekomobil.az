@@ -62,9 +62,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const absoluteLogoUrl = brand.logoUrl.startsWith("http")
     ? brand.logoUrl
     : `${APP_URL}${brand.logoUrl.startsWith("/") ? "" : "/"}${brand.logoUrl}`;
-  const absoluteFaviconUrl = brand.faviconUrl.startsWith("http")
-    ? brand.faviconUrl
-    : `${APP_URL}${brand.faviconUrl.startsWith("/") ? "" : "/"}${brand.faviconUrl}`;
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -87,7 +84,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="az">
       <head>
-        <link rel="icon" href={absoluteFaviconUrl} />
+        <link rel="icon" href={brand.faviconUrl} />
       </head>
       <body className="min-h-screen flex flex-col" style={dynamicThemeVars}>
         <script
