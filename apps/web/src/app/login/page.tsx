@@ -8,6 +8,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/";
+  const oauthError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,7 @@ function LoginForm() {
         <div className="card p-8">
           <Link
             href={`/api/auth/google/start?next=${encodeURIComponent(nextPath)}`}
+            prefetch={false}
             className="mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -65,6 +67,16 @@ function LoginForm() {
             Google ilə daxil ol
           </Link>
           <div className="mb-5 text-center text-xs text-slate-400">və ya email ilə giriş et</div>
+          {oauthError === "rate_limited_google" && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Google giriş üçün çox tez-tez sorğu göndərildi. 1 dəqiqə sonra yenidən cəhd edin.
+            </div>
+          )}
+          {oauthError === "google_not_configured" && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Google giriş hazırda aktiv deyil. Zəhmət olmasa email/şifrə ilə daxil olun.
+            </div>
+          )}
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
               <label className="label">Email ünvanı</label>

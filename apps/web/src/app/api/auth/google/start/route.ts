@@ -6,7 +6,7 @@ import {
   isGoogleOAuthConfigured,
   toPkceChallenge
 } from "@/lib/google-oauth";
-import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
 const OAUTH_PKCE_COOKIE = "ekomobil_oauth_pkce";
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   const ip = getClientIp(req);
   const limit = await checkRateLimit(`oauth_google_start:10m:${ip}`, 20, 10);
   if (!limit.ok) {
-    return rateLimitResponse(60);
+    return NextResponse.redirect(new URL("/login?error=rate_limited_google", req.url));
   }
 
   const url = new URL(req.url);

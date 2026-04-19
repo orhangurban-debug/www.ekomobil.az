@@ -83,6 +83,7 @@ export default function RegisterPage() {
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
         <Link
           href="/api/auth/google/start?next=%2Fme"
+          prefetch={false}
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
