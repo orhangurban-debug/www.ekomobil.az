@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { SupportRequestForm } from "@/components/support/support-request-form";
 import {
   SERVICE_PROVIDER_TYPE_LABELS,
   SERVICE_PROVIDER_GROUPS,
@@ -268,18 +267,30 @@ export default async function ServicesPage({
             </div>
           )}
 
-          {/* Partnyor müraciəti */}
+          {/* Servis provayderi CTA */}
           <section className="mt-12">
-            <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <h2 className="text-base font-semibold text-slate-900">Servis provayderisinizsə platformaya qoşulun</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Ekspertiza mərkəzi, rəsmi servis, dəmirçi, avto elektrik və ya usta olaraq EkoMobil-də profil yaradın.
-              </p>
+            <div className="flex flex-col gap-4 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Servis provayderisinizsə platformaya qoşulun</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Rəsmi servis, ekspertiza, mexanik, elektrik, EV/Hibrid — bütün növ servis profilləri üçün tərəfdaşlıq müraciəti.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                  {["Servis şəkilləri", "Sertifikat upload", "Lokasiya", "1 ay pulsuz start"].map((item) => (
+                    <span key={item} className="inline-flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#0891B2]" />
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <Link
+                href="/partners/inspection"
+                className="shrink-0 rounded-xl bg-[#0891B2] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+              >
+                Profil əlavə et →
+              </Link>
             </div>
-            <SupportRequestForm
-              initialRequestType="inspection_partner"
-              initialSubject="Servis/Usta tərəfdaşlıq müraciəti"
-            />
           </section>
         </div>
       </div>
