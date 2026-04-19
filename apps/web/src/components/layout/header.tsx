@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 
 const GLOBAL_NOTICE_VERSION = "v2";
@@ -31,10 +31,7 @@ export function Header({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [noticeVisible, setNoticeVisible] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1";
-  });
+  const [noticeVisible, setNoticeVisible] = useState(true);
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
@@ -42,6 +39,10 @@ export function Header({
     setNoticeVisible(false);
     window.localStorage.setItem(GLOBAL_NOTICE_STORAGE_KEY, "1");
   }
+
+  useEffect(() => {
+    setNoticeVisible(window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1");
+  }, []);
 
   async function onLogout() {
     if (logoutLoading) return;
