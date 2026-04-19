@@ -34,7 +34,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
                 { href: "/services", label: "Servislər və ustalar" },
                 { href: "/publish", label: "Elan yerləşdir" },
                 { href: "/pricing", label: "Elan qiymətləri" },
-                { href: "/dealer", label: "Salon paneli" }
+                { href: "/dealer", label: "Salonlar" }
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">
