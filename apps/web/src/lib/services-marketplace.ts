@@ -1,9 +1,83 @@
+// ─── Provider types ─────────────────────────────────────────────────────────
+
 export type ServiceProviderType =
-  | "inspection_company"
+  // Official / branded
   | "official_service"
+  | "inspection_company"
+  // General mechanics
+  | "mechanic"
   | "auto_electrician"
   | "body_shop"
-  | "mechanic";
+  | "painting"
+  // Modern/tech specialists
+  | "ev_hybrid"
+  | "ecu_programmer"
+  | "adas_specialist"
+  // Comfort & interior
+  | "ac_specialist"
+  | "audio_media"
+  | "glass_sunroof"
+  // Wheel & chassis
+  | "tire_wheel";
+
+export const SERVICE_PROVIDER_TYPE_LABELS: Record<ServiceProviderType, string> = {
+  official_service: "Rəsmi servis",
+  inspection_company: "Ekspertiza şirkəti",
+  mechanic: "Mexanik / usta",
+  auto_electrician: "Avto elektrik",
+  body_shop: "Dəmirçi / kuzov",
+  painting: "Rəngləmə",
+  ev_hybrid: "EV / Hibrid mütəxəssisi",
+  ecu_programmer: "ECU proqramlaşdırma",
+  adas_specialist: "ADAS / Kamera kalibrasiyası",
+  ac_specialist: "Kondisioner / soyuducu",
+  audio_media: "Audio / multimedia",
+  glass_sunroof: "Cam / lyuk",
+  tire_wheel: "Şin balansı / texeraltı"
+};
+
+// ─── Groups (for sidebar filtering) ─────────────────────────────────────────
+
+export interface ServiceProviderGroup {
+  id: string;
+  label: string;
+  types: ServiceProviderType[];
+}
+
+export const SERVICE_PROVIDER_GROUPS: ServiceProviderGroup[] = [
+  {
+    id: "official",
+    label: "Rəsmi və ekspertiza",
+    types: ["official_service", "inspection_company"]
+  },
+  {
+    id: "mechanic",
+    label: "Mexanik və bərpa",
+    types: ["mechanic", "body_shop", "painting"]
+  },
+  {
+    id: "electric",
+    label: "Elektrik və elektronika",
+    types: ["auto_electrician", "ecu_programmer", "adas_specialist"]
+  },
+  {
+    id: "tech",
+    label: "Yeni texnologiya",
+    types: ["ev_hybrid"]
+  },
+  {
+    id: "comfort",
+    label: "Komfort və interior",
+    types: ["ac_specialist", "audio_media", "glass_sunroof"]
+  },
+  {
+    id: "wheel",
+    label: "Şin və texeraltı",
+    types: ["tire_wheel"]
+  }
+];
+
+// ─── Listing record ──────────────────────────────────────────────────────────
 
 export interface ServiceListingRecord {
   slug: string;
@@ -20,13 +94,7 @@ export interface ServiceListingRecord {
   whatsapp: string;
 }
 
-export const SERVICE_PROVIDER_TYPE_LABELS: Record<ServiceProviderType, string> = {
-  inspection_company: "Ekspertiza şirkəti",
-  official_service: "Rəsmi servis",
-  auto_electrician: "Avto elektrik",
-  body_shop: "Dəmirçi / kuzov",
-  mechanic: "Usta / mexanik"
-};
+// ─── Demo data ───────────────────────────────────────────────────────────────
 
 export const demoServiceListings: ServiceListingRecord[] = [
   {
@@ -95,9 +163,53 @@ export const demoServiceListings: ServiceListingRecord[] = [
     services: ["Mühərrik təmiri", "Sürətlər qutusu", "Yağlama sistemi"],
     phone: "+994507770055",
     whatsapp: "+994507770055"
+  },
+  {
+    slug: "ev-tech-baki",
+    name: "EV Tech Bakı",
+    providerType: "ev_hybrid",
+    city: "Bakı",
+    rating: 4.9,
+    reviewCount: 38,
+    responseMinutes: 20,
+    about: "Elektrikli və hibrid avtomobillər üzrə texniki diaqnostika, batareya yoxlaması və proqram yeniləmələri.",
+    services: ["BMS diaqnostika", "Batareya balansı", "Şarj sistemi", "Hibrid kalibrasiya"],
+    certifications: ["Tesla sertifikatı"],
+    phone: "+994502050505",
+    whatsapp: "+994502050505"
+  },
+  {
+    slug: "ecu-master-nizami",
+    name: "ECU Master Nizami",
+    providerType: "ecu_programmer",
+    city: "Bakı",
+    rating: 4.8,
+    reviewCount: 61,
+    responseMinutes: 25,
+    about: "Beyin oxunması, xəta silmə, adaptasiya, DPF/EGR söndürmə və gücləndirmə proqramlaması.",
+    services: ["ECU oxuma/yazma", "DPF/EGR off", "Stage tuning", "İmmobilazer bərpası"],
+    phone: "+994503030303",
+    whatsapp: "+994503030303"
+  },
+  {
+    slug: "adas-vision-baki",
+    name: "ADAS Vision Bakı",
+    providerType: "adas_specialist",
+    city: "Bakı",
+    rating: 4.7,
+    reviewCount: 29,
+    responseMinutes: 40,
+    about: "Ön kamera kalibrasiyası, radar hizalanması, park sensorları və sürücü yardım sistemlərinin kalibrasiyası.",
+    services: ["Kamera kalibrasiyası", "Radar hizalanması", "Park sensoru", "Lane assist"],
+    phone: "+994501234567",
+    whatsapp: "+994501234567"
   }
 ];
 
 export function getServiceListingBySlug(slug: string): ServiceListingRecord | null {
   return demoServiceListings.find((item) => item.slug === slug) ?? null;
+}
+
+export function getAllServiceProviderTypes(): ServiceProviderType[] {
+  return Object.keys(SERVICE_PROVIDER_TYPE_LABELS) as ServiceProviderType[];
 }

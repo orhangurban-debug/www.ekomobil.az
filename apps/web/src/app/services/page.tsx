@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { SupportRequestForm } from "@/components/support/support-request-form";
 import {
   SERVICE_PROVIDER_TYPE_LABELS,
+  SERVICE_PROVIDER_GROUPS,
   demoServiceListings,
   type ServiceProviderType
 } from "@/lib/services-marketplace";
@@ -12,14 +13,6 @@ export const metadata: Metadata = {
   description:
     "Ekspertiza, rəsmi servis, dəmirçi, elektrik və digər avtomobil xidmətləri. EkoMobil-də servis provayderləri və ustalar."
 };
-
-const providerTypes: ServiceProviderType[] = [
-  "inspection_company",
-  "official_service",
-  "auto_electrician",
-  "body_shop",
-  "mechanic"
-];
 
 function filterHref(input: { type?: ServiceProviderType; city?: string; q?: string }): string {
   const params = new URLSearchParams();
@@ -39,7 +32,8 @@ export default async function ServicesPage({
   const typeParam = typeof params.type === "string" ? params.type : "";
   const cityParam = typeof params.city === "string" ? params.city : "";
   const qParam = typeof params.q === "string" ? params.q.trim().toLowerCase() : "";
-  const selectedType = providerTypes.find((item) => item === typeParam);
+  const allTypes = SERVICE_PROVIDER_GROUPS.flatMap((g) => g.types);
+  const selectedType = allTypes.find((item) => item === typeParam);
   const selectedCity = cityParam.trim();
   const cityOptions = Array.from(new Set(demoServiceListings.map((item) => item.city))).sort();
 
@@ -96,12 +90,12 @@ export default async function ServicesPage({
               </form>
             </div>
 
-            {/* Xidmət növü */}
+            {/* Xidmət növü — qruplu */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Xidmət növü
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <Link
                   href={filterHref({ city: selectedCity || undefined, q: qParam || undefined })}
                   className={`block rounded-lg px-3 py-2 text-sm transition ${
@@ -112,18 +106,25 @@ export default async function ServicesPage({
                 >
                   Hamısı
                 </Link>
-                {providerTypes.map((type) => (
-                  <Link
-                    key={type}
-                    href={filterHref({ type, city: selectedCity || undefined, q: qParam || undefined })}
-                    className={`block rounded-lg px-3 py-2 text-sm transition ${
-                      selectedType === type
-                        ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
-                        : "text-slate-700 hover:bg-slate-50"
-                    }`}
-                  >
-                    {SERVICE_PROVIDER_TYPE_LABELS[type]}
-                  </Link>
+                {SERVICE_PROVIDER_GROUPS.map((group) => (
+                  <div key={group.id}>
+                    <p className="mt-3 mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {group.label}
+                    </p>
+                    {group.types.map((type) => (
+                      <Link
+                        key={type}
+                        href={filterHref({ type, city: selectedCity || undefined, q: qParam || undefined })}
+                        className={`block rounded-lg px-3 py-1.5 text-sm transition ${
+                          selectedType === type
+                            ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
+                            : "text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {SERVICE_PROVIDER_TYPE_LABELS[type]}
+                      </Link>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>

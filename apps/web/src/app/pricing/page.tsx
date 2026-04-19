@@ -4,6 +4,7 @@ import { LISTING_PLANS, PRICING_TIERS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 import { BUMP_PACKAGES, VIP_PACKAGES, PREMIUM_PACKAGES } from "@/lib/listing-boost-plans";
+import { SERVICE_PLAN_CATEGORIES } from "@/lib/service-plans";
 import type { ListingKind } from "@/lib/marketplace-types";
 import {
   AUCTION_FEES,
@@ -290,9 +291,10 @@ export default function PricingPage() {
         <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
           {[
             { href: "#listings", label: "Elan planları" },
-            { href: "#boost", label: "İrəliləmə xidmətləri" },
-            { href: "#dealer", label: "Salon planları" },
+            { href: "#boost", label: "İrəliləmə" },
+            { href: "#dealer", label: "Salonlar" },
             { href: "#parts-store", label: "Hissə mağazası" },
+            { href: "#services", label: "Servislər" },
             { href: "#auction", label: "Auksion haqları" }
           ].map((item) => (
             <a
@@ -856,7 +858,153 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ─── 5. Auction fees ───────────────────────────────────────── */}
+        {/* ─── 5. Service provider plans ─────────────────────────────── */}
+        <section id="services" className="scroll-mt-20">
+          <SectionHeader
+            label="Servislər və ustalar"
+            title="Servis provayderi planları"
+            sub="Rəsmi servis, ekspertiza şirkəti və usta profilləri üçün aylıq abunə planları."
+          />
+
+          <NoBizFreeBanner />
+
+          {/* Category tabs */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {SERVICE_PLAN_CATEGORIES.map((cat) => (
+              <a
+                key={cat.id}
+                href={`#service-${cat.id}`}
+                className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+              >
+                {cat.label}
+              </a>
+            ))}
+          </div>
+
+          <div className="space-y-14">
+            {SERVICE_PLAN_CATEGORIES.map((cat) => (
+              <div key={cat.id} id={`service-${cat.id}`} className="scroll-mt-24">
+                {/* Sub-header */}
+                <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-4">
+                  <div>
+                    <h3 className={`text-lg font-bold ${cat.color}`}>{cat.label}</h3>
+                    <p className="mt-0.5 text-sm text-slate-500">{cat.subLabel}</p>
+                  </div>
+                  <Link
+                    href="/partners/inspection"
+                    className="text-xs font-medium text-[#0891B2] hover:underline"
+                  >
+                    Tərəfdaşlıq müraciəti →
+                  </Link>
+                </div>
+
+                {/* Subtypes list */}
+                <div className={`mb-6 rounded-xl border ${cat.borderColor} bg-white px-4 py-3`}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Bu plana uyğun servis növləri
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cat.subtypes.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Plan cards */}
+                <div className="grid gap-5 sm:grid-cols-3">
+                  {cat.plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                        plan.highlight
+                          ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
+                          : "border-slate-200 shadow-sm"
+                      }`}
+                    >
+                      {plan.tagAz && (
+                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                          {plan.tagAz}
+                        </span>
+                      )}
+
+                      <div className="mb-4">
+                        <h4 className="text-base font-semibold text-slate-900">{plan.nameAz}</h4>
+                        <div className="mt-2 flex items-baseline gap-1">
+                          {plan.priceAzn === 0 ? (
+                            <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
+                          ) : (
+                            <>
+                              <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
+                                {plan.priceAzn} ₼
+                              </span>
+                              <span className="text-sm text-slate-400">{plan.billingAz}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">{plan.descriptionAz}</p>
+                      </div>
+
+                      <ul className="flex-1 space-y-2 text-sm text-slate-600">
+                        {plan.features.map((f) => (
+                          <li key={f} className="flex items-start gap-2">
+                            <CheckIcon />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {plan.comingSoon && plan.comingSoon.length > 0 && (
+                        <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
+                          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                          <ul className="space-y-1">
+                            {plan.comingSoon.map((f) => (
+                              <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                                <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <Link
+                        href={plan.ctaHref}
+                        className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
+                          plan.highlight
+                            ? "bg-[#0891B2] text-white hover:bg-[#0e7490]"
+                            : plan.priceAzn === 0
+                            ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            : "border border-[#0891B2] text-[#0891B2] hover:bg-[#0891B2]/5"
+                        }`}
+                      >
+                        {plan.ctaLabel}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+            <strong className="text-slate-800">Platforma haqqı:</strong> EkoMobil servis profilini siyahıya alır
+            və müştəri əlaqəsini asanlaşdırır. Xidmət keyfiyyəti xidmət göstərənin məsuliyyətindədir.
+            Tərəfdaşlıq üçün{" "}
+            <Link href="/partners/inspection" className="font-semibold text-[#0891B2] hover:underline">
+              müraciət formu
+            </Link>
+            -nu doldurun.
+          </div>
+        </section>
+
+        {/* ─── 6. Auction fees ───────────────────────────────────────── */}
         <section id="auction" className="scroll-mt-20">
           <SectionHeader
             label="Canlı hərrac"
