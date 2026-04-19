@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -20,6 +21,10 @@ export default function RegisterPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function onGoogleClick() {
+    setGoogleLoading(true);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,12 +89,16 @@ export default function RegisterPage() {
         <Link
           href="/api/auth/google/start?next=%2Fme"
           prefetch={false}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          onClick={onGoogleClick}
+          aria-disabled={googleLoading}
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 ${
+            googleLoading ? "pointer-events-none opacity-60" : ""
+          }`}
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.5 3.6-5.5 3.6-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17 2.6 14.7 1.7 12 1.7 6.9 1.7 2.8 6 2.8 11.3S6.9 20.9 12 20.9c6.9 0 9.2-4.9 9.2-7.5 0-.5 0-.9-.1-1.3H12z" />
           </svg>
-          Google ilə qeydiyyat / giriş
+          {googleLoading ? "Google-a yönləndirilir..." : "Google ilə qeydiyyat / giriş"}
         </Link>
         <div className="text-center text-xs text-slate-400">və ya aşağıdakı formu doldurun</div>
         <div className="grid gap-4 sm:grid-cols-2">

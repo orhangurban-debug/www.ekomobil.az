@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 import {
   buildGoogleAuthUrl,
   generateOAuthState,
@@ -11,11 +12,33 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
 const OAUTH_PKCE_COOKIE = "ekomobil_oauth_pkce";
 const OAUTH_NEXT_COOKIE = "ekomobil_oauth_next";
+const OAUTH_BROWSER_COOKIE = "ekomobil_oauth_browser";
 
 function normalizeNextPath(raw: string | null): string {
   if (!raw) return "/me";
   if (!raw.startsWith("/") || raw.startsWith("//")) return "/me";
   return raw;
+}
+
+function readCookieMap(req: Request): Map<string, string> {
+  const requestCookies = req.headers.get("cookie") || "";
+  return new Map(
+    requestCookies
+      .split(";")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => {
+        const idx = item.indexOf("=");
+        if (idx === -1) return [item, ""] as const;
+        return [item.slice(0, idx), decodeURIComponent(item.slice(idx + 1))] as const;
+      })
+  );
+}
+
+function getBrowserThrottleId(req: Request): string {
+  const value = readCookieMap(req).get(OAUTH_BROWSER_COOKIE)?.trim() ?? "";
+  if (/^[A-Za-z0-9_-]{20,120}$/.test(value)) return value;
+  return randomBytes(24).toString("base64url");
 }
 
 export async function GET(req: Request) {
@@ -24,15 +47,14 @@ export async function GET(req: Request) {
   }
 
   const ip = getClientIp(req);
-  const userAgent = (req.headers.get("user-agent") ?? "unknown")
-    .replace(/\s+/g, " ")
-    .slice(0, 80);
-  const keyBase = `${ip}:${userAgent}`;
-  const [burstLimit, windowLimit] = await Promise.all([
-    checkRateLimit(`oauth_google_start:1m:${keyBase}`, 10, 1),
-    checkRateLimit(`oauth_google_start:10m:${keyBase}`, 60, 10)
+  const browserId = getBrowserThrottleId(req);
+  const [browserBurstLimit, browserWindowLimit, ipBurstLimit, ipWindowLimit] = await Promise.all([
+    checkRateLimit(`oauth_google_start:browser:1m:${browserId}`, 6, 1),
+    checkRateLimit(`oauth_google_start:browser:10m:${browserId}`, 20, 10),
+    checkRateLimit(`oauth_google_start:ip:1m:${ip}`, 200, 1),
+    checkRateLimit(`oauth_google_start:ip:10m:${ip}`, 1000, 10)
   ]);
-  if (!burstLimit.ok || !windowLimit.ok) {
+  if (!browserBurstLimit.ok || !browserWindowLimit.ok || !ipBurstLimit.ok || !ipWindowLimit.ok) {
     return NextResponse.redirect(new URL("/login?error=rate_limited_google", req.url));
   }
 
@@ -54,5 +76,9 @@ export async function GET(req: Request) {
   redirect.cookies.set(OAUTH_STATE_COOKIE, state, common);
   redirect.cookies.set(OAUTH_PKCE_COOKIE, verifier, common);
   redirect.cookies.set(OAUTH_NEXT_COOKIE, nextPath, common);
+  redirect.cookies.set(OAUTH_BROWSER_COOKIE, browserId, {
+    ...common,
+    maxAge: 60 * 60 * 24 * 30
+  });
   return redirect;
 }
