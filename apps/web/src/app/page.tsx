@@ -198,43 +198,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Animated ticker */}
-        <div className="relative mt-14 overflow-hidden border-t border-white/10 py-4">
-          <div className="flex animate-marquee whitespace-nowrap">
-            {[
-              { icon: "🛡️", text: "VIN Yoxlama" },
-              { icon: "📊", text: "Qiymət Analizi" },
-              { icon: "✅", text: "Etibar Skoru" },
-              { icon: "🔨", text: "Canlı Auksion" },
-              { icon: "🔧", text: "Sertifisiyalı Servislər" },
-              { icon: "🚗", text: "Bütün Marka və Modellər" },
-              { icon: "⚡", text: "Elektrik & Hibrid" },
-              { icon: "📍", text: "Bütün Şəhərlər" },
-              { icon: "💳", text: "Kredit & Barter" },
-              { icon: "🏪", text: "Rəsmi Salonlar" },
-              { icon: "🔩", text: "Ehtiyat Hissələri" },
-              { icon: "👨‍🔧", text: "Peşəkar Ustalar" },
-              { icon: "🛡️", text: "VIN Yoxlama" },
-              { icon: "📊", text: "Qiymət Analizi" },
-              { icon: "✅", text: "Etibar Skoru" },
-              { icon: "🔨", text: "Canlı Auksion" },
-              { icon: "🔧", text: "Sertifisiyalı Servislər" },
-              { icon: "🚗", text: "Bütün Marka və Modellər" },
-              { icon: "⚡", text: "Elektrik & Hibrid" },
-              { icon: "📍", text: "Bütün Şəhərlər" },
-              { icon: "💳", text: "Kredit & Barter" },
-              { icon: "🏪", text: "Rəsmi Salonlar" },
-              { icon: "🔩", text: "Ehtiyat Hissələri" },
-              { icon: "👨‍🔧", text: "Peşəkar Ustalar" },
-            ].map((item, i) => (
-              <span key={i} className="mx-5 inline-flex items-center gap-2 text-sm text-white/50">
-                <span className="text-base">{item.icon}</span>
-                <span>{item.text}</span>
-                <span className="mx-3 text-white/20">·</span>
-              </span>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* ─── Stats strip ─────────────────────────────────────────────────── */}
