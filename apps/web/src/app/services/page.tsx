@@ -10,47 +10,8 @@ import {
 export const metadata: Metadata = {
   title: "Servislər və ustalar | EkoMobil",
   description:
-    "Ekspertiza, rəsmi servis, dəmirçi, elektrik və digər avtomobil xidmətləri üçün tərəfdaşlıq və xidmət kataloqu."
+    "Ekspertiza, rəsmi servis, dəmirçi, elektrik və digər avtomobil xidmətləri. EkoMobil-də servis provayderləri və ustalar."
 };
-
-const serviceCategories = [
-  {
-    title: "Ekspertiza",
-    description: "Tam texniki yoxlama, boya ölçümü, diaqnostika və yoxlama hesabatı.",
-    ctaHref: "/partners/inspection",
-    ctaLabel: "Ekspertiza tərəfdaşı ol"
-  },
-  {
-    title: "Rəsmi servis",
-    description: "Brend servis mərkəzləri üçün servis tarixçəsi və rəsmi baxış xidmətləri.",
-    ctaHref: "/partners/inspection",
-    ctaLabel: "Rəsmi servis kimi qoşul"
-  },
-  {
-    title: "Dəmirçi və kuzov",
-    description: "Kuzov təmiri, düzəltmə və struktur işləri üzrə usta profilləri.",
-    ctaHref: "/trust#support-request",
-    ctaLabel: "Müraciət et"
-  },
-  {
-    title: "Elektrik və elektronika",
-    description: "ECU, sensor, elektrik sistemi diaqnostikası və təmiri.",
-    ctaHref: "/trust#support-request",
-    ctaLabel: "Müraciət et"
-  },
-  {
-    title: "Mühərrik və sürətlər qutusu",
-    description: "Mühərrik, transmissiya və əsas aqreqatlar üzrə ixtisaslaşmış xidmətlər.",
-    ctaHref: "/trust#support-request",
-    ctaLabel: "Müraciət et"
-  },
-  {
-    title: "Ümumi usta xidmətləri",
-    description: "Kiçik təmir, periodik baxım və yerində xidmət göstərən ustalar.",
-    ctaHref: "/trust#support-request",
-    ctaLabel: "Müraciət et"
-  }
-];
 
 const providerTypes: ServiceProviderType[] = [
   "inspection_company",
@@ -60,10 +21,11 @@ const providerTypes: ServiceProviderType[] = [
   "mechanic"
 ];
 
-function filterHref(input: { type?: ServiceProviderType; city?: string }): string {
+function filterHref(input: { type?: ServiceProviderType; city?: string; q?: string }): string {
   const params = new URLSearchParams();
   if (input.type) params.set("type", input.type);
   if (input.city) params.set("city", input.city);
+  if (input.q) params.set("q", input.q);
   const query = params.toString();
   return query ? `/services?${query}` : "/services";
 }
@@ -76,143 +38,250 @@ export default async function ServicesPage({
   const params = await searchParams;
   const typeParam = typeof params.type === "string" ? params.type : "";
   const cityParam = typeof params.city === "string" ? params.city : "";
+  const qParam = typeof params.q === "string" ? params.q.trim().toLowerCase() : "";
   const selectedType = providerTypes.find((item) => item === typeParam);
   const selectedCity = cityParam.trim();
   const cityOptions = Array.from(new Set(demoServiceListings.map((item) => item.city))).sort();
+
   const filteredListings = demoServiceListings.filter((item) => {
     if (selectedType && item.providerType !== selectedType) return false;
     if (selectedCity && item.city !== selectedCity) return false;
+    if (qParam && !item.name.toLowerCase().includes(qParam) && !item.about.toLowerCase().includes(qParam)) return false;
     return true;
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/" className="hover:text-slate-900">
-          Ana səhifə
-        </Link>
+        <Link href="/" className="hover:text-slate-900">Ana səhifə</Link>
         <span className="mx-2">/</span>
         <span className="text-slate-900">Servislər</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Servislər, ekspertiza və ustalar</h1>
-      <p className="mt-2 max-w-3xl text-sm text-slate-600">
-        EkoMobil-də ekspertiza şirkətləri, rəsmi servis mərkəzləri və fərdi ustalar platformaya qoşularaq xidmətlərini
-        təqdim edə bilərlər. Bu bölmə elan kataloqu kimi işləyir: salon və mağazada olduğu kimi servislərdə də profil və
-        xidmət elanları yerləşdirilir.
-      </p>
-
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-        EkoMobil xidmətləri siyahıya alır və müştəri-satıcı əlaqəsini asanlaşdırır. Platforma konkret təmir və diaqnostika
-        nəticəsinə hüquqi zəmanət vermir; xidmət keyfiyyəti xidmət göstərən tərəfin məsuliyyətindədir.
-      </div>
-
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {serviceCategories.map((item) => (
-          <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-900">{item.title}</h2>
-            <p className="mt-2 text-sm text-slate-600">{item.description}</p>
-            <Link href={item.ctaHref} className="btn-secondary mt-4 inline-flex">
-              {item.ctaLabel}
-            </Link>
-          </article>
-        ))}
-      </div>
-
-      <section className="mt-10">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-slate-900">Servis elanları</h2>
-          <Link href="/services?type=inspection_company" className="btn-secondary text-sm">
-            Ekspertiza elanlarına bax
-          </Link>
-        </div>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Link href={filterHref({ city: selectedCity || undefined })} className={`rounded-full px-3 py-1.5 text-xs font-medium ${!selectedType ? "bg-[#0891B2]/10 text-[#0891B2]" : "bg-slate-100 text-slate-600"}`}>
-            Hamısı
-          </Link>
-          {providerTypes.map((type) => (
-            <Link
-              key={type}
-              href={filterHref({ type, city: selectedCity || undefined })}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                selectedType === type ? "bg-[#0891B2]/10 text-[#0891B2]" : "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {SERVICE_PROVIDER_TYPE_LABELS[type]}
-            </Link>
-          ))}
-        </div>
-
-        <div className="mb-6 flex flex-wrap gap-2">
-          <Link href={filterHref({ type: selectedType })} className={`rounded-lg border px-3 py-1.5 text-xs ${!selectedCity ? "border-[#0891B2] text-[#0891B2]" : "border-slate-200 text-slate-600"}`}>
-            Bütün şəhərlər
-          </Link>
-          {cityOptions.map((city) => (
-            <Link
-              key={city}
-              href={filterHref({ type: selectedType, city })}
-              className={`rounded-lg border px-3 py-1.5 text-xs ${
-                selectedCity === city ? "border-[#0891B2] text-[#0891B2]" : "border-slate-200 text-slate-600"
-              }`}
-            >
-              {city}
-            </Link>
-          ))}
-        </div>
-
-        {filteredListings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-            Seçilən filterlər üzrə servis elanı tapılmadı.
+      {/* Hero */}
+      <div className="mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Servislər və ustalar</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {filteredListings.length} servis provayderı tapıldı
+            </p>
           </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredListings.map((item) => (
-              <article key={item.slug} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">{item.name}</h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {SERVICE_PROVIDER_TYPE_LABELS[item.providerType]} • {item.city}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                    {item.rating.toFixed(1)} ★
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-slate-600">{item.about}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {item.services.slice(0, 4).map((service) => (
-                    <span key={service} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-600">
-                      {service}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-                  <span>{item.reviewCount} rəy</span>
-                  <span>Orta cavab: {item.responseMinutes} dəq</span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link href={`/services/${item.slug}`} className="btn-secondary text-sm">
-                    Profilə bax
+          <Link href="/partners/inspection" className="btn-primary text-sm">
+            + Servis profili əlavə et
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-8 lg:flex-row">
+        {/* Sidebar filterlər */}
+        <aside className="w-full shrink-0 lg:w-60">
+          <div className="sticky top-24 space-y-5 rounded-2xl border border-slate-200 bg-white p-4">
+            {/* Axtarış */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Axtarış
+              </label>
+              <form method="get" action="/services">
+                {selectedType && <input type="hidden" name="type" value={selectedType} />}
+                {selectedCity && <input type="hidden" name="city" value={selectedCity} />}
+                <input
+                  type="search"
+                  name="q"
+                  defaultValue={qParam}
+                  placeholder="Ad, xidmət..."
+                  className="input-field text-sm"
+                />
+              </form>
+            </div>
+
+            {/* Xidmət növü */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Xidmət növü
+              </p>
+              <div className="space-y-1">
+                <Link
+                  href={filterHref({ city: selectedCity || undefined, q: qParam || undefined })}
+                  className={`block rounded-lg px-3 py-2 text-sm transition ${
+                    !selectedType
+                      ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Hamısı
+                </Link>
+                {providerTypes.map((type) => (
+                  <Link
+                    key={type}
+                    href={filterHref({ type, city: selectedCity || undefined, q: qParam || undefined })}
+                    className={`block rounded-lg px-3 py-2 text-sm transition ${
+                      selectedType === type
+                        ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {SERVICE_PROVIDER_TYPE_LABELS[type]}
                   </Link>
-                  <a href={`tel:${item.phone}`} className="btn-secondary text-sm">Zəng et</a>
-                  <a href={`https://wa.me/${item.whatsapp.replace("+", "")}`} className="btn-secondary text-sm" target="_blank" rel="noreferrer">
-                    WhatsApp
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+                ))}
+              </div>
+            </div>
 
-      <section className="mt-10">
-        <SupportRequestForm
-          initialRequestType="partnership"
-          initialSubject="Servis/Usta tərəfdaşlıq müraciəti"
-        />
-      </section>
+            {/* Şəhər */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Şəhər</p>
+              <div className="space-y-1">
+                <Link
+                  href={filterHref({ type: selectedType, q: qParam || undefined })}
+                  className={`block rounded-lg px-3 py-2 text-sm transition ${
+                    !selectedCity
+                      ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Bütün şəhərlər
+                </Link>
+                {cityOptions.map((city) => (
+                  <Link
+                    key={city}
+                    href={filterHref({ type: selectedType, city, q: qParam || undefined })}
+                    className={`block rounded-lg px-3 py-2 text-sm transition ${
+                      selectedCity === city
+                        ? "bg-[#0891B2]/10 font-medium text-[#0891B2]"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {city}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 leading-relaxed">
+              Platforma xidmət keyfiyyətinə zəmanət vermir. Keyfiyyət xidmət göstərənin məsuliyyətindədir.
+            </div>
+          </div>
+        </aside>
+
+        {/* Elanlar */}
+        <div className="flex-1">
+          {/* Aktiv filterlər */}
+          {(selectedType ?? selectedCity ?? qParam) && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {selectedType && (
+                <Link
+                  href={filterHref({ city: selectedCity || undefined, q: qParam || undefined })}
+                  className="inline-flex items-center gap-1 rounded-full bg-[#0891B2]/10 px-3 py-1 text-xs font-medium text-[#0891B2]"
+                >
+                  {SERVICE_PROVIDER_TYPE_LABELS[selectedType]} ×
+                </Link>
+              )}
+              {selectedCity && (
+                <Link
+                  href={filterHref({ type: selectedType, q: qParam || undefined })}
+                  className="inline-flex items-center gap-1 rounded-full bg-[#0891B2]/10 px-3 py-1 text-xs font-medium text-[#0891B2]"
+                >
+                  {selectedCity} ×
+                </Link>
+              )}
+              {qParam && (
+                <Link
+                  href={filterHref({ type: selectedType, city: selectedCity || undefined })}
+                  className="inline-flex items-center gap-1 rounded-full bg-[#0891B2]/10 px-3 py-1 text-xs font-medium text-[#0891B2]"
+                >
+                  "{qParam}" ×
+                </Link>
+              )}
+            </div>
+          )}
+
+          {filteredListings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
+              <p className="font-medium text-slate-700">Servis elanı tapılmadı</p>
+              <p className="text-sm text-slate-400">Filterləri dəyişin və ya axtarışı genişləndirin.</p>
+              <Link href="/services" className="btn-secondary text-sm">Bütün servisləre bax</Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filteredListings.map((item) => (
+                <article
+                  key={item.slug}
+                  className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#0891B2]/30 hover:shadow-md"
+                >
+                  {/* Başlıq */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <Link href={`/services/${item.slug}`} className="text-base font-semibold text-slate-900 hover:text-[#0891B2]">
+                        {item.name}
+                      </Link>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {SERVICE_PROVIDER_TYPE_LABELS[item.providerType]} • {item.city}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                      {item.rating.toFixed(1)} ★
+                    </span>
+                  </div>
+
+                  {/* Açıqlama */}
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{item.about}</p>
+
+                  {/* Xidmət etiketleri */}
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {item.services.slice(0, 3).map((service) => (
+                      <span key={service} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-600">
+                        {service}
+                      </span>
+                    ))}
+                    {item.services.length > 3 && (
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-400">
+                        +{item.services.length - 3}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Göstəricilər */}
+                  <div className="mt-3 flex items-center gap-4 text-xs text-slate-400">
+                    <span>{item.reviewCount} rəy</span>
+                    <span>Cavab: ~{item.responseMinutes} dəq</span>
+                  </div>
+
+                  {/* Düymələr */}
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                    <Link href={`/services/${item.slug}`} className="btn-primary text-sm flex-1 justify-center text-center">
+                      Profili gör
+                    </Link>
+                    <a href={`tel:${item.phone}`} className="btn-secondary text-sm px-3">Zəng</a>
+                    <a
+                      href={`https://wa.me/${item.whatsapp.replace("+", "")}`}
+                      className="btn-secondary text-sm px-3"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      WA
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {/* Partnyor müraciəti */}
+          <section className="mt-12">
+            <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <h2 className="text-base font-semibold text-slate-900">Servis provayderisinizsə platformaya qoşulun</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Ekspertiza mərkəzi, rəsmi servis, dəmirçi, avto elektrik və ya usta olaraq EkoMobil-də profil yaradın.
+              </p>
+            </div>
+            <SupportRequestForm
+              initialRequestType="inspection_partner"
+              initialSubject="Servis/Usta tərəfdaşlıq müraciəti"
+            />
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
