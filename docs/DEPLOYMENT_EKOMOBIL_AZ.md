@@ -27,9 +27,16 @@ Vercel dashboard → Project → Settings → Environment Variables:
 
 | Dəyişən | Qiymət |
 |---------|--------|
-| `DATABASE_URL` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string (`Neon Launch` tövsiyə olunur) |
 | `AUTH_SECRET` | Təsadüfi açar (openssl rand -hex 32) |
 | `GEMINI_API_KEY` | Google AI API açarı |
+| `NEXT_PUBLIC_APP_URL` | `https://ekomobil.az` |
+| `AUCTION_API_BASE_URL` | ayrıca deploy olunmuş `auction-api` URL-i |
+| `AUCTION_API_INTERNAL_SECRET` | web və auction-api üçün ortaq məxfi açar |
+| `CRON_SECRET` | Vercel cron endpoint qoruması üçün token |
+| `PG_POOL_MAX` | `10` ilə başlayın |
+
+> Production üçün free-tier database istifadə etməyin. Bu layihə auth, payments və auksion yazmalarına görə dayanıqlı managed Postgres tələb edir.
 
 ### Addım 3: Domen əlavə etmək
 1. Vercel → Project → **Settings** → **Domains**
@@ -76,3 +83,12 @@ DNS dəyişiklikləri 24–48 saat ərzində tam tətbiq oluna bilər (adətən 
 - https://www.ekomobil.az
 
 SSL sertifikatı Vercel-də avtomatik aktiv olur.
+
+## 6. Database və auction infrastruktur qərarı
+
+- Production database üçün `Neon Launch` əsas seçimdir.
+- `Neon Free` yalnız development və qısa demo üçün uyğundur.
+- `services/auction-api` production-da ayrıca deploy olunmalı və `Redis` ilə eyni regionda işləməlidir.
+- `Neon Scale` yalnız real load test və ya canlı metriklər göstərsə seçilməlidir.
+
+Ətraflı qərar və tuning qeydləri: [Database Provider Recommendation](./ops/database-provider-recommendation.md)
