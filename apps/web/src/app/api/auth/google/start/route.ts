@@ -65,7 +65,10 @@ export async function GET(req: Request) {
   }
 
   const url = new URL(req.url);
-  const baseUrl = url.origin;
+  // Always use the canonical app URL so the redirect_uri sent to Google
+  // matches exactly what is registered in Google Console — regardless of
+  // whether the request arrived via ekomobil.az or www.ekomobil.az.
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? url.origin).replace(/\/+$/, "");
   const nextPath = normalizeNextPath(url.searchParams.get("next"));
   const state = generateOAuthState();
   const verifier = generatePkceVerifier();
