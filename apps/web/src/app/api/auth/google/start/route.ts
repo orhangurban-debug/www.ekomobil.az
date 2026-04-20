@@ -14,6 +14,19 @@ const OAUTH_PKCE_COOKIE = "ekomobil_oauth_pkce";
 const OAUTH_NEXT_COOKIE = "ekomobil_oauth_next";
 const OAUTH_BROWSER_COOKIE = "ekomobil_oauth_browser";
 
+function getSharedCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) return undefined;
+  try {
+    const hostname = new URL(appUrl).hostname.replace(/^www\./, "");
+    if (!hostname || hostname === "localhost") return undefined;
+    return `.${hostname}`;
+  } catch {
+    return undefined;
+  }
+}
+
 function normalizeNextPath(raw: string | null): string {
   if (!raw) return "/me";
   if (!raw.startsWith("/") || raw.startsWith("//")) return "/me";
@@ -80,7 +93,8 @@ export async function GET(req: Request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: 10 * 60
+    maxAge: 10 * 60,
+    ...(getSharedCookieDomain() ? { domain: getSharedCookieDomain() } : {})
   };
   redirect.cookies.set(OAUTH_STATE_COOKIE, state, common);
   redirect.cookies.set(OAUTH_PKCE_COOKIE, verifier, common);

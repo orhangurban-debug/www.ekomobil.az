@@ -6,6 +6,20 @@ import { upsertUserFromGoogle } from "@/server/user-store";
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
 const OAUTH_PKCE_COOKIE = "ekomobil_oauth_pkce";
 const OAUTH_NEXT_COOKIE = "ekomobil_oauth_next";
+const OAUTH_BROWSER_COOKIE = "ekomobil_oauth_browser";
+
+function getSharedCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) return undefined;
+  try {
+    const hostname = new URL(appUrl).hostname.replace(/^www\./, "");
+    if (!hostname || hostname === "localhost") return undefined;
+    return `.${hostname}`;
+  } catch {
+    return undefined;
+  }
+}
 
 function clearOAuthCookies(res: NextResponse) {
   const common = {
@@ -13,11 +27,13 @@ function clearOAuthCookies(res: NextResponse) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
-    maxAge: 0
+    maxAge: 0,
+    ...(getSharedCookieDomain() ? { domain: getSharedCookieDomain() } : {})
   };
   res.cookies.set(OAUTH_STATE_COOKIE, "", common);
   res.cookies.set(OAUTH_PKCE_COOKIE, "", common);
   res.cookies.set(OAUTH_NEXT_COOKIE, "", common);
+  res.cookies.set(OAUTH_BROWSER_COOKIE, "", common);
 }
 
 function safeNextPath(path: string | undefined): string {
@@ -27,7 +43,7 @@ function safeNextPath(path: string | undefined): string {
 
 export async function GET(req: Request) {
   const incoming = new URL(req.url);
-  const baseUrl = incoming.origin;
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? incoming.origin).replace(/\/+$/, "");
   if (!isGoogleOAuthConfigured()) {
     return NextResponse.redirect(new URL("/login?error=google_not_configured", baseUrl));
   }
@@ -86,7 +102,8 @@ export async function GET(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 12
+      maxAge: 60 * 60 * 12,
+      ...(getSharedCookieDomain() ? { domain: getSharedCookieDomain() } : {})
     });
     clearOAuthCookies(success);
     return success;
