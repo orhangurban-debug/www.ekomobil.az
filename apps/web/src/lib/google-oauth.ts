@@ -8,8 +8,21 @@ export interface GoogleUserInfo {
   picture?: string;
 }
 
+export function canonicalizeAppBaseUrl(rawUrl: string): string {
+  const trimmed = rawUrl.replace(/\/+$/, "");
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname === "www.ekomobil.az") {
+      parsed.hostname = "ekomobil.az";
+    }
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return trimmed;
+  }
+}
+
 export function getAppBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/+$/, "");
+  return canonicalizeAppBaseUrl(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
 }
 
 export function getGoogleConfig() {
@@ -24,7 +37,7 @@ export function isGoogleOAuthConfigured(): boolean {
 }
 
 export function buildGoogleCallbackUrl(baseUrl?: string): string {
-  const root = (baseUrl || getAppBaseUrl()).replace(/\/+$/, "");
+  const root = canonicalizeAppBaseUrl(baseUrl || getAppBaseUrl());
   return `${root}/api/auth/google/callback`;
 }
 
