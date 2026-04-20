@@ -12,6 +12,20 @@ import { getBrandSettings } from "@/server/system-settings-store";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://ekomobil.az";
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
 
+/** Force brand assets onto a same-origin path so COOP/CORP + www/apex mismatches cannot break images. */
+function toSameOriginBrandAssetPath(url: string): string {
+  if (!/^https?:\/\//i.test(url)) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "ekomobil.az" || parsed.hostname === "www.ekomobil.az" || parsed.hostname.endsWith(".ekomobil.az")) {
+      return `${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    // ignore
+  }
+  return url;
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: { default: "EkoMobil — Etibarlı Avtomobil Bazarı", template: "%s | EkoMobil" },
@@ -59,9 +73,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const [user, brand] = await Promise.all([getServerSessionUser(), getBrandSettings()]);
-  const absoluteLogoUrl = brand.logoUrl.startsWith("http")
-    ? brand.logoUrl
-    : `${APP_URL}${brand.logoUrl.startsWith("/") ? "" : "/"}${brand.logoUrl}`;
+  const logoPath = toSameOriginBrandAssetPath(brand.logoUrl);
+  const faviconPath = toSameOriginBrandAssetPath(brand.faviconUrl);
+  const absoluteLogoUrl = logoPath.startsWith("http")
+    ? logoPath
+    : `${APP_URL}${logoPath.startsWith("/") ? "" : "/"}${logoPath}`;
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -84,7 +100,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="az">
       <head>
-        <link rel="icon" href={brand.faviconUrl} />
+        <link rel="icon" href={faviconPath} />
       </head>
       <body className="min-h-screen flex flex-col" style={dynamicThemeVars}>
         <script
@@ -92,9 +108,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
         <CompareProvider>
-          <Header userEmail={user?.email} userRole={user?.role} logoUrl={brand.logoUrl} />
+          <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} />
           <main className="flex-1">{children}</main>
-          <Footer logoUrl={brand.logoUrl} />
+          <Footer logoUrl={logoPath} />
           <CompareBar />
           <AiChatPanel />
         </CompareProvider>

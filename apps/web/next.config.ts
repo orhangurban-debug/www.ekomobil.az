@@ -41,8 +41,9 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: ContentSecurityPolicy },
   // Prevent cross-origin information leaks
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // NOTE: Avoid COEP `require-corp` here — it breaks normal cross-subdomain assets (e.g. `www` vs apex)
+  // and third-party flows unless every subresource explicitly opts in with CORP headers.
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 ];
 
 const nextConfig: NextConfig = {

@@ -59,10 +59,15 @@ export async function checkRateLimit(
     }
 
     return { ok: true, remaining };
-  } catch {
+  } catch (err) {
     // Fail closed by default in production to prevent bypassing abuse controls.
     const failOpen = process.env.RATE_LIMIT_FAIL_OPEN === "true" || process.env.NODE_ENV !== "production";
     if (failOpen) {
+      return { ok: true, remaining: maxRequests };
+    }
+    // OAuth start throttling must not masquerade as user abuse when Postgres is unavailable.
+    if (key.startsWith("oauth_google_start:")) {
+      console.error("[rate-limit] oauth throttling skipped (database error)", err);
       return { ok: true, remaining: maxRequests };
     }
     return { ok: false, remaining: 0, retryAfterSeconds: 60 };
