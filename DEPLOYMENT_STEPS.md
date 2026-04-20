@@ -85,10 +85,12 @@ Import səhifəsində:
 
 Əgər PostgreSQL lazımdırsa:
 
-- **Neon** (neon.tech) – pulsuz tier
-- **Supabase** (supabase.com) – pulsuz tier
+- **Neon Launch** (neon.tech) – bu layihə üçün tövsiyə olunan production seçimi
+- **Supabase Pro** (supabase.com) – alternativ, amma bu repo üçün əsas seçim deyil
 
 Connection string-i Vercel `DATABASE_URL`-ə yapışdır.
+
+> Qeyd: auth, payments və auction workload-larına görə free-tier database ilə production işlətmək tövsiyə olunmur.
 
 ---
 
