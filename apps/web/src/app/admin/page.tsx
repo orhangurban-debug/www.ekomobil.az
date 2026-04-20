@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminOverview, getCrmSnapshot, getFinanceSnapshot } from "@/server/admin-store";
+import { getCapacitySnapshot } from "@/server/capacity-monitor-store";
 
 function StatCard({ label, value, tone = "slate" }: { label: string; value: string; tone?: "slate" | "brand" }) {
   return (
@@ -13,14 +14,41 @@ function StatCard({ label, value, tone = "slate" }: { label: string; value: stri
 }
 
 export default async function AdminDashboardPage() {
-  const [overview, finance, crm] = await Promise.all([
+  const [overview, finance, crm, capacity] = await Promise.all([
     getAdminOverview(),
     getFinanceSnapshot(),
-    getCrmSnapshot()
+    getCrmSnapshot(),
+    getCapacitySnapshot()
   ]);
 
   return (
     <div className="space-y-6">
+      <div
+        className={`rounded-2xl border p-4 ${
+          capacity.recommendation.status === "critical"
+            ? "border-rose-200 bg-rose-50"
+            : capacity.recommendation.status === "prepare_scale"
+              ? "border-amber-200 bg-amber-50"
+              : "border-sky-200 bg-sky-50"
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Capacity monitor</p>
+            <h2 className="mt-1 text-lg font-bold text-slate-900">{capacity.recommendation.label}</h2>
+            <p className="mt-1 text-sm text-slate-700">{capacity.recommendation.detail}</p>
+            {capacity.alerts[0] ? (
+              <p className="mt-2 text-sm text-slate-700">
+                Aktiv siqnal: <span className="font-semibold text-slate-900">{capacity.alerts[0].title}</span>
+              </p>
+            ) : null}
+          </div>
+          <Link href="/admin/system" className="btn-secondary">
+            Sistem monitorinqini aç
+          </Link>
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Aylıq gəlir" tone="brand" value={`${overview.monthlyRevenueAzn.toLocaleString("az-AZ")} ₼`} />
         <StatCard label="Bütün istifadəçilər" value={overview.usersTotal.toLocaleString("az-AZ")} />
@@ -63,6 +91,11 @@ export default async function AdminDashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Moderasiya</p>
           <h3 className="mt-2 font-bold text-slate-900">İnsident qutusu</h3>
           <p className="mt-1 text-sm text-slate-500">Şikayət, qayda pozuntusu və saxta məlumat halları.</p>
+        </Link>
+        <Link href="/admin/system" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">İnfrastruktur</p>
+          <h3 className="mt-2 font-bold text-slate-900">Sistem monitorinqi</h3>
+          <p className="mt-1 text-sm text-slate-500">Trafik proxy, service health və növbəti mərhələ xəbərdarlıqları.</p>
         </Link>
         <Link href="/admin/auctions" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Auksion idarəsi</p>

@@ -11,6 +11,7 @@ const sections: Array<{
     title: "İdarəetmə",
     items: [
       { href: "/admin", label: "İcmal paneli" },
+      { href: "/admin/system", label: "Sistem monitorinqi" },
       { href: "/admin/users", label: "İstifadəçilər və rollar" },
       { href: "/admin/listings", label: "Elanlar" },
       { href: "/admin/auctions", label: "Auksion" },
