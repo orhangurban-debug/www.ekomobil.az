@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
-import { exchangeGoogleCode, isGoogleOAuthConfigured } from "@/lib/google-oauth";
+import { canonicalizeAppBaseUrl, exchangeGoogleCode, isGoogleOAuthConfigured } from "@/lib/google-oauth";
 import { upsertUserFromGoogle } from "@/server/user-store";
 
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
@@ -43,7 +43,7 @@ function safeNextPath(path: string | undefined): string {
 
 export async function GET(req: Request) {
   const incoming = new URL(req.url);
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? incoming.origin).replace(/\/+$/, "");
+  const baseUrl = canonicalizeAppBaseUrl(process.env.NEXT_PUBLIC_APP_URL ?? incoming.origin);
   if (!isGoogleOAuthConfigured()) {
     return NextResponse.redirect(new URL("/login?error=google_not_configured", baseUrl));
   }
