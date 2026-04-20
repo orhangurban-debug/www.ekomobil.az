@@ -190,7 +190,7 @@ export default async function ServicesPage({
                   href={filterHref({ type: selectedType, city: selectedCity || undefined })}
                   className="inline-flex items-center gap-1 rounded-full bg-[#0891B2]/10 px-3 py-1 text-xs font-medium text-[#0891B2]"
                 >
-                  "{qParam}" ×
+                  &quot;{qParam}&quot; ×
                 </Link>
               )}
             </div>
