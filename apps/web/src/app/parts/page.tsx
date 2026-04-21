@@ -18,6 +18,16 @@ export const metadata: Metadata = {
   }
 };
 
+const quickPartsPills: Array<{ label: string; href: string }> = [
+  { label: "Mühərrik yağları", href: "/parts?partCategory=Ya%C4%9Flar%20v%C9%99%20kimya" },
+  { label: "Şinlər", href: "/parts?partCategory=T%C9%99k%C9%99r%20v%C9%99%20disk" },
+  { label: "Akkumulyator", href: "/parts?partCategory=Elektrik%20v%C9%99%20akumulyator" },
+  { label: "Orijinal hissələr", href: "/parts?partAuthenticity=original" },
+  { label: "OEM/Firma", href: "/parts?partAuthenticity=oem" },
+  { label: "Stokda olanlar", href: "/parts?inStock=1" },
+  { label: "Doğrulanmış satıcılar", href: "/parts?sellerVerified=1" }
+];
+
 function chipHref(
   searchParams: Record<string, string | string[] | undefined>,
   key: string,
@@ -127,6 +137,20 @@ export default async function PartsPage({
               + Hissə elanı yerləşdir
             </Link>
           </div>
+        </div>
+      </div>
+
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex min-w-max gap-2 pb-1">
+          {quickPartsPills.map((pill) => (
+            <Link
+              key={pill.label}
+              href={pill.href}
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+            >
+              {pill.label}
+            </Link>
+          ))}
         </div>
       </div>
 

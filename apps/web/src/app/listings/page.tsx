@@ -25,6 +25,16 @@ const sortOptions: Array<{
   { value: "recent", label: "Ən yenilər" }
 ];
 
+const quickFilterPills: Array<{ label: string; href: string }> = [
+  { label: "SUV", href: "/listings?bodyType=SUV" },
+  { label: "Sedan", href: "/listings?bodyType=Sedan" },
+  { label: "Elektrik", href: "/listings?fuelType=Elektrik" },
+  { label: "Kreditli", href: "/listings?creditAvailable=1" },
+  { label: "Barter", href: "/listings?barterAvailable=1" },
+  { label: "VIN daxil edilənlər", href: "/listings?vinProvided=1" },
+  { label: "Doğrulanmış satıcı", href: "/listings?sellerVerified=1" }
+];
+
 function chipHref(
   searchParams: Record<string, string | string[] | undefined>,
   key: string,
@@ -145,6 +155,20 @@ export default async function ListingsPage({
       <div className="mb-8">
         <h1 className="section-title">Bütün elanlar</h1>
         <p className="section-subtitle">{result.total} elan tapıldı</p>
+      </div>
+
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex min-w-max gap-2 pb-1">
+          {quickFilterPills.map((pill) => (
+            <Link
+              key={pill.label}
+              href={pill.href}
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+            >
+              {pill.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">

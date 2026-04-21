@@ -12,7 +12,7 @@ import { ListingGallery } from "@/components/listings/listing-gallery";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
-import { getListingDetail, getRelatedListings } from "@/server/listing-store";
+import { getListingDetail, getRelatedListings, listListingsForUser } from "@/server/listing-store";
 import { getListingStats } from "@/server/listing-stats-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
 
@@ -36,6 +36,17 @@ async function isListingOwner(
     return r.rows[0]?.owner_user_id === userId;
   }
   return false;
+}
+
+async function resolveListingOwnerUserId(listing: { ownerUserId?: string; dealerProfileId?: string }): Promise<string | undefined> {
+  if (listing.ownerUserId) return listing.ownerUserId;
+  if (!listing.dealerProfileId) return undefined;
+  const { getPgPool } = await import("@/lib/postgres");
+  const r = await getPgPool().query<{ owner_user_id: string }>(
+    `SELECT owner_user_id FROM dealer_profiles WHERE id = $1`,
+    [listing.dealerProfileId]
+  );
+  return r.rows[0]?.owner_user_id;
 }
 
 function normalizePhoneForTel(value?: string): string | undefined {
@@ -92,6 +103,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     getRelatedListings(listing.relatedIds),
     getListingStats(listing.id)
   ]);
+  const ownerUserId = await resolveListingOwnerUserId(listing);
+  const sellerOtherListings = ownerUserId
+    ? (await listListingsForUser(ownerUserId))
+        .filter((item) => item.id !== listing.id && item.status === "active")
+        .slice(0, 6)
+    : [];
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
   const isPart = listing.listingKind === "part";
 
@@ -231,7 +248,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {/* Right — price & trust */}
-        <div className="space-y-4">
+        <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           {/* Price card */}
           <div className="card p-6">
             <h1 className="text-xl font-bold text-slate-900 leading-snug">{listing.title}</h1>
@@ -505,6 +522,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {related.map((item) => (
+              <ListingCard key={item.id} listing={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sellerOtherListings.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="section-title">Satıcının digər elanları</h2>
+              <p className="section-subtitle">Eyni satıcıdan digər aktiv təkliflər</p>
+            </div>
+            <Link href={isPart ? "/parts" : "/listings"} className="btn-secondary text-sm">Digər elanlara bax</Link>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {sellerOtherListings.map((item) => (
               <ListingCard key={item.id} listing={item} />
             ))}
           </div>
