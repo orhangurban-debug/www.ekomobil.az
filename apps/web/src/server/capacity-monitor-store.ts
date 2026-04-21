@@ -1,5 +1,6 @@
 import { getPgPool } from "@/lib/postgres";
 import { getAdminOverview } from "@/server/admin-store";
+import type { AuctionServiceTelemetry } from "@/server/auction-ops-store";
 import { getAuctionServiceTelemetry } from "@/server/auction-ops-store";
 
 type AlertSeverity = "info" | "warning" | "critical";
@@ -305,7 +306,9 @@ export async function getCapacitySnapshot(): Promise<CapacitySnapshot> {
     probeDatabaseHealth(),
     queryTrafficMetrics(),
     queryProtectedApiMetrics(),
-    getAuctionServiceTelemetry().catch(() => ({ connected: false, healthOk: false }))
+    getAuctionServiceTelemetry().catch(
+      (): AuctionServiceTelemetry => ({ connected: false, healthOk: false })
+    )
   ]);
 
   const snapshotBase = {
