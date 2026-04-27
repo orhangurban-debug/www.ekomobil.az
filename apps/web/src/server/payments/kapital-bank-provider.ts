@@ -161,11 +161,9 @@ export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankS
       order: {
         typeRid: input.orderTypeRid ?? "Order_SMS",
         amount: input.amountAzn.toFixed(2),
+        description: input.description,
         currency: "AZN",
         language: "az",
-        title: input.title ?? "EkoMobil",
-        description: input.description,
-        initiationEnvKind: "Browser",
         hppRedirectUrl: session.payload.callbackUrl
       }
     }),
@@ -224,7 +222,12 @@ export async function getKapitalBankOrderStatus(input: {
   if (isBirPayApiBaseUrl(config)) {
     return getBirPayPayment(input.remoteOrderId);
   }
-  const url = `${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}?tranDetailLevel=2&tokenDetailLevel=2&orderDetailLevel=2`;
+  const url = `${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}?${new URLSearchParams({
+    password: input.remoteOrderPassword,
+    tranDetailLevel: "2",
+    tokenDetailLevel: "2",
+    orderDetailLevel: "2"
+  }).toString()}`;
   const response = await fetch(url, {
     method: "GET",
     headers: {
@@ -245,10 +248,11 @@ export async function getKapitalBankOrderStatus(input: {
 
 export async function executeKapitalBankOrderTransaction(input: {
   remoteOrderId: string;
+  remoteOrderPassword?: string;
   tran: Record<string, unknown>;
 }): Promise<{ raw: unknown }> {
   const config = getKapitalBankConfig();
-  const response = await fetch(`${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}/exec-tran`, {
+  const response = await fetch(`${getKapitalBankApiRoot(config)}/order/${encodeURIComponent(input.remoteOrderId)}/exec-tran${input.remoteOrderPassword ? `?${new URLSearchParams({ password: input.remoteOrderPassword }).toString()}` : ""}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
