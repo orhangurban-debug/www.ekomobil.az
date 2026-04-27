@@ -1,4 +1,15 @@
-import { getKapitalBankApiBaseUrl, getKapitalBankAppUrl, getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
+import {
+  getKapitalBankApiBaseUrl,
+  getKapitalBankAppUrl,
+  getKapitalBankConfig,
+  getKapitalBankGatewayLabel,
+  getKapitalBankLiveReadinessIssues,
+  getKapitalBankProductionReadinessIssues,
+  getKapitalBankReadinessWarnings,
+  isKapitalBankProductionReady,
+  isKapitalBankLiveReady,
+  isKapitalBankSandboxEndpoint
+} from "@/lib/kapital-bank";
 import { getPgPool } from "@/lib/postgres";
 
 export interface BankPaymentOrderRow {
@@ -17,6 +28,8 @@ export interface BankPaymentOrderRow {
 export interface PaymentIntegrationReadiness {
   mode: "disabled" | "mock" | "live";
   liveReady: boolean;
+  productionReady: boolean;
+  gatewayLabel: string;
   merchantId?: string;
   terminalId?: string;
   apiBaseUrl: string;
@@ -28,6 +41,10 @@ export interface PaymentIntegrationReadiness {
     preauth: string;
   };
   webhookEvents: string[];
+  liveReadinessIssues: string[];
+  productionReadinessIssues: string[];
+  readinessWarnings: string[];
+  usesSandboxEndpoint: boolean;
 }
 
 function parseOrderId(payload: unknown, fallback: string): string {
@@ -56,9 +73,14 @@ function parseProviderMode(payload: unknown): string | undefined {
 
 export function getPaymentIntegrationReadiness(): PaymentIntegrationReadiness {
   const config = getKapitalBankConfig();
+  const liveReadinessIssues = getKapitalBankLiveReadinessIssues(config).map((issue) => issue.message);
+  const productionReadinessIssues = getKapitalBankProductionReadinessIssues(config).map((issue) => issue.message);
+  const readinessWarnings = getKapitalBankReadinessWarnings(config).map((warning) => warning.message);
   return {
     mode: config.mode,
     liveReady: isKapitalBankLiveReady(config),
+    productionReady: isKapitalBankProductionReady(config),
+    gatewayLabel: getKapitalBankGatewayLabel(config),
     merchantId: config.merchantId,
     terminalId: config.terminalId,
     apiBaseUrl: getKapitalBankApiBaseUrl(config),
@@ -69,7 +91,11 @@ export function getPaymentIntegrationReadiness(): PaymentIntegrationReadiness {
       auctionService: getKapitalBankAppUrl("/api/payments/auction-service/callback", config),
       preauth: getKapitalBankAppUrl("/api/payments/auction-preauth/callback", config)
     },
-    webhookEvents: ["payment_succeeded", "payment_canceled"]
+    webhookEvents: ["payment_succeeded", "payment_canceled"],
+    liveReadinessIssues,
+    productionReadinessIssues,
+    readinessWarnings,
+    usesSandboxEndpoint: isKapitalBankSandboxEndpoint(config)
   };
 }
 

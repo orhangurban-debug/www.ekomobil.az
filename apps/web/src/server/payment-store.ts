@@ -78,15 +78,23 @@ export async function createListingPlanPayment(input: {
   }
 
   const id = randomUUID();
-  const session = await prepareKapitalBankCheckoutSession({
-    internalPaymentId: id,
-    amountAzn: plan.priceAzn,
-    description: `Listing ${input.planType} plan payment`,
-    checkoutPagePath: `/payments/listing-plan/${id}`,
-    callbackPath: "/api/payments/kapital-bank/callback",
-    successPath: `/listings/${input.listingId}?payment=success`,
-    cancelPath: `/payments/listing-plan/${id}?status=cancelled`
-  });
+  let session;
+  try {
+    session = await prepareKapitalBankCheckoutSession({
+      internalPaymentId: id,
+      amountAzn: plan.priceAzn,
+      description: `Listing ${input.planType} plan payment`,
+      checkoutPagePath: `/payments/listing-plan/${id}`,
+      callbackPath: "/api/payments/kapital-bank/callback",
+      successPath: `/listings/${input.listingId}?payment=success`,
+      cancelPath: `/payments/listing-plan/${id}?status=cancelled`
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Ödəniş sessiyası yaradıla bilmədi"
+    };
+  }
 
   try {
     const pool = getPgPool();

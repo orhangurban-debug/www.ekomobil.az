@@ -180,15 +180,23 @@ export async function createAuctionServicePayment(input: {
   const resolvedAmountAzn =
     input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;
   const id = randomUUID();
-  const session = await prepareKapitalBankCheckoutSession({
-    internalPaymentId: id,
-    amountAzn: resolvedAmountAzn,
-    description: `Auction ${input.eventType} payment`,
-    checkoutPagePath: `/payments/auction-service/${id}`,
-    callbackPath: "/api/payments/auction-service/callback",
-    successPath: `/payments/auction-service/${id}?status=success`,
-    cancelPath: `/payments/auction-service/${id}?status=cancelled`
-  });
+  let session;
+  try {
+    session = await prepareKapitalBankCheckoutSession({
+      internalPaymentId: id,
+      amountAzn: resolvedAmountAzn,
+      description: `Auction ${input.eventType} payment`,
+      checkoutPagePath: `/payments/auction-service/${id}`,
+      callbackPath: "/api/payments/auction-service/callback",
+      successPath: `/payments/auction-service/${id}?status=success`,
+      cancelPath: `/payments/auction-service/${id}?status=cancelled`
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Auksion ödəniş sessiyası yaradıla bilmədi"
+    };
+  }
 
   try {
     const pool = getPgPool();
@@ -472,15 +480,23 @@ export async function createAuctionDeposit(input: {
   }
 
   const id = randomUUID();
-  const session = await prepareKapitalBankCheckoutSession({
-    internalPaymentId: id,
-    amountAzn: auction.depositAmountAzn,
-    description: "Auction bidder deposit",
-    checkoutPagePath: `/payments/auction-deposit/${id}`,
-    callbackPath: "/api/payments/auction-deposit/callback",
-    successPath: `/payments/auction-deposit/${id}?status=success`,
-    cancelPath: `/payments/auction-deposit/${id}?status=cancelled`
-  });
+  let session;
+  try {
+    session = await prepareKapitalBankCheckoutSession({
+      internalPaymentId: id,
+      amountAzn: auction.depositAmountAzn,
+      description: "Auction bidder deposit",
+      checkoutPagePath: `/payments/auction-deposit/${id}`,
+      callbackPath: "/api/payments/auction-deposit/callback",
+      successPath: `/payments/auction-deposit/${id}?status=success`,
+      cancelPath: `/payments/auction-deposit/${id}?status=cancelled`
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Deposit ödəniş sessiyası yaradıla bilmədi"
+    };
+  }
   try {
     const pool = getPgPool();
     const result = await pool.query<AuctionDepositRow>(

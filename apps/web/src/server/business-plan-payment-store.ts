@@ -88,15 +88,23 @@ export async function createBusinessPlanPayment(input: {
   }
 
   const id = randomUUID();
-  const session = await prepareKapitalBankCheckoutSession({
-    internalPaymentId: id,
-    amountAzn,
-    description: `${input.businessType} monthly subscription`,
-    checkoutPagePath: `/payments/business-plan/${id}`,
-    callbackPath: "/api/payments/business-plan/callback",
-    successPath: `/payments/business-plan/${id}?status=success`,
-    cancelPath: `/payments/business-plan/${id}?status=cancelled`
-  });
+  let session;
+  try {
+    session = await prepareKapitalBankCheckoutSession({
+      internalPaymentId: id,
+      amountAzn,
+      description: `${input.businessType} monthly subscription`,
+      checkoutPagePath: `/payments/business-plan/${id}`,
+      callbackPath: "/api/payments/business-plan/callback",
+      successPath: `/payments/business-plan/${id}?status=success`,
+      cancelPath: `/payments/business-plan/${id}?status=cancelled`
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Ödəniş sessiyası yaradıla bilmədi."
+    };
+  }
 
   const pool = getPgPool();
   const result = await pool.query<BusinessPlanPaymentRow>(
