@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
 import {
+  getKapitalBankLiveReadinessIssues,
   getKapitalBankApiBaseUrl,
   getKapitalBankApiRoot,
   getKapitalBankAppUrl,
   getKapitalBankConfig,
+  getKapitalBankGateway,
+  getKapitalBankGatewayLabel,
   isBirPayApiBaseUrl,
   isKapitalBankLiveReady
 } from "@/lib/kapital-bank";
@@ -50,6 +53,7 @@ export function buildKapitalBankCheckoutSession(input: BuildKapitalBankSessionIn
   const config = getKapitalBankConfig();
   const liveReady = isKapitalBankLiveReady(config);
   const mode = config.mode;
+  const gatewayLabel = getKapitalBankGatewayLabel(config);
   const checkoutStrategy: PaymentCheckoutStrategy = mode === "live" && liveReady
     ? "hosted_redirect_pending"
     : "internal_placeholder";
@@ -72,8 +76,10 @@ export function buildKapitalBankCheckoutSession(input: BuildKapitalBankSessionIn
     liveReady,
     notes: mode === "live" && liveReady
       ? [
-          "Live merchant credentials are configured.",
-          "Final bank-specific field mapping and signing must replace the internal placeholder checkout page."
+          `${gatewayLabel} credential-ları konfiqurasiya olunub.`,
+          getKapitalBankGateway(config) === "legacy"
+            ? "Bank /order endpoint-i ilə hosted checkout yaradılacaq."
+            : "BirPay V1.4 hosted checkout yaradılacaq."
         ]
       : [
           "Internal placeholder checkout is active.",
@@ -104,6 +110,12 @@ function getBasicAuthHeader(config = getKapitalBankConfig()): string {
 export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankSessionInput): Promise<KapitalBankCheckoutSession> {
   const session = buildKapitalBankCheckoutSession(input);
   const config = getKapitalBankConfig();
+  if (session.providerMode === "live" && !session.payload.liveReady) {
+    const issueText = getKapitalBankLiveReadinessIssues(config)
+      .map((issue) => issue.message)
+      .join(" ");
+    throw new Error(`Kapital Bank live konfiqurasiyası natamamdır. ${issueText}`.trim());
+  }
   if (session.providerMode !== "live" || !session.payload.liveReady) {
     return session;
   }

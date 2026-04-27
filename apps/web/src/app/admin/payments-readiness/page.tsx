@@ -32,19 +32,67 @@ export default async function AdminPaymentsReadinessPage() {
           <p className="text-xs text-slate-500">Provider rejimi</p>
           <p className="mt-1 text-lg font-bold text-slate-900">{readiness.mode}</p>
           <div className="mt-2">
-            <HealthBadge ok={readiness.liveReady} label={readiness.liveReady ? "Live hazırdır" : "Live tam hazır deyil"} />
+            <HealthBadge
+              ok={readiness.liveReady}
+              label={
+                readiness.productionReady
+                  ? "Production hazırdır"
+                  : readiness.liveReady
+                    ? "Bank test/UAT hazırdır"
+                    : "Checkout hazır deyil"
+              }
+            />
           </div>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs text-slate-500">Merchant ID</p>
-          <p className="mt-1 text-lg font-bold text-slate-900">{readiness.merchantId ?? "—"}</p>
+          <p className="text-xs text-slate-500">Gateway</p>
+          <p className="mt-1 text-lg font-bold text-slate-900">{readiness.gatewayLabel}</p>
+          <p className="mt-2 text-xs text-slate-500">Merchant: {readiness.merchantId ?? "—"}</p>
           <p className="mt-2 text-xs text-slate-500">Terminal: {readiness.terminalId ?? "—"}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <p className="text-xs text-slate-500">API host</p>
           <p className="mt-1 text-sm font-semibold text-slate-900 break-all">{readiness.apiBaseUrl}</p>
+          {readiness.usesSandboxEndpoint && (
+            <p className="mt-2 text-xs font-medium text-amber-700">
+              Live rejim üçün xəbərdarlıq: test/sandbox endpoint istifadə olunur.
+            </p>
+          )}
         </div>
       </div>
+
+      {readiness.readinessWarnings.length > 0 && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5">
+          <h3 className="text-base font-semibold text-sky-900">Gateway qeydləri</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-sky-800">
+            {readiness.readinessWarnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {readiness.liveReadinessIssues.length > 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
+          <h3 className="text-base font-semibold text-amber-900">Checkout üçün çatışmayanlar</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-800">
+            {readiness.liveReadinessIssues.map((issue) => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {readiness.liveReady && !readiness.productionReady && readiness.productionReadinessIssues.length > 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
+          <h3 className="text-base font-semibold text-amber-900">Production go-live üçün qalanlar</h3>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-800">
+            {readiness.productionReadinessIssues.map((issue) => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="text-base font-semibold text-slate-900">Banka veriləcək callback/webhook URL-lər</h3>
