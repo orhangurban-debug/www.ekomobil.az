@@ -171,13 +171,6 @@ export default function RulesPage() {
           </Section>
 
           <Section id="business-rules" title="7. Biznes hesabları üçün əlavə qaydalar">
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800">
-              <p className="font-semibold">Biznes üçün pulsuz plan mövcud deyil</p>
-              <p className="mt-1">
-                Avtomobil salonları və ehtiyat hissə mağazaları kommersiya subyektlərdir.
-                Aktiv olmaq üçün ödənişli abunə planı seçilməlidir.
-              </p>
-            </div>
             <RuleList items={[
               "Biznes hesabları VÖEN ilə qeydiyyatdan keçməlidir",
               "Elan məlumatları şirkətin real inventarını əks etdirməlidir",
