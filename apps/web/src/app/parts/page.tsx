@@ -118,9 +118,6 @@ export default async function PartsPage({
                 Analitika
               </Link>
             )}
-            <Link href="/parts/publish" className="btn-primary text-sm">
-              + Hissə elanı yerləşdir
-            </Link>
           </div>
         </div>
       </div>

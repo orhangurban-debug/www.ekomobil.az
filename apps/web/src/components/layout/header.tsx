@@ -35,17 +35,17 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
-  // Pages that already have their own primary action button — suppress header CTA to avoid duplicates
-  const suppressCta =
-    pathname.startsWith("/dealer") ||
-    pathname.startsWith("/parts") ||
-    pathname.startsWith("/services") ||
-    pathname.startsWith("/partners") ||
-    pathname.startsWith("/publish");
+  const suppressCta = pathname.startsWith("/publish");
 
   const primaryCta = suppressCta
     ? null
-    : { label: "Elan yerləşdir", href: "/publish" };
+    : pathname.startsWith("/services") || pathname.startsWith("/partners")
+      ? { label: "Servis müraciəti", href: "/partners/inspection" }
+      : pathname.startsWith("/dealer")
+        ? { label: "Yeni elan", href: "/publish" }
+        : pathname.startsWith("/parts")
+          ? { label: "Hissə elanı", href: "/parts/publish" }
+          : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);

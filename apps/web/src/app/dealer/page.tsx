@@ -87,7 +87,6 @@ export default async function DealerPortalPage() {
           ) : (
             <span className="btn-secondary pointer-events-none opacity-60">CSV import (Peşəkar+)</span>
           )}
-          <Link href="/publish" className="btn-primary">+ Yeni elan</Link>
         </div>
       </div>
 
