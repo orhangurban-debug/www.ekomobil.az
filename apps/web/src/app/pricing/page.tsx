@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { PricingNav } from "./pricing-nav";
 import { LISTING_PLANS, PRICING_TIERS } from "@/lib/listing-plans";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
@@ -282,25 +283,8 @@ export default function PricingPage() {
             <p className="mt-1 text-xs text-violet-700">Lot yerləşdirmə haqqı + satış komisyonu. Alıcı üçün pulsuz.</p>
           </div>
         </section>
-        {/* Quick nav */}
-        <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
-          {[
-            { href: "#listings", label: "Elan planları" },
-            { href: "#boost", label: "İrəlilətmə" },
-            { href: "#dealer", label: "Salonlar" },
-            { href: "#parts-store", label: "Hissə mağazası" },
-            { href: "#services", label: "Servislər" },
-            { href: "#auction", label: "Auksion haqları" }
-          ].map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        {/* Quick nav — scroll-spy aktiv */}
+        <PricingNav />
 
         {/* ─── 1. Listing plans ──────────────────────────────────────── */}
         <section id="listings" className="scroll-mt-20">
