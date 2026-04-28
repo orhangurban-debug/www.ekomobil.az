@@ -64,9 +64,9 @@ export async function ensureListingBoostPaymentsTable(): Promise<void> {
     const pool = getPgPool();
     await pool.query(`
       CREATE TABLE IF NOT EXISTS listing_boost_payments (
-        id                UUID PRIMARY KEY,
-        listing_id        UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-        owner_user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        id                TEXT PRIMARY KEY,
+        listing_id        TEXT NOT NULL,
+        owner_user_id     TEXT NOT NULL,
         boost_package_id  TEXT NOT NULL,
         boost_type        TEXT NOT NULL,
         amount_azn        NUMERIC(10,2) NOT NULL,

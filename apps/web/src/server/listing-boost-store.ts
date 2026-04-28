@@ -42,8 +42,8 @@ export async function ensureListingBoostTables(): Promise<void> {
     const pool = getPgPool();
     await pool.query(`
       CREATE TABLE IF NOT EXISTS listing_boost_activations (
-        id             UUID PRIMARY KEY,
-        listing_id     UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+        id             TEXT PRIMARY KEY,
+        listing_id     TEXT NOT NULL,
         package_id     TEXT NOT NULL,
         boost_type     TEXT NOT NULL,
         starts_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

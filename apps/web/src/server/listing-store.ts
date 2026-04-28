@@ -103,8 +103,8 @@ async function ensureListingBoostActivationsTable(): Promise<void> {
     const pool = getPgPool();
     await pool.query(`
       CREATE TABLE IF NOT EXISTS listing_boost_activations (
-        id             UUID PRIMARY KEY,
-        listing_id     UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+        id             TEXT PRIMARY KEY,
+        listing_id     TEXT NOT NULL,
         package_id     TEXT NOT NULL,
         boost_type     TEXT NOT NULL,
         starts_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -119,6 +119,18 @@ async function ensureListingBoostActivationsTable(): Promise<void> {
     `);
   } catch {
     // optional table, query layer should continue
+  }
+}
+
+async function hasListingBoostActivationsTable(): Promise<boolean> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ exists: string | null }>(
+      `SELECT to_regclass('public.listing_boost_activations')::text AS exists`
+    );
+    return Boolean(result.rows[0]?.exists);
+  } catch {
+    return false;
   }
 }
 
@@ -305,6 +317,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
   try {
     await ensureSeedData();
     await ensureListingBoostActivationsTable();
+    const boostTableExists = await hasListingBoostActivationsTable();
     const pool = getPgPool();
     const values: unknown[] = [];
     const where: string[] = ["l.status = 'active'"];
@@ -480,7 +493,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       year_desc: "l.year DESC",
       mileage_asc: "l.mileage_km ASC",
       trust_desc: "COALESCE(ts.trust_score, 50) DESC",
-      recent: `${boostOrder}, ${planOrder}, l.created_at DESC`
+      recent: boostTableExists ? `${boostOrder}, ${planOrder}, l.created_at DESC` : `${planOrder}, l.created_at DESC`
     };
     const sortSql = sortMap[query.sort ?? "recent"] ?? sortMap.recent;
 
