@@ -40,6 +40,7 @@ export default async function ProfilePage() {
         </div>
         <div className="flex gap-2">
           <Link href="/me/payments" className="btn-secondary">Ödənişlər</Link>
+          <Link href="/me/privacy" className="btn-secondary">Məxfilik hüquqları</Link>
           <Link href="/favorites" className="btn-secondary">Favorilər</Link>
           <Link href="/publish" className="btn-primary">Yeni elan</Link>
         </div>
@@ -82,9 +83,14 @@ export default async function ProfilePage() {
               </div>
             </dl>
             <div className="mt-4">
-              <Link href="/me/kyc" className="btn-secondary text-sm">
-                Deep KYC səhifəsi
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/me/kyc" className="btn-secondary text-sm">
+                  Deep KYC səhifəsi
+                </Link>
+                <Link href="/me/privacy" className="btn-secondary text-sm">
+                  Məlumat hüquqları
+                </Link>
+              </div>
             </div>
           </section>
 

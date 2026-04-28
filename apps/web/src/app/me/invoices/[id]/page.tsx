@@ -59,7 +59,7 @@ export default async function InvoicePrintPage({ params }: Props) {
                   Ekomobil<span className="text-sky-400">.az</span>
                 </div>
                 <div className="mt-1 text-xs text-slate-400">Azərbaycanın avtomobil marketplace-i</div>
-                <div className="mt-3 text-xs text-slate-400">support@ekomobil.az</div>
+                <div className="mt-3 text-xs text-slate-400">info@ekomobil.az</div>
               </div>
               <div className="text-right">
                 <div className="text-xs font-bold uppercase tracking-widest text-sky-400">İnvoys</div>
@@ -130,7 +130,7 @@ export default async function InvoicePrintPage({ params }: Props) {
           {/* Footer */}
           <div className="rounded-b-2xl border-t border-slate-100 px-10 py-5 text-center print:rounded-none">
             <p className="text-xs text-slate-400">
-              Ekomobil.az · Bakı, Azərbaycan · support@ekomobil.az
+              Ekomobil.az · Bakı, Azərbaycan · info@ekomobil.az
             </p>
             <p className="mt-1 text-xs text-slate-300">
               Bu invoys {issuedDate} tarixində avtomatik olaraq yaradılmışdır.

@@ -85,7 +85,9 @@ export default async function AdminInvoicesPage() {
                       {emailOk ? (
                         <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Göndərildi</span>
                       ) : emailFail ? (
-                        <span className="inline-block rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-600" title={inv.emailError}>Xəta</span>
+                        <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={inv.emailError}>
+                          Yenidən göndəriləcək
+                        </span>
                       ) : (
                         <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">Gözləyir</span>
                       )}

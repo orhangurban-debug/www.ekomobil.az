@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 const EFFECTIVE_DATE = "1 may 2025";
-const COMPANY_EMAIL = "privacy@ekomobil.az";
+const COMPANY_EMAIL = "info@ekomobil.az";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -63,14 +63,16 @@ export default function PrivacyPage() {
             {[
               { href: "#collection", label: "1. Hansı məlumatları toplayırıq?" },
               { href: "#use", label: "2. Məlumatları necə istifadə edirik?" },
-              { href: "#sharing", label: "3. Məlumatları kimlərlə paylaşırıq?" },
-              { href: "#retention", label: "4. Məlumatları nə qədər saxlayırıq?" },
-              { href: "#cookies", label: "5. Çərəzlər (cookies) və izləmə" },
-              { href: "#rights", label: "6. İstifadəçi hüquqları" },
-              { href: "#security", label: "7. Məlumat təhlükəsizliyi" },
-              { href: "#minors", label: "8. Uşaqların məxfiliyi" },
-              { href: "#changes", label: "9. Siyasətin dəyişdirilməsi" },
-              { href: "#contact", label: "10. Əlaqə" }
+              { href: "#legal-basis", label: "3. Emalın hüquqi əsasları" },
+              { href: "#sharing", label: "4. Məlumatları kimlərlə paylaşırıq?" },
+              { href: "#cross-border", label: "5. Xaricə ötürülmə" },
+              { href: "#retention", label: "6. Məlumatları nə qədər saxlayırıq?" },
+              { href: "#cookies", label: "7. Çərəzlər (cookies) və izləmə" },
+              { href: "#rights", label: "8. İstifadəçi hüquqları" },
+              { href: "#security", label: "9. Məlumat təhlükəsizliyi" },
+              { href: "#minors", label: "10. Uşaqların məxfiliyi" },
+              { href: "#changes", label: "11. Siyasətin dəyişdirilməsi" },
+              { href: "#contact", label: "12. Əlaqə" }
             ].map((item) => (
               <li key={item.href}>
                 <a href={item.href} className="hover:underline">{item.label}</a>
@@ -135,7 +137,38 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="sharing" title="3. Məlumatları kimlərlə paylaşırıq?">
+          <Section id="legal-basis" title="3. Emalın hüquqi əsasları">
+            <div className="overflow-hidden rounded-xl border border-slate-200">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs text-slate-500">
+                    <th className="px-4 py-3 font-semibold">Emal məqsədi</th>
+                    <th className="px-4 py-3 font-semibold">Hüquqi əsas</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="px-4 py-3 text-slate-700">Qeydiyyat, giriş, hesab idarəetməsi</td>
+                    <td className="px-4 py-3 text-slate-700">Müqavilənin icrası</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-slate-700">Ödəniş tarixi, invoys və audit qeydləri</td>
+                    <td className="px-4 py-3 text-slate-700">Qanuni öhdəlik</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-slate-700">Saxtakarlığın qarşısının alınması və təhlükəsizlik</td>
+                    <td className="px-4 py-3 text-slate-700">Qanuni maraq</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-slate-700">Analitik və funksional çərəzlər</td>
+                    <td className="px-4 py-3 text-slate-700">Razılıq (deaktiv etmək mümkündür)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          <Section id="sharing" title="4. Məlumatları kimlərlə paylaşırıq?">
             <p className="text-sm font-medium text-slate-700">Aşağıdakı hallarda məlumatlar paylaşıla bilər:</p>
             <div className="mt-3 space-y-3">
               {[
@@ -164,7 +197,18 @@ export default function PrivacyPage() {
             </div>
           </Section>
 
-          <Section id="retention" title="4. Məlumatları nə qədər saxlayırıq?">
+          <Section id="cross-border" title="5. Xaricə ötürülmə">
+            <p>
+              Bəzi xidmət təminatçıları (hosting, e-poçt infrastrukturu, monitorinq və ödəniş infrastrukturu)
+              məlumatları Azərbaycan xaricində yerləşən data mərkəzlərində emal edə bilər.
+            </p>
+            <p>
+              Belə ötürmələr yalnız xidmətin göstərilməsi üçün zəruri həcmdə edilir və müqavilə, texniki
+              təhlükəsizlik tədbirləri, giriş nəzarəti ilə qorunur.
+            </p>
+          </Section>
+
+          <Section id="retention" title="6. Məlumatları nə qədər saxlayırıq?">
             <div className="overflow-hidden rounded-xl border border-slate-200">
               <table className="w-full text-sm">
                 <thead>
@@ -192,7 +236,7 @@ export default function PrivacyPage() {
             </div>
           </Section>
 
-          <Section id="cookies" title="5. Çərəzlər (cookies) və izləmə">
+          <Section id="cookies" title="7. Çərəzlər (cookies) və izləmə">
             <p>
               EkoMobil müəyyən çərəzlər istifadə edir. Onları funksional əhəmiyyətinə görə qruplaşdırırıq:
             </p>
@@ -228,24 +272,26 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="rights" title="6. İstifadəçi hüquqları">
+          <Section id="rights" title="8. İstifadəçi hüquqları">
             <p>Məlumatlarınıza dair aşağıdakı hüquqlara sahibsiniz:</p>
             <ul className="list-disc space-y-2 pl-5 text-sm">
               <li><strong>Giriş hüququ:</strong> Platformada saxladığımız məlumatlarınızın surətini tələb edə bilərsiniz</li>
               <li><strong>Düzəliş hüququ:</strong> Yanlış məlumatları düzəltməyi tələb edə bilərsiniz</li>
               <li><strong>Silinmə hüququ:</strong> Hesabınızı silməyi tələb edə bilərsiniz; hüquqi öhdəlik doğuran məlumatlar istisnadır</li>
-              <li><strong>Ötürmə hüququ:</strong> Elan məlumatlarınızı maşın oxunabilir formatda (JSON/CSV) ixrac edə bilərsiniz</li>
+              <li><strong>Ötürmə hüququ:</strong> Məlumatlarınızı maşın oxuna bilən JSON formatında ixrac edə bilərsiniz</li>
               <li><strong>Etiraz hüququ:</strong> Analitik məqsədli emaldan imtina edə bilərsiniz</li>
               <li><strong>Şikayət hüququ:</strong> Azərbaycan Respublikasının müvafiq dövlət orqanına şikayət vermək hüququnuz var</li>
             </ul>
             <p className="text-sm">
               Hüquqlarınızı həyata keçirmək üçün{" "}
               <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
-              ünvanına yazın. 30 iş günü ərzində cavablandırılır.
+              ünvanına yazın və ya{" "}
+              <Link href="/me/privacy" className="text-[#0891B2] hover:underline">məxfilik hüquqları səhifəsindən</Link>{" "}
+              birbaşa sorğu yaradın. 30 iş günü ərzində cavablandırılır.
             </p>
           </Section>
 
-          <Section id="security" title="7. Məlumat təhlükəsizliyi">
+          <Section id="security" title="9. Məlumat təhlükəsizliyi">
             <ul className="list-disc space-y-2 pl-5 text-sm">
               <li>Bütün məlumat ötürülməsi <strong>TLS/HTTPS</strong> ilə şifrələnir</li>
               <li>Parollar <strong>scrypt</strong> ilə hash-lənir, açıq mətn saxlanmır</li>
@@ -259,7 +305,7 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="minors" title="8. Uşaqların məxfiliyi">
+          <Section id="minors" title="10. Uşaqların məxfiliyi">
             <p>
               EkoMobil 18 yaşdan kiçik şəxslərə xidmət göstərmir. Uşağın məlumatlarını bilərəkdən
               toplamırıq. Belə məlumatla rastlaşsaq, dərhal silirik. Şübhəniz varsa{" "}
@@ -268,7 +314,7 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="changes" title="9. Siyasətin dəyişdirilməsi">
+          <Section id="changes" title="11. Siyasətin dəyişdirilməsi">
             <p>
               Bu siyasəti vaxtaşırı yeniləyə bilərik. Əhəmiyyətli dəyişikliklər baş versə, effektiv
               tarixdən ən azı <strong>14 gün əvvəl</strong> e-poçt bildirişi göndərəcəyik.
@@ -276,7 +322,7 @@ export default function PrivacyPage() {
             </p>
           </Section>
 
-          <Section id="contact" title="10. Əlaqə">
+          <Section id="contact" title="12. Əlaqə">
             <p>Məxfilik məsələləri üçün:</p>
             <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-1">
               <p><strong>EkoMobil MMC — Məxfilik Məsul Şəxs</strong></p>
@@ -295,6 +341,7 @@ export default function PrivacyPage() {
         <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
           <Link href="/terms" className="text-[#0891B2] hover:underline">İstifadəçi Razılaşması</Link>
           <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
+          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund siyasəti</Link>
           <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
         </div>
       </div>

@@ -11,7 +11,8 @@ const STATIC_ROUTES: Array<{ path: string; changeFrequency: MetadataRoute.Sitema
   { path: "/pricing", changeFrequency: "weekly", priority: 0.7 },
   { path: "/terms", changeFrequency: "monthly", priority: 0.5 },
   { path: "/privacy", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/rules", changeFrequency: "monthly", priority: 0.5 }
+  { path: "/rules", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/refund-policy", changeFrequency: "monthly", priority: 0.5 }
 ];
 
 export const revalidate = 3600;

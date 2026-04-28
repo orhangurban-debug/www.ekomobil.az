@@ -152,7 +152,7 @@ function buildInvoiceHtml(data: InvoiceEmailData): string {
           <tr>
             <td style="padding:24px 40px;text-align:center;border-top:1px solid #f1f5f9;">
               <p style="margin:0;font-size:12px;color:#94a3b8;">Ekomobil.az · Bakı, Azərbaycan</p>
-              <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">Bu e-poçt avtomatik olaraq göndərilib. Suallarınız üçün <a href="mailto:support@ekomobil.az" style="color:#38bdf8;text-decoration:none;">support@ekomobil.az</a></p>
+              <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">Bu e-poçt avtomatik olaraq göndərilib. Suallarınız üçün <a href="mailto:info@ekomobil.az" style="color:#38bdf8;text-decoration:none;">info@ekomobil.az</a></p>
             </td>
           </tr>
 
@@ -168,7 +168,7 @@ export async function sendInvoiceEmail(data: InvoiceEmailData): Promise<{ ok: bo
   try {
     const resend = getResend();
     const { error } = await resend.emails.send({
-      from: "Ekomobil.az <noreply@ekomobil.az>",
+      from: "Ekomobil.az <info@ekomobil.az>",
       to: data.to,
       subject: `İnvoys ${data.invoiceNumber} – Ödənişiniz qəbul edildi`,
       html: buildInvoiceHtml(data)

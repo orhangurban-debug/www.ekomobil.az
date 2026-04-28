@@ -9,6 +9,10 @@ const ALLOWED_TYPES = new Set([
   "complaint",
   "partnership",
   "inspection_partner",
+  "data_export",
+  "data_rectification",
+  "data_deletion",
+  "data_processing_objection",
   "other"
 ]);
 

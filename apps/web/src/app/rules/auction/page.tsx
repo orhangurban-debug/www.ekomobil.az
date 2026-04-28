@@ -107,6 +107,22 @@ export default function AuctionFrameworkPage() {
               məhkəmə və ya arbitraj əvəzi deyil.
             </li>
           </ul>
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+            <p className="font-semibold text-slate-800">Mübahisə proseduru (ödənişə təsir edən hallar)</p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-600">
+              <li>Hadisədən sonra 72 saat ərzində mübahisə qeydi açılmalıdır.</li>
+              <li>Minimum sübut paketi: lot ID, hadisə vaxtı, yazışma/sistem logu və varsa media sübutu.</li>
+              <li>İlkin cavab: 2 iş günü, yekun qərar: 10 iş günü.</li>
+              <li>Qərardan sonra 5 iş günü ərzində apellyasiya mümkündür; apellyasiya cavabı 10 iş günü ərzində verilir.</li>
+            </ul>
+            <p className="mt-2">
+              Əlavə qaydalar üçün{" "}
+              <Link href="/refund-policy" className="text-[#0891B2] hover:underline">
+                refund və cərimə siyasətinə
+              </Link>{" "}
+              baxın.
+            </p>
+          </div>
         </section>
 
         <section>

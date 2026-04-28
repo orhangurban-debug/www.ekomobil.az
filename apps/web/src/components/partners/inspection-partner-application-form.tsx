@@ -440,7 +440,7 @@ export function InspectionPartnerApplicationForm() {
           subject,
           message: message.join("\n"),
           name: contactName.trim(),
-          email: email.trim() || "noemail@ekomobil.az",
+          email: email.trim() || "info@ekomobil.az",
           phone: phone.trim()
         })
       });

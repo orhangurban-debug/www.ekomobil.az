@@ -120,7 +120,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field"
-                placeholder="admin@ekomobil.az"
+                placeholder="info@ekomobil.az"
                 required
                 autoComplete="email"
               />

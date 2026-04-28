@@ -8,7 +8,7 @@ export const metadata = {
 
 const EFFECTIVE_DATE = "1 may 2025";
 const COMPANY_NAME = "EkoMobil MMC";
-const COMPANY_EMAIL = "legal@ekomobil.az";
+const COMPANY_EMAIL = "info@ekomobil.az";
 const COMPANY_ADDRESS = "Bakı, Azərbaycan";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -180,11 +180,16 @@ export default function TermsPage() {
             </Sub>
             <Sub title="Geri qaytarma siyasəti">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
-                <li><strong>Elan planı:</strong> Elan texniki problem səbəbiylə heç aktivləşmədisə 7 iş günü ərzində geri qaytarılır</li>
-                <li><strong>Boost xidməti:</strong> Aktivləşdikdən sonra geri qaytarılmır</li>
-                <li><strong>Salon abunəsi:</strong> Başlanmış ay geri qaytarılmır; növbəti ay üçün ləğv mümkündür</li>
-                <li><strong>Texniki nasazlıq:</strong> Sübut edilmiş platforma xətası olduqda ödəniş krediti şəklində kompensasiya edilə bilər</li>
+                <li><strong>Elan planı:</strong> Uğurla aktivləşmiş plan geri qaytarılmır; texniki aktivləşmə xətasında 7 iş günü daxilində refund/kredit tətbiq edilir</li>
+                <li><strong>Boost xidməti:</strong> Aktivləşmiş boost geri qaytarılmır; texniki aktivləşmə xətasında bərpa və ya kredit tətbiq edilə bilər</li>
+                <li><strong>Salon abunəsi:</strong> Başlanmış ay geri qaytarılmır; ləğv yalnız növbəti dövr üçün qüvvəyə minir</li>
+                <li><strong>Auksion intizam ödənişləri:</strong> Yalnız qayda pozuntusu təsdiqləndikdə tətbiq edilir və ayrıca mübahisə proseduruna tabedir</li>
               </ul>
+              <p className="mt-2 text-sm">
+                Tam qaydalar üçün{" "}
+                <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund və cərimə siyasəti</Link>{" "}
+                sənədinə baxın.
+              </p>
             </Sub>
             <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
               Ödəniş prosesini üçüncü tərəf ödəniş sistemi (bank/prosessor) həyata keçirir. EkoMobil kart
@@ -307,7 +312,9 @@ export default function TermsPage() {
             <p>
               Bu razılaşmadan doğan mübahisələr ilk növbədə{" "}
               <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
-              ünvanına yazılı müraciətlə həll edilməyə çalışılır. 30 gün ərzində razılığa gəlinmirsə, mübahisə
+              ünvanına yazılı müraciətlə həll edilməyə çalışılır. Refund və cərimə mübahisələrində ilkin cavab müddəti 2 iş günü,
+              yekun qərar müddəti 10 iş günüdür; qərardan sonra 5 iş günü ərzində apellyasiya vermək mümkündür.
+              30 gün ərzində razılığa gəlinmirsə, mübahisə
               Azərbaycan Respublikası qanunvericiliyinə uyğun olaraq Bakı şəhəri məhkəmələrinin yurisdiksiyasına
               verilir. Tətbiq olunan hüquq: Azərbaycan Respublikasının qanunvericiliyi.
             </p>
@@ -332,6 +339,7 @@ export default function TermsPage() {
             <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-1">
               <p><strong>{COMPANY_NAME}</strong></p>
               <p>{COMPANY_ADDRESS}</p>
+              <p>Hüquqi rekvizitlər (VÖEN və qeydiyyat məlumatı) sorğu əsasında təqdim edilir.</p>
               <p>
                 E-poçt:{" "}
                 <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>
@@ -345,6 +353,7 @@ export default function TermsPage() {
         <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
           <Link href="/privacy" className="text-[#0891B2] hover:underline">Məxfilik Siyasəti</Link>
           <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
+          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund siyasəti</Link>
           <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
         </div>
       </div>

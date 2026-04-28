@@ -69,7 +69,8 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
               {[
                 { href: "/rules", label: "Qaydalar" },
                 { href: "/terms", label: "İstifadə şərtləri" },
-                { href: "/privacy", label: "Məxfilik siyasəti" }
+                { href: "/privacy", label: "Məxfilik siyasəti" },
+                { href: "/refund-policy", label: "Refund siyasəti" }
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">

@@ -14,6 +14,10 @@ const REQUEST_TYPES: Array<{ value: string; label: string }> = [
   { value: "complaint", label: "Şikayət" },
   { value: "partnership", label: "Tərəfdaşlıq" },
   { value: "inspection_partner", label: "Ekspertiza/Rəsmi servis tərəfdaşlığı" },
+  { value: "data_export", label: "Məlumat ixrac sorğusu (JSON/CSV)" },
+  { value: "data_rectification", label: "Məlumat düzəliş sorğusu" },
+  { value: "data_deletion", label: "Məlumat silinmə sorğusu" },
+  { value: "data_processing_objection", label: "Emala etiraz sorğusu" },
   { value: "other", label: "Digər" }
 ];
 
@@ -113,7 +117,7 @@ export function SupportRequestForm({ listingId, initialRequestType = "question",
         </label>
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</span>
-          <input className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ad@example.com" />
+          <input className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@ekomobil.az" />
         </label>
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Telefon</span>

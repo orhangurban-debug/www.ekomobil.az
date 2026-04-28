@@ -245,10 +245,10 @@ export default function RulesPage() {
             ]} />
             <p className="text-sm">
               Moderasiya qərarına etiraz üçün{" "}
-              <a href="mailto:moderation@ekomobil.az" className="text-[#0891B2] hover:underline">
-                moderation@ekomobil.az
+              <a href="mailto:info@ekomobil.az" className="text-[#0891B2] hover:underline">
+                info@ekomobil.az
               </a>{" "}
-              ünvanına yazın. Əsaslı etirazlar 5 iş günü ərzində nəzərdən keçirilir.
+              ünvanına yazın. İlkin cavab müddəti 2 iş günü, əsaslı etirazların yekun baxışı 5 iş günü ərzində tamamlanır.
             </p>
           </Section>
 
@@ -310,6 +310,11 @@ export default function RulesPage() {
             <p className="text-sm">
               EkoMobil ağır hallarda hüquq-mühafizə orqanlarına müraciət etmək hüququnu özündə saxlayır.
             </p>
+            <p className="text-sm">
+              Ödənişə təsir edən intizam qərarlarında istifadəçi 5 iş günü ərzində apellyasiya edə bilər. Ətraflı qaydalar{" "}
+              <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund və cərimə siyasəti</Link>{" "}
+              sənədində göstərilir.
+            </p>
           </Section>
 
           <Section id="auction-link" title="11. Auksion qaydaları">
@@ -346,6 +351,11 @@ export default function RulesPage() {
                   href: "/pricing",
                   title: "Qiymət cədvəli",
                   desc: "Elan, boost, salon, mağaza plan qiymətləri"
+                },
+                {
+                  href: "/refund-policy",
+                  title: "Refund siyasəti",
+                  desc: "Geri qaytarma, intizam ödənişləri və apellyasiya proseduru"
                 },
                 {
                   href: "/rules/auction",
