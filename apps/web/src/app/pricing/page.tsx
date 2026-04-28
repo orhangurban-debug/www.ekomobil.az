@@ -66,8 +66,7 @@ function SectionHeader({ label, title, sub }: { label: string; title: string; su
 }
 
 function NoBizFreeBanner() {
-  return (
-  );
+  return null;
 }
 
 type AuctionCategoryStyle = {
