@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
-import { demoLeads, demoListings } from "@/lib/demo-marketplace";
 import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { createListingRecord } from "@/server/listing-store";
@@ -186,11 +185,11 @@ export async function getDealerDashboard(userId: string): Promise<{
     };
   } catch {
     return {
-      dealerName: "Eko Premium Motors",
-      city: "Bakı",
-      verified: true,
-      inventory: demoListings.filter((item) => item.sellerType === "dealer"),
-      leads: demoLeads
+      dealerName: "Dealer hesabı tapılmadı",
+      city: "",
+      verified: false,
+      inventory: [],
+      leads: []
     };
   }
 }

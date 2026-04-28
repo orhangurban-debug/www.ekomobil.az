@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
-import { demoListings, demoListingsDetailed } from "@/lib/demo-marketplace";
 import {
   ListingDetail,
   ListingKind,
@@ -14,17 +13,6 @@ import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { getBoostOrderSql } from "@/server/listing-boost-store";
-
-const globalForListings = globalThis as unknown as {
-  ekomobilCreatedListings?: ListingDetail[];
-};
-
-function getCreatedListings(): ListingDetail[] {
-  if (!globalForListings.ekomobilCreatedListings) {
-    globalForListings.ekomobilCreatedListings = [];
-  }
-  return globalForListings.ekomobilCreatedListings;
-}
 
 interface ListingRow {
   id: string;
@@ -214,87 +202,6 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     lastVerifiedAt: row.last_verified_at?.toISOString(),
     priceInsight: inferPriceInsight(row.price_azn)
   };
-}
-
-function filterDemo(items: ListingSummary[], query: ListingQuery): ListingSummary[] {
-  const page = query.page ?? 1;
-  const pageSize = query.pageSize ?? 9;
-  let result = [...items];
-
-  const listingKind = query.listingKind ?? "vehicle";
-  result = result.filter((item) => (item.listingKind ?? "vehicle") === listingKind);
-
-  if (query.city && query.city !== "Hamısı") result = result.filter((item) => item.city === query.city);
-  if (query.make && query.make !== "Hamısı") result = result.filter((item) => item.make === query.make);
-  if (query.model && query.model !== "Hamısı") result = result.filter((item) => item.model.toLowerCase() === query.model!.toLowerCase());
-  if (query.search) {
-    const needle = query.search.toLowerCase();
-    result = result.filter((item) => `${item.make} ${item.model} ${item.title}`.toLowerCase().includes(needle));
-  }
-  if (query.compareIds && query.compareIds.length > 0) {
-    result = result.filter((item) => query.compareIds!.includes(item.id));
-  }
-  if (query.fuelType) result = result.filter((item) => item.fuelType === query.fuelType);
-  if (query.engineType) result = result.filter((item) => item.engineType === query.engineType);
-  if (query.transmission) result = result.filter((item) => item.transmission === query.transmission);
-  if (query.minPrice) result = result.filter((item) => item.priceAzn >= query.minPrice!);
-  if (query.maxPrice) result = result.filter((item) => item.priceAzn <= query.maxPrice!);
-  if (query.minYear) result = result.filter((item) => item.year >= query.minYear!);
-  if (query.maxYear) result = result.filter((item) => item.year <= query.maxYear!);
-  if (query.vinVerified) result = result.filter((item) => item.vinVerified);
-  if (query.sellerVerified) result = result.filter((item) => item.sellerVerified);
-  if (query.sellerType) result = result.filter((item) => item.sellerType === query.sellerType);
-  if (query.partCategory) result = result.filter((item) => item.partCategory === query.partCategory);
-  if (query.partSubcategory) result = result.filter((item) => item.partSubcategory === query.partSubcategory);
-  if (query.partBrand) result = result.filter((item) => item.partBrand === query.partBrand);
-  if (query.partCondition) result = result.filter((item) => item.partCondition === query.partCondition);
-  if (query.partAuthenticity) result = result.filter((item) => item.partAuthenticity === query.partAuthenticity);
-  if (query.inStock) result = result.filter((item) => (item.partQuantity ?? 0) > 0);
-  if (query.minMileage) result = result.filter((item) => item.mileageKm >= query.minMileage!);
-  if (query.maxMileage) result = result.filter((item) => item.mileageKm <= query.maxMileage!);
-  if (query.bodyType) result = result.filter((item) => item.bodyType === query.bodyType);
-  if (query.driveType) result = result.filter((item) => item.driveType === query.driveType);
-  if (query.color) result = result.filter((item) => item.color === query.color);
-  if (query.condition) result = result.filter((item) => item.condition === query.condition);
-  if (query.minEngineVolumeCc) result = result.filter((item) => (item.engineVolumeCc ?? 0) >= query.minEngineVolumeCc!);
-  if (query.maxEngineVolumeCc) result = result.filter((item) => (item.engineVolumeCc ?? 0) <= query.maxEngineVolumeCc!);
-  if (query.interiorMaterial) result = result.filter((item) => item.interiorMaterial === query.interiorMaterial);
-  if (query.hasSunroof) result = result.filter((item) => item.hasSunroof === true);
-  if (query.creditAvailable) result = result.filter((item) => item.creditAvailable === true);
-  if (query.barterAvailable) result = result.filter((item) => item.barterAvailable === true);
-  if (query.vinProvided) result = result.filter((item) => item.vinProvided === true);
-  if (query.seatHeating) result = result.filter((item) => item.seatHeating === true);
-  if (query.seatCooling) result = result.filter((item) => item.seatCooling === true);
-  if (query.camera360) result = result.filter((item) => item.camera360 === true);
-  if (query.parkingSensors) result = result.filter((item) => item.parkingSensors === true);
-  if (query.adaptiveCruise) result = result.filter((item) => item.adaptiveCruise === true);
-  if (query.laneAssist) result = result.filter((item) => item.laneAssist === true);
-  if (query.maxOwnersCount) result = result.filter((item) => (item.ownersCount ?? 99) <= query.maxOwnersCount!);
-  if (query.hasServiceBook) result = result.filter((item) => item.hasServiceBook === true);
-  if (query.hasRepairHistory) result = result.filter((item) => item.hasRepairHistory === true);
-
-  switch (query.sort) {
-    case "price_asc":
-      result.sort((a, b) => a.priceAzn - b.priceAzn);
-      break;
-    case "price_desc":
-      result.sort((a, b) => b.priceAzn - a.priceAzn);
-      break;
-    case "year_desc":
-      result.sort((a, b) => b.year - a.year);
-      break;
-    case "trust_desc":
-      result.sort((a, b) => b.trustScore - a.trustScore);
-      break;
-    case "mileage_asc":
-      result.sort((a, b) => a.mileageKm - b.mileageKm);
-      break;
-    default:
-      result.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  }
-
-  const start = (page - 1) * pageSize;
-  return result.slice(start, start + pageSize);
 }
 
 export async function getActiveListingCount(): Promise<number> {
@@ -550,11 +457,9 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       pageSize
     };
   } catch {
-    const fallbackItems = [...getCreatedListings(), ...demoListings];
-    const filtered = filterDemo(fallbackItems, query);
     return {
-      items: filtered,
-      total: filterDemo(fallbackItems, { ...query, page: 1, pageSize: 999 }).length,
+      items: [],
+      total: 0,
       page,
       pageSize
     };
@@ -655,11 +560,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       relatedIds: relatedRows.rows.map((entry) => entry.id)
     };
   } catch {
-    const found = getCreatedListings().find((item) => item.id === id) ?? null;
-    if (found) return found;
-    const demo = demoListingsDetailed.find((item) => item.id === id);
-    if (!demo) return null;
-    return { ...demo, mediaUrls: demo.imageUrl ? [demo.imageUrl] : [] };
+    return null;
   }
 }
 
@@ -880,7 +781,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
     );
     return result.rows.map(mapRowToSummary);
   } catch {
-    return [...getCreatedListings(), ...demoListings].filter((item) => ids.includes(item.id));
+    return [];
   }
 }
 
@@ -920,7 +821,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
     );
     return result.rows.map(mapRowToSummary);
   } catch {
-    return getCreatedListings().filter((item) => item.ownerUserId === userId || item.dealerProfileId === "dealer-1");
+    return [];
   }
 }
 
@@ -945,13 +846,7 @@ export async function countConcurrentFreeVehicleListingsForUser(userId: string):
     );
     return Number(result.rows[0]?.count ?? "0");
   } catch {
-    return getCreatedListings().filter(
-      (item) =>
-        (item.ownerUserId === userId || item.dealerProfileId === "dealer-1") &&
-        (item.planType ?? "free") === "free" &&
-        (item.listingKind ?? "vehicle") === "vehicle" &&
-        (item.status === "active" || item.status === "pending_review")
-    ).length;
+    return 0;
   }
 }
 
@@ -1093,140 +988,6 @@ export async function hasRecentImageHashDuplicate(input: {
   }
 }
 
-export function createListingFallback(input: {
-  ownerUserId?: string;
-  dealerProfileId?: string;
-  title: string;
-  description: string;
-  make: string;
-  model: string;
-  year: number;
-  city: string;
-  priceAzn: number;
-  mileageKm: number;
-  fuelType: string;
-  engineType?: string;
-  transmission: string;
-  vin: string;
-  sellerType: "private" | "dealer";
-  bodyType?: string;
-  driveType?: string;
-  color?: string;
-  condition?: string;
-  engineVolumeCc?: number;
-  interiorMaterial?: string;
-  hasSunroof?: boolean;
-  creditAvailable?: boolean;
-  barterAvailable?: boolean;
-  vinProvided?: boolean;
-  seatHeating?: boolean;
-  seatCooling?: boolean;
-  camera360?: boolean;
-  parkingSensors?: boolean;
-  adaptiveCruise?: boolean;
-  laneAssist?: boolean;
-  ownersCount?: number;
-  hasServiceBook?: boolean;
-  hasRepairHistory?: boolean;
-  status?: ListingStatus;
-  planType?: PlanType;
-  listingKind?: ListingKind;
-  partCategory?: string;
-  partSubcategory?: string;
-  partBrand?: string;
-  partCondition?: "new" | "used" | "refurbished";
-  partAuthenticity?: "original" | "oem" | "aftermarket";
-  partOemCode?: string;
-  partSku?: string;
-  partQuantity?: number;
-  partCompatibility?: string;
-  imageUrls?: string[];
-  imageHashes?: string[];
-  trust: {
-    trustScore: number;
-    vinVerified: boolean;
-    sellerVerified: boolean;
-    mediaComplete: boolean;
-    mileageFlagSeverity?: string;
-    mileageFlagMessage?: string;
-    serviceHistorySummary?: string;
-    riskSummary?: string;
-  };
-}): { id: string } {
-  const id = randomUUID();
-  const status = input.status ?? "active";
-  const planType = input.planType ?? "free";
-  const planExpiresAt = status === "active" ? calculatePlanExpiry(planType) : null;
-  const item: ListingDetail = {
-    id,
-    listingKind: input.listingKind ?? "vehicle",
-    partCategory: input.partCategory,
-    partSubcategory: input.partSubcategory,
-    partBrand: input.partBrand,
-    partCondition: input.partCondition,
-    partAuthenticity: input.partAuthenticity,
-    partOemCode: input.partOemCode,
-    partSku: input.partSku,
-    partQuantity: input.partQuantity,
-    partCompatibility: input.partCompatibility,
-    title: input.title,
-    description: input.description,
-    priceAzn: input.priceAzn,
-    city: input.city,
-    year: input.year,
-    mileageKm: input.mileageKm,
-    fuelType: input.fuelType,
-    engineType: input.engineType,
-    transmission: input.transmission,
-    make: input.make,
-    model: input.model,
-    vin: input.vin,
-    status,
-    sellerType: input.sellerType,
-    bodyType: input.bodyType,
-    driveType: input.driveType,
-    color: input.color,
-    condition: input.condition,
-    engineVolumeCc: input.engineVolumeCc,
-    interiorMaterial: input.interiorMaterial,
-    hasSunroof: input.hasSunroof,
-    creditAvailable: input.creditAvailable,
-    barterAvailable: input.barterAvailable,
-    vinProvided: input.vinProvided ?? Boolean(input.vin),
-    seatHeating: input.seatHeating,
-    seatCooling: input.seatCooling,
-    camera360: input.camera360,
-    parkingSensors: input.parkingSensors,
-    adaptiveCruise: input.adaptiveCruise,
-    laneAssist: input.laneAssist,
-    ownersCount: input.ownersCount,
-    hasServiceBook: input.hasServiceBook,
-    hasRepairHistory: input.hasRepairHistory,
-    ownerUserId: input.ownerUserId,
-    dealerProfileId: input.dealerProfileId,
-    planType,
-    planExpiresAt: planExpiresAt?.toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    trustScore: input.trust.trustScore,
-    vinVerified: input.trust.vinVerified,
-    sellerVerified: input.trust.sellerVerified,
-    mediaComplete: input.trust.mediaComplete,
-    mileageFlagSeverity: input.trust.mileageFlagSeverity as ListingDetail["mileageFlagSeverity"],
-    mileageFlagMessage: input.trust.mileageFlagMessage,
-    serviceHistorySummary: input.trust.serviceHistorySummary,
-    riskSummary: input.trust.riskSummary,
-    lastVerifiedAt: new Date().toISOString(),
-    priceInsight: inferPriceInsight(input.priceAzn),
-    imageUrl: input.imageUrls?.[0],
-    mediaUrls: input.imageUrls ?? [],
-    serviceRecords: [],
-    relatedIds: []
-  };
-  getCreatedListings().unshift(item);
-  return { id };
-}
-
 async function resolveListingOwnership(
   listingId: string,
   userId: string
@@ -1261,10 +1022,7 @@ async function resolveListingOwnership(
       isOwner: isOwner || isDealerOwner
     };
   } catch {
-    const listing = getCreatedListings().find((item) => item.id === listingId) ?? null;
-    if (!listing) return { listing: null, isOwner: false };
-    const isOwner = listing.ownerUserId === userId;
-    return { listing, isOwner };
+    return { listing: null, isOwner: false };
   }
 }
 
@@ -1308,17 +1066,7 @@ export async function applyListingPlanForOwner(
     );
     return { ok: true };
   } catch {
-    const listing = getCreatedListings().find((item) => item.id === listingId);
-    if (!listing) return { ok: false, error: "Elan tapılmadı" };
-    if (listing.ownerUserId !== userId) {
-      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
-    }
-    const planExpiresAt = calculatePlanExpiry(planType);
-    listing.planType = planType;
-    listing.planExpiresAt = options?.activate ? undefined : planExpiresAt.toISOString();
-    if (options?.activate) listing.status = "pending_review";
-    listing.updatedAt = new Date().toISOString();
-    return { ok: true };
+    return { ok: false, error: "Plan yenilənərkən xəta baş verdi" };
   }
 }
 
@@ -1508,43 +1256,6 @@ export async function updateListingForOwner(
     );
     return { ok: true };
   } catch {
-    const listing = getCreatedListings().find((item) => item.id === listingId);
-    if (!listing) return { ok: false, error: "Elan tapılmadı" };
-    if (listing.ownerUserId !== userId) {
-      return { ok: false, error: "Bu elanı redaktə etmə icazəniz yoxdur" };
-    }
-    if (title !== undefined) listing.title = title;
-    if (description !== undefined) listing.description = description;
-    if (city !== undefined) listing.city = city;
-    if (priceAzn !== undefined) listing.priceAzn = priceAzn;
-    if (make !== undefined) listing.make = make;
-    if (model !== undefined) listing.model = model;
-    if (year !== undefined) listing.year = year;
-    if (mileageKm !== undefined) listing.mileageKm = mileageKm;
-    if (fuelType !== undefined) listing.fuelType = fuelType;
-    if (normalizedEngineType !== null) listing.engineType = normalizedEngineType;
-    if (normalizedTransmission !== null) listing.transmission = normalizedTransmission;
-    if (vin !== undefined) listing.vin = vin;
-    if (bodyType !== undefined) listing.bodyType = bodyType;
-    if (driveType !== undefined) listing.driveType = driveType;
-    if (color !== undefined) listing.color = color;
-    if (condition !== undefined) listing.condition = condition;
-    if (normalizedEngineVolumeCc !== undefined) listing.engineVolumeCc = normalizedEngineVolumeCc ?? undefined;
-    if (interiorMaterial !== undefined) listing.interiorMaterial = interiorMaterial;
-    if (input.hasSunroof !== undefined) listing.hasSunroof = input.hasSunroof;
-    if (input.creditAvailable !== undefined) listing.creditAvailable = input.creditAvailable;
-    if (input.barterAvailable !== undefined) listing.barterAvailable = input.barterAvailable;
-    if (input.seatHeating !== undefined) listing.seatHeating = input.seatHeating;
-    if (input.seatCooling !== undefined) listing.seatCooling = input.seatCooling;
-    if (input.camera360 !== undefined) listing.camera360 = input.camera360;
-    if (input.parkingSensors !== undefined) listing.parkingSensors = input.parkingSensors;
-    if (input.adaptiveCruise !== undefined) listing.adaptiveCruise = input.adaptiveCruise;
-    if (input.laneAssist !== undefined) listing.laneAssist = input.laneAssist;
-    if (input.ownersCount !== undefined) listing.ownersCount = input.ownersCount;
-    if (input.hasServiceBook !== undefined) listing.hasServiceBook = input.hasServiceBook;
-    if (input.hasRepairHistory !== undefined) listing.hasRepairHistory = input.hasRepairHistory;
-    listing.status = "pending_review";
-    listing.updatedAt = new Date().toISOString();
-    return { ok: true };
+    return { ok: false, error: "Elan yenilənərkən xəta baş verdi" };
   }
 }

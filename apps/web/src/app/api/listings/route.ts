@@ -7,7 +7,6 @@ import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { getEffectivePartsPlan } from "@/server/business-plan-store";
 import {
-  createListingFallback,
   countConcurrentFreeVehicleListingsForUser,
   createListingRecord,
   hasRecentPartDuplicate,
@@ -277,25 +276,10 @@ export async function POST(req: Request) {
       });
     } catch (error) {
       console.error("Failed to persist part listing", error);
-      if (process.env.NODE_ENV === "production") {
-        return NextResponse.json(
-          {
-            ok: false,
-            error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
-          },
-          { status: 500 }
-        );
-      }
-      const created = createListingFallback(createInput);
       return NextResponse.json({
-        ok: true,
-        id: created.id,
-        trustScore,
-        fallback: true,
-        listingKind: "part",
-        paymentRequired: isPaidPlan(requestedPlanType),
-        requestedPlanType
-      });
+        ok: false,
+        error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+      }, { status: 500 });
     }
   }
 
@@ -485,23 +469,9 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Failed to persist vehicle listing", error);
-    if (process.env.NODE_ENV === "production") {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
-        },
-        { status: 500 }
-      );
-    }
-    const created = createListingFallback(createInput);
     return NextResponse.json({
-      ok: true,
-      id: created.id,
-      trustScore,
-      fallback: true,
-      paymentRequired: isPaidPlan(requestedPlanType),
-      requestedPlanType
-    });
+      ok: false,
+      error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+    }, { status: 500 });
   }
 }
