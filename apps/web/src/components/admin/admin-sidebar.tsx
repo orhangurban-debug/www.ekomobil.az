@@ -23,6 +23,7 @@ const sections: Array<{
     title: "Biznes",
     items: [
       { href: "/admin/finance", label: "Maliyyə" },
+      { href: "/admin/invoices", label: "İnvoyslar" },
       { href: "/admin/payments-readiness", label: "Ödəniş test hazırlığı" },
       { href: "/admin/business-plans", label: "Biznes plan abunələri" },
       { href: "/admin/business-profiles", label: "Mağaza/Salon profilləri" },

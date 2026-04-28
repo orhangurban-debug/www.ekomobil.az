@@ -6,6 +6,7 @@ import { listListingsForUser } from "@/server/listing-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
+import { listInvoicesForUser } from "@/server/invoice-store";
 
 export default async function ProfilePage() {
   const user = await getServerSessionUser();
@@ -17,6 +18,7 @@ export default async function ProfilePage() {
   const myListings = await listListingsForUser(user.id);
   const deepKyc = await getUserKycProfile(user.id);
   const auctionNotifications = await listAuctionNotificationsForUser(user.id, 8);
+  const invoices = await listInvoicesForUser(user.id, 5);
   const hasNonActiveListings = myListings.some((item) => item.status !== "active");
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
@@ -37,6 +39,7 @@ export default async function ProfilePage() {
           <p className="mt-2 text-slate-500">{profile?.email} • {profile?.city || "Şəhər qeyd olunmayıb"}</p>
         </div>
         <div className="flex gap-2">
+          <Link href="/me/payments" className="btn-secondary">Ödənişlər</Link>
           <Link href="/favorites" className="btn-secondary">Favorilər</Link>
           <Link href="/publish" className="btn-primary">Yeni elan</Link>
         </div>
@@ -179,6 +182,17 @@ export default async function ProfilePage() {
               <div className="rounded-2xl bg-slate-50 p-4">
                 <div className="text-2xl font-bold text-brand-700">{savedSearches.length}</div>
                 <div className="text-xs text-slate-500">Yadda saxlanmış axtarış</div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4 col-span-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-brand-700">{invoices.length}</div>
+                    <div className="text-xs text-slate-500">Son ödənişlər</div>
+                  </div>
+                  <Link href="/me/payments" className="text-xs font-medium text-brand-600 hover:underline">
+                    Hamısına bax →
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

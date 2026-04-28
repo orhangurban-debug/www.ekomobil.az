@@ -9,6 +9,8 @@ import {
 import { getPgPool } from "@/lib/postgres";
 import { applyListingPlanForOwner, validateListingOwnership } from "@/server/listing-store";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
+import { issueAndSendInvoice } from "@/server/invoice-store";
+import { getUserProfile } from "@/server/user-store";
 
 const globalForPayments = globalThis as unknown as {
   ekomobilPayments?: ListingPlanPaymentRecord[];
@@ -241,6 +243,27 @@ export async function finalizeListingPlanPayment(input: {
   });
   if (!applyResult.ok) {
     return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
+  }
+
+  // Issue invoice and send email (non-blocking – errors do not fail the payment)
+  try {
+    const userProfile = await getUserProfile(updatedPayment.ownerUserId);
+    if (userProfile?.email) {
+      const planLabel = updatedPayment.planType === "vip" ? "VIP Plan" : "Standart Plan";
+      await issueAndSendInvoice({
+        userId: updatedPayment.ownerUserId,
+        userEmail: userProfile.email,
+        userName: userProfile.fullName ?? userProfile.email,
+        paymentType: "listing_plan",
+        paymentId: updatedPayment.id,
+        amountAzn: updatedPayment.amountAzn,
+        description: `${planLabel} – Elan #${updatedPayment.listingId.slice(0, 8)}`,
+        paymentReference: updatedPayment.providerReference,
+        appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://ekomobil.az"
+      });
+    }
+  } catch {
+    // invoice errors are non-critical
   }
 
   return { ok: true, payment: updatedPayment };

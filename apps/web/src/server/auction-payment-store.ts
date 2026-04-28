@@ -13,6 +13,8 @@ import {
 import type { ListingKind } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
+import { issueAndSendInvoice } from "@/server/invoice-store";
+import { getUserProfile } from "@/server/user-store";
 import {
   getAuctionDepositsMemory,
   getAuctionFinancialEventsMemory,
@@ -638,5 +640,28 @@ export async function finalizeAuctionDeposit(input: {
     actionType: `auction_deposit_${input.status}`,
     detail: `Deposit marked ${input.status}`
   });
+
+  // Issue invoice and send email for successful deposits (non-blocking)
+  if (input.status === "succeeded") {
+    try {
+      const userProfile = await getUserProfile(updated.bidderUserId);
+      if (userProfile?.email) {
+        await issueAndSendInvoice({
+          userId: updated.bidderUserId,
+          userEmail: userProfile.email,
+          userName: userProfile.fullName ?? userProfile.email,
+          paymentType: "auction_deposit",
+          paymentId: updated.id,
+          amountAzn: updated.amountAzn,
+          description: `Auksion depoziti – #${updated.auctionId.slice(0, 8)}`,
+          paymentReference: updated.paymentReference,
+          appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://ekomobil.az"
+        });
+      }
+    } catch {
+      // invoice errors are non-critical
+    }
+  }
+
   return { ok: true, deposit: updated };
 }

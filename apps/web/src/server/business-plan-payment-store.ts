@@ -5,6 +5,8 @@ import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 import { type BusinessType, upsertBusinessPlanSubscription } from "@/server/business-plan-store";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
+import { issueAndSendInvoice } from "@/server/invoice-store";
+import { getUserProfile } from "@/server/user-store";
 
 interface BusinessPlanPaymentRow {
   id: string;
@@ -224,5 +226,28 @@ export async function finalizeBusinessPlanPayment(input: {
      RETURNING *`,
     [input.paymentId, window.startsAt.toISOString(), window.expiresAt.toISOString()]
   );
-  return { ok: true, payment: toRecord(done.rows[0] ?? updated) };
+  const finalPayment = toRecord(done.rows[0] ?? updated);
+
+  // Issue invoice and send email (non-blocking)
+  try {
+    const userProfile = await getUserProfile(finalPayment.ownerUserId);
+    if (userProfile?.email) {
+      const businessLabel = finalPayment.businessType === "dealer" ? "Avtosalon planı" : "Mağaza planı";
+      await issueAndSendInvoice({
+        userId: finalPayment.ownerUserId,
+        userEmail: userProfile.email,
+        userName: userProfile.fullName ?? userProfile.email,
+        paymentType: "business_plan",
+        paymentId: finalPayment.id,
+        amountAzn: finalPayment.amountAzn,
+        description: `${businessLabel} – ${finalPayment.planId}`,
+        paymentReference: finalPayment.providerReference,
+        appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://ekomobil.az"
+      });
+    }
+  } catch {
+    // invoice errors are non-critical
+  }
+
+  return { ok: true, payment: finalPayment };
 }
