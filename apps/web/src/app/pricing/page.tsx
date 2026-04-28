@@ -18,19 +18,19 @@ import {
 const AUCTION_SELLER_STEPS_AZ = [
   "Etibar tələblərini tamamla: satıcı doğrulaması, media; avtomobil lotları üçün VIN axını.",
   "Lot yarat: /auction/sell səhifəsindən elan seç, lot parametrlərini təsdiqlə.",
-  "Lot haqqı (və tələb olunduqda satıcı performans bond) üçün bank checkout-u tamamla — ödənilməyən lot aktivləşmir.",
+  "Lot haqqı (və tələb olunduqda satıcı performans girovluğu) üçün bank ödənişini tamamla — ödənilməyən lot aktivləşmir.",
   "Lazım gəlsə lot üçün sənədləri auksion lotunun sənəd yükləmə səhifəsindən əlavə et.",
   "Canlı hərracı izlə; bitəndə təsdiq pəncərəsində satıcı kimi nəticəni qeyd et (uğurlu satış, alıcı öhdəlik pozuntusu, mübahisə və s.).",
-  "Uğurlu satışda əsas məbləği alıcı sənə birbaşa ödəyir; platforma uğur komisyonu üçün ayrıca checkout göstərilir.",
-  "Alıcı öhdəliyini pozduqda: sistemdə platforma öhdəlik haqqı üçün checkout linkini yaradırsın; həmin haqqı qalib alıcı ödəyir."
+  "Uğurlu satışda əsas məbləği alıcı sənə birbaşa ödəyir; platforma uğur komisyonu üçün ayrıca ödəniş səhifəsi açılır.",
+  "Alıcı öhdəliyini pozduqda: sistemdə platforma öhdəlik haqqı üçün ödəniş linki yaradılır; həmin haqqı qalib alıcı ödəyir."
 ];
 
 const AUCTION_BUYER_STEPS_AZ = [
-  "Hesabınla daxil ol; lotda \u201cDeposit\u201d işarəsi varsa təklifə qoşulmazdan əvvəl bidder deposit üçün bank checkout-u tamamla.",
+  "Hesabınla daxil ol; lotda depozit işarəsi varsa təklifə qoşulmazdan əvvəl iştirakçı depoziti üçün bank ödənişini tamamla.",
   "Auksion qaydalarını təsdiqlə, təklif ver; qalib olanda təsdiq pəncərəsini izlə.",
-  "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın off-platform tamamlandığını təsdiqlə.",
-  "Öhdəliklərini yerinə yetir — platforma hər iki tərəfin öhdəliyini ciddi izləyir. Öhdəlik pozulduqda platforma öhdəlik haqqı ayrıca checkout ilə tətbiq edilir.",
-  "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsindəki müvafiq seçimlə bildir; platforma satıcı öhdəlik haqqı üçün checkout linkini sən yaradırsın."
+  "Uğurlu satışda əsas məbləği satıcıya birbaşa ödə; platformada satışın tamamlandığını təsdiqlə.",
+  "Öhdəliklərini yerinə yetir — platforma hər iki tərəfin öhdəliyini ciddi izləyir. Öhdəlik pozulduqda platforma öhdəlik haqqı ayrıca ödəniş səhifəsi ilə tətbiq edilir.",
+  "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsindəki müvafiq seçimlə bildir; platforma satıcı öhdəlik haqqı üçün ödəniş linki sən tərəfindən yaradılır."
 ];
 
 const FREE_LISTING_PLAN = LISTING_PLANS.find((plan) => plan.id === "free");
@@ -194,13 +194,13 @@ function AuctionCategoryPanel({
           title="Alıcı öhdəlik haqqı"
           value={`${getNoShowPenaltyAzn(kind)} ₼`}
           who="Qalib alıcı"
-          desc="Alıcı öhdəliyini yerinə yetirmədikdə; bank checkout ilə."
+          desc="Alıcı öhdəliyini yerinə yetirmədikdə bank ödənişi ilə tətbiq edilir."
         />
         <AuctionFeeRow
           title="Satıcı öhdəlik haqqı"
           value={`${getSellerBreachPenaltyAzn(kind)} ₼`}
           who="Satıcı"
-          desc="Satıcı satış öhdəliyini yerinə yetirmədikdə; bank checkout ilə."
+          desc="Satıcı satış öhdəliyini yerinə yetirmədikdə bank ödənişi ilə tətbiq edilir."
         />
       </div>
 
@@ -236,20 +236,20 @@ export default function PricingPage() {
         </div>
         <div className="relative mx-auto max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#0891B2]/20 bg-[#0891B2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0891B2]">
-            Professional pricing
+            Şəffaf qiymət siyasəti
           </span>
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Şəffaf və peşəkar qiymət siyasəti
+            Sadə, ədalətli, gizli ödənişsiz
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            Sadə, ədalətli, gizli ödənişsiz. Fərdi satıcı üçün çevik elan planları, biznes üçün ölçülənə bilən abunə və
-            irəlilətmə xidmətləri.
+            Avtomobil elanından tutmuş salon abunəsinə, ehtiyat hissə mağazasından auksiona qədər —
+            hər xidmətin qiyməti burada açıq şəkildə göstərilib.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {[
-              "Gizli komissiya yoxdur",
-              "Dinamik qiymət cədvəli",
-              "Biznes üçün aylıq planlar"
+              "Gizli ödəniş yoxdur",
+              "Avtomobilin qiymətinə görə dinamik tarif",
+              "Biznes üçün aylıq sabit plan"
             ].map((item) => (
               <span key={item} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
                 {item}
@@ -260,28 +260,33 @@ export default function PricingPage() {
       </div>
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
-        <section className="grid gap-4 sm:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fərdi satıcı</p>
-            <p className="mt-1 text-lg font-bold text-slate-900">Pulsuz başla</p>
-            <p className="mt-1 text-xs text-slate-500">1 aktiv pulsuz elan, sonra Standart/VIP ilə genişləndir.</p>
+            <p className="mt-1 text-base font-bold text-slate-900">Pulsuz başla</p>
+            <p className="mt-1 text-xs text-slate-500">1 aktiv pulsuz elan. Ödənişli plana keç — limit yoxdur.</p>
           </div>
           <div className="rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">İrəlilətmə</p>
-            <p className="mt-1 text-lg font-bold text-slate-900">Boost + VIP + Premium</p>
-            <p className="mt-1 text-xs text-slate-600">Elanın görünürlüğünü plan üzərindən mərhələli artır.</p>
+            <p className="mt-1 text-base font-bold text-slate-900">Elanı öndə tut</p>
+            <p className="mt-1 text-xs text-slate-600">İrəli çək, VIP, Premium — elanı daha çox nəzərə çarpdır.</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Biznes hesab</p>
-            <p className="mt-1 text-lg font-bold text-slate-900">Aylıq sabit model</p>
-            <p className="mt-1 text-xs text-emerald-700">Salon və mağaza üçün öngörülebilən aylıq xərclər.</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Salon / Mağaza</p>
+            <p className="mt-1 text-base font-bold text-slate-900">Aylıq abunə</p>
+            <p className="mt-1 text-xs text-emerald-700">Salon və ehtiyat hissə mağazası üçün sabit aylıq tarif.</p>
+          </div>
+          <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Auksion</p>
+            <p className="mt-1 text-base font-bold text-slate-900">Lot + komisyon</p>
+            <p className="mt-1 text-xs text-violet-700">Lot yerləşdirmə haqqı + satış komisyonu. Alıcı üçün pulsuz.</p>
           </div>
         </section>
         {/* Quick nav */}
         <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
           {[
             { href: "#listings", label: "Elan planları" },
-            { href: "#boost", label: "İrəliləmə" },
+            { href: "#boost", label: "İrəlilətmə" },
             { href: "#dealer", label: "Salonlar" },
             { href: "#parts-store", label: "Hissə mağazası" },
             { href: "#services", label: "Servislər" },
@@ -319,7 +324,7 @@ export default function PricingPage() {
               <p className="text-sm font-semibold text-emerald-900">Ödənişli planlar → limitsiz</p>
               <p className="mt-1 text-xs text-emerald-700 leading-relaxed">
                 Standart və VIP planlar <strong>eyni anda limitsiz sayda aktiv</strong> ola bilər — hər biri
-                ayrıca ödənilir. Salon iseniz aylıq sabit ödənişli{" "}
+                ayrıca ödənilir. Salon sahibisinizsə aylıq sabit ödənişli{" "}
                 <a href="#dealer" className="underline font-medium">Salon planına</a> keçin.
               </p>
             </div>
@@ -363,10 +368,10 @@ export default function PricingPage() {
             </div>
             <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
               <p className="text-xs text-slate-400">
-                Elan yerləşdirərkən qiymət aralığı avtomatik seçilir. Nəhayət təsdiq addımında dəqiq məbləği görəcəksiniz.
+                Elan yerləşdirərkən qiymət aralığı avtomatik müəyyənləşir. Təsdiq addımında dəqiq məbləği görə bilərsiniz.
               </p>
               <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
-                Standart plan həmişə rəqib platformalardan ucuzdur
+                Rəqabətli qiymət — digər platformalardan əlverişli
               </span>
             </div>
           </div>
@@ -496,9 +501,9 @@ export default function PricingPage() {
         {/* ─── 2. Boost / Promote services ──────────────────────────── */}
         <section id="boost" className="scroll-mt-20">
           <SectionHeader
-            label="İrəliləmə xidmətləri"
-            title="Elanını daha çox gördür"
-            sub="Elan planından ayrı olaraq satın alınır. İstənilən plana əlavə edilə bilər."
+            label="İrəlilətmə xidmətləri"
+            title="Elanını öndə tut"
+            sub="Elan planından ayrı əldə edilir. İstənilən aktiv elana əlavə edilə bilər."
           />
 
           {/* How boost works */}
@@ -511,7 +516,7 @@ export default function PricingPage() {
                   </svg>
                 ),
                 title: "İrəli çək",
-                desc: "Elanı ən yeni kimi sıralamaya qaldırır — axtarışda birinci görünür.",
+                desc: "Elanı ən yeni kimi sıralamaya qaldırır — axtarışda yuxarı mövqeyə çıxarır.",
                 color: "bg-slate-50 border-slate-200"
               },
               {
@@ -521,7 +526,7 @@ export default function PricingPage() {
                   </svg>
                 ),
                 title: "VIP",
-                desc: "Axtarış nəticəsinin yuxarısındakı VIP blokunda görünür. Kart üzərində V işarəsi.",
+                desc: "Axtarış nəticəsinin yuxarısındakı xüsusi VIP blokunda yer alır. Kart üzərində V işarəsi.",
                 color: "bg-amber-50 border-amber-200"
               },
               {
@@ -531,7 +536,7 @@ export default function PricingPage() {
                   </svg>
                 ),
                 title: "Premium",
-                desc: "Ana səhifənin Premium blokunda görünür. Ən yüksək görünürlük + VIP + İrəli çək daxildir.",
+                desc: "Ana səhifənin Premium blokunda yer alır. Ən güclü mövqe — VIP + İrəli çək xidmətləri daxildir.",
                 color: "bg-[#0891B2]/5 border-[#0891B2]/20"
               }
             ].map((item) => (
@@ -623,9 +628,9 @@ export default function PricingPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
-            <strong className="text-slate-800">Necə alınır?</strong> Aktiv elan idarə panelindən
-            istədiyiniz paketi seçib ödəniş edin. Boost aktivləşmə ani olur.
-            Salonlar aylıq abunəsinə daxil olan boost kreditlərindən avtomatik istifadə edə bilər.
+            <strong className="text-slate-800">Necə əldə edilir?</strong> Aktiv elan idarə panelindən
+            istədiyiniz paketi seçib ödəniş edin. Xidmət dərhal işə düşür.
+            Salon abunəsi ilə gələn irəlilətmə kreditləri avtomatik tətbiq olunur.
           </div>
         </section>
 
@@ -634,7 +639,7 @@ export default function PricingPage() {
           <SectionHeader
             label="Avtomobil salonları"
             title="Salon abunə planları"
-            sub="Aylıq abunə → aktiv elan slotu. Abunə aktiv olduqca bütün elanlar görünür."
+            sub="Aylıq sabit ödəniş → aktiv elan slotu. Abunə aktiv olduqca bütün elanlar saytda qalır."
           />
 
           <NoBizFreeBanner />
@@ -864,10 +869,10 @@ export default function PricingPage() {
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-blue-900">Azərbaycan bazarı üçün yumşaq launch modeli</p>
+              <p className="text-sm font-semibold text-blue-900">Servis provayderlər üçün xüsusi şərtlər</p>
               <p className="mt-1 text-xs text-blue-800 leading-relaxed">
-                Fərdi ustalar Pulsuz plan ilə başlaya bilər. Ödənişli plan seçən ilk tərəfdaşlar üçün isə ilk 30 gün
-                pulsuz aktivasiya tətbiq oluna bilər. Aktivləşdirmə müraciət və telefon təsdiqindən sonra manual yoxlanır.
+                Fərdi ustalar Pulsuz plan ilə başlaya bilər. Ödənişli plana keçən ilk tərəfdaşlar üçün
+                ilk 30 günlük pulsuz aktivasiya imkanı mövcuddur. Müraciət telefon təsdiqindən sonra nəzərdən keçirilir.
               </p>
             </div>
           </div>
@@ -1003,13 +1008,13 @@ export default function PricingPage() {
           </div>
 
           <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
-            <strong className="text-slate-800">Platforma haqqı:</strong> EkoMobil servis profilini siyahıya alır
-            və müştəri əlaqəsini asanlaşdırır. Xidmət keyfiyyəti xidmət göstərənin məsuliyyətindədir.
+            <strong className="text-slate-800">Qeyd:</strong> EkoMobil servis profilini saytda siyahıya alır
+            və müştəri əlaqəsini asanlaşdırır. Göstərilən xidmətin keyfiyyəti xidmət təminatçısının məsuliyyətindədir.
             Tərəfdaşlıq üçün{" "}
             <Link href="/partners/inspection" className="font-semibold text-[#0891B2] hover:underline">
-              müraciət formu
+              müraciət formasını
             </Link>
-            -nu doldurun.
+            {" "}doldurun.
           </div>
         </section>
 
@@ -1017,14 +1022,14 @@ export default function PricingPage() {
         <section id="auction" className="scroll-mt-20">
           <SectionHeader
             label="Canlı hərrac"
-            title="Auksion haqq strukturu"
-            sub="Əsas rəqəmlər aşağıdadır. Təfərrüat və qaydalar üçün keçidlərdən istifadə edin."
+            title="Auksion haqqları"
+            sub="Aşağıdakı cədvəldə platforma haqqları göstərilib. Avtomobilin əsas satış məbləği platformadan keçmir."
           />
 
           <div className="mx-auto mb-8 max-w-2xl text-center">
             <p className="text-sm text-slate-600">
-              Əsas satış məbləği platformadan keçmir — alıcı satıcıya birbaşa ödəyir. Cədvəldə yalnız platforma
-              haqları var.
+              Avtomobilin satış məbləği alıcıdan satıcıya birbaşa ödənilir — platforma vasitəçilik etmir.
+              Aşağıdakı cədvəldə yalnız platforma haqqları göstərilib.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
               <Link
@@ -1043,9 +1048,12 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <span className="text-sm font-medium text-slate-800">Alıcı premium (pilot)</span>
-            <span className="text-lg font-bold text-emerald-600">Pulsuz</span>
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+              <span className="text-sm font-semibold text-emerald-900">Alıcı üçün auksion</span>
+              <p className="mt-0.5 text-xs text-emerald-700">Auksiona qatılmaq, təklif vermək və qalib gəlmək — alıcıdan heç bir platforma haqqı alınmır.</p>
+            </div>
+            <span className="shrink-0 text-lg font-bold text-emerald-600">Pulsuz</span>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
@@ -1070,8 +1078,8 @@ export default function PricingPage() {
               <p className="leading-relaxed text-slate-600">
                 EkoMobil auksionunda hər iki tərəf — alıcı da, satıcı da — öhdəlik verir. Öhdəlik pozulduqda
                 platforma öhdəlik haqqı tətbiq edilir; bu həm platforma tamlığını qoruyur, həm zərər görən tərəfi
-                kompensasiya edir. Məbləğlər ayrıca bank checkout ilə ödənilir; kartdan avtomatik çıxılma tətbiq edilmir.
-                Ətraflı hüquqi izah və SLA üçün{" "}
+                kompensasiya edir. Məbləğlər ayrıca bank ödənişi ilə tutulur; kartdan avtomatik silinmə tətbiq edilmir.
+                Ətraflı hüquqi izah üçün{" "}
                 <Link href="/rules/auction" className="font-semibold text-[#0891B2] underline underline-offset-2">
                   auksion qaydaları
                 </Link>{" "}
@@ -1111,23 +1119,23 @@ export default function PricingPage() {
             {[
               {
                 q: "Elan haqqım nə qədər olacaq?",
-                a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə dəyişir — yuxarıdakı cədvəldən baxın. Elan yerləşdirərkən təsdiq addımında dəqiq məbləği görəcəksiniz."
+                a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə müəyyənləşir — yuxarıdakı cədvələ baxın. Elan yerləşdirərkən son addımda dəqiq məbləği görəcəksiniz."
               },
               {
-                q: "Boost xidmətini nə vaxt almaq lazımdır?",
-                a: "İstənilən vaxt — elan aktiv olduqdan sonra idarə panelindən boost əlavə edə bilərsiniz. Elan yerləşdirərkən də boost seçmək mümkündür."
+                q: "İrəlilətmə xidmətini nə vaxt əldə etmək lazımdır?",
+                a: "İstənilən vaxt — elan aktiv olduqdan sonra idarə panelindən irəlilətmə əlavə edə bilərsiniz. Elan yerləşdirərkən eyni zamanda irəlilətmə seçmək də mümkündür."
               },
               {
-                q: "Salon olaraq niyə pulsuz plan yoxdur?",
-                a: "Salonlar kommersiya subyektlərdir. Pulsuz sıralamaya düşmək fərdi satıcılara qarşı ədalətsizlik yaradır. Baza planımız (29 ₼/ay) artıq çox əlverişli qiymətdə geniş imkanlar təqdim edir."
+                q: "Salon üçün minimum plan hansıdır?",
+                a: "Salonlar üçün ən giriş səviyyəli plan aylıq 29 ₼-dır. Bu planla 15 aktiv elan yeri, şəkil/video dəstəyi və əsas idarə paneli mövcuddur. Elan sayı artdıqca üst planlara keçmək mümkündür."
               },
               {
-                q: "Auksion lotunu uduzsam lot haqqı geri qaytarılırmı?",
-                a: "Xeyr. Lot haqqı geri qaytarılmır. Komisyon yalnız satış olarsa tutulur."
+                q: "Auksion lotunda satış olmasa lot haqqı geri qaytarılırmı?",
+                a: "Xeyr. Lot yerləşdirmə haqqı geri qaytarılmır — platforma yoxlama və aktivasiya xərclərini əhatə edir. Satış komisyonu isə yalnız uğurlu satış baş verdikdə tutulur."
               },
               {
-                q: "Avtomobilin əsas ödənişini EkoMobil qəbul edirmi?",
-                a: "Xeyr. Əsas məbləğ alıcıdan satıcıya birbaşa ödənilir. Platforma yalnız elan, boost və komisyon haqlarını alır."
+                q: "Avtomobilin satış məbləğini EkoMobil vasitəsilə ödəmək olarmı?",
+                a: "Xeyr. Avtomobilin əsas ödənişi alıcıdan satıcıya birbaşa həyata keçirilir. Platforma yalnız elan haqqı, irəlilətmə xidmətləri və auksion komisyonunu qəbul edir."
               }
             ].map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">
