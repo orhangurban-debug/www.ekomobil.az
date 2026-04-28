@@ -77,11 +77,12 @@ export const DEALER_PLANS: DealerPlan[] = [
     analyticsEnabled: false,
     gracePeriodDays: 14,
     features: [
+      "30 aktiv avtomobil elanı limiti",
+      "Aşağı giriş xərci ilə baza salon paneli",
       "Salon paneli: inventar və lead qutusu",
       "Elanlara irəlilətmə xidməti tətbiq etmə",
       "Profil məlumatları: ad, şəhər, loqo, təsvir",
-      "Müştəri sorğularını mərhələlər üzrə idarə etmə",
-      "Plan məlumatı və yenilənmə vəziyyəti paneldə görünür"
+      "Müştəri sorğularını mərhələlər üzrə idarə etmə"
     ],
     comingSoon: []
   },
@@ -102,10 +103,10 @@ export const DEALER_PLANS: DealerPlan[] = [
     highlight: true,
     features: [
       "Salon Əsas planındakı bütün imkanlar",
+      "80 aktiv avtomobil elanı limiti",
       "CSV toplu yükləmə (avtomobil inventarı)",
       "Analitika paneli (baxış, əlaqə, test sürüş)",
-      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları",
-      "CSV import və analitika səhifələrinə giriş"
+      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları"
     ],
     comingSoon: []
   },
@@ -125,10 +126,10 @@ export const DEALER_PLANS: DealerPlan[] = [
     gracePeriodDays: 30,
     features: [
       "Salon Peşəkar planındakı bütün imkanlar",
+      "200 aktiv avtomobil elanı limiti",
       "Profildə korporativ sahələr: cover şəkli və ünvan",
       "CSV toplu yükləmə və analitika paneli",
-      "Biznes profilində geniş məlumat sahələri",
-      "Korporativ təqdimat üçün vizual profil imkanları"
+      "Biznes profilində geniş məlumat sahələri"
     ],
     comingSoon: []
   }

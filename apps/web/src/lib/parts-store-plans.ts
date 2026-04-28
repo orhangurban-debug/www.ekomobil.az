@@ -53,6 +53,8 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     perListingMaxImages: 4,
     gracePeriodDays: 7,
     features: [
+      "50 aktiv məhsul elanı (SKU) limiti",
+      "Aşağı giriş xərci ilə baza mağaza paneli",
       "Elan başına maksimum 4 şəkil",
       "Mağaza paneli və hissə elanlarını idarə etmə",
       "Sifariş sorğuları qutusu",
@@ -72,10 +74,10 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     highlight: true,
     features: [
       "Mağaza Əsas planındakı bütün imkanlar",
+      "300 aktiv məhsul elanı (SKU) limiti",
       "Elan başına maksimum 6 şəkil",
       "Analitika paneli",
-      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları",
-      "Mağaza analitika səhifəsinə giriş"
+      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları"
     ],
     analyticsEnabled: true,
     comingSoon: []
@@ -90,6 +92,7 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     gracePeriodDays: 21,
     features: [
       "Mağaza Peşəkar planındakı bütün imkanlar",
+      "1000 aktiv məhsul elanı (SKU) limiti",
       "Elan başına maksimum 8 şəkil",
       "Profildə korporativ sahələr: cover şəkli və ünvan",
       "Analitika paneli",

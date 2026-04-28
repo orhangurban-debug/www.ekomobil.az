@@ -5,8 +5,9 @@ import { getServerSessionUser } from "@/lib/auth";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
-import { getEffectivePartsPlan } from "@/server/business-plan-store";
+import { getEffectiveDealerPlan, getEffectivePartsPlan } from "@/server/business-plan-store";
 import {
+  countDealerListingsForUserByKind,
   countConcurrentFreeVehicleListingsForUser,
   createListingRecord,
   hasRecentPartDuplicate,
@@ -167,13 +168,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const effectivePartsPlan =
-      (partPayload.sellerType ?? "private") === "dealer"
-        ? await getEffectivePartsPlan(sessionUser.id)
-        : { perListingMaxImages: 4 };
+    const isDealerPartSeller = (partPayload.sellerType ?? "private") === "dealer";
+    const effectivePartsPlan = isDealerPartSeller ? await getEffectivePartsPlan(sessionUser.id) : null;
+    const maxPartImageCount = effectivePartsPlan?.perListingMaxImages ?? 4;
+    const maxPartListings = effectivePartsPlan?.maxActiveListings ?? Number.POSITIVE_INFINITY;
+
+    if (isDealerPartSeller) {
+      const dealerPartListingCount = await countDealerListingsForUserByKind(sessionUser.id, "part");
+      if (dealerPartListingCount >= maxPartListings) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Plan limitiniz dolub: maksimum ${maxPartListings} aktiv hissə elanı (SKU) saxlaya bilərsiniz.`
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     const validation = validatePartListingInput(partPayload, {
-      maxImageCount: effectivePartsPlan.perListingMaxImages
+      maxImageCount: maxPartImageCount
     });
     if (!validation.isValid) {
       return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
@@ -370,6 +384,20 @@ export async function POST(req: Request) {
           error:
             `Pulsuz plan limiti dolub: eyni anda maksimum ${FREE_LISTING_CONCURRENT_LIMIT} aktiv/yoxlamada pulsuz elan ola bilər. ` +
             "Yeni pulsuz elan üçün mövcud elanın müddəti bitməli, deaktiv/arxiv edilməli və ya planı yüksəldilməlidir."
+        },
+        { status: 409 }
+      );
+    }
+  }
+
+  if ((vehiclePayload.sellerType ?? "private") === "dealer") {
+    const dealerPlan = await getEffectiveDealerPlan(sessionUser.id);
+    const dealerVehicleListingCount = await countDealerListingsForUserByKind(sessionUser.id, "vehicle");
+    if (dealerVehicleListingCount >= dealerPlan.maxActiveListings) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Plan limitiniz dolub: maksimum ${dealerPlan.maxActiveListings} aktiv avtomobil elanı saxlaya bilərsiniz.`
         },
         { status: 409 }
       );

@@ -623,7 +623,7 @@ export default function PricingPage() {
           <SectionHeader
             label="Avtomobil salonları"
             title="Salon abunə planları"
-            sub="Aylıq abunə planları. Plan fərqi CSV import, analitika və profil sahələrinə təsir edir."
+            sub="Qiymət artdıqca aktiv elan limiti və əməliyyat imkanları artır: Əsas → Peşəkar → Korporativ."
           />
 
           <NoBizFreeBanner />
@@ -634,15 +634,15 @@ export default function PricingPage() {
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-blue-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">①</span>
-                <span><strong>Əsas plan:</strong> Salon paneli, inventar, lead qutusu və profilin baza sahələri aktiv olur.</span>
+                <span><strong>Əsas plan (29 ₼):</strong> Aşağı giriş xərci ilə 30 aktiv elan limiti və baza idarəetmə axını.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">②</span>
-                <span><strong>Peşəkar plan:</strong> CSV import və analitika modulu açılır, profildə əlavə əlaqə sahələri aktiv olur.</span>
+                <span><strong>Peşəkar plan (59 ₼):</strong> 80 aktiv elan limiti + CSV import + analitika ilə iş axını sürətlənir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">③</span>
-                <span><strong>Korporativ plan:</strong> Cover şəkli və ünvan kimi geniş profil sahələri də aktivləşir.</span>
+                <span><strong>Korporativ plan (119 ₼):</strong> 200 aktiv elan limiti və korporativ profil təqdimatı üçün geniş sahələr açılır.</span>
               </div>
             </div>
           </div>
@@ -676,7 +676,7 @@ export default function PricingPage() {
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                    Profil idarəetməsi
+                    {plan.maxActiveListings} aktiv elan
                   </span>
                   {plan.csvImportEnabled && (
                     <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
@@ -738,7 +738,7 @@ export default function PricingPage() {
           <SectionHeader
             label="Ehtiyat hissə mağazaları"
             title="Mağaza paketləri"
-            sub="Mağaza planlarında əsas fərq şəkil limiti, analitika və profil sahələridir."
+            sub="Qiymət artdıqca aktiv SKU limiti və əməliyyat imkanları artır: Əsas → Peşəkar → Şəbəkə."
           />
 
           <NoBizFreeBanner />
@@ -749,15 +749,15 @@ export default function PricingPage() {
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-fuchsia-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">①</span>
-                <span><strong>Şəkil limiti:</strong> Mağaza planına görə hissə elanında icazə verilən maksimum şəkil sayı artır.</span>
+                <span><strong>Əsas plan (19 ₼):</strong> 50 aktiv məhsul (SKU) limiti və baza mağaza paneli üçün uyğundur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">②</span>
-                <span><strong>Analitika:</strong> Mağaza Peşəkar və Şəbəkə planlarında analitika səhifəsi aktiv olur.</span>
+                <span><strong>Peşəkar plan (39 ₼):</strong> 300 aktiv SKU limiti + analitika və geniş profil sahələri verir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">③</span>
-                <span><strong>Profil sahələri:</strong> Üst planlarda WhatsApp, vebsayt, iş saatları və korporativ profil sahələri açılır.</span>
+                <span><strong>Şəbəkə planı (79 ₼):</strong> 1000 aktiv SKU limiti və korporativ mağaza təqdimatı üçün nəzərdə tutulub.</span>
               </div>
             </div>
           </div>
@@ -790,6 +790,9 @@ export default function PricingPage() {
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    {plan.maxActiveListings.toLocaleString("az-AZ")} aktiv SKU
+                  </span>
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                     {plan.perListingMaxImages} şəkil/SKU
                   </span>
@@ -1104,6 +1107,10 @@ export default function PricingPage() {
           <h2 className="mb-6 text-xl font-bold text-slate-900">Tez-tez soruşulan suallar</h2>
           <div className="space-y-5 divide-y divide-slate-100">
             {[
+              {
+                q: "Mağazada 1000 məhsul varsa hamısı üçün ayrıca elan yarada bilərəm?",
+                a: "Bəli, Mağaza Şəbəkə planında 1000 aktiv SKU limiti var və hər məhsul üçün ayrıca elan yarada bilərsiniz. Limit dolduqda yeni elan üçün mövcud SKU-lardan birini deaktiv etməli və ya planı yüksəltməlisiniz."
+              },
               {
                 q: "Elan haqqım nə qədər olacaq?",
                 a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə müəyyənləşir — yuxarıdakı cədvələ baxın. Elan yerləşdirərkən son addımda dəqiq məbləği görəcəksiniz."

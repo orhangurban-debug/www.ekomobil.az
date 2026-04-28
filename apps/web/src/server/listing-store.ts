@@ -853,6 +853,34 @@ export async function countConcurrentFreeVehicleListingsForUser(userId: string):
   }
 }
 
+export async function countDealerListingsForUserByKind(
+  userId: string,
+  kind: ListingKind
+): Promise<number> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM listings l
+        WHERE COALESCE(l.listing_kind, 'vehicle') = $1
+          AND l.seller_type = 'dealer'
+          AND l.status IN ('active', 'pending_review', 'draft')
+          AND (
+            l.owner_user_id = $2 OR l.dealer_profile_id IN (
+              SELECT id FROM dealer_profiles WHERE owner_user_id = $2
+            )
+          )
+      `,
+      [kind, userId]
+    );
+    return Number(result.rows[0]?.count ?? "0");
+  } catch {
+    return 0;
+  }
+}
+
 const DUPLICATE_LOOKBACK_DAYS = 90;
 
 export async function hasRecentVehicleDuplicate(input: {
