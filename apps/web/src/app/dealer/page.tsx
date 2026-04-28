@@ -6,8 +6,6 @@ import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
 import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
 import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { BusinessPlanCheckoutButton } from "@/components/business/business-plan-checkout-button";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -71,7 +69,6 @@ export default async function DealerPortalPage() {
   const avgResponse = dashboard.leads.length > 0
     ? Math.round(dashboard.leads.reduce((s, l) => s + (l.responseTimeMinutes ?? 0), 0) / dashboard.leads.length)
     : 0;
-  const availableDealerPlans = DEALER_PLANS.filter((plan) => plan.id !== dealerPlan.id);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -97,33 +94,19 @@ export default async function DealerPortalPage() {
         </div>
       </div>
 
-      {/* KPI cards */}
-      <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">Salon abunə ödənişi</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Aylıq planınızı özünüz yeniləyə və ya yuxarı plana keçə bilərsiniz.
-            </p>
-          </div>
-          <Link href="/pricing#dealers" className="btn-secondary">Bütün planlar</Link>
+      {/* Abunə upgrade banner */}
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
+        <div>
+          <p className="text-sm font-medium text-slate-800">
+            Aktiv plan: <span className="font-semibold text-[#0891B2]">{dealerPlan.nameAz}</span>
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
+          </p>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {availableDealerPlans.map((plan) => (
-            <div key={plan.id} className="rounded-xl border border-slate-200 p-4">
-              <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
-              <p className="mt-1 text-xs text-slate-500">{plan.priceAzn} ₼ / ay</p>
-              <div className="mt-3">
-                <BusinessPlanCheckoutButton
-                  businessType="dealer"
-                  planId={plan.id}
-                  label={`${plan.nameAz} planını al`}
-                  className="btn-primary w-full justify-center"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+        <Link href="/pricing#dealers" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
+          Planları gör →
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
@@ -145,8 +128,11 @@ export default async function DealerPortalPage() {
         ))}
       </div>
       {!dealerPlan.analyticsEnabled && (
-        <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span>Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.</span>
+          <Link href="/pricing#dealers" className="shrink-0 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900">
+            Plana bax →
+          </Link>
         </div>
       )}
 
@@ -176,31 +162,40 @@ export default async function DealerPortalPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {dashboard.inventory.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4 font-medium text-slate-900">
-                    <Link href={`/listings/${item.id}`} className="hover:text-brand-600">
-                      {item.title}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-right font-semibold text-brand-700">{item.priceAzn.toLocaleString()} ₼</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`text-xs font-medium ${item.planType === "vip" ? "text-amber-700" : item.planType === "standard" ? "text-brand-700" : "text-slate-500"}`}>
-                      {item.planType === "vip" ? "VIP" : item.planType === "standard" ? "Standart" : "Pulsuz"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center"><TrustScorePill score={item.trustScore} /></td>
-                  <td className="px-6 py-4 text-center">
-                    {item.mediaComplete
-                      ? <span className="badge-verified">Tam</span>
-                      : <span className="badge-warning">Çatışmır</span>}
-                  </td>
-                  <td className="px-6 py-4 text-center"><StatusBadge status={item.status} /></td>
-                  <td className="px-6 py-4 text-center">
-                    <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} variant="compact" />
+              {dashboard.inventory.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
+                    Hələ elan yoxdur.{" "}
+                    <Link href="/publish" className="font-medium text-[#0891B2] hover:underline">İlk elanı yerləşdir →</Link>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                dashboard.inventory.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition">
+                    <td className="px-6 py-4 font-medium text-slate-900">
+                      <Link href={`/listings/${item.id}`} className="hover:text-brand-600">
+                        {item.title}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-right font-semibold text-brand-700">{item.priceAzn.toLocaleString()} ₼</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-xs font-medium ${item.planType === "vip" ? "text-amber-700" : item.planType === "standard" ? "text-brand-700" : "text-slate-500"}`}>
+                        {item.planType === "vip" ? "VIP" : item.planType === "standard" ? "Standart" : "Pulsuz"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center"><TrustScorePill score={item.trustScore} /></td>
+                    <td className="px-6 py-4 text-center">
+                      {item.mediaComplete
+                        ? <span className="badge-verified">Tam</span>
+                        : <span className="badge-warning">Çatışmır</span>}
+                    </td>
+                    <td className="px-6 py-4 text-center"><StatusBadge status={item.status} /></td>
+                    <td className="px-6 py-4 text-center">
+                      <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} variant="compact" />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -225,25 +220,33 @@ export default async function DealerPortalPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {dashboard.leads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{lead.customerName}</div>
-                    {lead.customerPhone && <div className="text-xs text-slate-500">{lead.customerPhone}</div>}
+              {dashboard.leads.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                    Hələ müştəri sorğusu yoxdur.
                   </td>
-                  <td className="px-6 py-4">
-                    <Link href={`/listings/${lead.listingId}`} className="text-slate-600 hover:text-brand-600 text-sm">
-                      #{lead.listingId.slice(0, 8)}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-center"><StatusBadge status={lead.stage} /></td>
-                  <td className="px-6 py-4">
-                    <LeadStageActions leadId={lead.id} currentStage={lead.stage} />
-                  </td>
-                  <td className="px-6 py-4 text-center text-slate-700">{lead.responseTimeMinutes ?? 0}</td>
-                  <td className="px-6 py-4 text-center"><SlaBadge minutes={lead.responseTimeMinutes ?? 0} /></td>
                 </tr>
-              ))}
+              ) : (
+                dashboard.leads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-slate-50 transition">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{lead.customerName}</div>
+                      {lead.customerPhone && <div className="text-xs text-slate-500">{lead.customerPhone}</div>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link href={`/listings/${lead.listingId}`} className="text-slate-600 hover:text-brand-600 text-sm">
+                        #{lead.listingId.slice(0, 8)}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-center"><StatusBadge status={lead.stage} /></td>
+                    <td className="px-6 py-4">
+                      <LeadStageActions leadId={lead.id} currentStage={lead.stage} />
+                    </td>
+                    <td className="px-6 py-4 text-center text-slate-700">{lead.responseTimeMinutes ?? 0}</td>
+                    <td className="px-6 py-4 text-center"><SlaBadge minutes={lead.responseTimeMinutes ?? 0} /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

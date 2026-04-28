@@ -7,8 +7,6 @@ import { listListings } from "@/server/listing-store";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import { getServerSessionUser } from "@/lib/auth";
 import { getEffectivePartsPlan } from "@/server/business-plan-store";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
-import { BusinessPlanCheckoutButton } from "@/components/business/business-plan-checkout-button";
 
 export const metadata: Metadata = {
   title: "Mağaza elanları",
@@ -62,9 +60,6 @@ export default async function PartsPage({
     ? await getEffectivePartsPlan(sessionUser.id)
     : null;
   const canSeePartsAnalytics = currentPartsPlan?.analyticsEnabled ?? false;
-  const purchasablePartsPlans = currentPartsPlan
-    ? PARTS_STORE_PLANS.filter((plan) => plan.id !== currentPartsPlan.id)
-    : [];
   const query = {
     city: typeof params.city === "string" ? params.city : undefined,
     search: typeof params.q === "string" ? params.q : undefined,
@@ -131,32 +126,18 @@ export default async function PartsPage({
       </div>
 
       {currentPartsPlan && (
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold text-slate-900">Mağaza abunə ödənişi</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Aktiv plan: <strong>{currentPartsPlan.nameAz}</strong>. Aylıq yeniləmə və plan yüksəltmə checkout-u buradadır.
-              </p>
-            </div>
-            <Link href="/pricing#parts-store" className="btn-secondary">Bütün planlar</Link>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
+          <div>
+            <p className="text-sm font-medium text-slate-800">
+              Aktiv plan: <span className="font-semibold text-[#0891B2]">{currentPartsPlan.nameAz}</span>
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
+            </p>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {purchasablePartsPlans.map((plan) => (
-              <div key={plan.id} className="rounded-xl border border-slate-200 p-4">
-                <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
-                <p className="mt-1 text-xs text-slate-500">{plan.priceAzn} ₼ / ay</p>
-                <div className="mt-3">
-                  <BusinessPlanCheckoutButton
-                    businessType="parts_store"
-                    planId={plan.id}
-                    label={`${plan.nameAz} planını al`}
-                    className="btn-primary w-full justify-center"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
+            Planları gör →
+          </Link>
         </div>
       )}
 
