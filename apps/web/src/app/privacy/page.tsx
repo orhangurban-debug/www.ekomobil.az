@@ -6,7 +6,7 @@ export const metadata = {
   description: "EkoMobil platformasının məxfilik siyasəti — hansı məlumatlar toplanır, necə istifadə olunur"
 };
 
-const EFFECTIVE_DATE = "1 may 2025";
+const EFFECTIVE_DATE = "28 aprel 2026";
 const COMPANY_EMAIL = "info@ekomobil.az";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {

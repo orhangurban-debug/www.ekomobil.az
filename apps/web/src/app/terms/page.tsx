@@ -6,7 +6,7 @@ export const metadata = {
   description: "EkoMobil platformasının istifadəçi razılaşması və istifadə şərtləri"
 };
 
-const EFFECTIVE_DATE = "1 may 2025";
+const EFFECTIVE_DATE = "28 aprel 2026";
 const COMPANY_NAME = "EkoMobil MMC";
 const COMPANY_EMAIL = "info@ekomobil.az";
 const COMPANY_ADDRESS = "Bakı, Azərbaycan";

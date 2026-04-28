@@ -6,7 +6,7 @@ export const metadata = {
   description: "EkoMobil-in elan, hesab, ödəniş və istifadə qaydaları"
 };
 
-const EFFECTIVE_DATE = "1 may 2025";
+const EFFECTIVE_DATE = "28 aprel 2026";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
