@@ -35,14 +35,18 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
-  const primaryCta =
-    pathname.startsWith("/services") || pathname.startsWith("/partners")
+  // Pages that already have their own primary action button — suppress header CTA to avoid duplicates
+  const suppressCta =
+    pathname.startsWith("/dealer") ||
+    pathname.startsWith("/parts") ||
+    pathname.startsWith("/publish") ||
+    pathname.startsWith("/parts/publish");
+
+  const primaryCta = suppressCta
+    ? null
+    : pathname.startsWith("/services") || pathname.startsWith("/partners")
       ? { label: "Servis müraciəti", href: "/partners/inspection" }
-      : pathname.startsWith("/parts")
-        ? { label: "Hissə elanı", href: "/parts/publish" }
-        : pathname.startsWith("/dealer")
-          ? { label: "Yeni elan", href: "/publish" }
-          : { label: "Elan yerləşdir", href: "/publish" };
+      : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);
@@ -186,9 +190,11 @@ export function Header({
               >
                 {logoutLoading ? "Çıxılır..." : "Çıxış"}
               </button>
-              <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
-                {primaryCta.label}
-              </Link>
+              {primaryCta && (
+                <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
+                  {primaryCta.label}
+                </Link>
+              )}
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
@@ -198,9 +204,11 @@ export function Header({
               <Link href="/register" className="btn-secondary text-sm px-3 py-1.5">
                 Qeydiyyat
               </Link>
-              <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
-                {primaryCta.label}
-              </Link>
+              {primaryCta && (
+                <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
+                  {primaryCta.label}
+                </Link>
+              )}
             </div>
           )}
 
@@ -256,7 +264,9 @@ export function Header({
             <div className="mt-2 flex flex-col gap-2 border-t border-soft-brown pt-2">
               {userEmail ? (
                 <>
-                  <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
+                  {primaryCta && (
+                    <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
+                  )}
                   <Link href="/me" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Profil</Link>
                   {(userRole === "admin" || userRole === "support") && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Admin paneli</Link>
@@ -274,7 +284,9 @@ export function Header({
                 <>
                   <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Qeydiyyat</Link>
                   <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Daxil ol</Link>
-                  <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
+                  {primaryCta && (
+                    <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
+                  )}
                 </>
               )}
             </div>
