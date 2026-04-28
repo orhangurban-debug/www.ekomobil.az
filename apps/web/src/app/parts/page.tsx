@@ -164,9 +164,17 @@ export default async function PartsPage({
 
           {result.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20 text-center">
-              <p className="font-medium text-slate-700">Hələ mağaza elanı yoxdur</p>
-              <p className="mt-1 text-sm text-slate-400">Axtarışı genişləndirin və ya filterləri dəyişin.</p>
-              <Link href="/parts" className="btn-secondary text-sm">Bütün mağaza elanlarına bax</Link>
+              <p className="font-medium text-slate-700">
+                {activeChips.length > 0 ? "Bu filterə uyğun elan tapılmadı" : "Hələ mağaza elanı yoxdur"}
+              </p>
+              <p className="text-sm text-slate-400">
+                {activeChips.length > 0 ? "Filterləri dəyişin və ya sıfırlayın." : "İlk hissə elanınızı yerləşdirin."}
+              </p>
+              {activeChips.length > 0 ? (
+                <Link href="/parts" className="btn-secondary text-sm">Filterləri sıfırla</Link>
+              ) : (
+                <Link href="/parts/publish" className="btn-primary text-sm">+ Hissə elanı yerləşdir</Link>
+              )}
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -187,27 +195,29 @@ export default async function PartsPage({
             </div>
           )}
 
-          <div className="mt-10 flex items-center justify-center gap-2">
-            <Link
-              href={query.page > 1 ? pageHref(params, query.page - 1) : "#"}
-              className={`btn-secondary px-4 py-2 text-sm ${query.page <= 1 ? "pointer-events-none opacity-50" : ""}`}
-            >
-              ← Əvvəlki
-            </Link>
-            <span className="px-4 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">{result.page}</span>
-            <Link
-              href={
-                result.total > result.page * result.pageSize
-                  ? pageHref(params, query.page + 1)
-                  : "#"
-              }
-              className={`btn-secondary px-4 py-2 text-sm ${
-                result.total <= result.page * result.pageSize ? "pointer-events-none opacity-50" : ""
-              }`}
-            >
-              Növbəti →
-            </Link>
-          </div>
+          {result.total > 0 && (
+            <div className="mt-10 flex items-center justify-center gap-2">
+              <Link
+                href={query.page > 1 ? pageHref(params, query.page - 1) : "#"}
+                className={`btn-secondary px-4 py-2 text-sm ${query.page <= 1 ? "pointer-events-none opacity-50" : ""}`}
+              >
+                ← Əvvəlki
+              </Link>
+              <span className="px-4 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">{result.page}</span>
+              <Link
+                href={
+                  result.total > result.page * result.pageSize
+                    ? pageHref(params, query.page + 1)
+                    : "#"
+                }
+                className={`btn-secondary px-4 py-2 text-sm ${
+                  result.total <= result.page * result.pageSize ? "pointer-events-none opacity-50" : ""
+                }`}
+              >
+                Növbəti →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

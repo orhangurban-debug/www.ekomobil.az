@@ -77,9 +77,6 @@ export default async function DealerPortalPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Salon Paneli</h1>
           <p className="text-slate-500 mt-1">{dashboard.dealerName} • {dashboard.city}</p>
-          <p className="mt-1 text-xs text-slate-400">
-            Aktiv plan: <span className="font-semibold text-slate-600">{dealerPlan.nameAz}</span>
-          </p>
         </div>
         <div className="flex gap-2">
           {dealerPlan.analyticsEnabled ? (

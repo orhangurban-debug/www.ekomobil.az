@@ -35,10 +35,14 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
-  const isServicesContext = pathname.startsWith("/services") || pathname.startsWith("/partners");
-  const primaryCta = isServicesContext
-    ? { label: "Servis müraciəti", href: "/partners/inspection" }
-    : { label: "Elan yerləşdir", href: "/publish" };
+  const primaryCta =
+    pathname.startsWith("/services") || pathname.startsWith("/partners")
+      ? { label: "Servis müraciəti", href: "/partners/inspection" }
+      : pathname.startsWith("/parts")
+        ? { label: "Hissə elanı", href: "/parts/publish" }
+        : pathname.startsWith("/dealer")
+          ? { label: "Yeni elan", href: "/publish" }
+          : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);
