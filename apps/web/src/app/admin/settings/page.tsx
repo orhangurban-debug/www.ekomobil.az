@@ -1,8 +1,9 @@
 import { SystemSettingsForm } from "@/components/admin/system-settings-form";
-import { getSystemSettings } from "@/server/system-settings-store";
+import { PricingPlanConfigManager } from "@/components/admin/pricing-plan-config-manager";
+import { getPricingPlanAdminConfig, getSystemSettings } from "@/server/system-settings-store";
 
 export default async function AdminSettingsPage() {
-  const settings = await getSystemSettings();
+  const [settings, pricingConfig] = await Promise.all([getSystemSettings(), getPricingPlanAdminConfig()]);
   return (
     <div className="space-y-4">
       <div>
@@ -16,6 +17,7 @@ export default async function AdminSettingsPage() {
         vehiclePenalty={settings.penaltyAmounts.vehicle}
         partPenalty={settings.penaltyAmounts.part}
       />
+      <PricingPlanConfigManager initialConfig={pricingConfig} />
     </div>
   );
 }

@@ -2,10 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { PricingNav } from "./pricing-nav";
 import { LISTING_PLANS, PRICING_TIERS } from "@/lib/listing-plans";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 import { BUMP_PACKAGES, VIP_PACKAGES, PREMIUM_PACKAGES } from "@/lib/listing-boost-plans";
-import { SERVICE_PLAN_CATEGORIES } from "@/lib/service-plans";
+import { getServicePlanCategoriesWithOverrides } from "@/lib/service-plans";
 import type { ListingKind } from "@/lib/marketplace-types";
 import {
   AUCTION_FEES,
@@ -15,6 +13,8 @@ import {
   getNoShowPenaltyAzn,
   getSellerBreachPenaltyAzn
 } from "@/lib/auction-fees";
+import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
+import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
 
 const AUCTION_SELLER_STEPS_AZ = [
   "Etibar tələblərini tamamla: satıcı doğrulaması, media; avtomobil lotları üçün VIN axını.",
@@ -227,7 +227,20 @@ function AuctionCategoryPanel({
   );
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const [dealerPlans, partsPlans, pricingPlanConfig] = await Promise.all([
+    getDealerPlanCatalog(),
+    getPartsPlanCatalog(),
+    getPricingPlanAdminConfig()
+  ]);
+  const serviceCategories = getServicePlanCategoriesWithOverrides(pricingPlanConfig.service);
+  const dealerBaza = dealerPlans.find((plan) => plan.id === "baza") ?? dealerPlans[0];
+  const dealerPro = dealerPlans.find((plan) => plan.id === "peşəkar") ?? dealerPlans[1] ?? dealerBaza;
+  const dealerCorp = dealerPlans.find((plan) => plan.id === "korporativ") ?? dealerPlans[2] ?? dealerPro;
+  const partsBaza = partsPlans.find((plan) => plan.id === "baza") ?? partsPlans[0];
+  const partsPro = partsPlans.find((plan) => plan.id === "peşəkar") ?? partsPlans[1] ?? partsBaza;
+  const partsNet = partsPlans.find((plan) => plan.id === "şəbəkə") ?? partsPlans[2] ?? partsPro;
+  const economics = pricingPlanConfig.economics;
   return (
     <div className="bg-slate-50">
       {/* ─── Page hero ─────────────────────────────────────────────── */}
@@ -634,21 +647,28 @@ export default function PricingPage() {
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-blue-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">①</span>
-                <span><strong>Əsas plan (29 ₼):</strong> Aşağı giriş xərci ilə 30 aktiv elan limiti və baza idarəetmə axını.</span>
+                <span><strong>Əsas plan ({dealerBaza.priceAzn} ₼):</strong> Aşağı giriş xərci ilə {dealerBaza.maxActiveListings} aktiv elan limiti və baza idarəetmə axını.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">②</span>
-                <span><strong>Peşəkar plan (59 ₼):</strong> 80 aktiv elan limiti + CSV import + analitika ilə iş axını sürətlənir.</span>
+                <span><strong>Peşəkar plan ({dealerPro.priceAzn} ₼):</strong> {dealerPro.maxActiveListings} aktiv elan limiti + CSV import + analitika ilə iş axını sürətlənir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">③</span>
-                <span><strong>Korporativ plan (119 ₼):</strong> 200 aktiv elan limiti və korporativ profil təqdimatı üçün geniş sahələr açılır.</span>
+                <span><strong>Korporativ plan ({dealerCorp.priceAzn} ₼):</strong> {dealerCorp.maxActiveListings} aktiv elan limiti və korporativ profil təqdimatı üçün geniş sahələr açılır.</span>
               </div>
             </div>
           </div>
 
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-xs text-slate-600">
+            <p className="font-semibold text-slate-800">Niyə bu limitlər var?</p>
+            <p className="mt-1 leading-relaxed">
+              Limitlər real xərclərə görə hesablanır: şəkil saxlanması ({economics.storageCostPerImageAzn.toFixed(4)} ₼/şəkil), görüntü trafiki ({economics.egressCostPerImageViewAzn.toFixed(4)} ₼/görüntü), moderasiya ({economics.moderationCostPerListingAzn.toFixed(2)} ₼/elan) və dəstək ({economics.supportCostPerListingAzn.toFixed(2)} ₼/elan). Hədəf COGS nisbəti {economics.targetCogsRatioPct}% və risk buffer {economics.riskBufferPct}% saxlanır.
+            </p>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-3">
-            {DEALER_PLANS.map((plan) => (
+            {dealerPlans.map((plan) => (
               <div
                 key={plan.id}
                 className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
@@ -749,21 +769,28 @@ export default function PricingPage() {
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-fuchsia-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">①</span>
-                <span><strong>Əsas plan (19 ₼):</strong> 50 aktiv məhsul (SKU) limiti və baza mağaza paneli üçün uyğundur.</span>
+                <span><strong>Əsas plan ({partsBaza.priceAzn} ₼):</strong> {partsBaza.maxActiveListings} aktiv məhsul (SKU) limiti və baza mağaza paneli üçün uyğundur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">②</span>
-                <span><strong>Peşəkar plan (39 ₼):</strong> 300 aktiv SKU limiti + analitika və geniş profil sahələri verir.</span>
+                <span><strong>Peşəkar plan ({partsPro.priceAzn} ₼):</strong> {partsPro.maxActiveListings} aktiv SKU limiti + analitika və geniş profil sahələri verir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">③</span>
-                <span><strong>Şəbəkə planı (79 ₼):</strong> 1000 aktiv SKU limiti və korporativ mağaza təqdimatı üçün nəzərdə tutulub.</span>
+                <span><strong>Şəbəkə planı ({partsNet.priceAzn} ₼):</strong> {partsNet.maxActiveListings} aktiv SKU limiti və korporativ mağaza təqdimatı üçün nəzərdə tutulub.</span>
               </div>
             </div>
           </div>
 
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-xs text-slate-600">
+            <p className="font-semibold text-slate-800">SKU limiti necə formalaşır?</p>
+            <p className="mt-1 leading-relaxed">
+              Hər SKU üçün şəkil sayı, aylıq ortalama baxış yükü (parts üçün {economics.avgPartsImageViewsPerListingPerMonth}) və əməliyyat xərcləri hesablanır; bu səbəbdən plan qiyməti artdıqca saxlanılan aktiv SKU limiti də artır.
+            </p>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-3">
-            {PARTS_STORE_PLANS.map((plan) => (
+            {partsPlans.map((plan) => (
               <div
                 key={plan.id}
                 className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
@@ -869,7 +896,7 @@ export default function PricingPage() {
 
           {/* Category tabs */}
           <div className="mb-6 flex flex-wrap gap-2">
-            {SERVICE_PLAN_CATEGORIES.map((cat) => (
+            {serviceCategories.map((cat) => (
               <a
                 key={cat.id}
                 href={`#service-${cat.id}`}
@@ -881,7 +908,7 @@ export default function PricingPage() {
           </div>
 
           <div className="space-y-14">
-            {SERVICE_PLAN_CATEGORIES.map((cat) => (
+            {serviceCategories.map((cat) => (
               <div key={cat.id} id={`service-${cat.id}`} className="scroll-mt-24">
                 {/* Sub-header */}
                 <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-4">

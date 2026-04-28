@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { DEALER_PLANS, type DealerPlan, type DealerPlanId } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS, type PartsStorePlan, type PartsStorePlanId } from "@/lib/parts-store-plans";
+import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
 
 export type BusinessType = "dealer" | "parts_store";
 
@@ -53,14 +54,55 @@ function partsPlanFromTier(tier: string | undefined): PartsStorePlanId {
   return "baza";
 }
 
-function getDealerFallbackPlan(): DealerPlan {
-  const fallback = dealerPlanFromTier(process.env.DEFAULT_DEALER_PLAN_TIER);
-  return DEALER_PLANS.find((p) => p.id === fallback) ?? DEALER_PLANS[0];
+export async function getDealerPlanCatalog(): Promise<DealerPlan[]> {
+  const cfg = await getPricingPlanAdminConfig();
+  return DEALER_PLANS.map((plan) => {
+    const override = cfg.dealer[plan.id];
+    if (!override) return plan;
+    return {
+      ...plan,
+      nameAz: override.nameAz ?? plan.nameAz,
+      priceAzn: override.priceAzn ?? plan.priceAzn,
+      maxActiveListings: override.maxActiveListings ?? plan.maxActiveListings,
+      perListingMaxImages: override.perListingMaxImages ?? plan.perListingMaxImages,
+      maxVideosPerListing: override.maxVideosPerListing ?? plan.maxVideosPerListing,
+      csvImportEnabled: override.csvImportEnabled ?? plan.csvImportEnabled,
+      analyticsEnabled: override.analyticsEnabled ?? plan.analyticsEnabled,
+      leadInboxLimit: override.leadInboxLimit === undefined ? plan.leadInboxLimit : override.leadInboxLimit,
+      gracePeriodDays: override.gracePeriodDays ?? plan.gracePeriodDays,
+      features: override.features && override.features.length > 0 ? override.features : plan.features
+    };
+  });
 }
 
-function getPartsFallbackPlan(): PartsStorePlan {
+export async function getPartsPlanCatalog(): Promise<PartsStorePlan[]> {
+  const cfg = await getPricingPlanAdminConfig();
+  return PARTS_STORE_PLANS.map((plan) => {
+    const override = cfg.parts[plan.id];
+    if (!override) return plan;
+    return {
+      ...plan,
+      nameAz: override.nameAz ?? plan.nameAz,
+      priceAzn: override.priceAzn ?? plan.priceAzn,
+      maxActiveListings: override.maxActiveListings ?? plan.maxActiveListings,
+      perListingMaxImages: override.perListingMaxImages ?? plan.perListingMaxImages,
+      analyticsEnabled: override.analyticsEnabled ?? plan.analyticsEnabled,
+      gracePeriodDays: override.gracePeriodDays ?? plan.gracePeriodDays,
+      features: override.features && override.features.length > 0 ? override.features : plan.features
+    };
+  });
+}
+
+async function getDealerFallbackPlan(): Promise<DealerPlan> {
+  const catalog = await getDealerPlanCatalog();
+  const fallback = dealerPlanFromTier(process.env.DEFAULT_DEALER_PLAN_TIER);
+  return catalog.find((p) => p.id === fallback) ?? catalog[0];
+}
+
+async function getPartsFallbackPlan(): Promise<PartsStorePlan> {
+  const catalog = await getPartsPlanCatalog();
   const fallback = partsPlanFromTier(process.env.DEFAULT_PARTS_PLAN_TIER);
-  return PARTS_STORE_PLANS.find((p) => p.id === fallback) ?? PARTS_STORE_PLANS[0];
+  return catalog.find((p) => p.id === fallback) ?? catalog[0];
 }
 
 async function getActiveSubscription(userId: string, businessType: BusinessType): Promise<SubscriptionRow | null> {
@@ -87,15 +129,19 @@ async function getActiveSubscription(userId: string, businessType: BusinessType)
 }
 
 export async function getEffectiveDealerPlan(userId: string): Promise<DealerPlan> {
+  const catalog = await getDealerPlanCatalog();
+  const fallback = await getDealerFallbackPlan();
   const sub = await getActiveSubscription(userId, "dealer");
-  if (!sub) return getDealerFallbackPlan();
-  return DEALER_PLANS.find((p) => p.id === (sub.plan_id as DealerPlanId)) ?? getDealerFallbackPlan();
+  if (!sub) return fallback;
+  return catalog.find((p) => p.id === (sub.plan_id as DealerPlanId)) ?? fallback;
 }
 
 export async function getEffectivePartsPlan(userId: string): Promise<PartsStorePlan> {
+  const catalog = await getPartsPlanCatalog();
+  const fallback = await getPartsFallbackPlan();
   const sub = await getActiveSubscription(userId, "parts_store");
-  if (!sub) return getPartsFallbackPlan();
-  return PARTS_STORE_PLANS.find((p) => p.id === (sub.plan_id as PartsStorePlanId)) ?? getPartsFallbackPlan();
+  if (!sub) return fallback;
+  return catalog.find((p) => p.id === (sub.plan_id as PartsStorePlanId)) ?? fallback;
 }
 
 function getDealerProfileEntitlements(plan: DealerPlan): BusinessProfileEntitlements {

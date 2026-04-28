@@ -2,6 +2,11 @@ import type { SystemSettingsRow, PenaltyAmountsJson, AuctionPaymentMode } from "
 import { DEFAULT_PENALTY_AMOUNTS } from "@/lib/auction-system-settings";
 import type { BrandSettings } from "@/lib/brand-settings";
 import { DEFAULT_BRAND_SETTINGS, parseBrandSettings } from "@/lib/brand-settings";
+import {
+  DEFAULT_PRICING_PLAN_ADMIN_CONFIG,
+  parsePricingPlanAdminConfig,
+  type PricingPlanAdminConfig
+} from "@/lib/pricing-plan-config";
 import { getPgPool } from "@/lib/postgres";
 
 interface SystemSettingsDbRow {
@@ -9,6 +14,8 @@ interface SystemSettingsDbRow {
   auction_mode: string;
   penalty_amounts: PenaltyAmountsJson;
   brand_settings?: unknown;
+  pricing_plan_config?: unknown;
+  pricing_economics_config?: unknown;
   updated_at: Date;
 }
 
@@ -94,4 +101,42 @@ export async function updateBrandSettings(input: BrandSettings): Promise<BrandSe
     [JSON.stringify(payload)]
   );
   return parseBrandSettings(result.rows[0]?.brand_settings ?? payload);
+}
+
+export async function getPricingPlanAdminConfig(): Promise<PricingPlanAdminConfig> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{
+      pricing_plan_config: unknown;
+      pricing_economics_config: unknown;
+    }>(`SELECT pricing_plan_config, pricing_economics_config FROM system_settings WHERE id = 1 LIMIT 1`);
+    return parsePricingPlanAdminConfig(
+      result.rows[0]?.pricing_plan_config ?? DEFAULT_PRICING_PLAN_ADMIN_CONFIG,
+      result.rows[0]?.pricing_economics_config ?? DEFAULT_PRICING_PLAN_ADMIN_CONFIG.economics
+    );
+  } catch {
+    return { ...DEFAULT_PRICING_PLAN_ADMIN_CONFIG };
+  }
+}
+
+export async function updatePricingPlanAdminConfig(input: PricingPlanAdminConfig): Promise<PricingPlanAdminConfig> {
+  const pool = getPgPool();
+  const payload = parsePricingPlanAdminConfig(input, input.economics);
+  const result = await pool.query<{
+    pricing_plan_config: unknown;
+    pricing_economics_config: unknown;
+  }>(
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, pricing_plan_config, pricing_economics_config, updated_at)
+     VALUES (1, 'BETA_FIN_ONLY', '{"vehicle":80,"part":15}'::jsonb, $1::jsonb, $2::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       pricing_plan_config = EXCLUDED.pricing_plan_config,
+       pricing_economics_config = EXCLUDED.pricing_economics_config,
+       updated_at = NOW()
+     RETURNING pricing_plan_config, pricing_economics_config`,
+    [JSON.stringify(payload), JSON.stringify(payload.economics)]
+  );
+  return parsePricingPlanAdminConfig(
+    result.rows[0]?.pricing_plan_config ?? payload,
+    result.rows[0]?.pricing_economics_config ?? payload.economics
+  );
 }

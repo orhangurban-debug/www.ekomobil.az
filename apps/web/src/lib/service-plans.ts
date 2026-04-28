@@ -1,5 +1,6 @@
 // ─── Service Provider Pricing Plans ─────────────────────────────────────────
 // Rəsmi servis, Ekspertiza şirkəti və Usta planları
+import type { ServicePlanOverride } from "@/lib/pricing-plan-config";
 
 export interface ServicePlan {
   id: string;
@@ -251,3 +252,26 @@ export const SERVICE_PLAN_CATEGORIES: ServicePlanCategory[] = [
     ]
   }
 ];
+
+export function getServicePlanCategoriesWithOverrides(
+  overrides?: Record<string, ServicePlanOverride>
+): ServicePlanCategory[] {
+  if (!overrides || Object.keys(overrides).length === 0) return SERVICE_PLAN_CATEGORIES;
+  return SERVICE_PLAN_CATEGORIES.map((category) => ({
+    ...category,
+    plans: category.plans.map((plan) => {
+      const override = overrides[plan.id];
+      if (!override) return plan;
+      return {
+        ...plan,
+        nameAz: override.nameAz ?? plan.nameAz,
+        priceAzn: override.priceAzn ?? plan.priceAzn,
+        billingAz: override.billingAz ?? plan.billingAz,
+        descriptionAz: override.descriptionAz ?? plan.descriptionAz,
+        launchOfferAz: override.launchOfferAz ?? plan.launchOfferAz,
+        ctaLabel: override.ctaLabel ?? plan.ctaLabel,
+        features: override.features && override.features.length > 0 ? override.features : plan.features
+      };
+    })
+  }));
+}

@@ -746,6 +746,12 @@ CREATE INDEX IF NOT EXISTS idx_listing_media_perceptual_hash
   ON listing_media (perceptual_hash)
   WHERE perceptual_hash IS NOT NULL;
 
+ALTER TABLE system_settings
+ADD COLUMN IF NOT EXISTS pricing_plan_config JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+ALTER TABLE system_settings
+ADD COLUMN IF NOT EXISTS pricing_economics_config JSONB NOT NULL DEFAULT '{}'::jsonb;
+
 -- =============================================================================
 -- SON
 -- =============================================================================
