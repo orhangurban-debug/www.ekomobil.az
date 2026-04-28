@@ -35,7 +35,7 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
-  const suppressCta = pathname.startsWith("/publish");
+  const suppressCta = pathname.startsWith("/publish") || pathname.startsWith("/parts/publish");
 
   const primaryCta = suppressCta
     ? null
@@ -45,7 +45,9 @@ export function Header({
         ? { label: "Yeni elan", href: "/publish" }
         : pathname.startsWith("/parts")
           ? { label: "Hissə elanı", href: "/parts/publish" }
-          : { label: "Elan yerləşdir", href: "/publish" };
+          : pathname.startsWith("/auction")
+            ? { label: "Lot yerləşdir", href: "/auction/sell" }
+            : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);

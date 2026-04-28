@@ -489,12 +489,6 @@ export default function AuctionPage() {
           </div>
         </div>
 
-        <div className="mt-12 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6 text-center">
-          <h3 className="font-semibold text-slate-900">Avtomobilinizi hərracda satmaq istəyirsiniz?</h3>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <Link href="/auction/sell" className="btn-primary">Lot qeydiyyatı</Link>
-          </div>
-        </div>
       </div>
     </div>
   );
