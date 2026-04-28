@@ -39,14 +39,13 @@ export function Header({
   const suppressCta =
     pathname.startsWith("/dealer") ||
     pathname.startsWith("/parts") ||
-    pathname.startsWith("/publish") ||
-    pathname.startsWith("/parts/publish");
+    pathname.startsWith("/services") ||
+    pathname.startsWith("/partners") ||
+    pathname.startsWith("/publish");
 
   const primaryCta = suppressCta
     ? null
-    : pathname.startsWith("/services") || pathname.startsWith("/partners")
-      ? { label: "Servis müraciəti", href: "/partners/inspection" }
-      : { label: "Elan yerləşdir", href: "/publish" };
+    : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);
