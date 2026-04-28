@@ -13,6 +13,7 @@ import {
 import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { ensureSeedData } from "@/server/bootstrap-seed";
+import { getBoostOrderSql } from "@/server/listing-boost-store";
 
 const globalForListings = globalThis as unknown as {
   ekomobilCreatedListings?: ListingDetail[];
@@ -95,6 +96,30 @@ interface ServiceRecordRow {
   service_date: Date;
   mileage_km: number;
   summary: string;
+}
+
+async function ensureListingBoostActivationsTable(): Promise<void> {
+  try {
+    const pool = getPgPool();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS listing_boost_activations (
+        id             UUID PRIMARY KEY,
+        listing_id     UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+        package_id     TEXT NOT NULL,
+        boost_type     TEXT NOT NULL,
+        starts_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        ends_at        TIMESTAMPTZ,
+        bumps_per_day  INTEGER NOT NULL DEFAULT 0,
+        created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS listing_boost_activations_listing_idx
+        ON listing_boost_activations (listing_id);
+      CREATE INDEX IF NOT EXISTS listing_boost_activations_active_idx
+        ON listing_boost_activations (boost_type, starts_at, ends_at);
+    `);
+  } catch {
+    // optional table, query layer should continue
+  }
 }
 
 function inferPriceInsight(priceAzn: number): PriceInsight {
@@ -279,6 +304,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
 
   try {
     await ensureSeedData();
+    await ensureListingBoostActivationsTable();
     const pool = getPgPool();
     const values: unknown[] = [];
     const where: string[] = ["l.status = 'active'"];
@@ -447,13 +473,14 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     }
 
     const planOrder = "CASE COALESCE(l.plan_type, 'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END ASC";
+    const boostOrder = getBoostOrderSql("l");
     const sortMap: Record<string, string> = {
       price_asc: "l.price_azn ASC",
       price_desc: "l.price_azn DESC",
       year_desc: "l.year DESC",
       mileage_asc: "l.mileage_km ASC",
       trust_desc: "COALESCE(ts.trust_score, 50) DESC",
-      recent: `${planOrder}, l.created_at DESC`
+      recent: `${boostOrder}, ${planOrder}, l.created_at DESC`
     };
     const sortSql = sortMap[query.sort ?? "recent"] ?? sortMap.recent;
 

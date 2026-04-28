@@ -7,7 +7,8 @@ import { PrintButton } from "@/components/invoice/print-button";
 const PAYMENT_TYPE_LABELS = {
   listing_plan: "Elan planı",
   business_plan: "Biznes planı",
-  auction_deposit: "Auksion depoziti"
+  auction_deposit: "Auksion depoziti",
+  listing_boost: "Elan boost paketi"
 } as const;
 
 interface Props {

@@ -51,3 +51,24 @@ export interface ListingPlanPaymentRecord {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ListingBoostPaymentStatus = ListingPlanPaymentStatus;
+
+export interface ListingBoostPaymentRecord {
+  id: string;
+  listingId: string;
+  ownerUserId: string;
+  boostPackageId: string;
+  boostType: "bump" | "vip" | "premium";
+  amountAzn: number;
+  provider: PaymentProvider;
+  status: ListingBoostPaymentStatus;
+  checkoutUrl: string;
+  providerReference?: string;
+  providerMode?: PaymentProviderMode;
+  checkoutStrategy?: PaymentCheckoutStrategy;
+  providerPayload?: PaymentProviderPayload;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}

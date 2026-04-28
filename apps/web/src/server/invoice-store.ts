@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { sendInvoiceEmail } from "@/lib/email";
 
-export type InvoicePaymentType = "listing_plan" | "business_plan" | "auction_deposit";
+export type InvoicePaymentType = "listing_plan" | "business_plan" | "auction_deposit" | "listing_boost";
 
 export interface InvoiceRecord {
   id: string;
@@ -217,7 +217,8 @@ export async function countAllInvoices(): Promise<number> {
 const PAYMENT_TYPE_LABELS: Record<InvoicePaymentType, string> = {
   listing_plan: "Elan planı",
   business_plan: "Biznes planı",
-  auction_deposit: "Auksion depoziti"
+  auction_deposit: "Auksion depoziti",
+  listing_boost: "Elan boost paketi"
 };
 
 export async function issueAndSendInvoice(input: {

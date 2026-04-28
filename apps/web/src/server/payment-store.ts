@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getPlanById } from "@/lib/listing-plans";
+import { calculateListingFee, getPlanById } from "@/lib/listing-plans";
 import {
   type PaymentProviderPayload,
   type ListingPlanPaymentRecord,
@@ -42,6 +42,10 @@ interface PaymentRow {
   updated_at: Date;
 }
 
+interface ListingPriceRow {
+  price_azn: number;
+}
+
 function mapRow(row: PaymentRow): ListingPlanPaymentRecord {
   return {
     id: row.id,
@@ -63,6 +67,20 @@ function mapRow(row: PaymentRow): ListingPlanPaymentRecord {
   };
 }
 
+async function getListingPriceAzn(listingId: string): Promise<number | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<ListingPriceRow>(
+      `SELECT price_azn FROM listings WHERE id = $1 LIMIT 1`,
+      [listingId]
+    );
+    const value = result.rows[0]?.price_azn;
+    return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function createListingPlanPayment(input: {
   listingId: string;
   ownerUserId: string;
@@ -79,12 +97,22 @@ export async function createListingPlanPayment(input: {
     return { ok: false, error: "Ödəniş üçün keçərli plan seçin" };
   }
 
+  // Professional billing: listing plan payment amount follows dynamic pricing tiers.
+  const listingPriceAzn = await getListingPriceAzn(input.listingId);
+  const amountAzn =
+    listingPriceAzn && listingPriceAzn > 0
+      ? calculateListingFee(input.planType, listingPriceAzn)
+      : plan.priceAzn;
+  if (!amountAzn || amountAzn <= 0) {
+    return { ok: false, error: "Ödəniş məbləği hesablana bilmədi" };
+  }
+
   const id = randomUUID();
   let session;
   try {
     session = await prepareKapitalBankCheckoutSession({
       internalPaymentId: id,
-      amountAzn: plan.priceAzn,
+      amountAzn,
       description: `Listing ${input.planType} plan payment`,
       checkoutPagePath: `/payments/listing-plan/${id}`,
       callbackPath: "/api/payments/kapital-bank/callback",
@@ -112,7 +140,7 @@ export async function createListingPlanPayment(input: {
         input.listingId,
         input.ownerUserId,
         input.planType,
-        plan.priceAzn,
+        amountAzn,
         input.source,
         session.checkoutUrl,
         session.providerMode,
@@ -127,7 +155,7 @@ export async function createListingPlanPayment(input: {
       listingId: input.listingId,
       ownerUserId: input.ownerUserId,
       planType: input.planType,
-      amountAzn: plan.priceAzn,
+      amountAzn,
       source: input.source,
       provider: "kapital_bank",
       status: "redirect_ready",

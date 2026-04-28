@@ -33,6 +33,10 @@ const AUCTION_BUYER_STEPS_AZ = [
   "Satıcı öhdəliyini pozduğunu düşünürsənsə, təsdiq pəncərəsindəki müvafiq seçimlə bildir; platforma satıcı öhdəlik haqqı üçün checkout linkini sən yaradırsın."
 ];
 
+const FREE_LISTING_PLAN = LISTING_PLANS.find((plan) => plan.id === "free");
+const STANDARD_LISTING_PLAN = LISTING_PLANS.find((plan) => plan.id === "standard");
+const VIP_LISTING_PLAN = LISTING_PLANS.find((plan) => plan.id === "vip");
+
 function CheckIcon() {
   return (
     <svg className="h-4 w-4 shrink-0 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
@@ -395,7 +399,10 @@ export default function PricingPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LIMIT</span>
-                <span><strong>Hər plan öz şəkil limiti var</strong> — Pulsuz: 8, Standart: 15, VIP: 20 şəkil.</span>
+                <span>
+                  <strong>Hər plan öz limitləri ilə işləyir</strong> — Pulsuz: {FREE_LISTING_PLAN?.maxImages ?? 15} şəkil,
+                  Standart: {STANDARD_LISTING_PLAN?.maxImages ?? 15} şəkil, VIP: {VIP_LISTING_PLAN?.maxImages ?? 20} şəkil.
+                </span>
               </div>
             </div>
           </div>
@@ -464,7 +471,7 @@ export default function PricingPage() {
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış elan kartı</li>
                         <li className="flex items-center gap-2"><CheckIcon />2× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış statistikası</li>
-                        <li className="flex items-center gap-2"><CheckIcon />1 video (50 MB)</li>
+                        <li className="flex items-center gap-2"><CheckIcon />1 video ({STANDARD_LISTING_PLAN?.maxVideoSizeMb ?? 50} MB)</li>
                         <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
                 </>
               )}
@@ -474,7 +481,7 @@ export default function PricingPage() {
                         <li className="flex items-center gap-2"><CheckIcon />4× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış görünüş + ribbon</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış & klik statistikası</li>
-                        <li className="flex items-center gap-2"><CheckIcon />3 video (100 MB/video)</li>
+                        <li className="flex items-center gap-2"><CheckIcon />{VIP_LISTING_PLAN?.maxVideos ?? 1} video ({VIP_LISTING_PLAN?.maxVideoSizeMb ?? 200} MB/video)</li>
                         <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
                 </>
               )}
