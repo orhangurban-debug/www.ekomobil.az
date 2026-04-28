@@ -77,18 +77,13 @@ export const DEALER_PLANS: DealerPlan[] = [
     analyticsEnabled: false,
     gracePeriodDays: 14,
     features: [
-      "30 aktiv elan slotu",
-      "Elan başına 10 şəkil",
-      "Salon profil səhifəsi",
-      "Doğrulanmış salon nişanı",
-      "Müştəri sorğu qutusu (son 50 sorğu)",
-      "Standart axtarış görünüşü",
-      "Hər 60 gündən bir inventar yoxlaması"
+      "Salon paneli: inventar və lead qutusu",
+      "Elanlara irəlilətmə xidməti tətbiq etmə",
+      "Profil məlumatları: ad, şəhər, loqo, təsvir",
+      "Müştəri sorğularını mərhələlər üzrə idarə etmə",
+      "Plan məlumatı və yenilənmə vəziyyəti paneldə görünür"
     ],
-    comingSoon: [
-      "CSV toplu yükləmə",
-      "Baxış statistikası"
-    ]
+    comingSoon: []
   },
   {
     id: "peşəkar",
@@ -106,20 +101,13 @@ export const DEALER_PLANS: DealerPlan[] = [
     gracePeriodDays: 21,
     highlight: true,
     features: [
-      "80 aktiv elan slotu",
-      "Elan başına 20 şəkil + 1 video",
+      "Salon Əsas planındakı bütün imkanlar",
       "CSV toplu yükləmə (avtomobil inventarı)",
-      "Limitsiz müştəri sorğu qutusu",
-      "Lead mərhələ idarəsi (yeni → nəzərdən keçirilir → bağlandı)",
-      "Baxış & lead sayı statistikası",
-      "Doğrulanmış salon nişanı",
-      "Hər 90 gündən bir inventar yoxlaması"
+      "Analitika paneli (baxış, əlaqə, test sürüş)",
+      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları",
+      "CSV import və analitika səhifələrinə giriş"
     ],
-    comingSoon: [
-      "VIN tarixçəsi (3-cü tərəf API inteqrasiyası)",
-      "Excel/CSV ixrac",
-      "Boost krediti sistemi"
-    ]
+    comingSoon: []
   },
   {
     id: "korporativ",
@@ -136,21 +124,13 @@ export const DEALER_PLANS: DealerPlan[] = [
     analyticsEnabled: true,
     gracePeriodDays: 30,
     features: [
-      "200 aktiv elan slotu",
-      "Elan başına 25 şəkil + 2 video",
-      "CSV toplu yükləmə (limit yoxdur)",
-      "Limitsiz müştəri sorğu qutusu",
-      "Lead mərhələ idarəsi (tam axın)",
-      "Baxış & lead sayı statistikası",
-      "Auksion lot yerləşdirmə hüququ",
-      "Prioritet dəstək"
+      "Salon Peşəkar planındakı bütün imkanlar",
+      "Profildə korporativ sahələr: cover şəkli və ünvan",
+      "CSV toplu yükləmə və analitika paneli",
+      "Biznes profilində geniş məlumat sahələri",
+      "Korporativ təqdimat üçün vizual profil imkanları"
     ],
-    comingSoon: [
-      "Çoxlu filial — vahid idarə paneli",
-      "VIN tarixçəsi (3-cü tərəf API inteqrasiyası)",
-      "Excel/CSV ixrac",
-      "Boost krediti sistemi"
-    ]
+    comingSoon: []
   }
 ];
 

@@ -26,15 +26,12 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
     billingAz: "/ ay",
     descriptionAz: "Tək filialı olan rəsmi servis üçün əlçatan başlanğıc paket.",
     features: [
-      "1 servis profili üçün onboarding",
-      "Servis növü və xidmət taglarının seçimi",
-      "Brend / sertifikasiya nişanlarının göstərilməsi",
-      "6 servis şəkli və 3 sertifikat faylı upload",
-      "Servislər kataloqunda profil kartı",
-      "Şəhər və xidmət növü filtrlərində görünüş",
-      "Profil səhifəsində zəng və WhatsApp düymələri"
+      "Tərəfdaşlıq müraciət formu və manual baxış",
+      "Servis növü, şəhər və əlaqə məlumatlarının toplanması",
+      "20 xidmət tagı seçimi",
+      "3 sertifikasiya nişanı seçimi",
+      "6 servis şəkli və 3 sertifikat faylı yükləmə limiti"
     ],
-    comingSoon: ["Onlayn randevu təqvimi"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Başla",
     ctaHref: "/partners/inspection"
@@ -49,14 +46,11 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
     descriptionAz: "Aktiv rəsmi servis mərkəzləri üçün daha güclü onboarding və təqdimat.",
     features: [
       "Filial paketindəki bütün imkanlar",
-      "Bir neçə xidmət istiqamətinin birlikdə yerləşdirilməsi",
-      "Ops tərəfindən prioritet aktivasiya baxışı",
-      "Əlavə sertifikasiya və brend məlumatı",
-      "12 servis şəkli və 6 sertifikat faylı upload",
-      "Komanda / xidmət təsviri üçün geniş onboarding",
-      "İlk ay pulsuz kampaniya hüququ"
+      "40 xidmət tagı seçimi",
+      "6 sertifikasiya nişanı seçimi",
+      "12 servis şəkli və 6 sertifikat faylı yükləmə limiti",
+      "Müraciətdə plan seçimi və manual təsdiq axını"
     ],
-    comingSoon: ["Onlayn randevu", "Müştəri CRM", "Lead statistikası"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
@@ -70,14 +64,11 @@ export const OFFICIAL_SERVICE_PLANS: ServicePlan[] = [
     descriptionAz: "Bir neçə filialı olan rəsmi servis şəbəkələri üçün korporativ paket.",
     features: [
       "Mərkəz paketindəki bütün imkanlar",
-      "Çox filial onboarding dəstəyi",
-      "Korporativ yerləşdirmə üçün fərdi setup",
-      "Fərdi kommersiya və hesab idarəetməsi",
-      "20 servis şəkli və 10 sertifikat faylı upload",
-      "Satış komandası ilə manual koordinasiya",
-      "İlk ay pulsuz kampaniya hüququ"
+      "80 xidmət tagı seçimi",
+      "12 sertifikasiya nişanı seçimi",
+      "20 servis şəkli və 10 sertifikat faylı yükləmə limiti",
+      "Manual korporativ onboarding koordinasiyası"
     ],
-    comingSoon: ["Servis tarixçəsi inteqrasiyası", "QR randevu sistemi", "Çox istifadəçili panel"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Bizimlə əlaqə",
     ctaHref: "/partners/inspection"
@@ -94,15 +85,12 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
     billingAz: "/ ay",
     descriptionAz: "Müstəqil ekspert və kiçik ekspertiza nöqtəsi üçün başlanğıc paket.",
     features: [
-      "1 ekspert profili üçün onboarding",
-      "Ekspertiza növü və yoxlama taglarının seçimi",
-      "Sertifikasiya nişanlarının göstərilməsi",
-      "5 obyekt şəkli və 4 sertifikat faylı upload",
-      "Servislər kataloqunda profil kartı",
-      "Şəhər filtrlərində görünüş",
-      "Profil səhifəsində zəng və WhatsApp düymələri"
+      "Tərəfdaşlıq müraciət formu və manual baxış",
+      "Servis növü, şəhər və əlaqə məlumatlarının toplanması",
+      "12 xidmət tagı seçimi",
+      "3 sertifikasiya nişanı seçimi",
+      "5 obyekt şəkli və 4 sertifikat faylı yükləmə limiti"
     ],
-    comingSoon: ["Rəqəmsal raport şablonu"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Başla",
     ctaHref: "/partners/inspection"
@@ -117,14 +105,11 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
     descriptionAz: "Daimi yoxlama axını olan ekspertiza mərkəzləri üçün.",
     features: [
       "Solo paketindəki bütün imkanlar",
-      "Bir neçə yoxlama istiqamətinin birlikdə təqdimatı",
-      "Ops tərəfindən prioritet aktivasiya baxışı",
-      "Əlavə sertifikasiya və avadanlıq məlumatı",
-      "10 obyekt şəkli və 8 sertifikat faylı upload",
-      "Auksion uyğunluğu üçün manual qiymətləndirmə",
-      "İlk ay pulsuz kampaniya hüququ"
+      "24 xidmət tagı seçimi",
+      "6 sertifikasiya nişanı seçimi",
+      "10 obyekt şəkli və 8 sertifikat faylı yükləmə limiti",
+      "Müraciətdə plan seçimi və manual təsdiq axını"
     ],
-    comingSoon: ["Müştəriyə raport göndərmə", "Lead statistikası"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
@@ -138,14 +123,11 @@ export const INSPECTION_COMPANY_PLANS: ServicePlan[] = [
     descriptionAz: "Bir neçə ekspert və filialla işləyən şirkətlər üçün şəbəkə paketi.",
     features: [
       "Mərkəz paketindəki bütün imkanlar",
-      "Çox ekspert / filial onboarding dəstəyi",
-      "Premium tərəfdaş kimi manual yerləşdirmə",
-      "Fərdi kommersiya təklifi",
-      "16 obyekt şəkli və 12 sertifikat faylı upload",
-      "Prioritet dəstək və setup əlaqələndirməsi",
-      "İlk ay pulsuz kampaniya hüququ"
+      "48 xidmət tagı seçimi",
+      "12 sertifikasiya nişanı seçimi",
+      "16 obyekt şəkli və 12 sertifikat faylı yükləmə limiti",
+      "Manual korporativ onboarding koordinasiyası"
     ],
-    comingSoon: ["Rəqəmsal imza", "API raport inteqrasiyası", "Raport arxivi paneli"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Bizimlə əlaqə",
     ctaHref: "/partners/inspection"
@@ -162,15 +144,12 @@ export const MECHANIC_PLANS: ServicePlan[] = [
     billingAz: "",
     descriptionAz: "Yeni başlayan fərdi usta üçün sıfır girişli profil.",
     features: [
-      "1 usta profili",
+      "Tərəfdaşlıq müraciət formu və manual baxış",
+      "Servis növü, şəhər və əlaqə məlumatlarının toplanması",
       "5 xidmət tagı seçimi",
-      "Şəhər və ixtisas üzrə görünüş",
-      "3 şəkil və 1 sertifikat faylı upload",
-      "Zəng / WhatsApp düyməsi",
-      "Profil müraciəti və əsas məlumat sahələri",
-      "Kataloqda profil kartı"
+      "1 sertifikasiya nişanı seçimi",
+      "3 şəkil və 1 sertifikat faylı yükləmə limiti"
     ],
-    comingSoon: ["Rəy sistemi"],
     ctaLabel: "Pulsuz başla",
     ctaHref: "/partners/inspection"
   },
@@ -185,13 +164,10 @@ export const MECHANIC_PLANS: ServicePlan[] = [
     features: [
       "Pulsuz paketindəki bütün imkanlar",
       "15 xidmət tagı seçimi",
-      "Ops tərəfindən prioritet aktivasiya baxışı",
-      "Əlavə sertifikasiya nişanları",
-      "8 şəkil və 3 sertifikat faylı upload",
-      "Profil təsviri üçün geniş onboarding",
-      "İlk ay pulsuz kampaniya hüququ"
+      "3 sertifikasiya nişanı seçimi",
+      "8 şəkil və 3 sertifikat faylı yükləmə limiti",
+      "Müraciətdə plan seçimi və manual təsdiq axını"
     ],
-    comingSoon: ["Rəy sistemi", "Portfolio bölməsi", "Sadə statistika"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Pro seç",
     ctaHref: "/partners/inspection"
@@ -205,14 +181,11 @@ export const MECHANIC_PLANS: ServicePlan[] = [
     descriptionAz: "2-4 nəfərlik kiçik servis və usta komandaları üçün.",
     features: [
       "Usta Pro paketindəki bütün imkanlar",
-      "Bir neçə ixtisasın bir profildə toplanması",
-      "Kiçik komanda üçün onboarding dəstəyi",
-      "EV / ECU / ADAS kimi ixtisasların birlikdə seçimi",
-      "15 şəkil və 6 sertifikat faylı upload",
-      "Əlavə qeydlərlə komanda təqdimatı",
-      "İlk ay pulsuz kampaniya hüququ"
+      "30 xidmət tagı seçimi",
+      "6 sertifikasiya nişanı seçimi",
+      "15 şəkil və 6 sertifikat faylı yükləmə limiti",
+      "Manual komanda onboarding koordinasiyası"
     ],
-    comingSoon: ["Onlayn randevu", "Müştəri loyallıq sistemi", "Komanda idarəetməsi"],
     launchOfferAz: "İlk 30 gün pulsuz aktivasiya",
     ctaLabel: "Komanda planı seç",
     ctaHref: "/partners/inspection"

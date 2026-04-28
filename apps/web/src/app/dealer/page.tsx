@@ -100,7 +100,7 @@ export default async function DealerPortalPage() {
             Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
           </p>
         </div>
-        <Link href="/pricing#dealers" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
+        <Link href="/pricing#dealer" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
           Planları gör →
         </Link>
       </div>
@@ -126,7 +126,7 @@ export default async function DealerPortalPage() {
       {!dealerPlan.analyticsEnabled && (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <span>Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.</span>
-          <Link href="/pricing#dealers" className="shrink-0 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900">
+          <Link href="/pricing#dealer" className="shrink-0 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900">
             Plana bax →
           </Link>
         </div>

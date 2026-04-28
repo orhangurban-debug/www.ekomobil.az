@@ -53,19 +53,13 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     perListingMaxImages: 4,
     gracePeriodDays: 7,
     features: [
-      "50 aktiv hissə elanı (SKU)",
-      "Elan başına 4 şəkil",
-      "Mağaza profil səhifəsi",
-      "Doğrulanmış mağaza nişanı",
-      "Sifariş sorğuları qutusu"
+      "Elan başına maksimum 4 şəkil",
+      "Mağaza paneli və hissə elanlarını idarə etmə",
+      "Sifariş sorğuları qutusu",
+      "Profil məlumatları: ad, şəhər, loqo, təsvir"
     ],
     analyticsEnabled: false,
-    comingSoon: [
-      "Baxış statistikası (mağaza paneli)",
-      "Stok miqdarı izləmə",
-      "Kateqoriya ağacı",
-      "CSV toplu yükləmə"
-    ]
+    comingSoon: []
   },
   {
     id: "peşəkar",
@@ -77,20 +71,14 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     gracePeriodDays: 14,
     highlight: true,
     features: [
-      "300 aktiv hissə elanı (SKU)",
-      "Elan başına 6 şəkil",
-      "Mağaza profil səhifəsi",
-      "Doğrulanmış mağaza nişanı",
-      "Sifariş sorğuları qutusu",
-      "Baxış statistikası"
+      "Mağaza Əsas planındakı bütün imkanlar",
+      "Elan başına maksimum 6 şəkil",
+      "Analitika paneli",
+      "Profildə əlavə sahələr: WhatsApp, vebsayt, iş saatları",
+      "Mağaza analitika səhifəsinə giriş"
     ],
     analyticsEnabled: true,
-    comingSoon: [
-      "Stok miqdarı izləmə (qty)",
-      "Uyğunluq məlumatı (marka/model/il)",
-      "3 səviyyəli kateqoriya ağacı",
-      "CSV toplu yükləmə (SKU + OEM nömrəsi)"
-    ]
+    comingSoon: []
   },
   {
     id: "şəbəkə",
@@ -101,22 +89,14 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
     perListingMaxImages: 8,
     gracePeriodDays: 21,
     features: [
-      "1000 aktiv hissə elanı (SKU)",
-      "Elan başına 8 şəkil",
-      "Mağaza profil səhifəsi",
-      "Doğrulanmış mağaza nişanı",
-      "Sifariş sorğuları qutusu",
-      "Baxış statistikası",
-      "Prioritet dəstək"
+      "Mağaza Peşəkar planındakı bütün imkanlar",
+      "Elan başına maksimum 8 şəkil",
+      "Profildə korporativ sahələr: cover şəkli və ünvan",
+      "Analitika paneli",
+      "Biznes profilində geniş məlumat sahələri"
     ],
     analyticsEnabled: true,
-    comingSoon: [
-      "Stok izləmə + topdan sifariş",
-      "Uyğunluq məlumatı (tam dəstək)",
-      "Çoxlu anbar — filiallar üzrə stok",
-      "CSV toplu yükləmə (limit yoxdur)",
-      "Excel/CSV ixrac"
-    ]
+    comingSoon: []
   }
 ];
 

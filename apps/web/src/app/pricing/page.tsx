@@ -623,26 +623,26 @@ export default function PricingPage() {
           <SectionHeader
             label="Avtomobil salonları"
             title="Salon abunə planları"
-            sub="Aylıq sabit ödəniş → aktiv elan slotu. Abunə aktiv olduqca bütün elanlar saytda qalır."
+            sub="Aylıq abunə planları. Plan fərqi CSV import, analitika və profil sahələrinə təsir edir."
           />
 
           <NoBizFreeBanner />
 
-          {/* Slot logic explainer */}
+          {/* Dealer plan logic explainer */}
           <div className="mb-8 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm">
             <p className="font-semibold text-blue-900">Salon planı necə işləyir?</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-blue-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">①</span>
-                <span><strong>Slot sistemi:</strong> Hər plan N aktiv elan slotu verir. Slot fərdi elan planı seçmədən doldurulur — keyfiyyət planla sabitdir.</span>
+                <span><strong>Əsas plan:</strong> Salon paneli, inventar, lead qutusu və profilin baza sahələri aktiv olur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">②</span>
-                <span><strong>Satılanda azalır:</strong> Avtomobil satılanda/silinəndə slot azad olur, yeni avtomobil girir. Əlavə ödəniş yoxdur.</span>
+                <span><strong>Peşəkar plan:</strong> CSV import və analitika modulu açılır, profildə əlavə əlaqə sahələri aktiv olur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">③</span>
-                <span><strong>Abunə bitincə:</strong> Bütün elanlar lütf müddəti qurtarana qədər gizlənir — silinmir. Abunə yenilənincə geri qayıdır.</span>
+                <span><strong>Korporativ plan:</strong> Cover şəkli və ünvan kimi geniş profil sahələri də aktivləşir.</span>
               </div>
             </div>
           </div>
@@ -670,21 +670,14 @@ export default function PricingPage() {
                     </span>
                     <span className="text-sm text-slate-400">/ ay</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">
-                    {plan.maxActiveListings} aktiv elan slotu
-                  </p>
+                  <p className="mt-1 text-xs text-slate-400">Aylıq abunə planı</p>
                 </div>
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                    {plan.perListingMaxImages} şəkil/elan
+                    Profil idarəetməsi
                   </span>
-                  {plan.videoEnabled && (
-                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
-                      {plan.maxVideosPerListing} video/elan
-                    </span>
-                  )}
                   {plan.csvImportEnabled && (
                     <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
                       CSV import
@@ -695,9 +688,11 @@ export default function PricingPage() {
                       Analitika
                     </span>
                   )}
-                  <span className="rounded-md bg-slate-50 text-slate-400 px-2 py-0.5 text-xs">
-                    {plan.listingRefreshDays} gündə yoxlama
-                  </span>
+                  {plan.id === "korporativ" && (
+                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
+                      Cover + ünvan
+                    </span>
+                  )}
                 </div>
 
                 {/* Real features */}
@@ -743,26 +738,26 @@ export default function PricingPage() {
           <SectionHeader
             label="Ehtiyat hissə mağazaları"
             title="Mağaza paketləri"
-            sub="Kataloq (SKU) əsaslı elan sistemi. Salondan fərqli olaraq stok izləmə və uyğunluq məlumatı daxildir."
+            sub="Mağaza planlarında əsas fərq şəkil limiti, analitika və profil sahələridir."
           />
 
           <NoBizFreeBanner />
 
-          {/* Parts store vs dealer logic explainer */}
+          {/* Parts plan logic explainer */}
           <div className="mb-8 rounded-2xl border border-fuchsia-100 bg-fuchsia-50 px-5 py-4 text-sm">
             <p className="font-semibold text-fuchsia-900">Mağaza planı salondan necə fərqlənir?</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-3 text-xs text-fuchsia-800">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">①</span>
-                <span><strong>SKU kataloqu:</strong> Hər elan bir hissə tipidir (SKU). Satılanda stok azalır, elan silinmir — &quot;stokda yoxdur&quot; olur.</span>
+                <span><strong>Şəkil limiti:</strong> Mağaza planına görə hissə elanında icazə verilən maksimum şəkil sayı artır.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">②</span>
-                <span><strong>Uyğunluq axtarışı:</strong> Alıcılar hansı avto markaları/modelləri/illəri üçün hissə axtardığını göstərir. Mağaza uyğun elanları sıraya çəkir.</span>
+                <span><strong>Analitika:</strong> Mağaza Peşəkar və Şəbəkə planlarında analitika səhifəsi aktiv olur.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-fuchsia-500">③</span>
-                <span><strong>Az foto lazımdır:</strong> Hissə elanlarında 4-8 şəkil tam kifayətdir. 25-40 şəkil gərəksizdir — avtomobil elanı ilə qarışdırmayın.</span>
+                <span><strong>Profil sahələri:</strong> Üst planlarda WhatsApp, vebsayt, iş saatları və korporativ profil sahələri açılır.</span>
               </div>
             </div>
           </div>
@@ -790,9 +785,7 @@ export default function PricingPage() {
                     </span>
                     <span className="text-sm text-slate-400">/ ay</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">
-                    {plan.maxActiveListings.toLocaleString("az-AZ")} aktiv SKU
-        </p>
+                  <p className="mt-1 text-xs text-slate-400">Aylıq mağaza planı</p>
       </div>
 
                 {/* Feature chips */}
@@ -800,6 +793,16 @@ export default function PricingPage() {
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                     {plan.perListingMaxImages} şəkil/SKU
                   </span>
+                  {plan.analyticsEnabled && (
+                    <span className="rounded-md bg-purple-50 text-purple-700 px-2 py-0.5 text-xs">
+                      Analitika
+                    </span>
+                  )}
+                  {plan.id === "şəbəkə" && (
+                    <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
+                      Cover + ünvan
+                    </span>
+                  )}
                 </div>
 
                 {/* Real features */}
@@ -1111,7 +1114,7 @@ export default function PricingPage() {
               },
               {
                 q: "Salon üçün minimum plan hansıdır?",
-                a: "Salonlar üçün ən giriş səviyyəli plan aylıq 29 ₼-dır. Bu planla 15 aktiv elan yeri, şəkil/video dəstəyi və əsas idarə paneli mövcuddur. Elan sayı artdıqca üst planlara keçmək mümkündür."
+                a: "Salonlar üçün giriş planı aylıq 29 ₼-dır. Bu planla əsas salon paneli, inventar və lead idarəetməsi açılır. CSV import və analitika üçün Salon Peşəkar planına keçmək lazımdır."
               },
               {
                 q: "Auksion lotunda satış olmasa lot haqqı geri qaytarılırmı?",
