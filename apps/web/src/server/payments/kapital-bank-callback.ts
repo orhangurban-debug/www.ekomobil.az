@@ -20,8 +20,6 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "fullypaid":
     case "fullypaid.":
     case "closed":
-    case "partiallypaid":
-      return "succeeded";
     case "cancelled":
     case "canceled":
     case "cancel":
@@ -38,6 +36,7 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "created":
     case "new":
     case "beingprepared":
+    case "partiallypaid":
       return "failed";
     default:
       break;
@@ -181,12 +180,26 @@ export async function resolveKapitalBankPaymentStatus(input: {
         remoteOrderId,
         remoteOrderPassword: remoteOrderPassword ?? ""
       });
+      const normalized = remote.status.trim().toLowerCase().replace(/\s+/g, "");
+      if (
+        normalized === "pending" ||
+        normalized === "processing" ||
+        normalized === "created" ||
+        normalized === "new" ||
+        normalized === "beingprepared" ||
+        normalized === "partiallypaid"
+      ) {
+        throw new Error(`Bank sifarişi yekunlaşmayıb: ${remote.status}`);
+      }
       return {
         status: mapKapitalBankOrderStatus(remote.status),
         providerReference: remoteOrderId,
         verification: "remote_order_status",
       };
     } catch {
+      if (providerMode === "live") {
+        throw new Error("Live rejimdə ödəniş statusu bankdan təsdiqlənmədi");
+      }
       if (input.fallbackStatus) {
         return {
           status: mapKapitalBankOrderStatus(input.fallbackStatus),

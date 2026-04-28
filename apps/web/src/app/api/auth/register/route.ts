@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
-import { consumePhoneOtpChallenge, createUserAccount, isPhoneAlreadyUsed, normalizePhoneNumber } from "@/server/user-store";
+import { consumePhoneOtpChallenge, createUserAccount, normalizePhoneNumber } from "@/server/user-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { registerSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
@@ -42,13 +42,6 @@ export async function POST(req: Request) {
     });
     if (!otpCheck.ok) {
       return NextResponse.json({ ok: false, error: otpCheck.error }, { status: 400 });
-    }
-
-    if (await isPhoneAlreadyUsed(normalizedPhone)) {
-      return NextResponse.json(
-        { ok: false, error: "Bu telefon nömrəsi ilə artıq hesab mövcuddur." },
-        { status: 409 }
-      );
     }
 
     const user = await createUserAccount({

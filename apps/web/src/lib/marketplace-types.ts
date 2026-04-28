@@ -25,6 +25,7 @@ export interface ListingRecord {
   sellerType: SellerType;
   ownerUserId?: string;
   dealerProfileId?: string;
+  dealerOwnerUserId?: string;
   contactPhone?: string;
   whatsappPhone?: string;
   bodyType?: string;

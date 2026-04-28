@@ -34,12 +34,6 @@ interface PhoneOtpChallengeRow {
   consumed_at: Date | null;
 }
 
-const OWNER_ADMIN_EMAILS = new Set(["orhangurban@gmail.com"]);
-
-function isOwnerAdminEmail(email: string): boolean {
-  return OWNER_ADMIN_EMAILS.has(email.trim().toLowerCase());
-}
-
 function mapUser(row: {
   id: string;
   email: string;
@@ -129,7 +123,7 @@ export async function createUserAccount(input: {
         userId,
         input.email,
         hashPassword(input.password),
-        input.role ?? (isOwnerAdminEmail(input.email) ? "admin" : "viewer"),
+        input.role ?? "viewer",
         input.phone ?? null,
         input.phoneVerified === true,
         input.phoneNormalized ?? null
@@ -183,10 +177,13 @@ export async function createPhoneOtpChallenge(input: {
     `,
     [challengeId, input.phoneNormalized, code]
   );
+  const exposeOtpForDev =
+    process.env.ALLOW_OTP_PLAINTEXT_IN_RESPONSE === "true" &&
+    process.env.NODE_ENV !== "production";
   return {
     challengeId,
     expiresAt: result.rows[0]?.expires_at?.toISOString() ?? new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    codeForDev: process.env.NODE_ENV === "production" ? undefined : code
+    codeForDev: exposeOtpForDev ? code : undefined
   };
 }
 
@@ -267,15 +264,14 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       [input.providerUserId]
     );
     if (linked.rows[0]) {
-      const shouldBeAdmin = isOwnerAdminEmail(input.email);
       await client.query(
         `UPDATE user_oauth_accounts SET last_login_at = NOW(), email_at_provider = $2
          WHERE provider = 'google' AND provider_user_id = $1`,
         [input.providerUserId, input.email]
       );
       await client.query(
-        `UPDATE users SET email_verified = true, role = CASE WHEN $2 THEN 'admin' ELSE role END WHERE id = $1`,
-        [linked.rows[0].id, shouldBeAdmin]
+        `UPDATE users SET email_verified = true WHERE id = $1`,
+        [linked.rows[0].id]
       );
       const refreshed = await client.query<{
         id: string;
@@ -318,7 +314,7 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
           VALUES ($1, $2, $3, $4, true, NULL)
           RETURNING id, email, role, email_verified, phone
         `,
-        [userId, input.email, hashPassword(randomPassword), isOwnerAdminEmail(input.email) ? "admin" : "viewer"]
+        [userId, input.email, hashPassword(randomPassword), "viewer"]
       );
       user = created.rows[0];
       await client.query(
@@ -334,8 +330,8 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       );
     } else {
       await client.query(
-        `UPDATE users SET email_verified = true, role = CASE WHEN $2 THEN 'admin' ELSE role END WHERE id = $1`,
-        [user.id, isOwnerAdminEmail(input.email)]
+        `UPDATE users SET email_verified = true WHERE id = $1`,
+        [user.id]
       );
       await client.query(
         `

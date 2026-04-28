@@ -178,7 +178,9 @@ export async function getListingPlanPayment(paymentId: string): Promise<ListingP
       `SELECT * FROM listing_plan_payments WHERE id = $1 LIMIT 1`,
       [paymentId]
     );
-    return result.rows[0] ? mapRow(result.rows[0]) : null;
+    if (result.rows[0]) return mapRow(result.rows[0]);
+    const existing = await pool.query<PaymentRow>(`SELECT * FROM listing_plan_payments WHERE id = $1 LIMIT 1`, [paymentId]);
+    return existing.rows[0] ? mapRow(existing.rows[0]) : null;
   } catch {
     return getCreatedPayments().find((item) => item.id === paymentId) ?? null;
   }
@@ -222,6 +224,7 @@ async function setListingPlanPaymentStatus(
            completed_at = CASE WHEN $2 = 'succeeded' THEN NOW() ELSE completed_at END,
            updated_at = NOW()
        WHERE id = $1
+         AND status <> 'succeeded'
        RETURNING *`,
       [paymentId, status, providerReference ?? null]
     );
@@ -253,24 +256,32 @@ export async function finalizeListingPlanPayment(input: {
     return { ok: true, payment };
   }
 
+  if (input.status !== "succeeded") {
+    const updatedPayment = await setListingPlanPaymentStatus(
+      input.paymentId,
+      input.status,
+      input.providerReference
+    );
+    if (!updatedPayment) {
+      return { ok: false, error: "Ödəniş tapılmadı" };
+    }
+    return { ok: true, payment: updatedPayment };
+  }
+
+  const applyResult = await applyListingPlanForOwner(payment.listingId, payment.ownerUserId, payment.planType, {
+    activate: payment.source === "publish"
+  });
+  if (!applyResult.ok) {
+    return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
+  }
+
   const updatedPayment = await setListingPlanPaymentStatus(
     input.paymentId,
     input.status,
     input.providerReference
   );
   if (!updatedPayment) {
-    return { ok: false, error: "Ödəniş tapılmadı" };
-  }
-
-  if (input.status !== "succeeded") {
-    return { ok: true, payment: updatedPayment };
-  }
-
-  const applyResult = await applyListingPlanForOwner(updatedPayment.listingId, updatedPayment.ownerUserId, updatedPayment.planType, {
-    activate: updatedPayment.source === "publish"
-  });
-  if (!applyResult.ok) {
-    return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
+    return { ok: false, error: "Ödəniş statusu yenilənə bilmədi" };
   }
 
   // Issue invoice and send email (non-blocking – errors do not fail the payment)

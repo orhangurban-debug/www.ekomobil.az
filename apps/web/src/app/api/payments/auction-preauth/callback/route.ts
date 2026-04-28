@@ -28,7 +28,7 @@ async function handle(preauthId: string, status: string | null, reference?: stri
 
   const finalStatus = resolved.status === "succeeded" ? "held" : "failed";
   const result = await finalizeAuctionPreauth({
-    preauthId,
+    preauthId: preauth.id,
     status: finalStatus,
     paymentReference: resolved.providerReference ?? reference ?? undefined
   });
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     return NextResponse.json(result.body, { status: result.statusCode });
   }
 
-  const redirectUrl = new URL(`/payments/auction-preauth/${preauthId}`, req.url);
+  const redirectUrl = new URL(`/payments/auction-preauth/${result.preauth?.id ?? preauthId}`, req.url);
   redirectUrl.searchParams.set("status", result.preauth?.status === "held" ? "success" : "failed");
   return NextResponse.redirect(redirectUrl);
 }

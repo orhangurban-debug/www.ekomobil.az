@@ -11,9 +11,9 @@ const PAYMENT_TYPE_LABELS = {
 } as const;
 
 const STATUS_BADGE = {
-  sent: { label: "Göndərilib", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  pending: { label: "Gözləyir", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  failed: { label: "Xəta", cls: "bg-red-50 text-red-700 border-red-200" }
+  sent: { label: "E-poçta göndərildi", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  pending: { label: "Hazırlanır", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  failed: { label: "E-poçt göndərilmədi", cls: "bg-slate-100 text-slate-600 border-slate-200" }
 };
 
 export default async function PaymentsPage() {

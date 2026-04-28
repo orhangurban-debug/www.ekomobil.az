@@ -188,30 +188,31 @@ export async function finalizeBusinessPlanPayment(input: {
   if (payment.status === "succeeded") return { ok: true, payment };
 
   const pool = getPgPool();
-  const updatedResult = await pool.query<BusinessPlanPaymentRow>(
-    `UPDATE business_plan_payments
-     SET status = $2,
-         provider_reference = COALESCE($3, provider_reference),
-         completed_at = CASE WHEN $2 = 'succeeded' THEN NOW() ELSE completed_at END,
-         updated_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
-    [input.paymentId, input.status, input.providerReference ?? null]
-  );
-  const updated = updatedResult.rows[0];
-  if (!updated) return { ok: false, error: "Ödəniş tapılmadı" };
-
-  if (input.status !== "succeeded") return { ok: true, payment: toRecord(updated) };
+  if (input.status !== "succeeded") {
+    const updatedResult = await pool.query<BusinessPlanPaymentRow>(
+      `UPDATE business_plan_payments
+       SET status = $2,
+           provider_reference = COALESCE($3, provider_reference),
+           updated_at = NOW()
+       WHERE id = $1
+         AND status <> 'succeeded'
+       RETURNING *`,
+      [input.paymentId, input.status, input.providerReference ?? null]
+    );
+    const updated = updatedResult.rows[0];
+    if (!updated) return { ok: false, error: "Ödəniş tapılmadı" };
+    return { ok: true, payment: toRecord(updated) };
+  }
 
   const window = await calculateNextSubscriptionWindow({
-    ownerUserId: updated.owner_user_id,
-    businessType: updated.business_type
+    ownerUserId: payment.ownerUserId,
+    businessType: payment.businessType
   });
 
   await upsertBusinessPlanSubscription({
-    ownerUserId: updated.owner_user_id,
-    businessType: updated.business_type,
-    planId: updated.plan_id,
+    ownerUserId: payment.ownerUserId,
+    businessType: payment.businessType,
+    planId: payment.planId,
     status: "active",
     startsAt: window.startsAt.toISOString(),
     expiresAt: window.expiresAt.toISOString()
@@ -219,14 +220,36 @@ export async function finalizeBusinessPlanPayment(input: {
 
   const done = await pool.query<BusinessPlanPaymentRow>(
     `UPDATE business_plan_payments
-     SET starts_at = $2::timestamptz,
-         expires_at = $3::timestamptz,
+     SET status = 'succeeded',
+         provider_reference = COALESCE($2, provider_reference),
+         completed_at = NOW(),
+         starts_at = $3::timestamptz,
+         expires_at = $4::timestamptz,
          updated_at = NOW()
      WHERE id = $1
+       AND status <> 'succeeded'
      RETURNING *`,
-    [input.paymentId, window.startsAt.toISOString(), window.expiresAt.toISOString()]
+    [input.paymentId, input.providerReference ?? null, window.startsAt.toISOString(), window.expiresAt.toISOString()]
   );
-  const finalPayment = toRecord(done.rows[0] ?? updated);
+  const finalPayment = toRecord(done.rows[0] ?? {
+    id: payment.id,
+    owner_user_id: payment.ownerUserId,
+    business_type: payment.businessType,
+    plan_id: payment.planId,
+    amount_azn: payment.amountAzn,
+    provider: "kapital_bank",
+    status: "succeeded",
+    checkout_url: payment.checkoutUrl,
+    provider_reference: input.providerReference ?? payment.providerReference ?? null,
+    provider_mode: payment.providerMode ?? null,
+    checkout_strategy: payment.checkoutStrategy ?? null,
+    provider_payload: payment.providerPayload ?? null,
+    completed_at: new Date(),
+    starts_at: window.startsAt,
+    expires_at: window.expiresAt,
+    created_at: new Date(payment.createdAt),
+    updated_at: new Date()
+  });
 
   // Issue invoice and send email (non-blocking)
   try {

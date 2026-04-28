@@ -303,6 +303,9 @@ export async function finalizeAuctionServicePayment(input: {
 }): Promise<{ ok: boolean; error?: string; payment?: AuctionFinancialEventRecord }> {
   const payment = await getAuctionServicePayment(input.paymentId);
   if (!payment) return { ok: false, error: "Ödəniş tapılmadı" };
+  if (payment.status === "succeeded") {
+    return { ok: true, payment };
+  }
 
   const updateInMemory = () => {
     const item = getAuctionFinancialEventsMemory().find((entry) => entry.id === input.paymentId);
@@ -322,10 +325,19 @@ export async function finalizeAuctionServicePayment(input: {
            payment_reference = COALESCE($3, payment_reference),
            updated_at = NOW()
        WHERE id = $1
+         AND status <> 'succeeded'
        RETURNING *`,
       [input.paymentId, input.status, input.paymentReference ?? null]
     );
-    updated = result.rows[0] ? mapFinancialEventRow(result.rows[0]) : null;
+    if (result.rows[0]) {
+      updated = mapFinancialEventRow(result.rows[0]);
+    } else {
+      const existing = await pool.query<AuctionFinancialEventRow>(
+        `SELECT * FROM auction_financial_events WHERE id = $1 LIMIT 1`,
+        [input.paymentId]
+      );
+      updated = existing.rows[0] ? mapFinancialEventRow(existing.rows[0]) : null;
+    }
   } catch (error) {
     assertAuctionMemoryFallbackAllowed(error);
     updated = updateInMemory();
@@ -600,6 +612,9 @@ export async function finalizeAuctionDeposit(input: {
 }): Promise<{ ok: boolean; error?: string; deposit?: AuctionDepositRecord }> {
   const deposit = await getAuctionDeposit(input.depositId);
   if (!deposit) return { ok: false, error: "Deposit tapılmadı" };
+  if (deposit.status === "held") {
+    return { ok: true, deposit };
+  }
 
   const nextStatus =
     input.status === "succeeded"
@@ -617,10 +632,16 @@ export async function finalizeAuctionDeposit(input: {
            payment_reference = COALESCE($3, payment_reference),
            updated_at = NOW()
        WHERE id = $1
+         AND status <> 'held'
        RETURNING *`,
       [input.depositId, nextStatus, input.paymentReference ?? null]
     );
-    updated = result.rows[0] ? mapDepositRow(result.rows[0]) : null;
+    if (result.rows[0]) {
+      updated = mapDepositRow(result.rows[0]);
+    } else {
+      const existing = await pool.query<AuctionDepositRow>(`SELECT * FROM auction_deposits WHERE id = $1 LIMIT 1`, [input.depositId]);
+      updated = existing.rows[0] ? mapDepositRow(existing.rows[0]) : null;
+    }
   } catch (error) {
     assertAuctionMemoryFallbackAllowed(error);
     const item = getAuctionDepositsMemory().find((entry) => entry.id === input.depositId);

@@ -167,6 +167,21 @@ export async function finalizeAuctionPreauth(input: {
   paymentReference?: string;
 }): Promise<{ ok: boolean; error?: string; preauth?: AuctionPreauthRecord }> {
   const pool = getPgPool();
+  const existingResult = await pool.query<AuctionPreauthRow>(
+    `SELECT * FROM auction_preauth_transactions WHERE id = $1 LIMIT 1`,
+    [input.preauthId]
+  );
+  const existing = existingResult.rows[0];
+  if (!existing) {
+    return { ok: false, error: "Pre-auth tapılmadı" };
+  }
+  if (existing.status === "held") {
+    return { ok: true, preauth: mapPreauthRow(existing) };
+  }
+  if (existing.status === "voided" || existing.status === "captured") {
+    return { ok: false, error: `Pre-auth bu statusdan yenilənə bilməz: ${existing.status}` };
+  }
+
   const result = await pool.query<AuctionPreauthRow>(
     `UPDATE auction_preauth_transactions
      SET status = $2,

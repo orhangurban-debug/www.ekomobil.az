@@ -79,6 +79,7 @@ export async function ensureInvoicesTable(): Promise<void> {
       );
       CREATE INDEX IF NOT EXISTS invoices_user_id_idx ON invoices(user_id);
       CREATE INDEX IF NOT EXISTS invoices_payment_id_idx ON invoices(payment_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS invoices_payment_unique_idx ON invoices(payment_type, payment_id);
       CREATE INDEX IF NOT EXISTS invoices_issued_at_idx ON invoices(issued_at DESC);
     `);
   } catch {
@@ -125,7 +126,13 @@ export async function createInvoice(input: {
          payment_reference, issued_at
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (invoice_number) DO NOTHING
+       ON CONFLICT (payment_type, payment_id) DO UPDATE
+       SET user_email = EXCLUDED.user_email,
+           user_name = EXCLUDED.user_name,
+           amount_azn = EXCLUDED.amount_azn,
+           description = EXCLUDED.description,
+           payment_reference = COALESCE(EXCLUDED.payment_reference, invoices.payment_reference),
+           issued_at = LEAST(invoices.issued_at, EXCLUDED.issued_at)
        RETURNING *`,
       [
         id,
@@ -168,6 +175,23 @@ export async function getInvoiceByPaymentId(paymentId: string): Promise<InvoiceR
     const result = await pool.query<InvoiceRow>(
       `SELECT * FROM invoices WHERE payment_id = $1 ORDER BY created_at DESC LIMIT 1`,
       [paymentId]
+    );
+    return result.rows[0] ? mapRow(result.rows[0]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getInvoiceByPayment(input: {
+  paymentType: InvoicePaymentType;
+  paymentId: string;
+}): Promise<InvoiceRecord | null> {
+  await ensureInvoicesTable();
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<InvoiceRow>(
+      `SELECT * FROM invoices WHERE payment_type = $1 AND payment_id = $2 ORDER BY created_at DESC LIMIT 1`,
+      [input.paymentType, input.paymentId]
     );
     return result.rows[0] ? mapRow(result.rows[0]) : null;
   } catch {
@@ -232,7 +256,10 @@ export async function issueAndSendInvoice(input: {
   paymentReference?: string;
   appBaseUrl: string;
 }): Promise<{ ok: boolean; invoice?: InvoiceRecord; emailError?: string }> {
-  const existing = await getInvoiceByPaymentId(input.paymentId);
+  const existing = await getInvoiceByPayment({
+    paymentType: input.paymentType,
+    paymentId: input.paymentId
+  });
   if (existing) {
     return { ok: true, invoice: existing };
   }

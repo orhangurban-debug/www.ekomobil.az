@@ -32,6 +32,7 @@ interface ListingRow {
   seller_type: string;
   owner_user_id: string | null;
   dealer_profile_id: string | null;
+  dealer_owner_user_id?: string | null;
   body_type?: string | null;
   drive_type?: string | null;
   color?: string | null;
@@ -155,6 +156,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     sellerType: row.seller_type as ListingSummary["sellerType"],
     ownerUserId: row.owner_user_id ?? undefined,
     dealerProfileId: row.dealer_profile_id ?? undefined,
+    dealerOwnerUserId: row.dealer_owner_user_id ?? undefined,
     bodyType: row.body_type ?? undefined,
     driveType: row.drive_type ?? undefined,
     color: row.color ?? undefined,
@@ -491,6 +493,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          dp.owner_user_id AS dealer_owner_user_id,
           COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, '')) AS contact_phone,
           CASE
             WHEN dp.id IS NOT NULL AND COALESCE(dp.show_whatsapp, FALSE) = TRUE AND NULLIF(BTRIM(dp.whatsapp_phone), '') IS NOT NULL
@@ -511,37 +514,37 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     const row = listingResult.rows[0];
     if (!row) return null;
 
-    const serviceRows = await pool.query<ServiceRecordRow>(
-      `
-        SELECT id, source_type, service_date, mileage_km, summary
-        FROM listing_service_records
-        WHERE listing_id = $1
-        ORDER BY service_date DESC
-      `,
-      [id]
-    );
-
-    const mediaRows = await pool.query<{ url: string }>(
-      `
-        SELECT url
-        FROM listing_media
-        WHERE listing_id = $1 AND media_type = 'image'
-        ORDER BY sort_order ASC
-        LIMIT 24
-      `,
-      [id]
-    );
-
-    const relatedRows = await pool.query<{ id: string }>(
-      `
-        SELECT id
-        FROM listings
-        WHERE id <> $1 AND status = 'active' AND (make = $2 OR city = $3)
-        ORDER BY created_at DESC
-        LIMIT 3
-      `,
-      [id, row.make, row.city]
-    );
+    const [serviceRows, mediaRows, relatedRows] = await Promise.all([
+      pool.query<ServiceRecordRow>(
+        `
+          SELECT id, source_type, service_date, mileage_km, summary
+          FROM listing_service_records
+          WHERE listing_id = $1
+          ORDER BY service_date DESC
+        `,
+        [id]
+      ),
+      pool.query<{ url: string }>(
+        `
+          SELECT url
+          FROM listing_media
+          WHERE listing_id = $1 AND media_type = 'image'
+          ORDER BY sort_order ASC
+          LIMIT 24
+        `,
+        [id]
+      ),
+      pool.query<{ id: string }>(
+        `
+          SELECT id
+          FROM listings
+          WHERE id <> $1 AND status = 'active' AND (make = $2 OR city = $3)
+          ORDER BY created_at DESC
+          LIMIT 3
+        `,
+        [id, row.make, row.city]
+      )
+    ]);
 
     const mediaUrls = mediaRows.rows.map((entry) => entry.url);
 

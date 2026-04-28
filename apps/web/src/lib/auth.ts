@@ -58,10 +58,15 @@ export function verifySessionToken(token: string): SessionUser | null {
   const validSig = timingSafeEqual(Buffer.from(receivedSig), Buffer.from(expectedSig));
   if (!validSig) return null;
 
-  const parsed = JSON.parse(fromBase64Url(encodedPayload)) as {
-    user: SessionUser;
-    exp: number;
-  };
+  let parsed: { user: SessionUser; exp: number };
+  try {
+    parsed = JSON.parse(fromBase64Url(encodedPayload)) as {
+      user: SessionUser;
+      exp: number;
+    };
+  } catch {
+    return null;
+  }
 
   if (parsed.exp < Math.floor(Date.now() / 1000)) return null;
   return parsed.user;

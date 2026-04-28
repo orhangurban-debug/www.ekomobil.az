@@ -5,10 +5,16 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+function normalizeNextPath(raw: string | null): string {
+  if (!raw) return "/";
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\") || raw.includes("://")) return "/";
+  return raw;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/";
+  const nextPath = normalizeNextPath(searchParams.get("next"));
   const oauthError = searchParams.get("error");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");

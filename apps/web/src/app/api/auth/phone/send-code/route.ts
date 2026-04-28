@@ -23,8 +23,13 @@ export async function POST(req: Request) {
   const phoneLimit = await checkRateLimit(`phone-otp:send:phone:${normalizedPhone}`, 5, 60);
   if (!phoneLimit.ok) return rateLimitResponse(180);
 
+  // Keep response generic to avoid account enumeration by phone number.
   if (await isPhoneAlreadyUsed(normalizedPhone)) {
-    return NextResponse.json({ ok: false, error: "Bu telefon nömrəsi artıq istifadə olunur." }, { status: 409 });
+    return NextResponse.json({
+      ok: true,
+      challengeId: null,
+      expiresAt: null
+    });
   }
 
   const challenge = await createPhoneOtpChallenge({ phoneNormalized: normalizedPhone });
@@ -32,7 +37,7 @@ export async function POST(req: Request) {
     ok: true,
     challengeId: challenge.challengeId,
     expiresAt: challenge.expiresAt,
-    // Local/dev mühitdə test üçün kodu qaytarırıq. Production-da undefined qalır.
+    // Only exposed when ALLOW_OTP_PLAINTEXT_IN_RESPONSE=true in non-production.
     code: challenge.codeForDev
   });
 }

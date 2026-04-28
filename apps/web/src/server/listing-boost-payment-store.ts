@@ -225,10 +225,13 @@ async function setListingBoostPaymentStatus(
            completed_at = CASE WHEN $2 = 'succeeded' THEN NOW() ELSE completed_at END,
            updated_at = NOW()
        WHERE id = $1
+         AND status <> 'succeeded'
        RETURNING *`,
       [paymentId, status, providerReference ?? null]
     );
-    return result.rows[0] ? mapRow(result.rows[0]) : null;
+    if (result.rows[0]) return mapRow(result.rows[0]);
+    const existing = await pool.query<ListingBoostPaymentRow>(`SELECT * FROM listing_boost_payments WHERE id = $1 LIMIT 1`, [paymentId]);
+    return existing.rows[0] ? mapRow(existing.rows[0]) : null;
   } catch {
     const payment = getCreatedBoostPayments().find((item) => item.id === paymentId) ?? null;
     if (!payment) return null;
@@ -256,25 +259,33 @@ export async function finalizeListingBoostPayment(input: {
     return { ok: true, payment };
   }
 
+  if (input.status !== "succeeded") {
+    const updatedPayment = await setListingBoostPaymentStatus(
+      input.paymentId,
+      input.status,
+      input.providerReference
+    );
+    if (!updatedPayment) {
+      return { ok: false, error: "Ödəniş tapılmadı" };
+    }
+    return { ok: true, payment: updatedPayment };
+  }
+
+  const boostResult = await applyListingBoostPackage({
+    listingId: payment.listingId,
+    packageId: payment.boostPackageId
+  });
+  if (!boostResult.ok) {
+    return { ok: false, error: boostResult.error ?? "Boost tətbiq edilə bilmədi" };
+  }
+
   const updatedPayment = await setListingBoostPaymentStatus(
     input.paymentId,
     input.status,
     input.providerReference
   );
   if (!updatedPayment) {
-    return { ok: false, error: "Ödəniş tapılmadı" };
-  }
-
-  if (input.status !== "succeeded") {
-    return { ok: true, payment: updatedPayment };
-  }
-
-  const boostResult = await applyListingBoostPackage({
-    listingId: updatedPayment.listingId,
-    packageId: updatedPayment.boostPackageId
-  });
-  if (!boostResult.ok) {
-    return { ok: false, error: boostResult.error ?? "Boost tətbiq edilə bilmədi" };
+    return { ok: false, error: "Ödəniş statusu yenilənə bilmədi" };
   }
 
   try {

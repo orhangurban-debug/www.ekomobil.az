@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { LeadCaptureForm } from "@/components/listings/lead-capture-form";
@@ -23,19 +23,11 @@ const priceInsightMap = {
 };
 
 async function isListingOwner(
-  listing: { ownerUserId?: string; dealerProfileId?: string },
+  listing: { ownerUserId?: string; dealerOwnerUserId?: string },
   userId: string
 ): Promise<boolean> {
   if (listing.ownerUserId === userId) return true;
-  if (listing.dealerProfileId) {
-    const { getPgPool } = await import("@/lib/postgres");
-    const r = await getPgPool().query<{ owner_user_id: string }>(
-      `SELECT owner_user_id FROM dealer_profiles WHERE id = $1`,
-      [listing.dealerProfileId]
-    );
-    return r.rows[0]?.owner_user_id === userId;
-  }
-  return false;
+  return listing.dealerOwnerUserId === userId;
 }
 
 function normalizePhoneForTel(value?: string): string | undefined {
@@ -51,9 +43,11 @@ function normalizePhoneForWa(value?: string): string | undefined {
   return digits || undefined;
 }
 
+const getListingDetailCached = cache(async (id: string) => getListingDetail(id));
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListingDetail(id);
+  const listing = await getListingDetailCached(id);
   if (!listing) {
     return {
       title: "Elan tapılmadı",
@@ -83,14 +77,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [listing, user] = await Promise.all([
-    getListingDetail(id),
-    getServerSessionUser()
+  const [listing, user, stats] = await Promise.all([
+    getListingDetailCached(id),
+    getServerSessionUser(),
+    getListingStats(id)
   ]);
   if (!listing) notFound();
-  const [related, stats] = await Promise.all([
+  const [related] = await Promise.all([
     getRelatedListings(listing.relatedIds),
-    getListingStats(listing.id)
   ]);
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
   const isPart = listing.listingKind === "part";
