@@ -54,19 +54,11 @@ export default async function ServicesPage({
 
       {/* Hero */}
       <div className="mb-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Servislər və ustalar</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {filteredListings.length > 0
-                ? `${filteredListings.length} servis provayderı tapıldı`
-                : "Platformaya ilk servis profilinizi əlavə edin"}
-            </p>
-          </div>
-          <Link href="/partners/inspection" className="btn-primary text-sm">
-            + Servis profili əlavə et
-          </Link>
-        </div>
+        <h1 className="text-3xl font-bold text-slate-900">Servislər və ustalar</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Ekspertiza, rəsmi servis, mexanik, elektrik və digər avtomobil xidmət provayderləri
+          {filteredListings.length > 0 ? ` — ${filteredListings.length} nəticə tapıldı` : ""}
+        </p>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -212,14 +204,9 @@ export default async function ServicesPage({
                 <p className="mt-1 text-sm text-slate-400">
                   {selectedType ?? selectedCity ?? qParam
                     ? "Filterləri dəyişin və ya axtarışı genişləndirin."
-                    : "Ekspertiza, rəsmi servis, mexanik, elektrik — platformaya servis profilini əlavə et."}
+                    : "Servis biznesləri üçün aşağıda tərəfdaşlıq müraciəti mövcuddur."}
                 </p>
               </div>
-              {!(selectedType ?? selectedCity ?? qParam) && (
-                <Link href="/partners/inspection" className="btn-primary text-sm">
-                  Servis profilini əlavə et →
-                </Link>
-              )}
               {(selectedType ?? selectedCity ?? qParam) && (
                 <Link href="/services" className="btn-secondary text-sm">Filtri sıfırla</Link>
               )}
@@ -289,28 +276,21 @@ export default async function ServicesPage({
             </div>
           )}
 
-          {/* Servis provayderi CTA */}
+          {/* Servis provayderi CTA — yalnız servis biznesləri üçün */}
           <section className="mt-12">
-            <div className="flex flex-col gap-4 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">Servis provayderisinizsə platformaya qoşulun</h2>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Servis biznesləri üçün</p>
+                <h2 className="mt-1 text-base font-semibold text-slate-900">Servis profilinizi platformaya əlavə edin</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Rəsmi servis, ekspertiza, mexanik, elektrik, EV/Hibrid — bütün növ servis profilləri üçün tərəfdaşlıq müraciəti.
+                  Rəsmi servis, ekspertiza şirkəti, mexanik, elektrik, EV/Hibrid — tərəfdaşlıq müraciəti buradan göndərilir.
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                  {["Servis şəkilləri", "Sertifikat upload", "Lokasiya", "1 ay pulsuz start"].map((item) => (
-                    <span key={item} className="inline-flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0891B2]" />
-                      {item}
-                    </span>
-                  ))}
-                </div>
               </div>
               <Link
                 href="/partners/inspection"
-                className="shrink-0 rounded-xl bg-[#0891B2] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+                className="shrink-0 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-[#0891B2] hover:text-[#0891B2]"
               >
-                Profil əlavə et →
+                Müraciət et →
               </Link>
             </div>
           </section>

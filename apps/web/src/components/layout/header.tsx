@@ -35,6 +35,11 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
+  const isServicesContext = pathname.startsWith("/services") || pathname.startsWith("/partners");
+  const primaryCta = isServicesContext
+    ? { label: "Servis müraciəti", href: "/partners/inspection" }
+    : { label: "Elan yerləşdir", href: "/publish" };
+
   function hideNotice() {
     setNoticeVisible(false);
     window.localStorage.setItem(GLOBAL_NOTICE_STORAGE_KEY, "1");
@@ -177,8 +182,8 @@ export function Header({
               >
                 {logoutLoading ? "Çıxılır..." : "Çıxış"}
               </button>
-              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
-                Elan yerləşdir
+              <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
+                {primaryCta.label}
               </Link>
             </div>
           ) : (
@@ -189,8 +194,8 @@ export function Header({
               <Link href="/register" className="btn-secondary text-sm px-3 py-1.5">
                 Qeydiyyat
               </Link>
-              <Link href="/publish" className="btn-primary text-sm px-4 py-2">
-                Elan yerləşdir
+              <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
+                {primaryCta.label}
               </Link>
             </div>
           )}
@@ -247,7 +252,7 @@ export function Header({
             <div className="mt-2 flex flex-col gap-2 border-t border-soft-brown pt-2">
               {userEmail ? (
                 <>
-                  <Link href="/publish" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Elan yerləşdir</Link>
+                  <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
                   <Link href="/me" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Profil</Link>
                   {(userRole === "admin" || userRole === "support") && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Admin paneli</Link>
@@ -265,7 +270,7 @@ export function Header({
                 <>
                   <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Qeydiyyat</Link>
                   <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Daxil ol</Link>
-                  <Link href="/publish" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Elan yerləşdir</Link>
+                  <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
                 </>
               )}
             </div>
