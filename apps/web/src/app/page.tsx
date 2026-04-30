@@ -7,6 +7,7 @@ function toCardData(item: {
   id: string; title: string; priceAzn: number; city: string; year: number;
   mileageKm: number; fuelType: string; transmission: string; trustScore: number;
   vinVerified: boolean; sellerVerified: boolean; mediaComplete: boolean;
+  imageUrl?: string;
   vinProvided?: boolean; creditAvailable?: boolean; barterAvailable?: boolean;
   priceInsight?: string; mileageFlagSeverity?: string; planType?: "free" | "standard" | "vip"
 }): ListingCardData {
@@ -15,6 +16,7 @@ function toCardData(item: {
     year: item.year, mileageKm: item.mileageKm, fuelType: item.fuelType,
     transmission: item.transmission, trustScore: item.trustScore,
     vinVerified: item.vinVerified, sellerVerified: item.sellerVerified,
+    imageUrl: item.imageUrl,
     vinProvided: item.vinProvided,
     mediaComplete: item.mediaComplete,
     creditAvailable: item.creditAvailable,

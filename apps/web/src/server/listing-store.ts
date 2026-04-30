@@ -13,6 +13,7 @@ import { calculatePlanExpiry, type PlanType } from "@/lib/listing-plans";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { getBoostOrderSql } from "@/server/listing-boost-store";
+import { persistSupportUploadFile } from "@/server/support-upload-storage";
 
 interface ListingRow {
   id: string;
@@ -133,8 +134,42 @@ function sanitizeMediaUrl(url: string): string | null {
   const normalized = url.trim();
   if (!normalized) return null;
   if (/^https?:\/\//i.test(normalized)) return normalized;
+  if (/^\//.test(normalized)) return normalized;
   if (/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(normalized)) return normalized;
   return null;
+}
+
+function parseDataImageUrl(dataUrl: string): { mimeType: string; extension: string; buffer: Buffer } | null {
+  const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
+  if (!match) return null;
+  const imageType = match[1].toLowerCase();
+  const base64Payload = match[2];
+  if (!base64Payload) return null;
+  try {
+    const buffer = Buffer.from(base64Payload, "base64");
+    if (buffer.length === 0) return null;
+    const extension = imageType === "jpg" ? "jpg" : imageType;
+    const mimeType = imageType === "jpg" ? "image/jpeg" : `image/${imageType}`;
+    return { mimeType, extension, buffer };
+  } catch {
+    return null;
+  }
+}
+
+async function normalizeAndPersistImageUrl(url: string): Promise<string | null> {
+  const sanitized = sanitizeMediaUrl(url);
+  if (!sanitized) return null;
+  if (!sanitized.startsWith("data:image/")) return sanitized;
+  const parsed = parseDataImageUrl(sanitized);
+  if (!parsed) return null;
+  const stored = await persistSupportUploadFile({
+    folder: "listing-images",
+    fileId: randomUUID(),
+    originalFilename: `listing-image.${parsed.extension}`,
+    buffer: parsed.buffer,
+    mimeType: parsed.mimeType
+  });
+  return stored.url;
 }
 
 function mapRowToSummary(row: ListingRow): ListingSummary {
@@ -524,9 +559,9 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
         `,
         [id]
       ),
-      pool.query<{ url: string }>(
+      pool.query<{ id: string; url: string }>(
         `
-          SELECT url
+          SELECT id, url
           FROM listing_media
           WHERE listing_id = $1 AND media_type = 'image'
           ORDER BY sort_order ASC
@@ -546,7 +581,17 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       )
     ]);
 
-    const mediaUrls = mediaRows.rows.map((entry) => entry.url);
+    const mediaUrls = (
+      await Promise.all(
+        mediaRows.rows.map(async (entry) => {
+          const normalized = await normalizeAndPersistImageUrl(entry.url);
+          if (normalized && normalized !== entry.url) {
+            await pool.query(`UPDATE listing_media SET url = $1 WHERE id = $2`, [normalized, entry.id]);
+          }
+          return normalized;
+        })
+      )
+    ).filter((entry): entry is string => Boolean(entry));
 
     return {
       ...mapRowToSummary(row),
@@ -722,10 +767,10 @@ export async function createListingRecord(input: {
       ]
     );
 
-    const imageUrls = (input.imageUrls ?? [])
-      .map(sanitizeMediaUrl)
-      .filter((entry): entry is string => Boolean(entry))
-      .slice(0, 24);
+    const normalizedImageUrls = await Promise.all(
+      (input.imageUrls ?? []).map(async (entry) => await normalizeAndPersistImageUrl(entry))
+    );
+    const imageUrls = normalizedImageUrls.filter((entry): entry is string => Boolean(entry)).slice(0, 24);
     const imageHashes = (input.imageHashes ?? []).map((entry) => entry.trim().toLowerCase()).slice(0, 24);
     if (imageUrls.length > 0) {
       for (let index = 0; index < imageUrls.length; index += 1) {
