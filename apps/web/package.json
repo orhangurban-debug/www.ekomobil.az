@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "db:migrate": "node --env-file=.env ./scripts/migrate.mjs"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "tsx": "^4.21.0",
     "typescript": "latest"
   }
 }

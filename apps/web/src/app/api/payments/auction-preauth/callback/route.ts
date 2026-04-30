@@ -108,6 +108,17 @@ export async function POST(req: Request) {
   if (!preauth) {
     return NextResponse.json({ ok: false, error: "Pre-auth tapılmadı" }, { status: 404 });
   }
+  const callbackStatus = body.status ?? body.payload?.status ?? null;
+  if (!preauth.providerPayload?.remoteOrderId) {
+    const internalVerify = verifyInternalCallbackSignature({
+      paymentId: preauth.id,
+      status: callbackStatus ?? "",
+      signature: req.headers.get("x-signature") ?? body.signature
+    });
+    if (!internalVerify.ok) {
+      return NextResponse.json({ ok: false, error: internalVerify.reason ?? "İmza tələb olunur" }, { status: 401 });
+    }
+  }
   const verify = verifyKapitalBankWebhookSignature({
     rawBody: raw,
     signature: req.headers.get("x-signature") ?? body.signature,
@@ -117,7 +128,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: verify.reason ?? "Webhook imzası keçərsizdir" }, { status: 401 });
   }
 
-  const result = await handle(preauth.id, body.status ?? body.payload?.status ?? null, body.reference ?? body.payload?.id);
+  const result = await handle(preauth.id, callbackStatus, body.reference ?? body.payload?.id);
   if (!result.ok) {
     return NextResponse.json(result.body, { status: result.statusCode });
   }

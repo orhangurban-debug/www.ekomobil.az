@@ -135,7 +135,7 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
       );
 
       if (settings.auctionMode === "STRICT_PRE_AUTH") {
-        await voidPreauthForLosers({ auctionId: row.id, winnerUserId });
+        await voidPreauthForLosers({ auctionId: row.id, winnerUserId, client });
       }
 
       await recordAuctionAuditLog({

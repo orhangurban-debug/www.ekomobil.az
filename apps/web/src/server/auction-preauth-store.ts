@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { PoolClient } from "pg";
 import type { PaymentCheckoutStrategy, PaymentProviderMode, PaymentProviderPayload } from "@/lib/payments";
 import { getPgPool } from "@/lib/postgres";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
@@ -200,10 +201,11 @@ export async function finalizeAuctionPreauth(input: {
 export async function voidPreauthForLosers(input: {
   auctionId: string;
   winnerUserId: string | null;
+  client?: PoolClient;
 }): Promise<number> {
-  const pool = getPgPool();
+  const db = input.client ?? getPgPool();
   if (!input.winnerUserId) {
-    const all = await pool.query(
+    const all = await db.query(
       `UPDATE auction_preauth_transactions
        SET status = 'voided', voided_at = NOW(), updated_at = NOW()
        WHERE auction_id = $1 AND status = 'held'`,
@@ -211,7 +213,7 @@ export async function voidPreauthForLosers(input: {
     );
     return all.rowCount ?? 0;
   }
-  const r = await pool.query(
+  const r = await db.query(
     `UPDATE auction_preauth_transactions
      SET status = 'voided', voided_at = NOW(), updated_at = NOW()
      WHERE auction_id = $1 AND status = 'held' AND user_id <> $2`,

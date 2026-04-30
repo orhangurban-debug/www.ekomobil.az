@@ -105,6 +105,17 @@ export async function POST(req: Request) {
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
   }
+  const callbackStatus = body.status ?? body.payload?.status ?? null;
+  if (!deposit.providerPayload?.remoteOrderId) {
+    const internalVerify = verifyInternalCallbackSignature({
+      paymentId: deposit.id,
+      status: callbackStatus ?? "",
+      signature: req.headers.get("x-signature") ?? body.signature
+    });
+    if (!internalVerify.ok) {
+      return NextResponse.json({ ok: false, error: internalVerify.reason ?? "İmza tələb olunur" }, { status: 401 });
+    }
+  }
   const verify = verifyKapitalBankWebhookSignature({
     rawBody: raw,
     signature: req.headers.get("x-signature") ?? body.signature,
@@ -116,7 +127,7 @@ export async function POST(req: Request) {
   let resolved;
   try {
     resolved = await resolveKapitalBankPaymentStatus({
-      fallbackStatus: body.status ?? body.payload?.status ?? null,
+      fallbackStatus: callbackStatus,
       providerPayload: deposit.providerPayload
     });
   } catch {
