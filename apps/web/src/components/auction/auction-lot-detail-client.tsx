@@ -22,6 +22,10 @@ function useCountdown(endAt?: string) {
   useEffect(() => {
     const id = window.setInterval(() => {
       const target = endAt ? new Date(endAt).getTime() : 0;
+      if (!Number.isFinite(target)) {
+        setParts({ total: 0, h: 0, m: 0, s: 0 });
+        return;
+      }
       const diff = Math.max(0, target - Date.now());
       setParts({
         total: diff,
@@ -85,6 +89,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
         setLot(auction);
         setBids(history);
         setOtherLots(auctions.filter((item) => item.id !== auctionId).slice(0, 6));
+        setError(null);
       } catch (loadError) {
         if (!cancelled) {
           setError(loadError instanceof Error ? loadError.message : "Lot yüklənmədi");
@@ -132,56 +137,61 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
     setSubmitting(true);
     setError(null);
     setMessage(null);
+    try {
+      const amountAzn = activeTab === "auto" ? minBid : Number(bidAmount);
+      if (!Number.isFinite(amountAzn) || amountAzn <= 0) {
+        setError("Bid məbləği yanlışdır.");
+        return;
+      }
+      const response = await fetch(`/api/auctions/${lot.id}/bid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amountAzn,
+          autoBidMaxAzn: activeTab === "auto" ? Number(autoBidMax) : undefined
+        })
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        code?: string;
+        preauthAmountAzn?: number;
+        bidCapAzn?: number;
+      };
 
-    const amountAzn = activeTab === "auto" ? minBid : Number(bidAmount);
-    const response = await fetch(`/api/auctions/${lot.id}/bid`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amountAzn,
-        autoBidMaxAzn: activeTab === "auto" ? Number(autoBidMax) : undefined
-      })
-    });
-    const payload = (await response.json()) as {
-      ok: boolean;
-      error?: string;
-      code?: string;
-      preauthAmountAzn?: number;
-      bidCapAzn?: number;
-    };
-
-    if (!payload.ok) {
-      if (payload.code === "PREAUTH_REQUIRED") {
-        const preauthResponse = await fetch(`/api/auctions/${lot.id}/bid-preauth`, {
-          method: "POST"
-        });
-        const preauthPayload = (await preauthResponse.json()) as {
-          ok: boolean;
-          error?: string;
-          checkoutUrl?: string;
-        };
-        if (preauthPayload.ok && preauthPayload.checkoutUrl) {
-          window.location.href = preauthPayload.checkoutUrl;
+      if (!payload.ok) {
+        if (payload.code === "PREAUTH_REQUIRED") {
+          const preauthResponse = await fetch(`/api/auctions/${lot.id}/bid-preauth`, {
+            method: "POST"
+          });
+          const preauthPayload = (await preauthResponse.json()) as {
+            ok: boolean;
+            error?: string;
+            checkoutUrl?: string;
+          };
+          if (preauthPayload.ok && preauthPayload.checkoutUrl) {
+            window.location.href = preauthPayload.checkoutUrl;
+            return;
+          }
+          setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
           return;
         }
-        setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
-        setSubmitting(false);
+        if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
+          setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
+          return;
+        }
+        setError(payload.error ?? "Bid göndərilmədi");
         return;
       }
-      if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
-        setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
-        setSubmitting(false);
-        return;
-      }
-      setError(payload.error ?? "Bid göndərilmədi");
-      setSubmitting(false);
-      return;
-    }
 
-    setBidAmount("");
-    setAutoBidMax("");
-    setMessage("Təklif qəbul edildi.");
-    setSubmitting(false);
+      setBidAmount("");
+      setAutoBidMax("");
+      setMessage("Təklif qəbul edildi.");
+    } catch {
+      setError("Bid göndərilərkən şəbəkə xətası baş verdi.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (loading) {

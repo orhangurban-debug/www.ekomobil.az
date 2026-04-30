@@ -16,20 +16,25 @@ export function OpsDocumentReviewButtons({
 
   async function review(status: "approved" | "rejected") {
     setBusy(status);
-    const res = await fetch(`/api/ops/auction-documents/${docId}/review`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ status, note: note.trim() || undefined })
-    });
-    const data = (await res.json()) as { ok: boolean; error?: string };
-    setBusy(null);
-    if (!data.ok) {
-      window.alert(data.error || "Əməliyyat alınmadı");
-      return;
+    try {
+      const res = await fetch(`/api/ops/auction-documents/${docId}/review`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status, note: note.trim() || undefined })
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!data.ok) {
+        window.alert(data.error || "Əməliyyat alınmadı");
+        return;
+      }
+      setNote("");
+      router.refresh();
+    } catch {
+      window.alert("Əməliyyat zamanı şəbəkə xətası baş verdi");
+    } finally {
+      setBusy(null);
     }
-    setNote("");
-    router.refresh();
   }
 
   return (

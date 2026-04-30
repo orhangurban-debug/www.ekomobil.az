@@ -549,6 +549,12 @@ export async function confirmAuctionSale(input: {
   const auction = await getAuctionListing(input.auctionId);
   if (!auction) return { ok: false, error: "Auksion tapılmadı" };
   const activeAuction = auction;
+  const settlementStatuses: AuctionStatus[] = [
+    "ended_pending_confirmation",
+    "pending_seller_approval",
+    "buyer_confirmed",
+    "seller_confirmed"
+  ];
 
   const winnerUserId = activeAuction.winnerUserId ?? activeAuction.currentBidderUserId;
   if (input.actorRole === "seller" && activeAuction.sellerUserId !== input.actorUserId) {
@@ -556,6 +562,9 @@ export async function confirmAuctionSale(input: {
   }
   if (input.actorRole === "buyer" && winnerUserId !== input.actorUserId) {
     return { ok: false, error: "Yalnız qalib alıcı bu əməliyyatı edə bilər" };
+  }
+  if (!settlementStatuses.includes(activeAuction.status)) {
+    return { ok: false, error: "Bu auksion statusunda nəticə təsdiqi mümkün deyil" };
   }
 
   const now = new Date();

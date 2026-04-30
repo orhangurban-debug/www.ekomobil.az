@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { AuctionBidRecord, AuctionListingRecord } from "@/lib/auction";
+import { getAuctionStatusLabel, isAuctionOpen, type AuctionBidRecord, type AuctionListingRecord } from "@/lib/auction";
 import {
   fetchAuctionBids,
   fetchAuctionList,
@@ -16,6 +16,10 @@ function useCountdown(endAt?: string) {
   useEffect(() => {
     const id = window.setInterval(() => {
       const target = endAt ? new Date(endAt).getTime() : 0;
+      if (!Number.isFinite(target)) {
+        setParts({ total: 0, h: 0, m: 0, s: 0 });
+        return;
+      }
       const diff = Math.max(0, target - Date.now());
       setParts({
         total: diff,
@@ -164,6 +168,7 @@ export default function AuctionPage() {
         if (cancelled) return;
         setActiveLot(auction);
         setBids(history);
+        setError(null);
       } catch (loadError) {
         if (!cancelled) {
           setError(loadError instanceof Error ? loadError.message : "Lot yüklənmədi");
@@ -213,6 +218,11 @@ export default function AuctionPage() {
 
   async function submitBid() {
     if (!activeLot) return;
+    const lotOpen = isAuctionOpen(activeLot.status);
+    if (!lotOpen) {
+      setError("Bu lot hazırda bid qəbul etmir.");
+      return;
+    }
     if (!bidderRulesAck) {
       setError("Təklif verməzdən əvvəl auksion qaydalarını qəbul edin.");
       return;
@@ -220,59 +230,67 @@ export default function AuctionPage() {
     setSubmitting(true);
     setError(null);
     setMessage(null);
+    try {
+      const amountAzn = activeTab === "auto" ? minBid : Number(bidAmount);
+      if (!Number.isFinite(amountAzn) || amountAzn <= 0) {
+        setError("Bid məbləği yanlışdır.");
+        return;
+      }
+      const response = await fetch(`/api/auctions/${activeLot.id}/bid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amountAzn,
+          autoBidMaxAzn: activeTab === "auto" ? Number(autoBidMax) : undefined
+        })
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        bid?: AuctionBidRecord;
+        nextMinimumBidAzn?: number;
+        code?: string;
+        riskTier?: string;
+        bidCapAzn?: number;
+      };
 
-    const amountAzn = activeTab === "auto" ? minBid : Number(bidAmount);
-    const response = await fetch(`/api/auctions/${activeLot.id}/bid`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amountAzn,
-        autoBidMaxAzn: activeTab === "auto" ? Number(autoBidMax) : undefined
-      })
-    });
-    const payload = (await response.json()) as {
-      ok: boolean;
-      error?: string;
-      bid?: AuctionBidRecord;
-      nextMinimumBidAzn?: number;
-      code?: string;
-      riskTier?: string;
-      bidCapAzn?: number;
-    };
-
-    if (!payload.ok) {
-      if (payload.code === "PREAUTH_REQUIRED") {
-        const preauthResponse = await fetch(`/api/auctions/${activeLot.id}/bid-preauth`, {
-          method: "POST"
-        });
-        const preauthPayload = (await preauthResponse.json()) as {
-          ok: boolean;
-          error?: string;
-          checkoutUrl?: string;
-          riskTier?: string;
-        };
-        if (preauthPayload.ok && preauthPayload.checkoutUrl) {
-          window.location.href = preauthPayload.checkoutUrl;
+      if (!payload.ok) {
+        if (payload.code === "PREAUTH_REQUIRED") {
+          const preauthResponse = await fetch(`/api/auctions/${activeLot.id}/bid-preauth`, {
+            method: "POST"
+          });
+          const preauthPayload = (await preauthResponse.json()) as {
+            ok: boolean;
+            error?: string;
+            checkoutUrl?: string;
+            riskTier?: string;
+          };
+          if (preauthPayload.ok && preauthPayload.checkoutUrl) {
+            window.location.href = preauthPayload.checkoutUrl;
+            return;
+          }
+          setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
           return;
         }
-        setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
-        setSubmitting(false);
+        if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
+          setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
+          return;
+        }
+        setError(payload.error ?? "Bid göndərilmədi");
         return;
       }
-      if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
-        setError(`Bu hesab üçün maksimal bid limiti ${payload.bidCapAzn.toLocaleString("az-AZ")} ₼-dir.`);
-        setSubmitting(false);
-        return;
-      }
-      setError(payload.error ?? "Bid göndərilmədi");
-      setSubmitting(false);
-      return;
-    }
 
-    setBidAmount("");
-    setAutoBidMax("");
-    setMessage("Bid qəbul edildi.");
-    setSubmitting(false);
+      if (payload.bid) {
+        setBids((current) => [payload.bid!, ...current.filter((item) => item.id !== payload.bid!.id)].slice(0, 50));
+      }
+      setBidAmount("");
+      setAutoBidMax("");
+      setMessage("Bid qəbul edildi.");
+    } catch {
+      setError("Bid göndərilərkən şəbəkə xətası baş verdi.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (loading) {
@@ -293,6 +311,8 @@ export default function AuctionPage() {
       </div>
     );
   }
+  const lotOpen = isAuctionOpen(activeLot.status);
+  const statusLabel = getAuctionStatusLabel(activeLot.status);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -322,7 +342,7 @@ export default function AuctionPage() {
               <div className="relative flex h-64 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 sm:h-80">
                 <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
                   <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="text-xs font-bold text-white">{activeLot.status === "extended" ? "UZADILDI" : "CANLI"}</span>
+                  <span className="text-xs font-bold text-white">{statusLabel}</span>
                 </div>
                 <div className="text-center">
                   <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Lot ID</div>
@@ -400,6 +420,11 @@ export default function AuctionPage() {
             <div className="sticky top-20 space-y-4">
               <div className="rounded-2xl border border-slate-200 bg-white p-5">
                 <h3 className="font-semibold text-slate-900">Təklif ver</h3>
+                {!lotOpen && (
+                  <p className="mt-2 text-xs text-amber-700">
+                    Bu lot statusu hazırda bid qəbul etmir. Nəticə və sənəd addımlarından istifadə edin.
+                  </p>
+                )}
                 <div className="mt-3 flex rounded-xl bg-slate-100 p-1">
                   {(["bid", "auto"] as const).map((tab) => (
                     <button
@@ -434,7 +459,7 @@ export default function AuctionPage() {
                     <button
                       type="button"
                       onClick={() => void submitBid()}
-                      disabled={!bidAmount || submitting || !bidderRulesAck}
+                      disabled={!lotOpen || !bidAmount || submitting || !bidderRulesAck}
                       className="btn-primary w-full py-3 text-base disabled:opacity-50"
                     >
                       {submitting ? "Göndərilir..." : "Təklif ver"}
@@ -459,7 +484,7 @@ export default function AuctionPage() {
                     <button
                       type="button"
                       onClick={() => void submitBid()}
-                      disabled={!autoBidMax || submitting || !bidderRulesAck}
+                      disabled={!lotOpen || !autoBidMax || submitting || !bidderRulesAck}
                       className="btn-primary w-full py-3 text-base disabled:opacity-50"
                     >
                       {submitting ? "Göndərilir..." : "Auto-Bid aktiv et"}

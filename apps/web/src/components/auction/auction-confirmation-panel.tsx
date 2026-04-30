@@ -34,69 +34,81 @@ export function AuctionConfirmationPanel({
     setLoadingAction(`${actorRole}-${outcome}`);
     setMessage(null);
     setError(null);
-    const response = await fetch(`/api/auctions/${auctionId}/confirm-sale`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        actorRole,
-        outcome,
-        note:
-          outcome === "confirmed"
-            ? "Əməliyyat off-platform tamamlandı"
-            : outcome === "no_show"
-              ? "Qalib tərəf SLA daxilində növbəti addımı tamamlamadı"
-              : outcome === "seller_breach"
-                ? "Satıcı qalib təklifdən sonra satış öhdəliyini yerinə yetirmədi"
-                : "Tərəflər arasında mübahisə yarandı"
-      })
-    });
-    const payload = (await response.json()) as { ok: boolean; error?: string };
-    if (!payload.ok) {
-      setError(payload.error || "Əməliyyat alınmadı.");
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/confirm-sale`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actorRole,
+          outcome,
+          note:
+            outcome === "confirmed"
+              ? "Əməliyyat off-platform tamamlandı"
+              : outcome === "no_show"
+                ? "Qalib tərəf SLA daxilində növbəti addımı tamamlamadı"
+                : outcome === "seller_breach"
+                  ? "Satıcı qalib təklifdən sonra satış öhdəliyini yerinə yetirmədi"
+                  : "Tərəflər arasında mübahisə yarandı"
+        })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!payload.ok) {
+        setError(payload.error || "Əməliyyat alınmadı.");
+        return;
+      }
+      setMessage("Status yeniləndi.");
+      router.refresh();
+    } catch {
+      setError("Əməliyyat zamanı şəbəkə xətası baş verdi.");
+    } finally {
       setLoadingAction(null);
-      return;
     }
-    setMessage("Status yeniləndi.");
-    setLoadingAction(null);
-    router.refresh();
   }
 
   async function startSellerBreachPenaltyCheckout() {
     setLoadingAction("seller-breach-payment");
     setMessage(null);
     setError(null);
-    const response = await fetch("/api/payments/auction-seller-breach", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auctionId })
-    });
-    const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
-    if (!payload.ok || !payload.checkoutUrl) {
-      setError(payload.error || "Checkout yaradıla bilmədi.");
+    try {
+      const response = await fetch("/api/payments/auction-seller-breach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auctionId })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+      if (!payload.ok || !payload.checkoutUrl) {
+        setError(payload.error || "Checkout yaradıla bilmədi.");
+        return;
+      }
+      router.push(payload.checkoutUrl);
+    } catch {
+      setError("Checkout yaradılarkən şəbəkə xətası baş verdi.");
+    } finally {
       setLoadingAction(null);
-      return;
     }
-    setLoadingAction(null);
-    router.push(payload.checkoutUrl);
   }
 
   async function startNoShowPenaltyCheckout() {
     setLoadingAction("no-show-payment");
     setMessage(null);
     setError(null);
-    const response = await fetch("/api/payments/auction-no-show", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auctionId })
-    });
-    const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
-    if (!payload.ok || !payload.checkoutUrl) {
-      setError(payload.error || "Checkout yaradıla bilmədi.");
+    try {
+      const response = await fetch("/api/payments/auction-no-show", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auctionId })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+      if (!payload.ok || !payload.checkoutUrl) {
+        setError(payload.error || "Checkout yaradıla bilmədi.");
+        return;
+      }
+      router.push(payload.checkoutUrl);
+    } catch {
+      setError("Checkout yaradılarkən şəbəkə xətası baş verdi.");
+    } finally {
       setLoadingAction(null);
-      return;
     }
-    setLoadingAction(null);
-    router.push(payload.checkoutUrl);
   }
 
   async function relistAuction() {
@@ -105,32 +117,36 @@ export function AuctionConfirmationPanel({
     setError(null);
     setRelistResult(null);
 
-    const response = await fetch(`/api/auctions/${auctionId}/relist`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
-    const payload = (await response.json()) as {
-      ok: boolean;
-      error?: string;
-      auction?: { id: string };
-      lotCheckoutUrl?: string;
-      bondCheckoutUrl?: string;
-    };
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/relist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        auction?: { id: string };
+        lotCheckoutUrl?: string;
+        bondCheckoutUrl?: string;
+      };
 
-    if (!payload.ok || !payload.auction?.id || !payload.lotCheckoutUrl) {
-      setError(payload.error || "Yenidən auksion üçün lot yaradıla bilmədi.");
+      if (!payload.ok || !payload.auction?.id || !payload.lotCheckoutUrl) {
+        setError(payload.error || "Yenidən auksion üçün lot yaradıla bilmədi.");
+        return;
+      }
+
+      setRelistResult({
+        newAuctionId: payload.auction.id,
+        lotCheckoutUrl: payload.lotCheckoutUrl,
+        bondCheckoutUrl: payload.bondCheckoutUrl
+      });
+      setMessage("Yeni lot yaradıldı. Aşağıdakı checkout addımlarını tamamlayın.");
+      router.refresh();
+    } catch {
+      setError("Yenidən lot yaradılarkən şəbəkə xətası baş verdi.");
+    } finally {
       setLoadingAction(null);
-      return;
     }
-
-    setRelistResult({
-      newAuctionId: payload.auction.id,
-      lotCheckoutUrl: payload.lotCheckoutUrl,
-      bondCheckoutUrl: payload.bondCheckoutUrl
-    });
-    setMessage("Yeni lot yaradıldı. Aşağıdakı checkout addımlarını tamamlayın.");
-    setLoadingAction(null);
-    router.refresh();
   }
 
   if (!canActAsBuyer && !canActAsSeller) {

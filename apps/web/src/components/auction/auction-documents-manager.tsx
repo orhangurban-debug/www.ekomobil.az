@@ -26,15 +26,21 @@ export function AuctionDocumentsManager({
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const res = await fetch(`/api/auctions/${auctionId}/documents`);
-    const data = (await res.json()) as { ok: boolean; documents?: AuctionListingDocumentRecord[]; error?: string };
-    if (!data.ok) {
-      setError(data.error || "Siyahı alınmadı");
+    try {
+      const res = await fetch(`/api/auctions/${auctionId}/documents`);
+      const data = (await res.json()) as { ok: boolean; documents?: AuctionListingDocumentRecord[]; error?: string };
+      if (!data.ok) {
+        setError(data.error || "Siyahı alınmadı");
+        setDocuments([]);
+      } else {
+        setDocuments(data.documents ?? []);
+      }
+    } catch {
+      setError("Sənəd siyahısı yüklənərkən xəta baş verdi.");
       setDocuments([]);
-    } else {
-      setDocuments(data.documents ?? []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [auctionId]);
 
   useEffect(() => {
@@ -56,19 +62,23 @@ export function AuctionDocumentsManager({
     }
     setUploading(true);
     setError(null);
-    const form = new FormData();
-    form.set("file", file);
-    form.set("docType", docType);
-    const res = await fetch(`/api/auctions/${auctionId}/documents`, { method: "POST", body: form });
-    const data = (await res.json()) as { ok: boolean; error?: string };
-    if (!data.ok) {
-      setError(data.error || "Yükləmə alınmadı");
+    try {
+      const form = new FormData();
+      form.set("file", file);
+      form.set("docType", docType);
+      const res = await fetch(`/api/auctions/${auctionId}/documents`, { method: "POST", body: form });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!data.ok) {
+        setError(data.error || "Yükləmə alınmadı");
+        return;
+      }
+      setFile(null);
+      await load();
+    } catch {
+      setError("Fayl yüklənərkən xəta baş verdi.");
+    } finally {
       setUploading(false);
-      return;
     }
-    setFile(null);
-    setUploading(false);
-    await load();
   }
 
   async function onDelete(docId: string) {

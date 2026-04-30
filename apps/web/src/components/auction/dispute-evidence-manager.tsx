@@ -54,24 +54,28 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
     setUploading(true);
     setError(null);
     setSuccess(null);
+    try {
+      const body = new FormData();
+      body.append("file", input.files[0]);
 
-    const body = new FormData();
-    body.append("file", input.files[0]);
+      const res = await fetch(`/api/auctions/${auctionId}/dispute-evidence`, {
+        method: "POST",
+        body,
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
 
-    const res = await fetch(`/api/auctions/${auctionId}/dispute-evidence`, {
-      method: "POST",
-      body,
-    });
-    const data = (await res.json()) as { ok: boolean; error?: string };
-
-    if (!data.ok) {
-      setError(data.error ?? "Yükləmə uğursuz oldu.");
-    } else {
-      setSuccess("Sübut faylı uğurla əlavə edildi.");
-      form.reset();
-      void loadDocs();
+      if (!data.ok) {
+        setError(data.error ?? "Yükləmə uğursuz oldu.");
+      } else {
+        setSuccess("Sübut faylı uğurla əlavə edildi.");
+        form.reset();
+        void loadDocs();
+      }
+    } catch {
+      setError("Yükləmə zamanı şəbəkə xətası baş verdi.");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }
 
   const mine = docs.filter((d) => d.uploaderRole === uploaderRole);

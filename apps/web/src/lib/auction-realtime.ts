@@ -56,29 +56,36 @@ export function subscribeAuctionStream(
   }
 ): () => void {
   const source = new EventSource(`/api/auctions/${auctionId}/stream`);
+  function safeParse<T>(raw: string): T | null {
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  }
   source.addEventListener("snapshot", (event) => {
-    const parsed = JSON.parse((event as MessageEvent).data) as {
+    const parsed = safeParse<{
       payload?: { auction?: AuctionListingRecord; bids?: AuctionBidRecord[] };
-    };
-    handlers.onSnapshot(parsed.payload ?? {});
+    }>((event as MessageEvent).data);
+    if (parsed) handlers.onSnapshot(parsed.payload ?? {});
   });
   source.addEventListener("bid.accepted", (event) => {
-    const parsed = JSON.parse((event as MessageEvent).data) as {
+    const parsed = safeParse<{
       payload?: { auction?: AuctionListingRecord; bid?: AuctionBidRecord };
-    };
-    handlers.onBidAccepted(parsed.payload ?? {});
+    }>((event as MessageEvent).data);
+    if (parsed) handlers.onBidAccepted(parsed.payload ?? {});
   });
   source.addEventListener("payment.updated", (event) => {
-    const parsed = JSON.parse((event as MessageEvent).data) as {
+    const parsed = safeParse<{
       payload?: { auction?: AuctionListingRecord };
-    };
-    handlers.onCoordination(parsed.payload ?? {});
+    }>((event as MessageEvent).data);
+    if (parsed) handlers.onCoordination(parsed.payload ?? {});
   });
   source.addEventListener("auction.updated", (event) => {
-    const parsed = JSON.parse((event as MessageEvent).data) as {
+    const parsed = safeParse<{
       payload?: { auction?: AuctionListingRecord };
-    };
-    handlers.onCoordination(parsed.payload ?? {});
+    }>((event as MessageEvent).data);
+    if (parsed) handlers.onCoordination(parsed.payload ?? {});
   });
   source.onerror = () => {
     handlers.onError?.();

@@ -6,6 +6,7 @@ import {
 } from "@/server/auction-preauth-store";
 import {
   resolveKapitalBankPaymentStatus,
+  verifyInternalCallbackSignature,
   verifyKapitalBankWebhookSignature
 } from "@/server/payments/kapital-bank-callback";
 
@@ -47,9 +48,28 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "preauthId tələb olunur" }, { status: 400 });
   }
 
+  const preauth = (await getAuctionPreauth(preauthId))
+    ?? (await getAuctionPreauthByRemoteOrderId(preauthId));
+  if (!preauth) {
+    return NextResponse.json({ ok: false, error: "Pre-auth tapılmadı" }, { status: 404 });
+  }
+  const callbackStatus = url.searchParams.get("status") ?? url.searchParams.get("STATUS");
+  if (!preauth.providerPayload?.remoteOrderId) {
+    const verify = verifyInternalCallbackSignature({
+      paymentId: preauth.id,
+      status: callbackStatus ?? "",
+      signature:
+        url.searchParams.get("signature")
+        ?? url.searchParams.get("sig")
+        ?? req.headers.get("x-signature")
+    });
+    if (!verify.ok) {
+      return NextResponse.json({ ok: false, error: verify.reason ?? "İmza tələb olunur" }, { status: 401 });
+    }
+  }
   const result = await handle(
-    preauthId,
-    url.searchParams.get("status") ?? url.searchParams.get("STATUS"),
+    preauth.id,
+    callbackStatus,
     url.searchParams.get("reference") ?? url.searchParams.get("ID")
   );
   if (!result.ok) {

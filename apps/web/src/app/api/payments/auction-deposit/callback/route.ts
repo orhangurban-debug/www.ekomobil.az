@@ -7,6 +7,7 @@ import {
 import { notifyAuctionApiEvent } from "@/server/auction-api-client";
 import {
   resolveKapitalBankPaymentStatus,
+  verifyInternalCallbackSignature,
   verifyKapitalBankWebhookSignature
 } from "@/server/payments/kapital-bank-callback";
 import { getAuctionListing } from "@/server/auction-store";
@@ -22,10 +23,24 @@ export async function GET(req: Request) {
   if (!deposit) {
     return NextResponse.json({ ok: false, error: "Deposit tapılmadı" }, { status: 404 });
   }
+  const callbackStatus = url.searchParams.get("status") ?? url.searchParams.get("STATUS");
+  if (!deposit.providerPayload?.remoteOrderId) {
+    const verify = verifyInternalCallbackSignature({
+      paymentId: deposit.id,
+      status: callbackStatus ?? "",
+      signature:
+        url.searchParams.get("signature")
+        ?? url.searchParams.get("sig")
+        ?? req.headers.get("x-signature")
+    });
+    if (!verify.ok) {
+      return NextResponse.json({ ok: false, error: verify.reason ?? "İmza tələb olunur" }, { status: 401 });
+    }
+  }
   let resolved;
   try {
     resolved = await resolveKapitalBankPaymentStatus({
-      fallbackStatus: url.searchParams.get("status") ?? url.searchParams.get("STATUS"),
+      fallbackStatus: callbackStatus,
       providerPayload: deposit.providerPayload
     });
   } catch {

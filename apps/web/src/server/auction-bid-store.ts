@@ -50,6 +50,12 @@ interface LockedAuctionRow {
   deposit_required: boolean;
 }
 
+interface BidCeilingRow {
+  bidder_user_id: string;
+  max_amount_azn: number;
+  max_auto_bid_azn: number;
+}
+
 function mapBidRow(row: AuctionBidRow): AuctionBidRecord {
   return {
     id: row.id,
@@ -231,11 +237,50 @@ export async function placeAuctionBid(input: {
         input.amountAzn,
         Boolean(input.autoBidMaxAzn),
         input.autoBidMaxAzn ?? null,
-        input.autoBidMaxAzn ? "auto" : "manual",
+        "manual",
         hashOptional(input.ip) ?? null,
         hashOptional(input.deviceFingerprint) ?? null
       ]
     );
+    const ceilingResult = await client.query<BidCeilingRow>(
+      `SELECT
+         bidder_user_id,
+         MAX(amount_azn)::int AS max_amount_azn,
+         MAX(COALESCE(max_auto_bid_azn, 0))::int AS max_auto_bid_azn
+       FROM auction_bids
+       WHERE auction_id = $1
+       GROUP BY bidder_user_id`,
+      [input.auctionId]
+    );
+    const ceilings = ceilingResult.rows
+      .map((row) => ({
+        bidderUserId: row.bidder_user_id,
+        ceilingAzn: Math.max(row.max_amount_azn, row.max_auto_bid_azn)
+      }))
+      .sort((a, b) => {
+        if (a.ceilingAzn !== b.ceilingAzn) return b.ceilingAzn - a.ceilingAzn;
+        if (a.bidderUserId === auction.current_bidder_user_id) return -1;
+        if (b.bidderUserId === auction.current_bidder_user_id) return 1;
+        return a.bidderUserId.localeCompare(b.bidderUserId);
+      });
+    const top = ceilings[0];
+    const second = ceilings[1];
+    const winnerUserId = top?.bidderUserId ?? input.bidderUserId;
+    const winnerCeilingAzn = top?.ceilingAzn ?? input.amountAzn;
+    const winningBidAzn = second
+      ? Math.min(winnerCeilingAzn, second.ceilingAzn + auction.minimum_increment_azn)
+      : winnerCeilingAzn;
+    const finalBidAzn = Math.max(input.amountAzn, winningBidAzn);
+
+    if (winnerUserId && finalBidAzn > input.amountAzn) {
+      await client.query(
+        `INSERT INTO auction_bids (
+           id, auction_id, bidder_user_id, amount_azn, is_auto_bid, max_auto_bid_azn, source, ip_hash, device_fingerprint
+         )
+         VALUES ($1, $2, $3, $4, true, $5, 'auto', NULL, NULL)`,
+        [randomUUID(), input.auctionId, winnerUserId, finalBidAzn, winnerCeilingAzn]
+      );
+    }
     await client.query(
       `UPDATE auction_listings
        SET current_bid_azn = $2,
@@ -245,7 +290,7 @@ export async function placeAuctionBid(input: {
            ends_at = COALESCE($5, ends_at),
            updated_at = NOW()
        WHERE id = $1`,
-      [input.auctionId, input.amountAzn, input.bidderUserId, nearClose, extendedEndsAt]
+      [input.auctionId, finalBidAzn, winnerUserId, nearClose, extendedEndsAt]
     );
     await client.query("COMMIT");
     const bid = mapBidRow(bidResult.rows[0]);
@@ -255,7 +300,7 @@ export async function placeAuctionBid(input: {
       actionType: "bid_submitted",
       detail: `Bid submitted at ${input.amountAzn} AZN`
     });
-    return { ok: true, bid, nextMinimumBidAzn: input.amountAzn + auction.minimum_increment_azn };
+    return { ok: true, bid, nextMinimumBidAzn: finalBidAzn + auction.minimum_increment_azn };
   } catch (error) {
     try {
       await client.query("ROLLBACK");

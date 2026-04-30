@@ -20,13 +20,13 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "fullypaid":
     case "fullypaid.":
     case "closed":
+      return "succeeded";
     case "cancelled":
     case "canceled":
     case "cancel":
     case "rejected":
     case "refused":
     case "declined":
-    case "refused":
     case "expired":
     case "voided":
     case "refunded":

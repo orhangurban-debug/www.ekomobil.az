@@ -17,6 +17,7 @@ export type BidPreflightFailure =
   | { ok: false; status: 403; code: "TERMS_NOT_ACCEPTED"; message: string }
   | { ok: false; status: 403; code: "PREAUTH_REQUIRED"; message: string; preauthAmountAzn?: number; riskTier?: string }
   | { ok: false; status: 403; code: "AUCTION_FROZEN"; message: string }
+  | { ok: false; status: 402; code: "CARD_VALIDATION_REQUIRED"; message: string }
   | { ok: false; status: 403 | 503; code: "CONFIG"; message: string };
 
 export type BidPreflightSuccess = { ok: true };
@@ -93,7 +94,12 @@ export async function runAuctionBidPreflight(input: {
       status: mockCard ? "simulated_ok" : "initiated"
     });
     if (!mockCard) {
-      // Prod: burada 1 ₼ auth + dərhal void (Kapital və s.) çağırılmalıdır; uğursuzdursa 402.
+      return {
+        ok: false,
+        status: 402,
+        code: "CARD_VALIDATION_REQUIRED",
+        message: "Kart təsdiqi hazırda müvəqqəti əlçatan deyil. Zəhmət olmasa bir qədər sonra yenidən cəhd edin."
+      };
     }
     return { ok: true };
   }
