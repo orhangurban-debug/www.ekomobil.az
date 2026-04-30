@@ -181,6 +181,39 @@ export async function createAuctionServicePayment(input: {
   );
   const resolvedAmountAzn =
     input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;
+
+  // Idempotency guard: do not create duplicate active/succeeded checkout for same obligation.
+  try {
+    const pool = getPgPool();
+    const existingResult = await pool.query<AuctionFinancialEventRow>(
+      `SELECT *
+       FROM auction_financial_events
+       WHERE auction_id = $1
+         AND event_type = $2
+         AND COALESCE(user_id, '') = COALESCE($3, '')
+         AND status IN ('redirect_ready', 'pending', 'succeeded')
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [input.auctionId, input.eventType, chargedUserId ?? null]
+    );
+    const existing = existingResult.rows[0];
+    if (existing) {
+      return { ok: true, payment: mapFinancialEventRow(existing) };
+    }
+  } catch (error) {
+    assertAuctionMemoryFallbackAllowed(error);
+    const existing = getAuctionFinancialEventsMemory()
+      .filter(
+        (entry) =>
+          entry.auctionId === input.auctionId &&
+          entry.eventType === input.eventType &&
+          (entry.userId ?? null) === (chargedUserId ?? null) &&
+          (entry.status === "redirect_ready" || entry.status === "pending" || entry.status === "succeeded")
+      )
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+    if (existing) return { ok: true, payment: existing };
+  }
+
   const id = randomUUID();
   let session;
   try {
@@ -491,6 +524,41 @@ export async function createAuctionDeposit(input: {
   }
   if (auction.sellerUserId === input.bidderUserId) {
     return { ok: false, error: "Satıcı deposit yarada bilməz" };
+  }
+
+  // Idempotency guard: reuse existing active/held deposit instead of creating duplicates.
+  try {
+    const pool = getPgPool();
+    const existingResult = await pool.query<AuctionDepositRow>(
+      `SELECT *
+       FROM auction_deposits
+       WHERE auction_id = $1
+         AND bidder_user_id = $2
+         AND status IN ('redirect_ready', 'pending', 'held')
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [input.auctionId, input.bidderUserId]
+    );
+    const existing = existingResult.rows[0];
+    if (existing) {
+      const mapped = mapDepositRow(existing);
+      await updateParticipantDepositStatus(input.auctionId, input.bidderUserId, mapped.status);
+      return { ok: true, deposit: mapped };
+    }
+  } catch (error) {
+    assertAuctionMemoryFallbackAllowed(error);
+    const existing = getAuctionDepositsMemory()
+      .filter(
+        (entry) =>
+          entry.auctionId === input.auctionId &&
+          entry.bidderUserId === input.bidderUserId &&
+          (entry.status === "redirect_ready" || entry.status === "pending" || entry.status === "held")
+      )
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+    if (existing) {
+      await updateParticipantDepositStatus(input.auctionId, input.bidderUserId, existing.status);
+      return { ok: true, deposit: existing };
+    }
   }
 
   const id = randomUUID();

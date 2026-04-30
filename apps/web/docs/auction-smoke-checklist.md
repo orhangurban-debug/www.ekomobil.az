@@ -24,6 +24,7 @@ Use this checklist before each production deploy touching auction logic.
 - [ ] Complete preauth callback and verify bidder can place bid.
 - [ ] Deposit-required lot: bidder without held deposit cannot bid.
 - [ ] Held deposit bidder can bid.
+- [ ] Repeated deposit create clicks reuse same active checkout (no duplicate redirect orders).
 
 ## 4) Settlement confirmation
 
@@ -38,6 +39,7 @@ Use this checklist before each production deploy touching auction logic.
 - [ ] Non-remote/internal callback requires valid `x-signature`.
 - [ ] Invalid signature returns 401.
 - [ ] Live callback with verified remote order status finalizes correctly.
+- [ ] Repeated callback delivery is idempotent (does not create duplicate state transitions).
 
 ## 6) Realtime and UI resilience
 
@@ -55,5 +57,6 @@ Use this checklist before each production deploy touching auction logic.
 ## 8) Accounting side effects
 
 - [ ] No-show and seller-breach checkout flows create expected payment records.
+- [ ] Repeated service payment create calls reuse existing redirect/succeeded record for same obligation.
 - [ ] Settlement updates deposit return/forfeit outcomes correctly.
 - [ ] Penalty balances are applied only on intended branches.
