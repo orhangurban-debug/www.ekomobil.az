@@ -85,6 +85,12 @@ export function getKapitalBankLiveReadinessIssues(
   if (!config.password) {
     issues.push({ code: "missing_password", message: "KAPITAL_BANK_PASSWORD boşdur." });
   }
+  if (!config.secret) {
+    issues.push({
+      code: "missing_secret",
+      message: "KAPITAL_BANK_SECRET boşdur; callback/webhook imza yoxlaması üçün tələb olunur."
+    });
+  }
   if (!config.publicBaseUrl) {
     issues.push({ code: "missing_public_base_url", message: "NEXT_PUBLIC_APP_URL boşdur." });
   } else if (!config.publicBaseUrl.startsWith("https://")) {
@@ -103,9 +109,6 @@ export function getKapitalBankLiveReadinessIssues(
   if (getKapitalBankGateway(config) === "birpay") {
     if (!config.merchantId) {
       issues.push({ code: "missing_merchant_id", message: "BirPay üçün KAPITAL_BANK_MERCHANT_ID boşdur." });
-    }
-    if (!config.secret) {
-      issues.push({ code: "missing_secret", message: "BirPay webhook imzası üçün KAPITAL_BANK_SECRET boşdur." });
     }
   }
   return issues;
