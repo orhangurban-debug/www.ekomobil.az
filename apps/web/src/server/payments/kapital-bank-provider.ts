@@ -8,6 +8,7 @@ import {
   getKapitalBankGateway,
   getKapitalBankGatewayLabel,
   isBirPayApiBaseUrl,
+  isKapitalBankSandboxEndpoint,
   isKapitalBankLiveReady
 } from "@/lib/kapital-bank";
 import type { PaymentCheckoutStrategy, PaymentProviderPayload } from "@/lib/payments";
@@ -110,6 +111,17 @@ function getBasicAuthHeader(config = getKapitalBankConfig()): string {
 export async function prepareKapitalBankCheckoutSession(input: BuildKapitalBankSessionInput): Promise<KapitalBankCheckoutSession> {
   const session = buildKapitalBankCheckoutSession(input);
   const config = getKapitalBankConfig();
+  const allowSandboxInLive = process.env.KAPITAL_BANK_ALLOW_SANDBOX_IN_LIVE === "true";
+  if (
+    session.providerMode === "live" &&
+    isKapitalBankSandboxEndpoint(config) &&
+    process.env.NODE_ENV === "production" &&
+    !allowSandboxInLive
+  ) {
+    throw new Error(
+      "KAPITAL_BANK_API_BASE_URL sandbox endpoint-dir. Production-da canlı ödəniş üçün prod endpoint təyin edin."
+    );
+  }
   if (session.providerMode === "live" && !session.payload.liveReady) {
     const issueText = getKapitalBankLiveReadinessIssues(config)
       .map((issue) => issue.message)
