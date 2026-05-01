@@ -192,14 +192,20 @@ async function normalizeAndPersistImageUrl(url: string): Promise<string | null> 
   if (!sanitized.startsWith("data:image/")) return sanitized;
   const parsed = parseDataImageUrl(sanitized);
   if (!parsed) return null;
-  const stored = await persistSupportUploadFile({
-    folder: "listing-images",
-    fileId: randomUUID(),
-    originalFilename: `listing-image.${parsed.extension}`,
-    buffer: parsed.buffer,
-    mimeType: parsed.mimeType
-  });
-  return stored.url;
+  try {
+    const stored = await persistSupportUploadFile({
+      folder: "listing-images",
+      fileId: randomUUID(),
+      originalFilename: `listing-image.${parsed.extension}`,
+      buffer: parsed.buffer,
+      mimeType: parsed.mimeType
+    });
+    return stored.url;
+  } catch {
+    // Fail-open: keep existing data URL so listing detail does not degrade to 404
+    // when storage backend is temporarily unavailable or misconfigured.
+    return sanitized;
+  }
 }
 
 function mapRowToSummary(row: ListingRow): ListingSummary {
@@ -623,11 +629,15 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     const mediaUrls = (
       await Promise.all(
         mediaRows.rows.map(async (entry) => {
-          const normalized = await normalizeAndPersistImageUrl(entry.url);
-          if (normalized && normalized !== entry.url) {
-            await pool.query(`UPDATE listing_media SET url = $1 WHERE id = $2`, [normalized, entry.id]);
+          try {
+            const normalized = await normalizeAndPersistImageUrl(entry.url);
+            if (normalized && normalized !== entry.url) {
+              await pool.query(`UPDATE listing_media SET url = $1 WHERE id = $2`, [normalized, entry.id]);
+            }
+            return normalized;
+          } catch {
+            return sanitizeMediaUrl(entry.url);
           }
-          return normalized;
         })
       )
     ).filter((entry): entry is string => Boolean(entry));
