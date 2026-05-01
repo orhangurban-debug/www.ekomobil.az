@@ -88,6 +88,36 @@ interface ServiceRecordRow {
   summary: string;
 }
 
+const tableColumnAvailabilityCache = new Map<string, boolean>();
+
+async function hasTableColumn(tableName: string, columnName: string): Promise<boolean> {
+  const cacheKey = `${tableName}.${columnName}`;
+  const cached = tableColumnAvailabilityCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = $1
+            AND column_name = $2
+        ) AS exists
+      `,
+      [tableName, columnName]
+    );
+    const exists = Boolean(result.rows[0]?.exists);
+    tableColumnAvailabilityCache.set(cacheKey, exists);
+    return exists;
+  } catch {
+    // Fail-open for compatibility; the query layer keeps legacy-safe defaults.
+    tableColumnAvailabilityCache.set(cacheKey, false);
+    return false;
+  }
+}
+
 async function ensureListingBoostActivationsTable(): Promise<void> {
   try {
     const pool = getPgPool();
@@ -507,6 +537,15 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
   try {
     await ensureSeedData();
     const pool = getPgPool();
+    const [hasPhoneNormalized, hasDealerShowWhatsapp, hasDealerWhatsappPhone] = await Promise.all([
+      hasTableColumn("users", "phone_normalized"),
+      hasTableColumn("dealer_profiles", "show_whatsapp"),
+      hasTableColumn("dealer_profiles", "whatsapp_phone")
+    ]);
+    const ownerPhoneNormalizedExpr = hasPhoneNormalized ? "NULLIF(ou.phone_normalized, '')" : "NULL";
+    const dealerPhoneNormalizedExpr = hasPhoneNormalized ? "NULLIF(dpu.phone_normalized, '')" : "NULL";
+    const dealerShowWhatsappExpr = hasDealerShowWhatsapp ? "COALESCE(dp.show_whatsapp, FALSE)" : "FALSE";
+    const dealerWhatsappPhoneExpr = hasDealerWhatsappPhone ? "NULLIF(BTRIM(dp.whatsapp_phone), '')" : "NULL";
     const listingResult = await pool.query<ListingRow>(
       `
         SELECT
@@ -529,11 +568,11 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
           dp.owner_user_id AS dealer_owner_user_id,
-          COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, '')) AS contact_phone,
+          COALESCE(NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr}) AS contact_phone,
           CASE
-            WHEN dp.id IS NOT NULL AND COALESCE(dp.show_whatsapp, FALSE) = TRUE AND NULLIF(BTRIM(dp.whatsapp_phone), '') IS NOT NULL
-              THEN dp.whatsapp_phone
-            ELSE COALESCE(NULLIF(ou.phone, ''), NULLIF(ou.phone_normalized, ''), NULLIF(dpu.phone, ''), NULLIF(dpu.phone_normalized, ''))
+            WHEN dp.id IS NOT NULL AND ${dealerShowWhatsappExpr} = TRUE AND ${dealerWhatsappPhoneExpr} IS NOT NULL
+              THEN ${dealerWhatsappPhoneExpr}
+            ELSE COALESCE(NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr})
           END AS whatsapp_phone
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
