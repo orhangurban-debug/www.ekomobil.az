@@ -108,86 +108,87 @@ export function AuctionSellForm({
     }
     setSubmitting(true);
     setError(null);
+    try {
+      const createResponse = await fetch("/api/auctions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listingId: selected.id,
+          mode: reservePriceAzn ? "reserve" : "ascending",
+          startingBidAzn: selected.priceAzn,
+          reservePriceAzn: reservePriceAzn ? Number(reservePriceAzn) : undefined,
+          buyNowPriceAzn: buyNowPriceAzn ? Number(buyNowPriceAzn) : undefined,
+          startsAt: startsAt || undefined,
+          endsAt: endsAt || undefined,
+          depositRequired,
+          depositAmountAzn: depositRequired && depositAmountAzn ? Number(depositAmountAzn) : undefined,
+          sellerBondRequired,
+          sellerBondAmountAzn: sellerBondRequired
+            ? Number(sellerBondAmountAzn || suggestedSellerBond)
+            : undefined,
+          vinInfoUrl: vinInfoType === "link" ? vinInfoUrl.trim() || undefined : undefined,
+          serviceHistoryUrl: serviceHistoryType === "link" ? serviceHistoryUrl.trim() || undefined : undefined,
+          vinDocumentRef: vinInfoType === "document" ? vinDocumentRef.trim() || undefined : undefined,
+          serviceHistoryDocumentRef:
+            serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined,
+          sellerTermsAccepted: true as const
+        })
+      });
+      const createPayload = (await createResponse.json()) as {
+        ok: boolean;
+        error?: string;
+        auction?: { id: string };
+      };
+      if (!createPayload.ok || !createPayload.auction?.id) {
+        setError(createPayload.error || "Auksion lotu yaradıla bilmədi.");
+        return;
+      }
 
-    const createResponse = await fetch("/api/auctions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        listingId: selected.id,
-        mode: reservePriceAzn ? "reserve" : "ascending",
-        startingBidAzn: selected.priceAzn,
-        reservePriceAzn: reservePriceAzn ? Number(reservePriceAzn) : undefined,
-        buyNowPriceAzn: buyNowPriceAzn ? Number(buyNowPriceAzn) : undefined,
-        startsAt: startsAt || undefined,
-        endsAt: endsAt || undefined,
-        depositRequired,
-        depositAmountAzn: depositRequired && depositAmountAzn ? Number(depositAmountAzn) : undefined,
-        sellerBondRequired,
-        sellerBondAmountAzn: sellerBondRequired
-          ? Number(sellerBondAmountAzn || suggestedSellerBond)
-          : undefined,
-        vinInfoUrl: vinInfoType === "link" ? vinInfoUrl.trim() || undefined : undefined,
-        serviceHistoryUrl: serviceHistoryType === "link" ? serviceHistoryUrl.trim() || undefined : undefined,
-        vinDocumentRef: vinInfoType === "document" ? vinDocumentRef.trim() || undefined : undefined,
-        serviceHistoryDocumentRef:
-          serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined,
-        sellerTermsAccepted: true as const
-      })
-    });
-    const createPayload = (await createResponse.json()) as {
-      ok: boolean;
-      error?: string;
-      auction?: { id: string };
-    };
-    if (!createPayload.ok || !createPayload.auction?.id) {
-      setError(createPayload.error || "Auksion lotu yaradıla bilmədi.");
-      setSubmitting(false);
-      return;
-    }
-
-    const paymentResponse = await fetch("/api/payments/auction-lot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auctionId: createPayload.auction.id })
-    });
-    const lotPaymentPayload = (await paymentResponse.json()) as {
-      ok: boolean;
-      error?: string;
-      checkoutUrl?: string;
-    };
-    if (!lotPaymentPayload.ok || !lotPaymentPayload.checkoutUrl) {
-      setError(lotPaymentPayload.error || "Lot haqqı üçün checkout açıla bilmədi.");
-      setSubmitting(false);
-      return;
-    }
-
-    let bondCheckoutUrl: string | undefined;
-    if (sellerBondRequired) {
-      const bondResponse = await fetch("/api/payments/auction-seller-bond", {
+      const paymentResponse = await fetch("/api/payments/auction-lot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ auctionId: createPayload.auction.id })
       });
-      const bondPayload = (await bondResponse.json()) as {
+      const lotPaymentPayload = (await paymentResponse.json()) as {
         ok: boolean;
         error?: string;
         checkoutUrl?: string;
       };
-      if (!bondPayload.ok || !bondPayload.checkoutUrl) {
-        setError(bondPayload.error || "Satıcı bond checkout açıla bilmədi.");
-        setSubmitting(false);
+      if (!lotPaymentPayload.ok || !lotPaymentPayload.checkoutUrl) {
+        setError(lotPaymentPayload.error || "Lot haqqı üçün checkout açıla bilmədi.");
         return;
       }
-      bondCheckoutUrl = bondPayload.checkoutUrl;
-    }
 
-    setPostCreate({
-      auctionId: createPayload.auction.id,
-      lotCheckoutUrl: lotPaymentPayload.checkoutUrl,
-      bondCheckoutUrl
-    });
-    setSubmitting(false);
-    router.refresh();
+      let bondCheckoutUrl: string | undefined;
+      if (sellerBondRequired) {
+        const bondResponse = await fetch("/api/payments/auction-seller-bond", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ auctionId: createPayload.auction.id })
+        });
+        const bondPayload = (await bondResponse.json()) as {
+          ok: boolean;
+          error?: string;
+          checkoutUrl?: string;
+        };
+        if (!bondPayload.ok || !bondPayload.checkoutUrl) {
+          setError(bondPayload.error || "Satıcı bond checkout açıla bilmədi.");
+          return;
+        }
+        bondCheckoutUrl = bondPayload.checkoutUrl;
+      }
+
+      setPostCreate({
+        auctionId: createPayload.auction.id,
+        lotCheckoutUrl: lotPaymentPayload.checkoutUrl,
+        bondCheckoutUrl
+      });
+      router.refresh();
+    } catch {
+      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (listings.length === 0) {
