@@ -55,20 +55,26 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
-    const payload = (await response.json()) as { ok: boolean; error?: string };
-    if (!payload.ok) {
-      setError(payload.error || "Giriş uğursuz oldu.");
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!payload.ok) {
+        setError(payload.error || "Giriş uğursuz oldu.");
+        setLoading(false);
+        return;
+      }
+
+      router.push(nextPath);
+    } catch (err) {
+      console.error("login error:", err);
+      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
       setLoading(false);
-      return;
     }
-
-    router.push(nextPath);
   }
 
   return (

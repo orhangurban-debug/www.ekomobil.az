@@ -20,5 +20,11 @@
     "loadtest:browse": "k6 run scripts/load-tests/k6/browse.js",
     "loadtest:mixed": "k6 run scripts/load-tests/k6/mixed-users.js",
     "loadtest:bids": "k6 run scripts/load-tests/k6/hot-auction-bids.js"
+  },
+  "dependencies": {
+    "next": "^16.2.7"
+  },
+  "overrides": {
+    "postcss": "^8.5.12"
   }
 }

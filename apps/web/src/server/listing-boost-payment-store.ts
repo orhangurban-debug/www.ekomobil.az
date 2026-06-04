@@ -108,6 +108,27 @@ export async function createListingBoostPayment(input: {
     return { ok: false, error: "Boost paketi tapılmadı" };
   }
 
+  // Idempotency: reuse a recent unfinished boost payment for the same listing/owner/package
+  // instead of creating a duplicate bank session on double-submit / retry.
+  try {
+    const pool = getPgPool();
+    const existing = await pool.query<ListingBoostPaymentRow>(
+      `SELECT * FROM listing_boost_payments
+       WHERE listing_id = $1 AND owner_user_id = $2 AND boost_package_id = $3
+         AND status = 'redirect_ready'
+         AND checkout_url IS NOT NULL
+         AND created_at > NOW() - INTERVAL '30 minutes'
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [input.listingId, input.ownerUserId, pkg.id]
+    );
+    if (existing.rows[0]) {
+      return { ok: true, payment: mapRow(existing.rows[0]) };
+    }
+  } catch {
+    // Non-fatal: fall through and create a new payment.
+  }
+
   const id = randomUUID();
   let session;
   try {
@@ -271,21 +292,27 @@ export async function finalizeListingBoostPayment(input: {
     return { ok: true, payment: updatedPayment };
   }
 
-  const boostResult = await applyListingBoostPackage({
-    listingId: payment.listingId,
-    packageId: payment.boostPackageId
-  });
-  if (!boostResult.ok) {
-    return { ok: false, error: boostResult.error ?? "Boost tətbiq edilə bilmədi" };
-  }
-
+  // Atomically claim the payment as succeeded first (the `AND status <> 'succeeded'`
+  // predicate makes this a lock), then apply the boost only after the succeeded record exists.
   const updatedPayment = await setListingBoostPaymentStatus(
     input.paymentId,
     input.status,
     input.providerReference
   );
   if (!updatedPayment) {
+    const current = await getListingBoostPayment(input.paymentId);
+    if (current?.status === "succeeded") {
+      return { ok: true, payment: current };
+    }
     return { ok: false, error: "Ödəniş statusu yenilənə bilmədi" };
+  }
+
+  const boostResult = await applyListingBoostPackage({
+    listingId: payment.listingId,
+    packageId: payment.boostPackageId
+  });
+  if (!boostResult.ok) {
+    return { ok: false, error: boostResult.error ?? "Boost tətbiq edilə bilmədi" };
   }
 
   try {

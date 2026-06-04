@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { getKapitalBankConfig } from "@/lib/kapital-bank";
+import { isMockPaymentEndpointAllowed } from "@/lib/kapital-bank";
 import { finalizeListingBoostPayment, getListingBoostPayment } from "@/server/listing-boost-payment-store";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
-  const config = getKapitalBankConfig();
-  if (config.mode !== "mock") {
-    return NextResponse.json({ ok: false, error: "Mock payment mode aktiv deyil" }, { status: 403 });
+  if (!isMockPaymentEndpointAllowed()) {
+    return NextResponse.json({ ok: false, error: "Mock payment endpoint əlçatmazdır" }, { status: 403 });
   }
 
   const { paymentId } = await params;

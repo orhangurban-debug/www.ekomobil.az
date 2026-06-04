@@ -14,19 +14,24 @@ export default function DealerImportPage() {
     event.preventDefault();
     setLoading(true);
     setResult(null);
-    const response = await fetch("/api/dealer/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ csv })
-    });
-    const payload = (await response.json()) as { ok?: boolean; created?: number; errors?: string[]; error?: string };
-    if (!response.ok || payload.ok === false) {
-      setResult({ created: 0, errors: payload.errors, error: payload.error ?? "CSV import mümkün olmadı." });
+    try {
+      const response = await fetch("/api/dealer/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv })
+      });
+      const payload = (await response.json()) as { ok?: boolean; created?: number; errors?: string[]; error?: string };
+      if (!response.ok || payload.ok === false) {
+        setResult({ created: 0, errors: payload.errors, error: payload.error ?? "CSV import mümkün olmadı." });
+        return;
+      }
+      setResult({ created: payload.created, errors: payload.errors });
+    } catch (err) {
+      console.error("dealer import error:", err);
+      setResult({ created: 0, error: "Şəbəkə xətası baş verdi. Yenidən cəhd edin." });
+    } finally {
       setLoading(false);
-      return;
     }
-    setResult({ created: payload.created, errors: payload.errors });
-    setLoading(false);
   }
 
   return (

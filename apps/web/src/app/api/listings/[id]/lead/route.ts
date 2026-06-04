@@ -1,30 +1,48 @@
 import { NextResponse } from "next/server";
 import { createLeadForListing } from "@/server/dealer-store";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
 export async function POST(req: Request, context: Params) {
-  const body = (await req.json()) as {
+  const { id } = await context.params;
+
+  // Public endpoint — rate limit to prevent lead/CRM spam.
+  const ip = getClientIp(req);
+  const limit = await checkRateLimit(`lead:${ip}:${id}`, 5, 10);
+  if (!limit.ok) return rateLimitResponse(600);
+
+  let body: {
     customerName?: string;
     customerPhone?: string;
     customerEmail?: string;
     note?: string;
     source?: string;
   };
-  const { id } = await context.params;
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ ok: false, error: "Keçərsiz sorğu" }, { status: 400 });
+  }
+
   if (!body.customerName?.trim()) {
     return NextResponse.json({ ok: false, error: "Müştəri adı tələb olunur." }, { status: 400 });
   }
 
-  await createLeadForListing({
-    listingId: id,
-    customerName: body.customerName.trim(),
-    customerPhone: body.customerPhone?.trim(),
-    customerEmail: body.customerEmail?.trim(),
-    note: body.note?.trim(),
-    source: body.source || "listing_detail"
-  });
-  return NextResponse.json({ ok: true });
+  try {
+    await createLeadForListing({
+      listingId: id,
+      customerName: body.customerName.trim(),
+      customerPhone: body.customerPhone?.trim(),
+      customerEmail: body.customerEmail?.trim(),
+      note: body.note?.trim(),
+      source: body.source || "listing_detail"
+    });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("create lead error:", error);
+    return NextResponse.json({ ok: false, error: "Müraciət göndərilə bilmədi." }, { status: 500 });
+  }
 }

@@ -4,13 +4,21 @@ import { verifyEdgeSessionToken, getEdgeCookieName } from "@/lib/session-edge";
 
 const PROTECTED_PREFIXES = ["/ops", "/admin", "/dealer", "/me", "/favorites"];
 
-// State-changing API endpoints that require same-origin check
+// State-changing API endpoints that require same-origin check.
+// NOTE: /api/payments is deliberately excluded here because bank webhook/callback
+// requests are server-to-server and carry no browser Origin; those routes rely on
+// signature verification + remote status lookup instead.
 const CSRF_PROTECTED_API_PREFIXES = [
   "/api/auctions",
-  "/api/payments",
   "/api/auth",
   "/api/ops",
+  "/api/admin",
   "/api/listings",
+  "/api/dealer",
+  "/api/user",
+  "/api/trust",
+  "/api/support",
+  "/api/analytics",
 ];
 
 /** Validate that state-changing requests come from our own origin (CSRF protection) */

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isMockPaymentEndpointAllowed } from "@/lib/kapital-bank";
 import { finalizeAuctionServicePayment } from "@/server/auction-payment-store";
 import { verifyInternalCallbackSignature } from "@/server/payments/kapital-bank-callback";
 
@@ -6,9 +7,9 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ paymentId: string }> }
 ) {
-  // Block mock endpoint in production entirely
-  if (process.env.NODE_ENV === "production" && process.env.KAPITAL_BANK_MODE === "live") {
-    return NextResponse.json({ ok: false, error: "Mock endpoint production-da əlçatmazdır" }, { status: 403 });
+  // Mock endpoints must never be reachable in production (regardless of mode).
+  if (!isMockPaymentEndpointAllowed()) {
+    return NextResponse.json({ ok: false, error: "Mock endpoint əlçatmazdır" }, { status: 403 });
   }
 
   const { paymentId } = await context.params;

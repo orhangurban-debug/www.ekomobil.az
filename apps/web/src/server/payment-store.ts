@@ -107,6 +107,27 @@ export async function createListingPlanPayment(input: {
     return { ok: false, error: "Ödəniş məbləği hesablana bilmədi" };
   }
 
+  // Idempotency: if a recent unfinished payment exists for the same listing/owner/plan,
+  // reuse it instead of creating a duplicate bank session on double-submit / retry.
+  try {
+    const pool = getPgPool();
+    const existing = await pool.query<PaymentRow>(
+      `SELECT * FROM listing_plan_payments
+       WHERE listing_id = $1 AND owner_user_id = $2 AND plan_type = $3
+         AND status = 'redirect_ready'
+         AND checkout_url IS NOT NULL
+         AND created_at > NOW() - INTERVAL '30 minutes'
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [input.listingId, input.ownerUserId, input.planType]
+    );
+    if (existing.rows[0]) {
+      return { ok: true, payment: mapRow(existing.rows[0]) };
+    }
+  } catch {
+    // Non-fatal: fall through and create a new payment.
+  }
+
   const id = randomUUID();
   let session;
   try {
@@ -268,20 +289,28 @@ export async function finalizeListingPlanPayment(input: {
     return { ok: true, payment: updatedPayment };
   }
 
-  const applyResult = await applyListingPlanForOwner(payment.listingId, payment.ownerUserId, payment.planType, {
-    activate: payment.source === "publish"
-  });
-  if (!applyResult.ok) {
-    return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
-  }
-
+  // Atomically claim the payment as succeeded first. The `AND status <> 'succeeded'`
+  // predicate in the UPDATE makes this a lock: only one concurrent callback gets the
+  // row back, and the entitlement is applied only after a succeeded record exists.
   const updatedPayment = await setListingPlanPaymentStatus(
     input.paymentId,
     input.status,
     input.providerReference
   );
   if (!updatedPayment) {
+    // Either another callback already finalized it, or the row is gone. Re-check.
+    const current = await getListingPlanPayment(input.paymentId);
+    if (current?.status === "succeeded") {
+      return { ok: true, payment: current };
+    }
     return { ok: false, error: "Ödəniş statusu yenilənə bilmədi" };
+  }
+
+  const applyResult = await applyListingPlanForOwner(payment.listingId, payment.ownerUserId, payment.planType, {
+    activate: payment.source === "publish"
+  });
+  if (!applyResult.ok) {
+    return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
   }
 
   // Issue invoice and send email (non-blocking – errors do not fail the payment)

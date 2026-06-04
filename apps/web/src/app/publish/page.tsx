@@ -292,6 +292,7 @@ export default function PublishPage() {
     }
 
     setSubmitting(true);
+    try {
     await trackEvent("listing_publish_attempted", { vin, city, sellerVerified, vinVerified });
 
     const response = await fetch("/api/trust/evaluate", {
@@ -393,11 +394,15 @@ export default function PublishPage() {
         return;
       }
       setReviewErrors(createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]);
-      setSubmitting(false);
       return;
     }
     setReviewErrors(payload.errors ?? ["Məlumatlarda düzəliş lazımdır."]);
-    setSubmitting(false);
+    } catch (error) {
+      console.error("publish submit error:", error);
+      setReviewErrors(["Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin."]);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

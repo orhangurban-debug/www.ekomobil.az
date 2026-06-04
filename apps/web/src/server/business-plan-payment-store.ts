@@ -209,15 +209,10 @@ export async function finalizeBusinessPlanPayment(input: {
     businessType: payment.businessType
   });
 
-  await upsertBusinessPlanSubscription({
-    ownerUserId: payment.ownerUserId,
-    businessType: payment.businessType,
-    planId: payment.planId,
-    status: "active",
-    startsAt: window.startsAt.toISOString(),
-    expiresAt: window.expiresAt.toISOString()
-  });
-
+  // Atomically claim the payment as succeeded FIRST. The `AND status <> 'succeeded'`
+  // predicate makes this a lock so two concurrent success callbacks cannot both grant
+  // the subscription (double window extension). The subscription is upserted only after
+  // this UPDATE wins, and we never fabricate a synthetic succeeded record.
   const done = await pool.query<BusinessPlanPaymentRow>(
     `UPDATE business_plan_payments
      SET status = 'succeeded',
@@ -231,25 +226,24 @@ export async function finalizeBusinessPlanPayment(input: {
      RETURNING *`,
     [input.paymentId, input.providerReference ?? null, window.startsAt.toISOString(), window.expiresAt.toISOString()]
   );
-  const finalPayment = toRecord(done.rows[0] ?? {
-    id: payment.id,
-    owner_user_id: payment.ownerUserId,
-    business_type: payment.businessType,
-    plan_id: payment.planId,
-    amount_azn: payment.amountAzn,
-    provider: "kapital_bank",
-    status: "succeeded",
-    checkout_url: payment.checkoutUrl,
-    provider_reference: input.providerReference ?? payment.providerReference ?? null,
-    provider_mode: payment.providerMode ?? null,
-    checkout_strategy: payment.checkoutStrategy ?? null,
-    provider_payload: payment.providerPayload ?? null,
-    completed_at: new Date(),
-    starts_at: window.startsAt,
-    expires_at: window.expiresAt,
-    created_at: new Date(payment.createdAt),
-    updated_at: new Date()
+  if (!done.rows[0]) {
+    const current = await getBusinessPlanPayment(input.paymentId);
+    if (current?.status === "succeeded") {
+      return { ok: true, payment: current };
+    }
+    return { ok: false, error: "Ödəniş statusu yenilənə bilmədi" };
+  }
+
+  await upsertBusinessPlanSubscription({
+    ownerUserId: payment.ownerUserId,
+    businessType: payment.businessType,
+    planId: payment.planId,
+    status: "active",
+    startsAt: window.startsAt.toISOString(),
+    expiresAt: window.expiresAt.toISOString()
   });
+
+  const finalPayment = toRecord(done.rows[0]);
 
   // Issue invoice and send email (non-blocking)
   try {

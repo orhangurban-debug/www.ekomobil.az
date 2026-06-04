@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
+import { getServerSessionUser } from "@/lib/auth";
 import { ListingInput, validateListingInput } from "@/lib/listing";
 import { enqueueManualReview } from "@/server/review-store";
 import { evaluateTrustInput, upsertTrustSignals } from "@/server/trust-store";
+import { validateListingOwnership } from "@/server/listing-store";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
-  const payload = (await req.json()) as ListingInput & { listingId?: string };
+  const user = await getServerSessionUser();
+  if (!user) {
+    return NextResponse.json({ ok: false, error: "Daxil olmalısınız" }, { status: 401 });
+  }
+
+  const ip = getClientIp(req);
+  const limit = await checkRateLimit(`trust-evaluate:${user.id}:${ip}`, 30, 1);
+  if (!limit.ok) return rateLimitResponse(60);
+
+  let payload: ListingInput & { listingId?: string };
+  try {
+    payload = (await req.json()) as ListingInput & { listingId?: string };
+  } catch {
+    return NextResponse.json({ ok: false, error: "Keçərsiz sorğu" }, { status: 400 });
+  }
 
   const validation = validateListingInput(payload);
   if (!validation.isValid) {
@@ -15,6 +32,17 @@ export async function POST(req: Request) {
       },
       { status: 400 }
     );
+  }
+
+  // If the caller wants to persist trust signals for an existing listing, they must own it.
+  if (payload.listingId) {
+    const ownership = await validateListingOwnership(payload.listingId, user.id);
+    if (!ownership.ok) {
+      return NextResponse.json(
+        { ok: false, error: ownership.error ?? "Bu elan üçün icazəniz yoxdur" },
+        { status: 403 }
+      );
+    }
   }
 
   const evaluated = evaluateTrustInput(payload);

@@ -1,3 +1,4 @@
+import type { PoolClient } from "pg";
 import type { AuctionStatus } from "@/lib/auction";
 import { getPgPool } from "@/lib/postgres";
 import { getAuctionDepositsMemory, getAuctionParticipantsMemory } from "@/server/auction-memory";
@@ -7,6 +8,12 @@ export async function settleHeldDepositsForAuctionOutcome(input: {
   auctionId: string;
   outcomeStatus: AuctionStatus;
   winnerUserId?: string | null;
+  /**
+   * When provided, all writes run on this transaction client so deposit settlement is
+   * atomic with the auction close. In that mode a DB error is rethrown (no in-memory
+   * fallback) so the surrounding transaction rolls back.
+   */
+  client?: PoolClient;
 }): Promise<{ returned: number; forfeited: number }> {
   const shouldReturnAll = ["completed", "seller_breach", "disputed", "not_met_reserve", "cancelled"].includes(
     input.outcomeStatus
@@ -20,7 +27,7 @@ export async function settleHeldDepositsForAuctionOutcome(input: {
   let returned = 0;
   let forfeited = 0;
   try {
-    const pool = getPgPool();
+    const pool = input.client ?? getPgPool();
 
     if (shouldForfeitWinner && input.winnerUserId) {
       const forfeitedRows = await pool.query<{ bidder_user_id: string }>(
@@ -95,6 +102,10 @@ export async function settleHeldDepositsForAuctionOutcome(input: {
 
     return { returned, forfeited };
   } catch (error) {
+    // Inside a transaction, never fall back to memory — let the caller roll back.
+    if (input.client) {
+      throw error;
+    }
     assertAuctionMemoryFallbackAllowed(error);
     const deposits = getAuctionDepositsMemory();
     const participants = getAuctionParticipantsMemory();

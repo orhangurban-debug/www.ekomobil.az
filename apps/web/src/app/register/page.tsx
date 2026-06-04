@@ -34,18 +34,24 @@ export default function RegisterPage() {
     }
     setLoading(true);
     setError(null);
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
-    const payload = (await response.json()) as { ok: boolean; error?: string };
-    if (!payload.ok) {
-      setError(payload.error || "Qeydiyyat mümkün olmadı.");
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!payload.ok) {
+        setError(payload.error || "Qeydiyyat mümkün olmadı.");
+        setLoading(false);
+        return;
+      }
+      router.push("/me");
+    } catch (err) {
+      console.error("register error:", err);
+      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
       setLoading(false);
-      return;
     }
-    router.push("/me");
   }
 
   async function sendPhoneOtp() {
@@ -55,27 +61,32 @@ export default function RegisterPage() {
     }
     setSendingOtp(true);
     setError(null);
-    const response = await fetch("/api/auth/phone/send-code", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: form.phone })
-    });
-    const payload = (await response.json()) as {
-      ok: boolean;
-      challengeId?: string;
-      error?: string;
-      code?: string;
-    };
-    if (!payload.ok || !payload.challengeId) {
-      setError(payload.error || "Təsdiq kodu göndərilmədi.");
+    try {
+      const response = await fetch("/api/auth/phone/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: form.phone })
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        challengeId?: string;
+        error?: string;
+        code?: string;
+      };
+      if (!payload.ok || !payload.challengeId) {
+        setError(payload.error || "Təsdiq kodu göndərilmədi.");
+        return;
+      }
+      const challengeId = payload.challengeId;
+      setForm((prev) => ({ ...prev, phoneOtpChallengeId: challengeId }));
+      setOtpHintCode(payload.code ?? null);
+      setOtpSent(true);
+    } catch (err) {
+      console.error("send otp error:", err);
+      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
+    } finally {
       setSendingOtp(false);
-      return;
     }
-    const challengeId = payload.challengeId;
-    setForm((prev) => ({ ...prev, phoneOtpChallengeId: challengeId }));
-    setOtpHintCode(payload.code ?? null);
-    setOtpSent(true);
-    setSendingOtp(false);
   }
 
   return (

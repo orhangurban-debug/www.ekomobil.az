@@ -16,16 +16,21 @@ export function FavoriteButton({
     event.preventDefault();
     event.stopPropagation();
     setLoading(true);
-    const response = await fetch("/api/user/favorites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId })
-    });
-    if (response.ok) {
-      const payload = (await response.json()) as { favorited: boolean };
-      setFavorited(payload.favorited);
+    try {
+      const response = await fetch("/api/user/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId })
+      });
+      if (response.ok) {
+        const payload = (await response.json()) as { favorited: boolean };
+        setFavorited(payload.favorited);
+      }
+    } catch (err) {
+      console.error("favorite toggle error:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (

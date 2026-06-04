@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isMockPaymentEndpointAllowed } from "@/lib/kapital-bank";
 import { finalizeAuctionDeposit } from "@/server/auction-payment-store";
 import { verifyInternalCallbackSignature } from "@/server/payments/kapital-bank-callback";
 
@@ -6,8 +7,8 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ depositId: string }> }
 ) {
-  if (process.env.NODE_ENV === "production" && process.env.KAPITAL_BANK_MODE === "live") {
-    return NextResponse.json({ ok: false, error: "Mock endpoint production-da əlçatmazdır" }, { status: 403 });
+  if (!isMockPaymentEndpointAllowed()) {
+    return NextResponse.json({ ok: false, error: "Mock endpoint əlçatmazdır" }, { status: 403 });
   }
 
   const { depositId } = await context.params;

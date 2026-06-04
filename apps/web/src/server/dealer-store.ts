@@ -183,7 +183,8 @@ export async function getDealerDashboard(userId: string): Promise<{
       })),
       leads: leadsResult.rows.map(mapLead)
     };
-  } catch {
+  } catch (error) {
+    console.error("getDealerDashboard failed:", error);
     return {
       dealerName: "Dealer hesabı tapılmadı",
       city: "",
@@ -194,16 +195,30 @@ export async function getDealerDashboard(userId: string): Promise<{
   }
 }
 
+export async function getDealerProfileIdForUser(userId: string): Promise<string | null> {
+  const pool = getPgPool();
+  const result = await pool.query<{ id: string }>(
+    "SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1",
+    [userId]
+  );
+  return result.rows[0]?.id ?? null;
+}
+
 export async function updateLeadStage(input: {
   leadId: string;
   stage: LeadRecord["stage"];
   note?: string;
-}): Promise<void> {
+  /**
+   * When provided, the update is scoped to leads owned by this dealer profile, preventing
+   * one dealer from mutating another dealer's CRM (IDOR). Omit only for admin actors.
+   */
+  dealerProfileId?: string;
+}): Promise<boolean> {
   await ensureSeedData();
   const pool = getPgPool();
   // Əgər lead ilk dəfə 'new' mərhələsindən çıxırsa, real cavab vaxtını yazırıq.
   // response_time_minutes = (indi − lead yaradılma tarixi) / 60 saniyə
-  await pool.query(
+  const result = await pool.query(
     `
       UPDATE leads
       SET
@@ -216,9 +231,13 @@ export async function updateLeadStage(input: {
           ELSE response_time_minutes
         END
       WHERE id = $1
+        ${input.dealerProfileId ? "AND dealer_profile_id = $4" : ""}
     `,
-    [input.leadId, input.stage, input.note ?? null]
+    input.dealerProfileId
+      ? [input.leadId, input.stage, input.note ?? null, input.dealerProfileId]
+      : [input.leadId, input.stage, input.note ?? null]
   );
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function importDealerInventoryCsv(userId: string, csv: string): Promise<{ created: number; errors: string[] }> {
@@ -449,7 +468,8 @@ export async function getPublicDealerProfile(
       showWebsite: dealer.show_website ?? false,
       inventory
     };
-  } catch {
+  } catch (error) {
+    console.error("getPublicDealerProfile failed:", error);
     return null;
   }
 }

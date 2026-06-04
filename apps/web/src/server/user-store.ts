@@ -535,7 +535,8 @@ export async function getPublicSellerProfile(
       activeListingCount,
       sellerVerified: user.email_verified
     };
-  } catch {
+  } catch (error) {
+    console.error("getPublicSellerProfile failed:", error);
     return null;
   }
 }

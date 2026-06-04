@@ -3,7 +3,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { getBidPreauthHoldAmountAzn } from "@/lib/auction-fees";
 import { getSystemSettings } from "@/server/system-settings-store";
 import { getListingKindForAuction } from "@/server/auction-bid-preflight-store";
-import { createPendingPreauthHold } from "@/server/auction-preauth-store";
+import { createPendingPreauthHold, getReusablePreauthForAuction } from "@/server/auction-preauth-store";
 import { applyRiskAdjustedPreauthHold, getAuctionUserRiskProfile } from "@/server/auction-risk-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { getAuctionAdminControl } from "@/server/admin-store";
@@ -46,22 +46,54 @@ export async function POST(_req: Request, context: { params: Promise<{ id: strin
     return NextResponse.json({ ok: false, error: "Auksion tapılmadı" }, { status: 404 });
   }
 
-  const basePenalty = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
-  const baseHold = getBidPreauthHoldAmountAzn(kind, basePenalty);
-  const risk = await getAuctionUserRiskProfile(user.id);
-  const amountAzn = applyRiskAdjustedPreauthHold(baseHold, risk.preauthMultiplier, kind);
-  const preauth = await createPendingPreauthHold({
-    auctionId,
-    userId: user.id,
-    amountAzn
-  });
+  try {
+    // Reuse an existing pending/held pre-auth instead of creating duplicate DMS holds
+    // (blocked amounts) for the same bidder on the same lot.
+    const existing = await getReusablePreauthForAuction(auctionId, user.id);
+    if (existing) {
+      if (existing.status === "held") {
+        return NextResponse.json({
+          ok: true,
+          preauthId: existing.id,
+          amountAzn: existing.amountAzn,
+          alreadyHeld: true,
+          message: "Bu lot üçün kart hold artıq aktivdir."
+        });
+      }
+      if (existing.checkoutUrl) {
+        return NextResponse.json({
+          ok: true,
+          preauthId: existing.id,
+          amountAzn: existing.amountAzn,
+          checkoutUrl: existing.checkoutUrl,
+          message: "Mövcud hold checkout-u istifadə olunur."
+        });
+      }
+    }
 
-  return NextResponse.json({
-    ok: true,
-    preauthId: preauth.id,
-    amountAzn,
-    checkoutUrl: preauth.checkoutUrl,
-    riskTier: risk.tier,
-    message: "Simvolik kart hold checkout-u yaradıldı."
-  });
+    const basePenalty = kind === "part" ? settings.penaltyAmounts.part : settings.penaltyAmounts.vehicle;
+    const baseHold = getBidPreauthHoldAmountAzn(kind, basePenalty);
+    const risk = await getAuctionUserRiskProfile(user.id);
+    const amountAzn = applyRiskAdjustedPreauthHold(baseHold, risk.preauthMultiplier, kind);
+    const preauth = await createPendingPreauthHold({
+      auctionId,
+      userId: user.id,
+      amountAzn
+    });
+
+    return NextResponse.json({
+      ok: true,
+      preauthId: preauth.id,
+      amountAzn,
+      checkoutUrl: preauth.checkoutUrl,
+      riskTier: risk.tier,
+      message: "Simvolik kart hold checkout-u yaradıldı."
+    });
+  } catch (error) {
+    console.error("bid-preauth error:", error);
+    return NextResponse.json(
+      { ok: false, error: "Pre-auth hazırlanarkən server xətası baş verdi." },
+      { status: 500 }
+    );
+  }
 }

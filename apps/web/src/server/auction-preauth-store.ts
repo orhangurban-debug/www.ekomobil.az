@@ -64,6 +64,26 @@ export async function hasHeldPreauthForAuction(auctionId: string, userId: string
   return r.rows.length > 0;
 }
 
+/**
+ * Returns an existing reusable pre-auth (still pending the user's checkout, or already
+ * held) so we never create duplicate DMS holds / blocked amounts for the same bidder on
+ * the same lot. The most recent row wins.
+ */
+export async function getReusablePreauthForAuction(
+  auctionId: string,
+  userId: string
+): Promise<AuctionPreauthRecord | null> {
+  const pool = getPgPool();
+  const r = await pool.query<AuctionPreauthRow>(
+    `SELECT * FROM auction_preauth_transactions
+     WHERE auction_id = $1 AND user_id = $2 AND status IN ('pending_hold', 'held')
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [auctionId, userId]
+  );
+  return r.rows[0] ? mapPreauthRow(r.rows[0]) : null;
+}
+
 export async function getAuctionPreauth(preauthId: string): Promise<AuctionPreauthRecord | null> {
   const pool = getPgPool();
   const result = await pool.query<AuctionPreauthRow>(
@@ -189,11 +209,20 @@ export async function finalizeAuctionPreauth(input: {
          payment_reference = COALESCE($3, payment_reference),
          updated_at = NOW()
      WHERE id = $1
+       AND status = 'pending_hold'
      RETURNING *`,
     [input.preauthId, input.status, input.paymentReference ?? null]
   );
   if (!result.rows[0]) {
-    return { ok: false, error: "Pre-auth tapılmadı" };
+    // A concurrent callback may have already advanced the row to a terminal state.
+    const latest = await pool.query<AuctionPreauthRow>(
+      `SELECT * FROM auction_preauth_transactions WHERE id = $1 LIMIT 1`,
+      [input.preauthId]
+    );
+    if (latest.rows[0]?.status === "held") {
+      return { ok: true, preauth: mapPreauthRow(latest.rows[0]) };
+    }
+    return { ok: false, error: "Pre-auth statusu yenilənə bilmədi" };
   }
   return { ok: true, preauth: mapPreauthRow(result.rows[0]) };
 }

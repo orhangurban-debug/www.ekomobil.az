@@ -38,6 +38,7 @@ export default function PartsPublishPage() {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
+    try {
     const response = await fetch("/api/listings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -113,6 +114,11 @@ export default function PartsPublishPage() {
     }
     router.push(`/listings/${payload.id}`);
     router.refresh();
+    } catch (err) {
+      console.error("parts publish error:", err);
+      setError("Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+      setSubmitting(false);
+    }
   }
 
   return (

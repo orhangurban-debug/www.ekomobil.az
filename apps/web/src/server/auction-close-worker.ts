@@ -138,6 +138,15 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
         await voidPreauthForLosers({ auctionId: row.id, winnerUserId, client });
       }
 
+      // Settle deposits inside the same transaction so a crash cannot leave the auction
+      // closed while deposits stay 'held'.
+      await settleHeldDepositsForAuctionOutcome({
+        auctionId: row.id,
+        outcomeStatus: status as AuctionStatus,
+        winnerUserId,
+        client
+      });
+
       await recordAuctionAuditLog({
         auctionId: row.id,
         actionType: "auction_closed_by_web_fallback",
@@ -155,12 +164,8 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
     }
 
     await client.query("COMMIT");
+    // Notifications run post-commit (side effects only; safe to fail without rolling back).
     for (const item of notificationQueue) {
-      await settleHeldDepositsForAuctionOutcome({
-        auctionId: item.auctionId,
-        outcomeStatus: item.status as AuctionStatus,
-        winnerUserId: item.winnerUserId
-      }).catch(() => undefined);
       await notifyClosedAuction(item).catch(() => undefined);
     }
     return processed;

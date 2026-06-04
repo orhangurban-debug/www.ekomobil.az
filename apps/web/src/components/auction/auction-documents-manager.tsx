@@ -84,13 +84,18 @@ export function AuctionDocumentsManager({
   async function onDelete(docId: string) {
     if (!window.confirm("Bu sənədi silmək istəyirsiniz?")) return;
     setError(null);
-    const res = await fetch(`/api/auctions/${auctionId}/documents/${docId}`, { method: "DELETE" });
-    const data = (await res.json()) as { ok: boolean; error?: string };
-    if (!data.ok) {
-      setError(data.error || "Silinmədi");
-      return;
+    try {
+      const res = await fetch(`/api/auctions/${auctionId}/documents/${docId}`, { method: "DELETE" });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!data.ok) {
+        setError(data.error || "Silinmədi");
+        return;
+      }
+      await load();
+    } catch (err) {
+      console.error("document delete error:", err);
+      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
     }
-    await load();
   }
 
   return (

@@ -58,6 +58,16 @@ export function isKapitalBankLiveReady(config = getKapitalBankConfig()): boolean
   return getKapitalBankLiveReadinessIssues(config).length === 0;
 }
 
+/**
+ * Mock payment endpoints (which finalize payments without real money) must NEVER be
+ * reachable in production, regardless of KAPITAL_BANK_MODE. A production deploy that is
+ * accidentally left in `mock` mode would otherwise expose endpoints that mark payments
+ * as succeeded for free. This is the single source of truth for that gate.
+ */
+export function isMockPaymentEndpointAllowed(): boolean {
+  return process.env.NODE_ENV !== "production" && getKapitalBankConfig().mode === "mock";
+}
+
 export function getKapitalBankApiBaseUrl(config = getKapitalBankConfig()): string {
   return (config.apiBaseUrl?.replace(/\/$/, "") || "https://txpgtst.kapitalbank.az/api");
 }

@@ -529,7 +529,8 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       page,
       pageSize
     };
-  } catch {
+  } catch (error) {
+    console.error("listListings failed:", error);
     return {
       items: [],
       total: 0,
@@ -594,36 +595,44 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
     const row = listingResult.rows[0];
     if (!row) return null;
 
+    // Secondary enrichment (service records, media, related listings) must degrade
+    // gracefully: a failure here should still render the listing, not turn it into a 404.
     const [serviceRows, mediaRows, relatedRows] = await Promise.all([
-      pool.query<ServiceRecordRow>(
-        `
+      pool
+        .query<ServiceRecordRow>(
+          `
           SELECT id, source_type, service_date, mileage_km, summary
           FROM listing_service_records
           WHERE listing_id = $1
           ORDER BY service_date DESC
         `,
-        [id]
-      ),
-      pool.query<{ id: string; url: string }>(
-        `
+          [id]
+        )
+        .catch(() => ({ rows: [] as ServiceRecordRow[] })),
+      pool
+        .query<{ id: string; url: string }>(
+          `
           SELECT id, url
           FROM listing_media
           WHERE listing_id = $1 AND media_type = 'image'
           ORDER BY sort_order ASC
           LIMIT 24
         `,
-        [id]
-      ),
-      pool.query<{ id: string }>(
-        `
+          [id]
+        )
+        .catch(() => ({ rows: [] as Array<{ id: string; url: string }> })),
+      pool
+        .query<{ id: string }>(
+          `
           SELECT id
           FROM listings
           WHERE id <> $1 AND status = 'active' AND (make = $2 OR city = $3)
           ORDER BY created_at DESC
           LIMIT 3
         `,
-        [id, row.make, row.city]
-      )
+          [id, row.make, row.city]
+        )
+        .catch(() => ({ rows: [] as Array<{ id: string }> }))
     ]);
 
     const mediaUrls = (
@@ -656,8 +665,11 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
       })),
       relatedIds: relatedRows.rows.map((entry) => entry.id)
     };
-  } catch {
-    return null;
+  } catch (error) {
+    // A real DB/runtime error must NOT be silently turned into a misleading 404.
+    // Log it and rethrow so the page renders an honest error state (and outages stay visible).
+    console.error(`getListingDetail failed for listing ${id}:`, error);
+    throw error;
   }
 }
 
@@ -917,7 +929,8 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
       [userId]
     );
     return result.rows.map(mapRowToSummary);
-  } catch {
+  } catch (error) {
+    console.error("listListingsForUser failed:", error);
     return [];
   }
 }

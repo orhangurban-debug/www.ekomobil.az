@@ -163,7 +163,8 @@ export async function getInvoice(invoiceId: string): Promise<InvoiceRecord | nul
       [invoiceId]
     );
     return result.rows[0] ? mapRow(result.rows[0]) : null;
-  } catch {
+  } catch (error) {
+    console.error("getInvoice failed:", error);
     return null;
   }
 }

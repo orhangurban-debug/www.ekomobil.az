@@ -13,24 +13,29 @@ export function TestDriveButton({ listingId }: { listingId: string }) {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setState("idle");
-    const res = await fetch(`/api/listings/${listingId}/lead`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customerName: form.customerName.trim(),
-        customerPhone: form.customerPhone.trim() || undefined,
-        customerEmail: form.customerEmail.trim() || undefined,
-        note: "Test sürüşü sifarişi",
-        source: "test_drive"
-      })
-    });
-    setState(res.ok ? "saved" : "error");
-    if (res.ok) {
-      setTimeout(() => {
-        setOpen(false);
-        setForm({ customerName: "", customerPhone: "", customerEmail: "" });
-        router.refresh();
-      }, 1500);
+    try {
+      const res = await fetch(`/api/listings/${listingId}/lead`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: form.customerName.trim(),
+          customerPhone: form.customerPhone.trim() || undefined,
+          customerEmail: form.customerEmail.trim() || undefined,
+          note: "Test sürüşü sifarişi",
+          source: "test_drive"
+        })
+      });
+      setState(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setTimeout(() => {
+          setOpen(false);
+          setForm({ customerName: "", customerPhone: "", customerEmail: "" });
+          router.refresh();
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("test drive lead error:", err);
+      setState("error");
     }
   }
 

@@ -45,9 +45,11 @@ export function mapKapitalBankOrderStatus(status: string): "succeeded" | "failed
     case "FullyPaid":
     case "Closed":
     case "Authorized":
-    case "Partially paid":
     case "Fully paid":
       return "succeeded";
+    // NOTE: "Partially paid" is intentionally NOT treated as success. A partially
+    // paid order has not collected the full amount, so it must not grant entitlement.
+    // It is handled by the normalized switch above ("partiallypaid" -> "failed").
     case "Cancelled":
     case "Rejected":
     case "Refused":

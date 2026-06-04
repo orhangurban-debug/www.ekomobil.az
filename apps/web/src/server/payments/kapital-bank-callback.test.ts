@@ -18,6 +18,14 @@ test("mapKapitalBankOrderStatus maps cancel statuses correctly", () => {
   assert.equal(mapKapitalBankOrderStatus("Rejected"), "cancelled");
 });
 
+test("mapKapitalBankOrderStatus never treats partial payment as success", () => {
+  // Both the normalized and raw spellings must resolve to a non-succeeded status
+  // so a partially paid order never grants entitlement.
+  assert.equal(mapKapitalBankOrderStatus("partiallypaid"), "failed");
+  assert.equal(mapKapitalBankOrderStatus("Partially paid"), "failed");
+  assert.equal(mapKapitalBankOrderStatus("PartiallyPaid"), "failed");
+});
+
 test("toKapitalBankInternalStatus fallback mapping remains predictable", () => {
   assert.equal(toKapitalBankInternalStatus("success"), "succeeded");
   assert.equal(toKapitalBankInternalStatus("cancelled"), "cancelled");
