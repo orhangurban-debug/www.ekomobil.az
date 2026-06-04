@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { createBusinessPlanPayment } from "@/server/business-plan-payment-store";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const user = await getServerSessionUser();
@@ -10,6 +11,10 @@ export async function POST(req: Request) {
   if (!["dealer", "admin"].includes(user.role)) {
     return NextResponse.json({ ok: false, error: "Bu ödəniş yalnız dealer hesabları üçündür." }, { status: 403 });
   }
+
+  const ip = getClientIp(req);
+  const limit = await checkRateLimit(`pay-business-plan:${user.id}:${ip}`, 10, 1);
+  if (!limit.ok) return rateLimitResponse(60);
 
   const body = (await req.json().catch(() => ({}))) as {
     businessType?: "dealer" | "parts_store";

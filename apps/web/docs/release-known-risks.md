@@ -25,23 +25,43 @@ npm audit            # root (bütün workspace-lər)
 npm audit --omit=dev --workspace @ekomobil/web
 ```
 
-## 2026-06-04 - Bank reversal/refund API wiring (open operational task)
+## 2026-06-04 - Bank reversal/refund API wiring (partially wired)
 
 - **Risk ID:** `KR-2026-06-04-BANK-REVERSAL`
-- **Status:** `open`
+- **Status:** `in-progress`
 - **Severity:** `high (operational)`
 
 ### Context
 
-Depozit qaytarılması (`returned`/`forfeited`) və preauth `void`/`capture` hazırda yalnız DB statusunu dəyişir.
-`clearKapitalBankPreauth`, `refundKapitalBankOrder`, `reverseKapitalBankOrder` (kapital-bank-provider) və BirPay refund helperləri kodda var, lakin canlı bank API çağırışları ilə bağlanmayıb.
+`clearKapitalBankPreauth`, `refundKapitalBankOrder`, `reverseKapitalBankOrder` (kapital-bank-provider) və BirPay refund helperləri kodda var.
 
-### Mitigation in place
+### Wired so far
 
+- **Uduzan bidderlərin preauth DMS hold-u** auction-close-da artıq bank tərəfində geri qaytarılır: `reverseVoidedPreauthsAtBank` (auction-close-worker) COMMIT-dən sonra, **yalnız `live` rejimdə**, best-effort (try/catch, audit log, bloklamayan) `reverseKapitalBankOrder` çağırır. DB `voided` statusu source-of-truth olaraq qalır; uğursuzluq `preauth_bank_reversal_failed` audit log-u ilə reconciliation üçün qeyd edilir.
 - Depozit settlement artıq auction-close transaksiyası daxilində atomik işləyir (crash → rollback).
 - Idempotent finalize + preauth dublikat guard tətbiq edildi.
 
-### Exit criteria
+### Still open
 
-1. Settlement/preauth-close yollarında real bank reversal/refund/capture çağırışları qoşulur.
-2. Canlı sandbox/prod-da bir kiçik reversal end-to-end test edilir.
+1. **Qalib preauth capture/release** (sale confirm / no-show axınında `clearKapitalBankPreauth`).
+2. **Depozit refund** bank tərəfində (`refundKapitalBankOrder`) — hazırda yalnız DB `returned`.
+3. **Listing/business chargeback** real refund.
+4. Canlı sandbox/prod-da exec-tran payload formatının (phase/voidKind/type) doğrulanması — bank test mühiti tələb olunur.
+
+## 2026-06-04 - Services marketplace data layer (planned feature, not a bug)
+
+- **Risk ID:** `KR-2026-06-04-SERVICES`
+- **Status:** `planned`
+- **Severity:** `medium (feature gap)`
+
+### Context
+
+`/services` UI tam hazırdır, lakin DB data layer yoxdur (`getServiceListingBySlug` `null` qaytarır, `demoServiceListings = []`).
+İndeks səhifəsi düzgün "Hələ servis profili yoxdur" boş vəziyyətini göstərir və app daxilində ölü link yoxdur (kartlar yalnız data olduqda render olunur).
+`/services/[slug]`-a birbaşa keçid 404 verir (yalnız manual URL ilə).
+
+### Required to ship
+
+1. `service_providers` migration + store (CRUD).
+2. Partner onboarding axını (admin və ya self-serve).
+3. `getServiceListingBySlug` / index data layer-in DB-yə bağlanması.

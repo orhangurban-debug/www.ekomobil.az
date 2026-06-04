@@ -113,15 +113,6 @@ export function signInternalCallback(paymentId: string, status: string): string 
   return createHmac("sha256", secret).update(`${paymentId}:${status}`).digest("hex");
 }
 
-/**
- * Placeholder: Kapital Bank will provide their own signature verification method.
- * Until merchant onboarding is complete and their SDK/docs are available,
- * we rely on remote order status lookup (more secure than callback-only trust).
- */
-export function verifyKapitalBankCallbackPlaceholder(): { ok: true; mode: "placeholder" } {
-  return { ok: true, mode: "placeholder" };
-}
-
 function toBase64(signature: string): Buffer {
   return Buffer.from(signature.replace(/^sha256=/i, "").trim(), "base64");
 }

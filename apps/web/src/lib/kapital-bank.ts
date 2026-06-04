@@ -14,12 +14,22 @@ export interface KapitalBankConfig {
   apiBaseUrl?: string;
 }
 
+let warnedSecretFallback = false;
+
 function resolveKapitalBankSecret(): string | undefined {
   const direct = process.env.KAPITAL_BANK_SECRET?.trim();
   if (direct) return direct;
   // Operational fallback: keeps payment flows alive if dedicated secret
-  // was not mounted in runtime env yet.
-  return process.env.AUTH_SECRET?.trim() || undefined;
+  // was not mounted in runtime env yet. Warn once so this is fixed before
+  // long-term production use (shared secret weakens rotation/blast-radius).
+  const fallback = process.env.AUTH_SECRET?.trim() || undefined;
+  if (fallback && !warnedSecretFallback) {
+    warnedSecretFallback = true;
+    console.warn(
+      "[kapital-bank] KAPITAL_BANK_SECRET təyin olunmayıb — müvəqqəti olaraq AUTH_SECRET istifadə olunur. Production üçün ayrıca secret konfiqurasiya edin."
+    );
+  }
+  return fallback;
 }
 
 export interface KapitalBankLiveReadinessIssue {

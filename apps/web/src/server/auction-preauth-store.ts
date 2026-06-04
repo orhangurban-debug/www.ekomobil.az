@@ -227,26 +227,34 @@ export async function finalizeAuctionPreauth(input: {
   return { ok: true, preauth: mapPreauthRow(result.rows[0]) };
 }
 
+export interface VoidedPreauthRef {
+  id: string;
+  remoteOrderId: string | null;
+}
+
 export async function voidPreauthForLosers(input: {
   auctionId: string;
   winnerUserId: string | null;
   client?: PoolClient;
-}): Promise<number> {
+}): Promise<VoidedPreauthRef[]> {
   const db = input.client ?? getPgPool();
-  if (!input.winnerUserId) {
-    const all = await db.query(
-      `UPDATE auction_preauth_transactions
+  const voidSql = input.winnerUserId
+    ? `UPDATE auction_preauth_transactions
        SET status = 'voided', voided_at = NOW(), updated_at = NOW()
-       WHERE auction_id = $1 AND status = 'held'`,
-      [input.auctionId]
-    );
-    return all.rowCount ?? 0;
-  }
-  const r = await db.query(
-    `UPDATE auction_preauth_transactions
-     SET status = 'voided', voided_at = NOW(), updated_at = NOW()
-     WHERE auction_id = $1 AND status = 'held' AND user_id <> $2`,
-    [input.auctionId, input.winnerUserId]
-  );
-  return r.rowCount ?? 0;
+       WHERE auction_id = $1 AND status = 'held' AND user_id <> $2
+       RETURNING id, payment_reference, provider_payload`
+    : `UPDATE auction_preauth_transactions
+       SET status = 'voided', voided_at = NOW(), updated_at = NOW()
+       WHERE auction_id = $1 AND status = 'held'
+       RETURNING id, payment_reference, provider_payload`;
+  const params = input.winnerUserId ? [input.auctionId, input.winnerUserId] : [input.auctionId];
+  const result = await db.query<{
+    id: string;
+    payment_reference: string | null;
+    provider_payload: { remoteOrderId?: string } | null;
+  }>(voidSql, params);
+  return result.rows.map((row) => ({
+    id: row.id,
+    remoteOrderId: row.payment_reference ?? row.provider_payload?.remoteOrderId ?? null
+  }));
 }

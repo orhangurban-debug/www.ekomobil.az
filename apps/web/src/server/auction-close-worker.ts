@@ -1,10 +1,36 @@
 import { getPgPool } from "@/lib/postgres";
 import type { AuctionStatus } from "@/lib/auction";
+import { getKapitalBankConfig } from "@/lib/kapital-bank";
 import { settleHeldDepositsForAuctionOutcome } from "@/server/auction-deposit-settlement-store";
 import { createAuctionNotification } from "@/server/auction-notification-store";
-import { voidPreauthForLosers } from "@/server/auction-preauth-store";
+import { voidPreauthForLosers, type VoidedPreauthRef } from "@/server/auction-preauth-store";
+import { reverseKapitalBankOrder } from "@/server/payments/kapital-bank-provider";
 import { recordAuctionAuditLog } from "@/server/auction-store";
 import { getSystemSettings } from "@/server/system-settings-store";
+
+/**
+ * Best-effort reversal of the bank-side DMS hold for losing bidders. Runs AFTER the DB
+ * transaction commits (network I/O must not extend the transaction) and only when the
+ * gateway is live. Failures are logged and recorded for reconciliation but never block
+ * the auction close — the DB row is already `voided` and acts as the source of truth.
+ */
+async function reverseVoidedPreauthsAtBank(auctionId: string, refs: VoidedPreauthRef[]): Promise<void> {
+  if (refs.length === 0) return;
+  if (getKapitalBankConfig().mode !== "live") return;
+  for (const ref of refs) {
+    if (!ref.remoteOrderId) continue;
+    try {
+      await reverseKapitalBankOrder({ remoteOrderId: ref.remoteOrderId, phase: "Auth", voidKind: "Full" });
+    } catch (error) {
+      console.error(`Preauth bank reversal failed (preauth ${ref.id}, order ${ref.remoteOrderId}):`, error);
+      await recordAuctionAuditLog({
+        auctionId,
+        actionType: "preauth_bank_reversal_failed",
+        detail: `Preauth ${ref.id} bank reversal failed for order ${ref.remoteOrderId}; needs manual reconciliation.`
+      }).catch(() => undefined);
+    }
+  }
+}
 
 const SWEEP_INTERVAL_MS = Number(process.env.AUCTION_CLOSE_SWEEP_MS ?? 15_000);
 
@@ -95,6 +121,7 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
     titleSnapshot: string;
     status: string;
   }> = [];
+  const preauthReversalQueue: Array<{ auctionId: string; refs: VoidedPreauthRef[] }> = [];
   try {
     await client.query("BEGIN");
     const rows = await client.query<{
@@ -135,7 +162,10 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
       );
 
       if (settings.auctionMode === "STRICT_PRE_AUTH") {
-        await voidPreauthForLosers({ auctionId: row.id, winnerUserId, client });
+        const voidedRefs = await voidPreauthForLosers({ auctionId: row.id, winnerUserId, client });
+        if (voidedRefs.length > 0) {
+          preauthReversalQueue.push({ auctionId: row.id, refs: voidedRefs });
+        }
       }
 
       // Settle deposits inside the same transaction so a crash cannot leave the auction
@@ -164,7 +194,10 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
     }
 
     await client.query("COMMIT");
-    // Notifications run post-commit (side effects only; safe to fail without rolling back).
+    // Post-commit side effects (must not extend or roll back the transaction).
+    for (const item of preauthReversalQueue) {
+      await reverseVoidedPreauthsAtBank(item.auctionId, item.refs).catch(() => undefined);
+    }
     for (const item of notificationQueue) {
       await notifyClosedAuction(item).catch(() => undefined);
     }
