@@ -204,7 +204,7 @@ export default async function ServicesPage({
                 <p className="mt-1 text-sm text-slate-400">
                   {selectedType ?? selectedCity ?? qParam
                     ? "Filterləri dəyişin və ya axtarışı genişləndirin."
-                    : "Servis biznesləri üçün aşağıda tərəfdaşlıq müraciəti mövcuddur."}
+                    : "Tezliklə servis profilləri burada görünəcək. Biznesini əlavə etmək üçün aşağıdakı tərəfdaşlıq müraciətinə baxın."}
                 </p>
               </div>
               {(selectedType ?? selectedCity ?? qParam) && (
@@ -276,6 +276,33 @@ export default async function ServicesPage({
             </div>
           )}
 
+        </div>
+      </div>
+
+      {/* ─── Partner CTA ─────────────────────────────────────────────────── */}
+      <div className="mt-16 rounded-3xl bg-gradient-to-br from-[#0c1a2e] to-[#0e3a5a] p-8 text-center sm:p-12">
+        <div className="mx-auto max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#0891B2]/30 bg-[#0891B2]/10 px-3 py-1 text-xs font-semibold text-[#67e8f9]">
+            Biznes tərəfdaşlığı
+          </span>
+          <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">
+            Servis biznesisinizi EkoMobil-də tanıdın
+          </h2>
+          <p className="mt-3 text-sm text-white/60 leading-relaxed">
+            Ekspertiza şirkəti, mexanik, rəsmi servis və ya avto elektrik — biznesisinizi
+            minlərlə potensial müştəriyə çatdırın. Profil yaradın, rəylər toplayın, birbaşa əlaqə alın.
+          </p>
+          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <a
+              href="mailto:partner@ekomobil.az?subject=Servis%20tər%C9%99fda%C5%9Fl%C4%B1%C4%9F%C4%B1"
+              className="rounded-xl bg-[#0891B2] px-8 py-3 font-semibold text-white transition hover:bg-[#0e7490]"
+            >
+              Tərəfdaşlıq müraciəti
+            </a>
+            <Link href="/pricing#business" className="rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
+              Biznes planları
+            </Link>
+          </div>
         </div>
       </div>
     </div>

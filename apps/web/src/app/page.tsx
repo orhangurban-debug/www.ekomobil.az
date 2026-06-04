@@ -144,10 +144,10 @@ export default async function HomePage() {
   const featuredCards = listingsResult.items.map(toCardData);
 
   const stats = [
-    { value: activeCount > 0 ? `${activeCount.toLocaleString()}+` : "—", label: "Aktiv elan" },
-    { value: "Şəffaf", label: "Qiymət analizi" },
-    { value: "Satıcı", label: "Məsuliyyəti daşıyır" },
-    { value: "Real vaxt", label: "Auksion sistemi" }
+    { value: activeCount > 0 ? `${activeCount.toLocaleString()}+` : "Pulsuz", label: "Elan yerləşdir" },
+    { value: "97+", label: "Marka kataloqu" },
+    { value: "VIN", label: "Avtomobil yoxlaması" },
+    { value: "Canlı", label: "Auksion sistemi" }
   ];
 
   return (
@@ -168,13 +168,13 @@ export default async function HomePage() {
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
-              Gördüyünü al,{" "}
-              <span className="text-[#22d3ee]">bildiyini sür</span>
+              Avtomobil alarkən{" "}
+              <span className="text-[#22d3ee]">hər şeyi bilin</span>
             </h1>
 
             <p className="mt-5 text-base text-white/60 sm:text-lg leading-relaxed">
-              Satıcı məlumatları, etibar skoru, qiymət analizi — Azərbaycanın
-              ən şəffaf avtomobil platforması.
+              VIN məlumatı, etibar skoru, qiymət analizi — aldığınız avtomobil
+              haqqında hər şeyi əvvəlcədən bilin. Azərbaycanın şəffaf avtomobil platforması.
             </p>
 
             {/* Search bar */}
@@ -197,6 +197,21 @@ export default async function HomePage() {
                 Axtar
               </button>
             </form>
+
+            {/* Quick trust pills */}
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {[
+                { icon: "✓", text: "VIN yoxlaması" },
+                { icon: "★", text: "Etibar skoru" },
+                { icon: "₼", text: "Qiymət analizi" },
+                { icon: "⚡", text: "Canlı auksion" },
+              ].map((pill) => (
+                <span key={pill.text} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                  <span className="text-[#22d3ee]">{pill.icon}</span>
+                  {pill.text}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -272,12 +287,20 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20">
-              <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
-              </svg>
-              <p className="text-sm text-slate-400">Hələ elan yoxdur</p>
-              <Link href="/publish" className="btn-primary text-sm">İlk elanı yerlə</Link>
+            <div className="flex flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-20 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0891B2]/10">
+                <svg className="h-8 w-8 text-[#0891B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-700">Platforma yeni açılır</p>
+                <p className="mt-1 text-sm text-slate-400">İlk elanlar tezliklə burada görünəcək</p>
+              </div>
+              <div className="flex gap-3">
+                <Link href="/publish" className="btn-primary text-sm">Elan yerləşdir</Link>
+                <Link href="/listings" className="btn-secondary text-sm">Bütün elanlar</Link>
+              </div>
             </div>
           )}
 
@@ -390,9 +413,15 @@ export default async function HomePage() {
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/publish"
-              className="w-full rounded-xl bg-white px-8 py-3 font-semibold text-[#0891B2] transition hover:bg-[#E5D3B3] sm:w-auto"
+              className="w-full rounded-xl bg-white px-8 py-3 font-semibold text-[#0891B2] transition hover:bg-slate-100 sm:w-auto"
             >
               Pulsuz elan yerləşdir
+            </Link>
+            <Link
+              href="/pricing"
+              className="w-full rounded-xl border border-white/30 px-8 py-3 font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+            >
+              Qiymət planları
             </Link>
           </div>
         </div>

@@ -176,13 +176,13 @@ export default async function PartsPage({
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {result.items.map((listing, idx) => (
-                <>
-                  <ListingCard key={listing.id} listing={listing} />
-                  {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && (
-                    <NativeAdCard key={`ad-${idx}`} slotLabel={`parts-inline-${Math.floor(idx / 6)}`} />
-                  )}
-                </>
+                <ListingCard key={listing.id} listing={listing} />
               ))}
+              {result.items.map((_listing, idx) =>
+                (idx + 1) % 6 === 0 && idx < result.items.length - 1 ? (
+                  <NativeAdCard key={`ad-${idx}`} slotLabel={`parts-inline-${Math.floor(idx / 6)}`} />
+                ) : null
+              )}
             </div>
           )}
 

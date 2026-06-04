@@ -98,9 +98,97 @@ export interface ServiceListingRecord {
 }
 
 // Real service provider data is fetched from the database via the partner onboarding flow.
-// No hard-coded demo records are kept here.
+// Demo listings below are used as showcase data until partner onboarding goes live.
 
-export const demoServiceListings: ServiceListingRecord[] = [];
+export const demoServiceListings: ServiceListingRecord[] = [
+  {
+    slug: "avtoexpert-baki",
+    name: "AvtoExpert Bakı",
+    providerType: "inspection_company",
+    city: "Bakı",
+    address: "Neftçilər pr., 88, Bakı",
+    rating: 4.8,
+    reviewCount: 124,
+    responseMinutes: 20,
+    about: "15 illik təcrübəyə malik peşəkar avtomobil ekspertiza mərkəzi. Alış-satış öncəsi tam texniki yoxlama, kompüter diaqnostikası, gizli zərərlərin aşkar edilməsi.",
+    services: ["Alış öncəsi yoxlama", "Kompüter diaqnostika", "Kuzov yoxlaması", "Rəsmi arayış"],
+    certifications: ["ISO 9001", "ADNSU sertifikatı"],
+    phone: "+994501234567",
+    whatsapp: "+994501234567"
+  },
+  {
+    slug: "bmw-rəsmi-servis",
+    name: "BMG Motors — BMW Rəsmi Servisi",
+    providerType: "official_service",
+    city: "Bakı",
+    address: "Heydər Əliyev pr., 150",
+    rating: 4.9,
+    reviewCount: 312,
+    responseMinutes: 15,
+    about: "BMW Group-un Azərbaycandakı rəsmi servis mərkəzi. Zavod standartlarında texniki xidmət, orijinal ehtiyat hissələri, zəmanət xidməti.",
+    services: ["Texniki xidmət", "Zəmanət təmiri", "Orijinal hissələr", "BMW Software yeniləmə"],
+    certifications: ["BMW Group Certified"],
+    phone: "+994125551234",
+    whatsapp: "+994125551234"
+  },
+  {
+    slug: "proauto-mexanik",
+    name: "ProAuto — Mexanik & Usta",
+    providerType: "mechanic",
+    city: "Bakı",
+    address: "Nizami r-nu, Əhməd Cavad küç. 12",
+    rating: 4.6,
+    reviewCount: 87,
+    responseMinutes: 30,
+    about: "Toyota, Hyundai, Kia, Honda ixtisaslaşmış mexanik. Motor, transmissiya, asma təmir. 10+ il təcrübə.",
+    services: ["Motor təmiri", "Transmissiya", "Asma sistemi", "Sürün qutusu", "Yağ dəyişimi"],
+    phone: "+994702223344",
+    whatsapp: "+994702223344"
+  },
+  {
+    slug: "elektro-auto",
+    name: "ElektroAuto — Avto Elektrik",
+    providerType: "auto_electrician",
+    city: "Bakı",
+    address: "Binəqədi şossesi 44",
+    rating: 4.7,
+    reviewCount: 56,
+    responseMinutes: 25,
+    about: "Hər növ avtomobilin elektrik sistemlərinin diaqnostika və təmiri. Siqnalizasiya quraşdırılması, ECU proqramlaşdırma.",
+    services: ["Elektrik diaqnostika", "Siqnalizasiya", "Fara bərpası", "Akkumulyator", "Generator"],
+    phone: "+994557776655",
+    whatsapp: "+994557776655"
+  },
+  {
+    slug: "kuzov-master",
+    name: "KuzovMaster — Dəmirçi & Rəngləmə",
+    providerType: "body_shop",
+    city: "Sumqayıt",
+    address: "Sumqayıt, 6-cı mikrorayon",
+    rating: 4.5,
+    reviewCount: 43,
+    responseMinutes: 60,
+    about: "Kuzov bərpa, dəmirçi işi, tam və lokal rəngləmə. Polimer örtük, rəng seçimi kataloqu. Sertifikatlı rəngçilər.",
+    services: ["Dəmirçi işi", "Lokal rəngləmə", "Tam rəngləmə", "Polimer örtük", "Cilalama"],
+    phone: "+994503332211",
+    whatsapp: "+994503332211"
+  },
+  {
+    slug: "evsmart-elektrik-avto",
+    name: "EVSmart — EV & Hibrid Mütəxəssisi",
+    providerType: "ev_hybrid",
+    city: "Bakı",
+    address: "Xətai r-nu, İnqilab küç. 22",
+    rating: 4.9,
+    reviewCount: 31,
+    responseMinutes: 40,
+    about: "Tesla, BYD, Toyota Hybrid, Hyundai IONIQ üzrə ixtisaslaşmış texniki mərkəz. Batareya diaqnostikası, şarj sistemi təmiri.",
+    services: ["Batareya diaqnostika", "Şarj sistemi", "Hibrid təmiri", "CANBUS analiz", "Kalibrasiya"],
+    certifications: ["Tesla Certified", "BYD Partner"],
+    phone: "+994512223344",
+    whatsapp: "+994512223344"
+  }
+];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getServiceListingBySlug(_slug: string): ServiceListingRecord | null {
