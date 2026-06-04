@@ -8,9 +8,16 @@ import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/u
 import { getUserKycProfile } from "@/server/user-kyc-store";
 import { listInvoicesForUser } from "@/server/invoice-store";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const user = await getServerSessionUser();
   if (!user) redirect("/login?next=/me");
+
+  const params = await searchParams;
+  const welcome = params.welcome;
 
   const profile = await getUserProfile(user.id);
   const favorites = await listUserFavorites(user.id);
@@ -33,6 +40,45 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
+      {/* Welcome banners after registration */}
+      {welcome === "business" && (
+        <div className="mb-6 rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-[#0891B2]">Salon / Mağaza hesabı üçün növbəti addım</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Biznes Planı satın alın — ödəniş təsdiqləndikdən sonra salon paneliniz aktivləşəcək.
+                VÖEN məlumatlarınızı sənəd yükləmə bölməsindən əlavə edin.
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Link href="/dealer/apply" className="btn-primary text-sm">Müraciət formu</Link>
+              <Link href="/me" className="btn-secondary text-sm">Sonraya qoy</Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {welcome === "service" && (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-emerald-800">Servis profili üçün müraciət</p>
+              <p className="mt-1 text-sm text-emerald-700">
+                Bu hesabla eyni zamanda elan yerləşdirə bilərsiniz. Servis profili üçün aşağıdakı ünvana müraciət edin.
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <a
+                href="mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
+                className="btn-primary text-sm bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
+              >
+                Müraciət et
+              </a>
+              <Link href="/me" className="btn-secondary text-sm">Sonraya qoy</Link>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Mənim profilim</h1>
@@ -56,8 +102,13 @@ export default async function ProfilePage() {
                 <dd className="mt-1 text-sm font-medium text-slate-900">{profile?.fullName || "Qeyd olunmayıb"}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wider text-slate-400">Rol</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-900">{profile?.role}</dd>
+                <dt className="text-xs uppercase tracking-wider text-slate-400">Hesab növü</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-900">
+                  {profile?.role === "dealer" ? "Salon / Mağaza" :
+                   profile?.role === "admin" ? "Admin" :
+                   profile?.role === "support" ? "Dəstək" :
+                   "Fərdi istifadəçi"}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wider text-slate-400">Email statusu</dt>
@@ -202,6 +253,31 @@ export default async function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {user.role === "viewer" && (
+            <div className="card p-6">
+              <h2 className="font-semibold text-slate-900">Hesabı yüksəlt</h2>
+              <div className="mt-4 space-y-3">
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-sm font-medium text-slate-800">🏢 Salon / Mağaza</p>
+                  <p className="mt-1 text-xs text-slate-500">VÖEN ilə qeydiyyat, çox elan, salon paneli</p>
+                  <Link href="/dealer/apply" className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline">
+                    Müraciət formu →
+                  </Link>
+                </div>
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-sm font-medium text-slate-800">🔧 Servis / Usta profili</p>
+                  <p className="mt-1 text-xs text-slate-500">Bu hesabla həm elan yerləşdirə, həm servis profili aça bilərsiniz</p>
+                  <a
+                    href="mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
+                    className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline"
+                  >
+                    Müraciət et →
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="card p-6">
             <h2 className="font-semibold text-slate-900">Yadda saxlanmış axtarışlar</h2>

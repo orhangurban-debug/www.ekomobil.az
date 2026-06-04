@@ -4,8 +4,51 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+type AccountIntent = "personal" | "business" | "service";
+
+const ACCOUNT_INTENTS: { id: AccountIntent; icon: string; label: string; sub: string }[] = [
+  {
+    id: "personal",
+    icon: "👤",
+    label: "Fərdi istifadəçi",
+    sub: "Alıcı, şəxsi satıcı, auksion iştirakçısı"
+  },
+  {
+    id: "business",
+    icon: "🏢",
+    label: "Salon / Mağaza",
+    sub: "Diler mərkəzi, ehtiyat hissə mağazası"
+  },
+  {
+    id: "service",
+    icon: "🔧",
+    label: "Servis / Usta",
+    sub: "Mexanik, ekspertiza şirkəti, rəsmi servis"
+  }
+];
+
+const INTENT_INFO: Record<AccountIntent, { title: string; body: string; cta?: string; href?: string }> = {
+  personal: {
+    title: "Fərdi hesab",
+    body: "Standart hesabla elan yerləşdirə, auksionlarda iştirak edə, favorilər saxlaya bilərsiniz. Gələcəkdə salon hesabına keçid mümkündür."
+  },
+  business: {
+    title: "Salon / Mağaza hesabı",
+    body: "Eyni qeydiyyat forması ilə hesab yaradın. Qeydiyyatdan sonra Biznes Planı satın alaraq salon/mağaza panelinə çıxış əldə edirsiniz. VÖEN tələb olunur.",
+    cta: "Biznes planlarına bax",
+    href: "/pricing#business"
+  },
+  service: {
+    title: "Servis / Usta profili",
+    body: "Hesab yaradın, sonra servis profili üçün müraciət edin. Fərdi hesabla eyni zamanda elan yerləşdirə bilərsiniz — iki funksiya bir hesabda birləşir.",
+    cta: "Tərəfdaşlıq müraciəti",
+    href: "mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
+  }
+};
+
 export default function RegisterPage() {
   const router = useRouter();
+  const [intent, setIntent] = useState<AccountIntent>("personal");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
@@ -46,7 +89,14 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
-      router.push("/me");
+      // Redirect based on intent so post-register guidance is shown
+      if (intent === "business") {
+        router.push("/me?welcome=business");
+      } else if (intent === "service") {
+        router.push("/me?welcome=service");
+      } else {
+        router.push("/me");
+      }
     } catch (err) {
       console.error("register error:", err);
       setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
@@ -77,8 +127,7 @@ export default function RegisterPage() {
         setError(payload.error || "Təsdiq kodu göndərilmədi.");
         return;
       }
-      const challengeId = payload.challengeId;
-      setForm((prev) => ({ ...prev, phoneOtpChallengeId: challengeId }));
+      setForm((prev) => ({ ...prev, phoneOtpChallengeId: payload.challengeId! }));
       setOtpHintCode(payload.code ?? null);
       setOtpSent(true);
     } catch (err) {
@@ -89,12 +138,54 @@ export default function RegisterPage() {
     }
   }
 
+  const info = INTENT_INFO[intent];
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Qeydiyyat</h1>
-        <p className="mt-2 text-slate-500">Favorilər, axtarışlar və elan idarəetməsi üçün hesab yaradın</p>
+        <h1 className="text-3xl font-bold text-slate-900">Hesab yaradın</h1>
+        <p className="mt-2 text-slate-500">EkoMobil-ə qoşulun — bütün hesab növləri eyni formadan başlayır</p>
       </div>
+
+      {/* Account intent selector */}
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        {ACCOUNT_INTENTS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setIntent(item.id)}
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 text-center transition ${
+              intent === item.id
+                ? "border-[#0891B2] bg-[#0891B2]/5"
+                : "border-slate-200 bg-white hover:border-slate-300"
+            }`}
+          >
+            <span className="text-2xl">{item.icon}</span>
+            <span className={`text-sm font-semibold ${intent === item.id ? "text-[#0891B2]" : "text-slate-800"}`}>
+              {item.label}
+            </span>
+            <span className="text-[11px] leading-tight text-slate-400">{item.sub}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Intent-specific info */}
+      {intent !== "personal" && (
+        <div className="mb-6 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-4 text-sm">
+          <p className="font-semibold text-[#0891B2]">{info.title}</p>
+          <p className="mt-1 text-slate-600 leading-relaxed">{info.body}</p>
+          {info.cta && info.href && (
+            <a
+              href={info.href}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#0891B2] hover:underline"
+              target={info.href.startsWith("mailto") ? undefined : "_blank"}
+              rel="noreferrer"
+            >
+              {info.cta} →
+            </a>
+          )}
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
         <Link
@@ -109,29 +200,54 @@ export default function RegisterPage() {
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.5 3.6-5.5 3.6-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17 2.6 14.7 1.7 12 1.7 6.9 1.7 2.8 6 2.8 11.3S6.9 20.9 12 20.9c6.9 0 9.2-4.9 9.2-7.5 0-.5 0-.9-.1-1.3H12z" />
           </svg>
-          {googleLoading ? "Google-a yönləndirilir..." : "Google ilə qeydiyyat / giriş"}
+          {googleLoading ? "Google-a yönləndirilir..." : "Google ilə daxil ol"}
         </Link>
         <div className="text-center text-xs text-slate-400">və ya aşağıdakı formu doldurun</div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Ad və soyad</label>
-            <input className="input-field" value={form.fullName} onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))} required />
+            <input
+              className="input-field"
+              value={form.fullName}
+              onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
+              required
+            />
           </div>
           <div>
             <label className="label">Şəhər</label>
-            <select className="input-field" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}>
-              {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Digər"].map((city) => <option key={city}>{city}</option>)}
+            <select
+              className="input-field"
+              value={form.city}
+              onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+            >
+              {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Digər"].map((city) => (
+                <option key={city}>{city}</option>
+              ))}
             </select>
           </div>
         </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Email</label>
-            <input type="email" className="input-field" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
+            <input
+              type="email"
+              className="input-field"
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              required
+            />
           </div>
           <div>
             <label className="label">Telefon</label>
-            <input className="input-field" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+994..." required />
+            <input
+              className="input-field"
+              value={form.phone}
+              onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+              placeholder="+994..."
+              required
+            />
             <button
               type="button"
               onClick={() => void sendPhoneOtp()}
@@ -142,31 +258,61 @@ export default function RegisterPage() {
             </button>
           </div>
         </div>
+
         <div>
-          <label className="label">Telefon OTP kodu</label>
+          <label className="label">Telefon təsdiq kodu</label>
           <input
             className="input-field"
             value={form.phoneOtpCode}
-            onChange={(e) => setForm((p) => ({ ...p, phoneOtpCode: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, phoneOtpCode: e.target.value.replace(/\D/g, "").slice(0, 6) }))
+            }
             placeholder="6 rəqəmli kod"
             maxLength={6}
             required
           />
           {otpHintCode && (
-            <p className="mt-1 text-xs text-slate-500">Dev kodu: <span className="font-mono">{otpHintCode}</span></p>
+            <p className="mt-1 text-xs text-slate-500">
+              Dev kodu: <span className="font-mono">{otpHintCode}</span>
+            </p>
           )}
         </div>
+
         <div>
           <label className="label">Şifrə</label>
-          <input type="password" className="input-field" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} minLength={8} required />
+          <input
+            type="password"
+            className="input-field"
+            value={form.password}
+            onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+            minLength={8}
+            required
+          />
         </div>
 
-        {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">
           {loading ? "Hesab yaradılır..." : "Hesab yarat"}
         </button>
+
+        <p className="text-center text-xs text-slate-400">
+          Hesab yaratmaqla{" "}
+          <Link href="/terms" className="hover:underline">
+            İstifadəçi Razılaşmasını
+          </Link>{" "}
+          qəbul etmiş olursunuz.
+        </p>
       </form>
+
+      <p className="mt-6 text-center text-sm text-slate-500">
+        Artıq hesabınız var?{" "}
+        <Link href="/login" className="font-medium text-[#0891B2] hover:underline">
+          Daxil olun
+        </Link>
+      </p>
     </div>
   );
 }
