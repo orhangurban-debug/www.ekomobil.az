@@ -83,6 +83,10 @@ export default function PartsPublishPage() {
       error?: string;
       paymentRequired?: boolean;
     };
+    if (response.status === 401) {
+      router.push("/login?next=/parts/publish");
+      return;
+    }
     if (!response.ok || !payload.ok || !payload.id) {
       setError(payload.errors?.[0] || payload.error || "Hissə elanı yaradıla bilmədi.");
       setSubmitting(false);

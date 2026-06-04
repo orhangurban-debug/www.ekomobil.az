@@ -13,7 +13,7 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
   { href: "/auction", label: "Auksion", live: true },
   { href: "/services", label: "Servislər" },
-  { href: "/dealer", label: "Salonlar" },
+  { href: "/dealers", label: "Salonlar" },
   { href: "/parts", label: "Mağaza" },
   { href: "/pricing", label: "Qiymətlər" },
 ];

@@ -310,6 +310,11 @@ export default function PublishPage() {
       })
     });
 
+    if (response.status === 401) {
+      router.push("/login?next=/publish");
+      return;
+    }
+
     const payload = (await response.json()) as TrustApiResponse;
     if (payload.ok) {
       await trackEvent("listing_published", { vin, city, trustScore: payload.trustScore ?? null });

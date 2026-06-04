@@ -58,6 +58,14 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      // /sellers (no ID) has no index page — redirect to listings browse
+      { source: "/sellers", destination: "/listings", permanent: false },
+      // /dealers index is now a proper public page, but keep old /dealer dashboard accessible via profile menu
+    ];
+  },
+
   // Disable powered-by header (information disclosure)
   poweredByHeader: false,
 };

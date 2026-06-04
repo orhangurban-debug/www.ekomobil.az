@@ -474,6 +474,51 @@ export async function getPublicDealerProfile(
   }
 }
 
+export interface PublicDealerSummary {
+  id: string;
+  name: string;
+  city: string;
+  verified: boolean;
+  responseSlaMinutes: number;
+  activeListingCount: number;
+  logoUrl?: string;
+  description?: string;
+}
+
+export async function listPublicDealers(limit = 50): Promise<PublicDealerSummary[]> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{
+      id: string; name: string; city: string; verified: boolean;
+      response_sla_minutes: number; logo_url: string | null; description: string | null;
+      active_listing_count: number;
+    }>(
+      `SELECT dp.id, dp.name, dp.city, dp.verified, dp.response_sla_minutes,
+              dp.logo_url, dp.description,
+              COUNT(l.id)::int AS active_listing_count
+       FROM dealer_profiles dp
+       LEFT JOIN listings l ON l.dealer_profile_id = dp.id AND l.status = 'active'
+       GROUP BY dp.id
+       ORDER BY dp.verified DESC, active_listing_count DESC, dp.name ASC
+       LIMIT $1`,
+      [limit]
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      city: row.city,
+      verified: row.verified,
+      responseSlaMinutes: row.response_sla_minutes,
+      activeListingCount: row.active_listing_count,
+      logoUrl: row.logo_url ?? undefined,
+      description: row.description ?? undefined
+    }));
+  } catch (error) {
+    console.error("listPublicDealers failed:", error);
+    return [];
+  }
+}
+
 export interface DealerProfileSettings {
   dealerId: string;
   ownerUserId: string;
