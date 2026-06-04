@@ -48,11 +48,9 @@ export default function AuctionFrameworkPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900">Avtomobil və avtomobil hissələri</h2>
           <p className="mt-3">
-            Eyni auksion modulu həm tam avtomobil, həm də <strong>avtomobil hissəsi</strong> elanları üçün istifadə oluna
-            bilər. Avtomobil üçün VIN doğrulaması tələb olunur; hissə üçün VIN tətbiq olunmur — satıcı doğrulaması və
-            (hissəyə uyğun) media checklist kifayətdir.             Hissə elanı API ilə{" "}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm">listingKind: &quot;part&quot;</code> göndərilməklə
-            yaradılır; veb üzərindən də eyni axın mövcuddur (lot yaradarkən uyğun elan növü seçilir).
+            Eyni auksion modulu həm tam avtomobil, həm də <strong>avtomobil hissəsi</strong> elanları üçün istifadə
+            oluna bilər. Avtomobil üçün VIN doğrulaması tələb olunur; hissə elanları üçün satıcı doğrulaması
+            və media tələbləri tətbiq edilir.
           </p>
         </section>
 
@@ -142,10 +140,10 @@ export default function AuctionFrameworkPage() {
           </p>
           <p className="mt-3">
             Tərəfdaş müraciəti üçün{" "}
-            <Link href="/partners/inspection" className="text-[#0891B2] hover:underline">
-              ekspertiza tərəfdaşlığı səhifəsinə
-            </Link>{" "}
-            keçid edə bilərsiniz.
+            <a href="mailto:partner@ekomobil.az?subject=Ekspertiza%20t%C9%99r%C9%99fda%C5%9Fl%C4%B1%C4%9F%C4%B1" className="text-[#0891B2] hover:underline">
+              partner@ekomobil.az
+            </a>{" "}
+            ünvanına müraciət edə bilərsiniz.
           </p>
         </section>
       </div>

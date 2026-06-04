@@ -226,12 +226,12 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
             <Link href="/auction" className="text-sm text-white/60 hover:text-white">← Bütün lotlara qayıt</Link>
           </div>
           <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />
-            {lotOpen ? "Canlı lot" : "Lot statusu"}
+            {lotOpen && <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />}
+            {lotOpen ? "Canlı auksion" : getAuctionStatusLabel(lot.status)}
           </span>
           <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">{lot.titleSnapshot}</h1>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-white/50">
-            Lot ID: {lot.id} · {getAuctionStatusLabel(lot.status)}
+            {lotOpen && lot.endsAt ? `Bitmə tarixi: ${new Date(lot.endsAt).toLocaleString("az-AZ")}` : "\u00A0"}
           </p>
           <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/70 backdrop-blur">
             EkoMobil əsas satış ödənişini qəbul etmir. Platforma yalnız lot haqqı, deposit və xidmət haqlarını idarə edir.
@@ -248,9 +248,9 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                   <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
                   <span className="text-xs font-bold text-white">{getAuctionStatusLabel(lot.status)}</span>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Lot ID</div>
-                  <div className="mt-2 font-mono text-sm text-slate-700">{lot.id}</div>
+                <div className="text-center text-slate-400">
+                  <svg className="mx-auto h-12 w-12 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <p className="mt-2 text-xs">Şəkil mövcud deyil</p>
                 </div>
               </div>
 
@@ -258,11 +258,13 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {lot.depositRequired && <span className="badge-warning">Deposit tələb olunur</span>}
-                      {lot.sellerBondRequired && <span className="badge-warning">Satıcı bond aktivdir</span>}
+                      {lot.depositRequired && <span className="badge-warning">Depozit tələb olunur</span>}
+                      {lot.sellerBondRequired && <span className="badge-warning">Satıcı zəmanəti aktivdir</span>}
                     </div>
                     <h2 className="mt-2 text-2xl font-bold text-slate-900">{lot.titleSnapshot}</h2>
-                    <p className="text-sm text-slate-500">Status: {getAuctionStatusLabel(lot.status)}</p>
+                    {!lotOpen && (
+                      <p className="mt-1 text-sm text-slate-500">{getAuctionStatusLabel(lot.status)}</p>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-slate-400">Başlanğıc qiyməti</div>
@@ -270,12 +272,14 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 py-5">
-                  <div className="text-xs font-semibold uppercase tracking-widest text-rose-500">
-                    {lotOpen ? "Bitməyə qalan vaxt" : "Bitmə vaxtı"}
+                {lot.endsAt && (
+                  <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 py-5">
+                    <div className="text-xs font-semibold uppercase tracking-widest text-rose-500">
+                      {lotOpen ? "Bitməyə qalan vaxt" : "Bitmə vaxtı"}
+                    </div>
+                    <CountdownDisplay endAt={lot.endsAt} />
                   </div>
-                  <CountdownDisplay endAt={lot.endsAt} />
-                </div>
+                )}
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-2xl bg-[#0891B2]/5 px-5 py-4 ring-1 ring-[#0891B2]/20">

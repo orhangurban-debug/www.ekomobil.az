@@ -6,7 +6,7 @@ export const metadata = {
   description: "EkoMobil platformasının istifadəçi razılaşması və istifadə şərtləri"
 };
 
-const EFFECTIVE_DATE = "28 aprel 2026";
+const EFFECTIVE_DATE = "4 iyun 2026";
 const COMPANY_NAME = "EkoMobil MMC";
 const COMPANY_EMAIL = "info@ekomobil.az";
 const COMPANY_ADDRESS = "Bakı, Azərbaycan";
@@ -50,15 +50,18 @@ export default function TermsPage() {
               { href: "#parties", label: "1. Tərəflər" },
               { href: "#platform-role", label: "2. Platformanın rolu" },
               { href: "#registration", label: "3. Qeydiyyat" },
-              { href: "#listing-rules", label: "4. Elan qaydaları" },
-              { href: "#paid-services", label: "5. Ödənişli xidmətlər" },
-              { href: "#prohibited", label: "6. Qadağalar" },
-              { href: "#sanctions", label: "7. İntizam tədbirləri" },
-              { href: "#liability", label: "8. Məsuliyyətin məhdudlaşdırılması" },
-              { href: "#termination", label: "9. Hesabın bağlanması" },
-              { href: "#disputes", label: "10. Mübahisələrin həlli" },
-              { href: "#changes", label: "11. Şərtlərin dəyişdirilməsi" },
-              { href: "#contact", label: "12. Əlaqə" }
+              { href: "#user-types", label: "4. İstifadəçi növünə görə öhdəliklər" },
+              { href: "#listing-rules", label: "5. Elan qaydaları" },
+              { href: "#paid-services", label: "6. Ödənişli xidmətlər" },
+              { href: "#prohibited", label: "7. Qadağalar" },
+              { href: "#sanctions", label: "8. İntizam tədbirləri" },
+              { href: "#liability", label: "9. Məsuliyyətin məhdudlaşdırılması" },
+              { href: "#ip", label: "10. İntellektual mülkiyyət" },
+              { href: "#termination", label: "11. Hesabın bağlanması" },
+              { href: "#force-majeure", label: "12. Fors-major" },
+              { href: "#disputes", label: "13. Mübahisələrin həlli" },
+              { href: "#changes", label: "14. Şərtlərin dəyişdirilməsi" },
+              { href: "#contact", label: "15. Əlaqə" }
             ].map((item) => (
               <li key={item.href}>
                 <a href={item.href} className="hover:underline">{item.label}</a>
@@ -78,6 +81,11 @@ export default function TermsPage() {
             <p>
               Platformaya daxil olmaqla, qeydiyyatdan keçmədən belə, bu razılaşmanın bütün şərtlərini
               oxuduğunuzu, başa düşdüyünüzü və qəbul etdiyinizi təsdiqləyirsiniz.
+            </p>
+            <p className="text-sm text-slate-500">
+              Bu razılaşma Azərbaycan Respublikasının Mülki Məcəlləsi, &quot;Elektron ticarət haqqında&quot; Qanunu
+              (2005), &quot;İstehlakçıların hüquqlarının müdafiəsi haqqında&quot; Qanunu (1995) və müvafiq vergi
+              qanunvericiliyi çərçivəsində tənzimlənir.
             </p>
           </Section>
 
@@ -127,7 +135,48 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section id="listing-rules" title="4. Elan qaydaları">
+          <Section id="user-types" title="4. İstifadəçi növünə görə öhdəliklər">
+            <Sub title="Alıcılar">
+              <ul className="list-disc space-y-1.5 pl-5 text-sm">
+                <li>Alıcı avtomobili <strong>öz məsuliyyəti ilə</strong> yoxlamalı, ekspertiza cəlb etməli, sənədləri təsdiq etdirməlidir</li>
+                <li>Satın alınan avtomobilin gizli qüsurları, hüquqi mübahisəsi, borc yükü üçün platforma məsuliyyət daşımır</li>
+                <li>Auksion qalib alıcısı öhdəliyini yerinə yetirməkdən imtina edərsə intizam ödənişi tətbiq olunur</li>
+                <li>Platforma vasitəsilə heç bir ödəniş almayan alıcı bank vasitəsilə geri ödəmə (chargeback) tələb edə bilməz — mübahisə platformanın proseduruna yönləndirilməlidir</li>
+              </ul>
+            </Sub>
+            <Sub title="Satıcılar (fərdi)">
+              <ul className="list-disc space-y-1.5 pl-5 text-sm">
+                <li>Satıcı elan etdiyi avtomobilin <strong>hüquqi sahibi</strong> olduğunu və ya satış hüququna malik olduğunu zəmanət verir</li>
+                <li>Avtomobilin texniki vəziyyəti, qəza tarixçəsi, girov yükü, saxlanma qeydi barədə <strong>tam və doğru məlumat</strong> vermək satıcının öhdəliyidir</li>
+                <li>Yanlış məlumat nəticəsində üçüncü şəxslərə dəyən ziyan satıcının şəxsi məsuliyyətindədir</li>
+                <li>Elan qeydiyyatı zamanı verilən bəyannamə hüquqi öhdəlik doğurur</li>
+              </ul>
+            </Sub>
+            <Sub title="Salonlar / Diler mərkəzləri">
+              <ul className="list-disc space-y-1.5 pl-5 text-sm">
+                <li>Salonlar aktiv VÖEN, hüquqi şəxs statusu və müvafiq ticarət icazəsi ilə fəaliyyət göstərməlidir</li>
+                <li>Salon öz profili altında yerləşdirilən bütün elanların məzmunundan <strong>tam məsul</strong>dur</li>
+                <li>Müştəriyə satış öncəsi yazılı sınaq aktı / müqavilə tərtib etmək salonun öhdəliyidir</li>
+                <li>Salon hesabının hər hansı işçisi tərəfindən edilən pozuntu birbaşa hesab sahibinin məsuliyyətidir</li>
+              </ul>
+            </Sub>
+            <Sub title="Servis tərəfdaşları">
+              <ul className="list-disc space-y-1.5 pl-5 text-sm">
+                <li>Platforma üzərindən servis profili yaradan şirkət müvafiq lisenziya, sertifikat, peşəkar məsuliyyət sığortasına malik olmalıdır</li>
+                <li>Servis göstərənin iş nəticəsi, garanti öhdəliyi, müştəriyə dəyən ziyan servis şirkətinin məsuliyyətindədir — platforma bu münasibətin tərəfi deyil</li>
+                <li>Yanlış, aşırı iddialı servis məlumatı (sertifikat, reytinq) platformanın müvafiq nəzarəti olmadan dərc edilə bilməz</li>
+              </ul>
+            </Sub>
+            <Sub title="Auksion iştirakçıları">
+              <ul className="list-disc space-y-1.5 pl-5 text-sm">
+                <li>Auksionun gedişi, depozit saxlanması, intizam ödənişləri <Link href="/rules/auction" className="text-[#0891B2] hover:underline">Auksion çərçivəsi</Link> sənədinə tabedir — bu razılaşma ilə bərabər qüvvə daşıyır</li>
+                <li>Hər bir bid <strong>bağlayıcı öhdəlikdir</strong>; texniki nasazlıq, şəbəkə problemi və ya istifadəçi xətası bid-i ləğv etmir</li>
+                <li>Satıcı lotu canlıya çıxardıqda qalib alıcıya satış öhdəliyi yaranır; imtina intizam ödənişi ilə nəticələnir</li>
+              </ul>
+            </Sub>
+          </Section>
+
+          <Section id="listing-rules" title="5. Elan qaydaları">
             <Sub title="Ümumi tələblər">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
                 <li>Yalnız satıcıya məxsus və ya satış hüququ olan avtomobillər elan edilə bilər</li>
@@ -156,7 +205,7 @@ export default function TermsPage() {
             </Sub>
           </Section>
 
-          <Section id="paid-services" title="5. Ödənişli xidmətlər">
+          <Section id="paid-services" title="6. Ödənişli xidmətlər">
             <Sub title="Elan planları">
               <p className="text-sm">
                 Elan planları (Standart, VIP) hər elan üçün ayrıca bir dəfəlik ödənişdir. Plan qiyməti
@@ -197,7 +246,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section id="prohibited" title="6. Qadağalar">
+          <Section id="prohibited" title="7. Qadağalar">
             <p>Aşağıdakı hərəkətlər platformada qadağandır:</p>
             <Sub title="Məlumat bütövlüyü">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
@@ -233,7 +282,7 @@ export default function TermsPage() {
             </Sub>
           </Section>
 
-          <Section id="sanctions" title="7. İntizam tədbirləri">
+          <Section id="sanctions" title="8. İntizam tədbirləri">
             <p>
               Qaydaların pozulması aşağıdakı tədbirlərdən birini və ya bir neçəsini tətbiq etdirə bilər.
               Tətbiq olunan sanksiya pozuntunun ağırlığına görə seçilir:
@@ -268,30 +317,64 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section id="liability" title="8. Məsuliyyətin məhdudlaşdırılması">
+          <Section id="liability" title="9. Məsuliyyətin məhdudlaşdırılması">
             <p>
               Qanunun icazə verdiyi ən geniş həddə:
             </p>
             <ul className="list-disc space-y-2 pl-5 text-sm">
               <li>
-                EkoMobil platforma vasitəsilə tamamlanan (və ya tamamlanmayan) alqı-satqı əməliyyatı üçün
-                heç bir məsuliyyət daşımır.
+                EkoMobil platforma vasitəsilə tamamlanan (və ya tamamlanmayan) alqı-satqı əməliyyatının tərəfi deyil
+                və bu əməliyyatlara görə <strong>heç bir məsuliyyət daşımır</strong>.
+              </li>
+              <li>
+                Elan məlumatlarının doğruluğu, avtomobilin texniki vəziyyəti, mülkiyyət hüququ, girov yükü,
+                sığorta statusu, vergi borcu, gizli qüsurlar barədə platforma <strong>heç bir zəmanət vermir</strong>.
               </li>
               <li>
                 İstifadəçinin elan məlumatlarına əsasən gördüyü hər hansı zərər, itki, tələb, xərc EkoMobil-ə
                 aid edilə bilməz.
               </li>
               <li>
-                Platforma texniki nasazlıq, dayanma müddəti, məlumat itkisi üçün məsuliyyəti məhdudlaşdırır —
-                bu müddətdə ödənilmiş xidmət haqqının geri qaytarılması müzakirə edilə bilər.
+                Platforma texniki nasazlıq, planlı texniki iş, üçüncü tərəf xidmət fasilələri, kibertəhlükəsizlik
+                hadisəsi nəticəsindəki fasilə zamanı xidmət mövcudluğunu zəmanət etmir.
               </li>
               <li>
-                EkoMobil heç bir halda ödənilmiş elan haqlarını üstələyən zərəri kompensasiya etməyəcəkdir.
+                EkoMobil heç bir halda istifadəçinin ödədiyi platforma xidmət haqlarını üstələyən birbaşa,
+                dolayı, törəmə və ya cəzalandırıcı zərəri kompensasiya etməyəcəkdir.
+              </li>
+              <li>
+                Satıcı, alıcı, salon, servis şirkəti və ya auksion iştirakçısı öz öhdəliklərindən irəli gələn
+                bütün üçüncü tərəf tələblərindən platformanı azad edir (indemnification).
+              </li>
+            </ul>
+            <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              Həmin avtomobilin alınması qərarı <strong>alıcının özünün məsuliyyətidir</strong>.
+              Platforma ekspertiza, hüquqi yoxlama əvəzi deyil.
+            </p>
+          </Section>
+
+          <Section id="ip" title="10. İntellektual mülkiyyət">
+            <p className="text-sm">
+              Platforma brendi, dizaynı, kodu, alqoritmi, istifadəçi interfeysi{" "}
+              <strong>{COMPANY_NAME}</strong> şirkətinə məxsusdur və qorunur.
+            </p>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm">
+              <li>
+                İstifadəçinin platformaya yüklədiyi şəkil, mətn, video (&quot;məzmun&quot;) özünə məxsusdur;
+                platforma bu məzmunu xidmət çərçivəsinde göstərmək, indeksləmək, emal etmək üçün
+                ödənişsiz, qeyri-müstəsna lisenziya alır.
+              </li>
+              <li>
+                Platformanın məzmununu kütləvi yığmaq (scraping), yenidən dərc etmək, ticarət məqsədi ilə
+                istifadə etmək yalnız yazılı icazə ilə mümkündür.
+              </li>
+              <li>
+                Başqasının əqli mülkiyyətini, ticarət nişanını, logosunu icazəsiz istifadə etmək qadağandır.
               </li>
             </ul>
           </Section>
 
-          <Section id="termination" title="9. Hesabın bağlanması">
+          <Section id="termination" title="11. Hesabın bağlanması">
             <Sub title="İstifadəçi tərəfindən">
               <p className="text-sm">
                 Hesabınızı istənilən vaxt Parametrlər bölməsindən bağlaya bilərsiniz. Aktiv abunəliklər
@@ -308,7 +391,19 @@ export default function TermsPage() {
             </Sub>
           </Section>
 
-          <Section id="disputes" title="10. Mübahisələrin həlli">
+          <Section id="force-majeure" title="12. Fors-major">
+            <p className="text-sm">
+              Platformanın nəzarəti xaricindəki hadisələr (təbii fəlakət, enerji kəsilməsi, kiberhücum,
+              pandemiya, hükümətin tənzimləyici tədbirləri, xidmət təminatçısının fasilə verməsi) nəticəsində
+              yarana biləcək gecikmə, xidmət fasiləsi və ya itki üçün EkoMobil məsuliyyət daşımır.
+            </p>
+            <p className="text-sm">
+              Fors-major halı aradan qaldıqdan sonra platforma xidmətlərini mümkün qədər tezliklə
+              bərpa etmək üçün lazımi tədbirləri görür.
+            </p>
+          </Section>
+
+          <Section id="disputes" title="13. Mübahisələrin həlli">
             <p>
               Bu razılaşmadan doğan mübahisələr ilk növbədə{" "}
               <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
@@ -320,7 +415,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section id="changes" title="11. Şərtlərin dəyişdirilməsi">
+          <Section id="changes" title="14. Şərtlərin dəyişdirilməsi">
             <p>
               EkoMobil bu razılaşmanı istənilən vaxt dəyişdirə bilər. Əhəmiyyətli dəyişikliklər effektiv
               tarixdən ən azı <strong>14 gün əvvəl</strong> e-poçt bildirişi və saytdakı xəbərdarlıq
@@ -334,7 +429,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section id="contact" title="12. Əlaqə">
+          <Section id="contact" title="15. Əlaqə">
             <p>Bu razılaşma ilə bağlı suallarınız üçün:</p>
             <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-1">
               <p><strong>{COMPANY_NAME}</strong></p>

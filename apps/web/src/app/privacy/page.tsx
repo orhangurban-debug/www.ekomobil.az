@@ -6,7 +6,7 @@ export const metadata = {
   description: "EkoMobil platformasının məxfilik siyasəti — hansı məlumatlar toplanır, necə istifadə olunur"
 };
 
-const EFFECTIVE_DATE = "28 aprel 2026";
+const EFFECTIVE_DATE = "4 iyun 2026";
 const COMPANY_EMAIL = "info@ekomobil.az";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -278,7 +278,7 @@ export default function PrivacyPage() {
               <li><strong>Giriş hüququ:</strong> Platformada saxladığımız məlumatlarınızın surətini tələb edə bilərsiniz</li>
               <li><strong>Düzəliş hüququ:</strong> Yanlış məlumatları düzəltməyi tələb edə bilərsiniz</li>
               <li><strong>Silinmə hüququ:</strong> Hesabınızı silməyi tələb edə bilərsiniz; hüquqi öhdəlik doğuran məlumatlar istisnadır</li>
-              <li><strong>Ötürmə hüququ:</strong> Məlumatlarınızı maşın oxuna bilən JSON formatında ixrac edə bilərsiniz</li>
+              <li><strong>Ötürmə hüququ:</strong> Məlumatlarınızı standart elektron formatında ixrac edə bilərsiniz</li>
               <li><strong>Etiraz hüququ:</strong> Analitik məqsədli emaldan imtina edə bilərsiniz</li>
               <li><strong>Şikayət hüququ:</strong> Azərbaycan Respublikasının müvafiq dövlət orqanına şikayət vermək hüququnuz var</li>
             </ul>
