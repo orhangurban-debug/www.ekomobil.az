@@ -42,19 +42,19 @@ export function ListingStatsPanel({ listingId, initialStats }: ListingStatsPanel
 
   return (
     <div className="card p-4">
-      <h3 className="text-sm font-semibold text-slate-900">Elan statistikası</h3>
+      <h3 className="text-sm font-semibold text-white">Elan statistikası</h3>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-xl bg-slate-50 p-2.5">
-          <div className="text-xs text-slate-500">Baxış</div>
-          <div className="mt-1 text-base font-bold text-slate-900">{stats.viewCount.toLocaleString("az-AZ")}</div>
+        <div className="rounded-xl bg-white/5 p-2.5">
+          <div className="text-xs text-white/50">Baxış</div>
+          <div className="mt-1 text-base font-bold text-white">{stats.viewCount.toLocaleString("az-AZ")}</div>
         </div>
-        <div className="rounded-xl bg-slate-50 p-2.5">
-          <div className="text-xs text-slate-500">Əlaqə klik</div>
-          <div className="mt-1 text-base font-bold text-slate-900">{stats.contactClickCount.toLocaleString("az-AZ")}</div>
+        <div className="rounded-xl bg-white/5 p-2.5">
+          <div className="text-xs text-white/50">Əlaqə klik</div>
+          <div className="mt-1 text-base font-bold text-white">{stats.contactClickCount.toLocaleString("az-AZ")}</div>
         </div>
-        <div className="rounded-xl bg-slate-50 p-2.5">
-          <div className="text-xs text-slate-500">Test sürüş klik</div>
-          <div className="mt-1 text-base font-bold text-slate-900">{stats.testDriveClickCount.toLocaleString("az-AZ")}</div>
+        <div className="rounded-xl bg-white/5 p-2.5">
+          <div className="text-xs text-white/50">Test sürüş klik</div>
+          <div className="mt-1 text-base font-bold text-white">{stats.testDriveClickCount.toLocaleString("az-AZ")}</div>
         </div>
       </div>
     </div>

@@ -131,16 +131,16 @@ export default async function PartsPage({
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
       {currentPartsPlan && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
           <div>
-            <p className="text-sm font-medium text-slate-800">
+            <p className="text-sm font-medium text-white/90">
               Aktiv plan: <span className="font-semibold text-[#0891B2]">{currentPartsPlan.nameAz}</span>
             </p>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-white/50">
               Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
             </p>
           </div>
-          <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
+          <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0057FF]/10">
             Planları gör →
           </Link>
         </div>
@@ -161,18 +161,18 @@ export default async function PartsPage({
                   </Link>
                 ))
               ) : (
-                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
+                <span className="text-sm text-white/40">Aktiv filter yoxdur</span>
               )}
             </div>
-            <div className="hidden lg:block text-sm text-slate-500">{result.total} elan</div>
+            <div className="hidden lg:block text-sm text-white/50">{result.total} elan</div>
           </div>
 
           {result.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20 text-center">
-              <p className="font-medium text-slate-700">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/10 py-20 text-center">
+              <p className="font-medium text-white/80">
                 {activeChips.length > 0 ? "Bu filterə uyğun elan tapılmadı" : "Hələ mağaza elanı yoxdur"}
               </p>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-white/40">
                 {activeChips.length > 0 ? "Filterləri dəyişin və ya sıfırlayın." : "İlk hissə elanınızı yerləşdirin."}
               </p>
               {activeChips.length > 0 && (
@@ -206,7 +206,7 @@ export default async function PartsPage({
               >
                 ← Əvvəlki
               </Link>
-              <span className="px-4 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">{result.page}</span>
+              <span className="px-4 py-2 text-sm font-semibold text-[#0057FF] bg-[#0057FF]/10 rounded-lg">{result.page}</span>
               <Link
                 href={
                   result.total > result.page * result.pageSize

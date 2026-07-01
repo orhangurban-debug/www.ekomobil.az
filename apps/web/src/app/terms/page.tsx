@@ -15,8 +15,8 @@ const COMPANY_ADDRESS = "Bakı, Azərbaycan";
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-20">
-      <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-      <div className="mt-4 space-y-3 text-slate-600 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-bold text-white">{title}</h2>
+      <div className="mt-4 space-y-3 text-white/65 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -24,7 +24,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 function Sub({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mt-5">
-      <h3 className="font-semibold text-slate-800">{title}</h3>
+      <h3 className="font-semibold text-white/90">{title}</h3>
       <div className="mt-2 space-y-2">{children}</div>
     </div>
   );
@@ -32,20 +32,20 @@ function Sub({ title, children }: { title: string; children: ReactNode }) {
 
 export default function TermsPage() {
   return (
-    <div className="bg-white">
+    <div className="card">
       {/* Hero */}
-      <div className="border-b border-slate-200 bg-slate-50 px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">İstifadəçi Razılaşması</h1>
-        <p className="mt-2 text-slate-500">Son yenilənmə: {EFFECTIVE_DATE}</p>
-        <p className="mt-1 text-sm text-slate-400">
+      <div className="border-b border-white/10 bg-white/5 px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold text-white">İstifadəçi Razılaşması</h1>
+        <p className="mt-2 text-white/50">Son yenilənmə: {EFFECTIVE_DATE}</p>
+        <p className="mt-1 text-sm text-white/40">
           Bu saytdan istifadə etməklə aşağıdakı şərtlərə razı olduğunuzu təsdiqləyirsiniz.
         </p>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Quick nav */}
-        <nav className="mb-12 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Mündəricat</p>
+        <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
           <ol className="space-y-1 text-sm text-[#0891B2]">
             {[
               { href: "#parties", label: "1. Tərəflər" },
@@ -83,7 +83,7 @@ export default function TermsPage() {
               Platformaya daxil olmaqla, qeydiyyatdan keçmədən belə, bu razılaşmanın bütün şərtlərini
               oxuduğunuzu, başa düşdüyünüzü və qəbul etdiyinizi təsdiqləyirsiniz.
             </p>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-white/50">
               Bu razılaşma Azərbaycan Respublikasının Mülki Məcəlləsi, &quot;Elektron ticarət haqqında&quot; Qanunu
               (2005), &quot;İstehlakçıların hüquqlarının müdafiəsi haqqında&quot; Qanunu (1995) və müvafiq vergi
               qanunvericiliyi çərçivəsində tənzimlənir.
@@ -288,10 +288,10 @@ export default function TermsPage() {
               Qaydaların pozulması aşağıdakı tədbirlərdən birini və ya bir neçəsini tətbiq etdirə bilər.
               Tətbiq olunan sanksiya pozuntunun ağırlığına görə seçilir:
             </p>
-            <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+            <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs text-slate-500">
+                  <tr className="border-b border-white/10 bg-white/5 text-left text-xs text-white/50">
                     <th className="px-4 py-3 font-semibold">Sanksiya səviyyəsi</th>
                     <th className="px-4 py-3 font-semibold">Tədbirlər</th>
                   </tr>
@@ -305,8 +305,8 @@ export default function TermsPage() {
                     { level: "Daimi ban", action: "Hesab birdəfəlik bağlanır; ödənişlər geri qaytarılmır; yeni hesab qadağandır" }
                   ].map((row) => (
                     <tr key={row.level}>
-                      <td className="px-4 py-3 font-medium text-slate-800">{row.level}</td>
-                      <td className="px-4 py-3 text-slate-600">{row.action}</td>
+                      <td className="px-4 py-3 font-medium text-white/90">{row.level}</td>
+                      <td className="px-4 py-3 text-white/65">{row.action}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -436,10 +436,10 @@ export default function TermsPage() {
 
           <Section id="contact" title="15. Əlaqə">
             <p>Bu razılaşma ilə bağlı suallarınız üçün:</p>
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-3">
+            <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm space-y-3">
               <p><strong>{COMPANY_NAME}</strong></p>
               <p>{COMPANY_ADDRESS}</p>
-              <p className="text-slate-500">Hüquqi rekvizitlər (VÖEN və qeydiyyat məlumatı) sorğu əsasında təqdim edilir.</p>
+              <p className="text-white/50">Hüquqi rekvizitlər (VÖEN və qeydiyyat məlumatı) sorğu əsasında təqdim edilir.</p>
               <ContactActionButton intent="legal" />
             </div>
           </Section>
@@ -447,7 +447,7 @@ export default function TermsPage() {
         </div>
 
         {/* Footer links */}
-        <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
+        <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
           <Link href="/privacy" className="text-[#0891B2] hover:underline">Məxfilik Siyasəti</Link>
           <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
           <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund siyasəti</Link>

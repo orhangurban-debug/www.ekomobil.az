@@ -17,8 +17,8 @@ export default function GlobalError({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <div className="max-w-md">
-        <h1 className="text-2xl font-bold text-slate-900">Nəsə düz getmədi</h1>
-        <p className="mt-3 text-slate-500">
+        <h1 className="text-2xl font-bold text-white">Nəsə düz getmədi</h1>
+        <p className="mt-3 text-white/50">
           Səhifə yüklənərkən gözlənilməz xəta baş verdi. Bir az sonra yenidən cəhd edin.
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">

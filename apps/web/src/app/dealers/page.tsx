@@ -10,7 +10,7 @@ function DealerAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
       <img
         src={logoUrl}
         alt={`${name} logo`}
-        className="h-14 w-14 shrink-0 rounded-2xl border border-slate-200 bg-white object-cover shadow-sm"
+        className="h-14 w-14 shrink-0 rounded-2xl border border-white/10 card object-cover shadow-sm"
       />
     );
   }
@@ -30,7 +30,7 @@ export default async function DealersPage() {
   const dealers = await listPublicDealers();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white/5">
       <PageHero
         icon={Building2}
         title="Salonlar"
@@ -39,12 +39,12 @@ export default async function DealersPage() {
 
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
         {dealers.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
+          <div className="rounded-3xl border border-white/10 card p-12 text-center">
             <div className="icon-tile icon-tile-amber mx-auto mb-4 h-16 w-16 rounded-2xl">
               <Building2 className="h-8 w-8" strokeWidth={2} aria-hidden="true" />
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">Hələ salon yoxdur</h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <h2 className="text-lg font-semibold text-white">Hələ salon yoxdur</h2>
+            <p className="mt-2 text-sm text-white/50">
               Salonlar platforma tərəfindən mərhələli şəkildə əlavə olunur. Tezliklə burada salon profilləri görünəcək.
             </p>
             <div className="mt-6 flex justify-center gap-3">
@@ -58,13 +58,13 @@ export default async function DealersPage() {
               <Link
                 key={dealer.id}
                 href={`/dealers/${dealer.id}`}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/50 hover:shadow-lg"
+                className="group rounded-2xl border border-white/10 card p-5 transition hover:border-[#0891B2]/50 hover:shadow-lg"
               >
                 <div className="flex items-start gap-4">
                   <DealerAvatar name={dealer.name} logoUrl={dealer.logoUrl} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate font-semibold text-slate-900 group-hover:text-[#0891B2]">
+                      <h3 className="truncate font-semibold text-white group-hover:text-[#0891B2]">
                         {dealer.name}
                       </h3>
                       {dealer.verified && (
@@ -73,13 +73,13 @@ export default async function DealersPage() {
                         </svg>
                       )}
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{dealer.city}</p>
+                    <p className="mt-1 text-xs text-white/50">{dealer.city}</p>
                     {dealer.description && (
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-400">{dealer.description}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-white/40">{dealer.description}</p>
                     )}
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
+                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/50">
                   <span>{dealer.activeListingCount} aktiv elan</span>
                   <span className="text-[#0891B2] group-hover:underline">Profilə bax →</span>
                 </div>

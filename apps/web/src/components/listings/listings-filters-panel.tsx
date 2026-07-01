@@ -406,22 +406,22 @@ export function ListingsFiltersPanel({
       </div>
 
       {/* Advanced filters — collapsible */}
-      <div className="rounded-xl border border-slate-200">
+      <div className="rounded-xl border border-white/10">
         <button
           type="button"
           onClick={() => setAdvancedOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-700"
+          className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium text-white/80"
         >
           <span>
             Ətraflı filterlər
             {advancedCount > 0 && (
-              <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0891B2] px-1 text-[10px] font-bold text-white">
+              <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0057FF] px-1 text-[10px] font-bold text-white">
                 {advancedCount}
               </span>
             )}
           </span>
           <svg
-            className={`h-4 w-4 text-slate-400 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+            className={`h-4 w-4 text-white/40 transition-transform ${advancedOpen ? "rotate-180" : ""}`}
             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -429,7 +429,7 @@ export function ListingsFiltersPanel({
         </button>
 
         {advancedOpen && (
-          <div className="space-y-3 border-t border-slate-100 px-3 pb-3 pt-3">
+          <div className="space-y-3 border-t border-white/10 px-3 pb-3 pt-3">
             <div>
               <label className="label">Şəhər</label>
               <select className="input-field" value={query.city ?? "Hamısı"} onChange={(e) => setQuery((prev) => ({ ...prev, city: e.target.value }))}>
@@ -547,7 +547,7 @@ export function ListingsFiltersPanel({
                 />
               </div>
               {isElectricPowertrain && (
-                <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillər üçün həcm filtri tətbiq edilmir.</p>
+                <p className="mt-1 text-xs text-white/40">Elektrik avtomobillər üçün həcm filtri tətbiq edilmir.</p>
               )}
             </div>
 
@@ -586,121 +586,121 @@ export function ListingsFiltersPanel({
               </select>
             </div>
 
-            <div className="space-y-2 border-t border-slate-100 pt-2">
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+            <div className="space-y-2 border-t border-white/10 pt-2">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.hasSunroof ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, hasSunroof: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Lyuku var
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.vinProvided ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, vinProvided: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 VIN daxil edilib
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.seatHeating ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, seatHeating: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Oturacaq isidilməsi
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.seatCooling ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, seatCooling: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Oturacaq soyudulması
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.camera360 ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, camera360: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 360 kamera
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.parkingSensors ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, parkingSensors: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Park sensoru
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.adaptiveCruise ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, adaptiveCruise: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Adaptive cruise
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.laneAssist ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, laneAssist: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Lane assist
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.hasServiceBook ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, hasServiceBook: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Servis kitabçası var
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.hasRepairHistory ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, hasRepairHistory: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Təmir tarixçəsi var
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.creditAvailable ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, creditAvailable: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Kreditə uyğundur
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.barterAvailable ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, barterAvailable: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Barter mümkündür
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-white/75">
                 <input
                   type="checkbox"
                   checked={query.sellerVerified ?? false}
                   onChange={(e) => setQuery((prev) => ({ ...prev, sellerVerified: e.target.checked || undefined }))}
-                  className="h-4 w-4 rounded accent-[#0891B2]"
+                  className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Satıcı doğrulanmış
               </label>
@@ -732,14 +732,14 @@ export function ListingsFiltersPanel({
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:block card p-5">{panel}</div>
+      <div className="glass-panel hidden p-5 lg:block">{panel}</div>
 
       {/* Mobile bottom sheet */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden">
-          <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white p-5 max-h-[90vh] overflow-y-auto">
-            <div className="mb-4 flex items-center justify-between sticky top-0 bg-white pb-2 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
+        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#0a0a0f] p-5">
+            <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-white/10 bg-[#0a0a0f] pb-2">
+              <h2 className="font-semibold text-white">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
               <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
             </div>
             {panel}

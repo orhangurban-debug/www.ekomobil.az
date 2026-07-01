@@ -32,31 +32,31 @@ export default async function AuctionPreauthPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-white/10 card p-8 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm font-medium text-brand-600">Auksion pre-auth</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Bid üçün kart hold</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-sm font-medium text-[#0057FF]">Auksion pre-auth</p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Bid üçün kart hold</h1>
+          <p className="mt-2 text-sm text-white/50">
             Bu əməliyyat əsas satış ödənişi deyil. Yalnız auksion iştirak öhdəliyini təsdiqləyən kart hold əməliyyatıdır.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-500">Pre-auth ID</dt>
-            <dd className="mt-1 font-mono text-slate-900">{preauth.id}</dd>
+            <dt className="text-white/50">Pre-auth ID</dt>
+            <dd className="mt-1 font-mono text-white">{preauth.id}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Status</dt>
-            <dd className="mt-1 font-medium text-slate-900">{getStatusLabel(preauth.status)}</dd>
+            <dt className="text-white/50">Status</dt>
+            <dd className="mt-1 font-medium text-white">{getStatusLabel(preauth.status)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Auction ID</dt>
-            <dd className="mt-1 font-mono text-slate-900">{preauth.auctionId}</dd>
+            <dt className="text-white/50">Auction ID</dt>
+            <dd className="mt-1 font-mono text-white">{preauth.auctionId}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Məbləğ</dt>
-            <dd className="mt-1 font-medium text-slate-900">{preauth.amountAzn} ₼</dd>
+            <dt className="text-white/50">Məbləğ</dt>
+            <dd className="mt-1 font-medium text-white">{preauth.amountAzn} ₼</dd>
           </div>
         </dl>
 
@@ -101,7 +101,7 @@ export default async function AuctionPreauthPage({
               </>
             ) : isLiveReady && preauth.checkoutUrl ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
                   Real checkout hazırdır. Bank səhifəsində kart hold əməliyyatını tamamlayın.
                 </div>
                 <Link href={preauth.checkoutUrl} className="btn-primary">

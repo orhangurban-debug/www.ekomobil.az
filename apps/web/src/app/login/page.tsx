@@ -92,8 +92,8 @@ function LoginForm() {
               priority
             />
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900">Hesabınıza daxil olun</h1>
-          <p className="mt-2 text-sm text-slate-500">Platforma idarəetmə üçün giriş edin</p>
+          <h1 className="text-2xl font-bold text-white">Hesabınıza daxil olun</h1>
+          <p className="mt-2 text-sm text-white/50">Platforma idarəetmə üçün giriş edin</p>
         </div>
 
         {/* Card */}
@@ -103,7 +103,7 @@ function LoginForm() {
             prefetch={false}
             onClick={onGoogleClick}
             aria-disabled={isGoogleLoading}
-            className={`mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 ${
+            className={`mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/5 ${
               isGoogleLoading ? "pointer-events-none opacity-60" : ""
             }`}
           >
@@ -112,7 +112,7 @@ function LoginForm() {
             </svg>
             {isGoogleLoading ? "Google-a yönləndirilir..." : "Google ilə daxil ol"}
           </Link>
-          <div className="mb-5 text-center text-xs text-slate-400">və ya email ilə giriş et</div>
+          <div className="mb-5 text-center text-xs text-white/40">və ya email ilə giriş et</div>
           {oauthErrorMessage && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               {oauthErrorMessage}
@@ -168,11 +168,11 @@ function LoginForm() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-white/40">
           © {new Date().getFullYear()} EkoMobil — ekomobil.az
         </p>
-        <p className="mt-3 text-center text-sm text-slate-500">
-          Hesabın yoxdur? <Link href="/register" className="font-medium text-brand-700">Qeydiyyat</Link>
+        <p className="mt-3 text-center text-sm text-white/50">
+          Hesabın yoxdur? <Link href="/register" className="font-medium text-[#0057FF]">Qeydiyyat</Link>
         </p>
       </div>
     </div>

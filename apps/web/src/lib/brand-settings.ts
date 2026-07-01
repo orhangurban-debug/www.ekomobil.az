@@ -22,12 +22,12 @@ export const DEFAULT_BRAND_SETTINGS: BrandSettings = {
   logoUrl: "/brand/ekomobil-logo.png",
   logoSquareUrl: "/brand/ekomobil-logo.png",
   faviconUrl: "/brand/ekomobil-logo.png",
-  primaryColor: "#0891B2",
-  primaryHoverColor: "#0E7490",
+  primaryColor: "#0057FF",
+  primaryHoverColor: "#0046CC",
   deepBaseColor: "#3E2F28",
   softBrownColor: "#E5D3B3",
   softBrownBorderColor: "#D4C4A8",
-  canvasColor: "#FFFFFF",
+  canvasColor: "#0A0A0F",
   gallery: [
     {
       id: "default-main-logo",

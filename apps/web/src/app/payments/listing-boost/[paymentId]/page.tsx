@@ -30,35 +30,35 @@ export default async function ListingBoostPaymentPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-white/10 card p-8 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm font-medium text-brand-600">Kapital Bank checkout</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Elan irəlilətmə ödənişi</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-sm font-medium text-[#0057FF]">Kapital Bank checkout</p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Elan irəlilətmə ödənişi</h1>
+          <p className="mt-2 text-sm text-white/50">
             Ödəniş statusunu bu səhifədən izləyə bilərsiniz. Hosted checkout hazır olduqda bank səhifəsinə avtomatik yönləndirmə edilir.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-500">Ödəniş ID</dt>
-            <dd className="mt-1 font-mono text-slate-900">{payment.id}</dd>
+            <dt className="text-white/50">Ödəniş ID</dt>
+            <dd className="mt-1 font-mono text-white">{payment.id}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Status</dt>
-            <dd className="mt-1 font-medium capitalize text-slate-900">{payment.status.replaceAll("_", " ")}</dd>
+            <dt className="text-white/50">Status</dt>
+            <dd className="mt-1 font-medium capitalize text-white">{payment.status.replaceAll("_", " ")}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Provider rejimi</dt>
-            <dd className="mt-1 font-medium text-slate-900">{payment.providerMode ?? config.mode}</dd>
+            <dt className="text-white/50">Provider rejimi</dt>
+            <dd className="mt-1 font-medium text-white">{payment.providerMode ?? config.mode}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Paket</dt>
-            <dd className="mt-1 font-medium text-slate-900">{pkg?.nameAz ?? payment.boostPackageId}</dd>
+            <dt className="text-white/50">Paket</dt>
+            <dd className="mt-1 font-medium text-white">{pkg?.nameAz ?? payment.boostPackageId}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Məbləğ</dt>
-            <dd className="mt-1 font-medium text-slate-900">{payment.amountAzn} ₼</dd>
+            <dt className="text-white/50">Məbləğ</dt>
+            <dd className="mt-1 font-medium text-white">{payment.amountAzn} ₼</dd>
           </div>
         </dl>
 
@@ -100,7 +100,7 @@ export default async function ListingBoostPaymentPage({
                 </div>
               </>
             ) : isLiveReady ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
                 Ödəniş bankda tamamlandıqdan sonra status callback ilə yenilənir və irəlilətmə paketi avtomatik tətbiq olunur.
               </div>
             ) : (

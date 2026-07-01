@@ -94,7 +94,7 @@ function getRandomAd(slotLabel?: string): AdBannerProps["demoContent"] {
 function LeaderboardAd({ content, onClose }: { content: NonNullable<AdBannerProps["demoContent"]>; onClose: () => void }) {
   return (
     <div
-      className="relative flex h-full w-full items-center justify-between gap-4 overflow-hidden rounded-xl border border-slate-200 bg-white px-5 shadow-sm"
+      className="relative flex h-full w-full items-center justify-between gap-4 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 shadow-sm"
       style={{ borderLeftColor: content.accent, borderLeftWidth: 3 }}
     >
       {/* Left: logo + text */}
@@ -106,14 +106,14 @@ function LeaderboardAd({ content, onClose }: { content: NonNullable<AdBannerProp
           {content.logoText.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">{content.headline}</p>
-          <p className="truncate text-xs text-slate-400">{content.sub}</p>
+          <p className="truncate text-sm font-semibold text-white">{content.headline}</p>
+          <p className="truncate text-xs text-white/40">{content.sub}</p>
         </div>
       </div>
 
       {/* Right: CTA + label */}
       <div className="flex shrink-0 items-center gap-3">
-        <span className="hidden text-[10px] font-medium uppercase tracking-widest text-slate-300 sm:block">
+        <span className="hidden text-[10px] font-medium uppercase tracking-widest text-white/30 sm:block">
           Reklam
         </span>
         <Link
@@ -126,7 +126,7 @@ function LeaderboardAd({ content, onClose }: { content: NonNullable<AdBannerProp
         </Link>
         <button
           onClick={onClose}
-          className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-300 hover:bg-slate-100 hover:text-slate-500"
+          className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/30 hover:bg-white/8 hover:text-white/50"
           aria-label="Bağla"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -141,11 +141,11 @@ function LeaderboardAd({ content, onClose }: { content: NonNullable<AdBannerProp
 function RectangleAd({ content }: { content: NonNullable<AdBannerProps["demoContent"]> }) {
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-between overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="flex h-full w-full flex-col items-center justify-between overflow-hidden rounded-xl border border-white/10 card p-5 shadow-sm"
     >
       {/* Top: Reklam etiket */}
       <div className="flex w-full items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">Reklam</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Reklam</span>
         <div
           className="h-1.5 w-16 rounded-full opacity-40"
           style={{ backgroundColor: content.accent }}
@@ -161,8 +161,8 @@ function RectangleAd({ content }: { content: NonNullable<AdBannerProps["demoCont
           {content.logoText.slice(0, 2).toUpperCase()}
         </div>
         <div>
-          <p className="text-base font-bold text-slate-900 leading-snug">{content.headline}</p>
-          <p className="mt-1 text-xs text-slate-400">{content.sub}</p>
+          <p className="text-base font-bold text-white leading-snug">{content.headline}</p>
+          <p className="mt-1 text-xs text-white/40">{content.sub}</p>
         </div>
       </div>
 
@@ -213,9 +213,9 @@ export function NativeAdCard({ slotLabel }: { slotLabel?: string }) {
   if (dismissed || !content) return null;
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 card shadow-sm">
       {/* "Reklam" işarəsi */}
-      <div className="absolute right-3 top-3 z-10 rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+      <div className="absolute right-3 top-3 z-10 rounded-md bg-white/8 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-white/40">
         Reklam
       </div>
 
@@ -236,9 +236,9 @@ export function NativeAdCard({ slotLabel }: { slotLabel?: string }) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
-          <p className="text-xs font-medium text-slate-400">{content.logoText}</p>
-          <h3 className="mt-0.5 font-semibold leading-snug text-slate-900">{content.headline}</h3>
-          <p className="mt-1 text-xs text-slate-500">{content.sub}</p>
+          <p className="text-xs font-medium text-white/40">{content.logoText}</p>
+          <h3 className="mt-0.5 font-semibold leading-snug text-white">{content.headline}</h3>
+          <p className="mt-1 text-xs text-white/50">{content.sub}</p>
         </div>
 
         <Link
@@ -252,7 +252,7 @@ export function NativeAdCard({ slotLabel }: { slotLabel?: string }) {
 
       <button
         onClick={() => setDismissed(true)}
-        className="absolute left-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-slate-400 shadow-sm hover:text-slate-600"
+        className="absolute left-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-white/40 shadow-sm hover:text-white/65"
         aria-label="Bağla"
       >
         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

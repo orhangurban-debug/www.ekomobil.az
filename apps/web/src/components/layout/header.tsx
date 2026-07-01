@@ -20,6 +20,10 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/pricing", label: "Qiymətlər" },
 ];
 
+const accent = "text-[#0057FF]";
+const accentBg = "bg-[#0057FF]/15 text-[#0057FF]";
+const navIdle = "text-white/70 hover:bg-white/5 hover:text-white";
+
 export function Header({
   userEmail,
   userRole,
@@ -61,10 +65,10 @@ export function Header({
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-soft-brown bg-white">
+    <header className="glass-nav sticky top-0 z-50">
       {noticeVisible && (
-        <div className="border-b border-amber-300/60 bg-gradient-to-r from-amber-50 to-orange-50">
-          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-900 sm:px-6 lg:px-8">
+        <div className="border-b border-amber-500/20 bg-amber-500/10">
+          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-200 sm:px-6 lg:px-8">
             <p className="leading-5">
               <span className="font-semibold">Diqqət:</span> Platforma hələ tam aktiv deyil. Yanlış əməliyyatların
               qarşısını almaq üçün qeydiyyat, ödəniş və auksion funksiyaları mərhələli şəkildə açılır. Zəhmət olmasa
@@ -84,7 +88,7 @@ export function Header({
               type="button"
               onClick={hideNotice}
               aria-label="Bildirişi bağla"
-              className="shrink-0 rounded-md border border-amber-400/50 bg-white/70 px-2 py-0.5 text-[11px] font-semibold text-amber-900 transition hover:bg-white"
+              className="shrink-0 rounded-md border border-amber-500/30 bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-amber-200 transition hover:bg-white/10"
             >
               Bağla
             </button>
@@ -92,9 +96,8 @@ export function Header({
         </div>
       )}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brend loqo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="brand-logo-surface brand-logo-surface-light transition group-hover:border-[#0891B2]/40">
+        <Link href="/" className="group flex items-center gap-2">
+          <span className="brand-logo-surface brand-logo-surface-light transition group-hover:border-[#0057FF]/40">
             <Image
               src={logoUrl}
               alt="EkoMobil loqosu"
@@ -106,36 +109,29 @@ export function Header({
           </span>
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-0.5">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                pathname === link.href
-                  ? "bg-[#0891B2]/10 text-[#0891B2]"
-                  : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
+                pathname === link.href ? accentBg : navIdle
               }`}
             >
               {link.live && (
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" />
               )}
               {link.label}
             </Link>
           ))}
         </nav>
 
-        {/* Right actions */}
         <div className="flex items-center gap-2">
-          {/* Favorilər icon */}
           <Link
             href="/favorites"
             aria-label="Favorilər"
             className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition ${
-              pathname === "/favorites"
-                ? "bg-[#0891B2]/10 text-[#0891B2]"
-                : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
+              pathname === "/favorites" ? accentBg : navIdle
             }`}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -143,21 +139,18 @@ export function Header({
             </svg>
           </Link>
 
-          {/* Müqayisə icon */}
           <Link
             href={compareHref}
             aria-label="Müqayisə"
-            className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition relative ${
-              pathname.startsWith("/compare")
-                ? "bg-[#0891B2]/10 text-[#0891B2]"
-                : "text-[#3E2F28] hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]"
+            className={`relative hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition ${
+              pathname.startsWith("/compare") ? accentBg : navIdle
             }`}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
             </svg>
             {compareIds.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0891B2] text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0057FF] text-[10px] font-bold text-white">
                 {compareIds.length}
               </span>
             )}
@@ -165,7 +158,7 @@ export function Header({
 
           {userEmail ? (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/me" className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[#3E2F28] transition hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]">
+              <Link href="/me" className={`flex h-9 items-center rounded-lg px-3 text-sm font-medium transition ${navIdle}`}>
                 Profil
               </Link>
               {userRole === "admin" || userRole === "support" ? (
@@ -189,7 +182,7 @@ export function Header({
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/login" className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[#3E2F28] transition hover:bg-[#E5D3B3]/30 hover:text-[#0891B2]">
+              <Link href="/login" className={`flex h-9 items-center rounded-lg px-3 text-sm font-medium transition ${navIdle}`}>
                 Daxil ol
               </Link>
               <Link href="/register" className="btn-secondary text-sm px-3 py-1.5">
@@ -203,10 +196,9 @@ export function Header({
             </div>
           )}
 
-          {/* Mobile menu toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-soft-brown md:hidden text-[#3E2F28]"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {menuOpen ? (
@@ -219,9 +211,8 @@ export function Header({
         </div>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-soft-brown bg-white px-4 py-3 md:hidden">
+        <div className="border-t border-white/10 bg-[#0a0a0f]/95 px-4 py-3 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
@@ -229,11 +220,11 @@ export function Header({
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium ${
-                  pathname === link.href ? "bg-[#0891B2]/10 text-[#0891B2]" : "text-[#3E2F28] hover:bg-[#E5D3B3]/30"
+                  pathname === link.href ? accentBg : "text-white/80 hover:bg-white/5"
                 }`}
               >
                 {link.live && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" />
                 )}
                 {link.label}
               </Link>
@@ -241,18 +232,18 @@ export function Header({
             <Link
               href={compareHref}
               onClick={() => setMenuOpen(false)}
-              className={`rounded-lg px-4 py-2.5 text-sm font-medium flex items-center justify-between ${
-                pathname.startsWith("/compare") ? "bg-[#0891B2]/10 text-[#0891B2]" : "text-[#3E2F28] hover:bg-[#E5D3B3]/30"
+              className={`flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium ${
+                pathname.startsWith("/compare") ? accentBg : "text-white/80 hover:bg-white/5"
               }`}
             >
               Müqayisə
               {compareIds.length > 0 && (
-                <span className="rounded-full bg-[#0891B2] px-2 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded-full bg-[#0057FF] px-2 py-0.5 text-xs font-semibold text-white">
                   {compareIds.length}
                 </span>
               )}
             </Link>
-            <div className="mt-2 flex flex-col gap-2 border-t border-soft-brown pt-2">
+            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
               {userEmail ? (
                 <>
                   {primaryCta && (

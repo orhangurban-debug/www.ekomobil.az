@@ -40,21 +40,21 @@ export default async function PublicSellerPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white/5">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-white/10 card">
         <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <SellerAvatar name={profile.displayName} />
               <div>
-                <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
+                <h1 className="text-xl font-bold text-white sm:text-2xl">
                   {profile.displayName}
                 </h1>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-white/50">
                   {profile.city && (
                     <span className="flex items-center gap-1">
-                      <svg className="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-3.5 w-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                       </svg>
@@ -74,10 +74,10 @@ export default async function PublicSellerPage({
               </div>
             </div>
 
-            <div className="flex gap-5 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="flex gap-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
-                <p className="text-xs text-slate-400">Aktiv elan</p>
+                <p className="text-2xl font-bold text-white">{profile.activeListingCount}</p>
+                <p className="text-xs text-white/40">Aktiv elan</p>
               </div>
             </div>
           </div>
@@ -87,23 +87,23 @@ export default async function PublicSellerPage({
       {/* ── Listings ─────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Seller disclaimer */}
-        <div className="mb-6 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
+        <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/50">
           EkoMobil platforması satıcı haqqında yalnız sistemdə mövcud olan məlumatları göstərir.
           Elan məzmununun düzgünlüyü satıcının məsuliyyətindədir.
         </div>
 
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-white">
             Aktiv elanlar
-            <span className="ml-2 rounded-full bg-slate-100 px-2.5 py-0.5 text-sm font-medium text-slate-500">
+            <span className="ml-2 rounded-full bg-white/8 px-2.5 py-0.5 text-sm font-medium text-white/50">
               {activeListings.length}
             </span>
           </h2>
         </div>
 
         {activeListings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center">
-            <p className="text-slate-400">Bu satıcının aktiv elanı yoxdur</p>
+          <div className="rounded-2xl border border-dashed border-white/10 py-16 text-center">
+            <p className="text-white/40">Bu satıcının aktiv elanı yoxdur</p>
             <Link href="/listings" className="mt-4 inline-flex btn-secondary text-sm">
               Bütün elanlara bax
             </Link>

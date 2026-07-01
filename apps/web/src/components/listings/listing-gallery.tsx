@@ -14,8 +14,8 @@ export function ListingGallery({ urls, title }: Props) {
   if (urls.length === 0) {
     return (
       <div className="card overflow-hidden">
-        <div className="flex h-80 items-center justify-center bg-slate-100">
-          <svg className="h-24 w-24 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex h-80 items-center justify-center bg-white/5">
+          <svg className="h-24 w-24 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h1l1-4h12l1 4h1a1 1 0 010 2h-.5M3 10a1 1 0 000 2h.5M6 14a2 2 0 104 0m4 0a2 2 0 104 0" />
           </svg>
         </div>
@@ -29,7 +29,7 @@ export function ListingGallery({ urls, title }: Props) {
     <div className="space-y-2">
       {/* Main image */}
       <div className="card overflow-hidden">
-        <div className="relative h-80 bg-slate-100">
+        <div className="relative h-80 bg-white/5">
           <Image
             key={mainUrl}
             src={mainUrl}
@@ -82,7 +82,7 @@ export function ListingGallery({ urls, title }: Props) {
               type="button"
               onClick={() => setActive(i)}
               className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border-2 transition ${
-                i === active ? "border-brand-500" : "border-slate-200 hover:border-slate-400"
+                i === active ? "border-[#0057FF]" : "border-white/10 hover:border-white/25"
               }`}
             >
               <Image

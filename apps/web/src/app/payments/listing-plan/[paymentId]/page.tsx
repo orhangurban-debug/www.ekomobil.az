@@ -30,40 +30,40 @@ export default async function ListingPlanPaymentPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-white/10 card p-8 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm font-medium text-brand-600">Kapital Bank checkout</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Elan planı ödənişi</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-sm font-medium text-[#0057FF]">Kapital Bank checkout</p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Elan planı ödənişi</h1>
+          <p className="mt-2 text-sm text-white/50">
             Ödəniş statusunu bu səhifədən izləyə bilərsiniz. Hosted checkout hazır olduqda bank səhifəsinə avtomatik yönləndirmə edilir.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-500">Ödəniş ID</dt>
-            <dd className="mt-1 font-mono text-slate-900">{payment.id}</dd>
+            <dt className="text-white/50">Ödəniş ID</dt>
+            <dd className="mt-1 font-mono text-white">{payment.id}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Status</dt>
-            <dd className="mt-1 font-medium text-slate-900">{getKapitalBankStatusLabel(payment)}</dd>
+            <dt className="text-white/50">Status</dt>
+            <dd className="mt-1 font-medium text-white">{getKapitalBankStatusLabel(payment)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Provider rejimi</dt>
-            <dd className="mt-1 font-medium text-slate-900">{payment.providerMode ?? config.mode}</dd>
+            <dt className="text-white/50">Provider rejimi</dt>
+            <dd className="mt-1 font-medium text-white">{payment.providerMode ?? config.mode}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Plan</dt>
-            <dd className="mt-1 font-medium text-slate-900">{plan?.nameAz ?? payment.planType}</dd>
+            <dt className="text-white/50">Plan</dt>
+            <dd className="mt-1 font-medium text-white">{plan?.nameAz ?? payment.planType}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Məbləğ</dt>
-            <dd className="mt-1 font-medium text-slate-900">{payment.amountAzn} ₼</dd>
+            <dt className="text-white/50">Məbləğ</dt>
+            <dd className="mt-1 font-medium text-white">{payment.amountAzn} ₼</dd>
           </div>
         </dl>
 
         {payment.providerPayload && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/65">
             Hosted redirect konteksti hazırlanıb. `liveReady`: {payment.providerPayload.liveReady ? "bəli" : "xeyr"}.
           </div>
         )}
@@ -106,7 +106,7 @@ export default async function ListingPlanPaymentPage({
                 </div>
               </>
             ) : isLiveReady ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
                 Ödəniş bankda tamamlandıqdan sonra status callback ilə yenilənir və plan avtomatik tətbiq olunur.
               </div>
             ) : (

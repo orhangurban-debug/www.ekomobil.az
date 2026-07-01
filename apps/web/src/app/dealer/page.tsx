@@ -20,10 +20,10 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     active: "badge-verified",
     draft: "badge-neutral",
-    sold: "bg-slate-100 text-slate-500 text-xs font-semibold px-2.5 py-0.5 rounded-full",
+    sold: "bg-white/8 text-white/50 text-xs font-semibold px-2.5 py-0.5 rounded-full",
     new: "badge-verified",
     contacted: "badge-neutral",
-    visit_booked: "bg-brand-50 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full",
+    visit_booked: "bg-[#0057FF]/10 text-[#0057FF] text-xs font-semibold px-2.5 py-0.5 rounded-full",
     closed: "badge-neutral"
   };
   const labels: Record<string, string> = {
@@ -63,8 +63,8 @@ export default async function DealerPortalPage() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Salon Paneli</h1>
-          <p className="text-slate-500 mt-1">{dashboard.dealerName} • {dashboard.city}</p>
+          <h1 className="text-2xl font-bold text-white">Salon Paneli</h1>
+          <p className="text-white/50 mt-1">{dashboard.dealerName} • {dashboard.city}</p>
         </div>
         <div className="flex gap-2">
           {dealerPlan.analyticsEnabled ? (
@@ -79,16 +79,16 @@ export default async function DealerPortalPage() {
       </div>
 
       {/* Abunə upgrade banner */}
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
         <div>
-          <p className="text-sm font-medium text-slate-800">
+          <p className="text-sm font-medium text-white/90">
             Aktiv plan: <span className="font-semibold text-[#0891B2]">{dealerPlan.nameAz}</span>
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-white/50">
             Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
           </p>
         </div>
-        <Link href="/pricing#dealer" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0891B2]/10">
+        <Link href="/pricing#dealer" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0057FF]/10">
           Planları gör →
         </Link>
       </div>
@@ -120,8 +120,8 @@ export default async function DealerPortalPage() {
         ].map((kpi) => (
           <div key={kpi.label} className="card p-5">
             <div className="text-2xl mb-1">{kpi.icon}</div>
-            <div className="text-2xl font-bold text-slate-900">{kpi.value}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{kpi.label}</div>
+            <div className="text-2xl font-bold text-white">{kpi.value}</div>
+            <div className="text-xs text-white/50 mt-0.5">{kpi.label}</div>
           </div>
         ))}
       </div>
@@ -142,13 +142,13 @@ export default async function DealerPortalPage() {
 
       {/* Inventory */}
       <div className="card overflow-hidden mb-8">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">İnventar</h2>
-          <span className="text-sm text-slate-400">{dashboard.inventory.length} elan</span>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="font-semibold text-white">İnventar</h2>
+          <span className="text-sm text-white/40">{dashboard.inventory.length} elan</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <thead className="bg-white/5 text-xs font-semibold uppercase tracking-wider text-white/50">
               <tr>
                 <th className="px-6 py-3 text-left">Elan</th>
                 <th className="px-6 py-3 text-right">Qiymət</th>
@@ -162,22 +162,22 @@ export default async function DealerPortalPage() {
             <tbody className="divide-y divide-slate-100">
               {dashboard.inventory.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400">
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-white/40">
                     Hələ elan yoxdur.{" "}
                     <Link href="/publish" className="font-medium text-[#0891B2] hover:underline">İlk elanı yerləşdir →</Link>
                   </td>
                 </tr>
               ) : (
                 dashboard.inventory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      <Link href={`/listings/${item.id}`} className="hover:text-brand-600">
+                  <tr key={item.id} className="hover:bg-white/5 transition">
+                    <td className="px-6 py-4 font-medium text-white">
+                      <Link href={`/listings/${item.id}`} className="hover:text-[#0057FF]">
                         {item.title}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-right font-semibold text-brand-700">{item.priceAzn.toLocaleString()} ₼</td>
+                    <td className="px-6 py-4 text-right font-semibold text-[#0057FF]">{item.priceAzn.toLocaleString()} ₼</td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`text-xs font-medium ${item.planType === "vip" ? "text-amber-700" : item.planType === "standard" ? "text-brand-700" : "text-slate-500"}`}>
+                      <span className={`text-xs font-medium ${item.planType === "vip" ? "text-amber-700" : item.planType === "standard" ? "text-[#0057FF]" : "text-white/50"}`}>
                         {item.planType === "vip" ? "VIP" : item.planType === "standard" ? "Standart" : "Pulsuz"}
                       </span>
                     </td>
@@ -201,13 +201,13 @@ export default async function DealerPortalPage() {
 
       {/* Lead inbox */}
       <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">Lead Qutusu</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="font-semibold text-white">Lead Qutusu</h2>
           {newLeads > 0 && <span className="badge-verified">{newLeads} yeni</span>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <thead className="bg-white/5 text-xs font-semibold uppercase tracking-wider text-white/50">
               <tr>
                 <th className="px-6 py-3 text-left">Müştəri</th>
                 <th className="px-6 py-3 text-left">Elan</th>
@@ -220,19 +220,19 @@ export default async function DealerPortalPage() {
             <tbody className="divide-y divide-slate-100">
               {dashboard.leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-white/40">
                     Hələ müştəri sorğusu yoxdur.
                   </td>
                 </tr>
               ) : (
                 dashboard.leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50 transition">
+                  <tr key={lead.id} className="hover:bg-white/5 transition">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{lead.customerName}</div>
-                      {lead.customerPhone && <div className="text-xs text-slate-500">{lead.customerPhone}</div>}
+                      <div className="font-medium text-white">{lead.customerName}</div>
+                      {lead.customerPhone && <div className="text-xs text-white/50">{lead.customerPhone}</div>}
                     </td>
                     <td className="px-6 py-4">
-                      <Link href={`/listings/${lead.listingId}`} className="text-slate-600 hover:text-brand-600 text-sm">
+                      <Link href={`/listings/${lead.listingId}`} className="text-white/65 hover:text-[#0057FF] text-sm">
                         #{lead.listingId.slice(0, 8)}
                       </Link>
                     </td>
@@ -240,7 +240,7 @@ export default async function DealerPortalPage() {
                     <td className="px-6 py-4">
                       <LeadStageActions leadId={lead.id} currentStage={lead.stage} />
                     </td>
-                    <td className="px-6 py-4 text-center text-slate-700">{lead.responseTimeMinutes ?? 0}</td>
+                    <td className="px-6 py-4 text-center text-white/80">{lead.responseTimeMinutes ?? 0}</td>
                     <td className="px-6 py-4 text-center"><SlaBadge minutes={lead.responseTimeMinutes ?? 0} /></td>
                   </tr>
                 ))

@@ -101,7 +101,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     "--color-brand-700": brand.primaryHoverColor,
     "--color-deep-base": brand.deepBaseColor,
     "--color-soft-brown": brand.softBrownColor,
-    "--color-page-canvas": brand.canvasColor
+    "--color-page-canvas": brand.canvasColor,
+    "--color-accent": "#0057FF",
+    "--color-accent-hover": "#0046CC"
   } as CSSProperties;
 
   return (
@@ -109,7 +111,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         <link rel="icon" href={faviconPath} />
       </head>
-      <body className="min-h-screen flex flex-col" style={dynamicThemeVars}>
+      <body className="min-h-screen flex flex-col bg-[var(--color-page-canvas)] text-white/90" style={dynamicThemeVars}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

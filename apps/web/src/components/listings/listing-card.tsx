@@ -153,13 +153,14 @@ function PlanRibbon({ planType }: { planType?: "free" | "standard" | "vip" }) {
     );
   }
   return (
-    <div className="absolute left-0 top-4 flex items-center gap-1 rounded-r-full bg-[#0891B2] pl-3 pr-3 py-1 text-[11px] font-bold text-white shadow">
+    <div className="absolute left-0 top-4 flex items-center gap-1 rounded-r-full bg-[#0057FF] pl-3 pr-3 py-1 text-[11px] font-bold text-white shadow">
       ↑ Standart
     </div>
   );
 }
 
-export function ListingCard({ listing }: { listing: ListingCardData }) {
+export function ListingCard({ listing, variant = "premium" }: { listing: ListingCardData; variant?: "default" | "premium" }) {
+  const isPremium = variant === "premium";
   const isPromoted = listing.planType === "vip" || listing.planType === "standard";
   const isPart = listing.listingKind === "part";
   const partConditionLabel =
@@ -182,10 +183,14 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl bg-white border transition duration-200 hover:-translate-y-0.5 hover:shadow-xl ${
-        isPromoted
-          ? "border-[#0891B2]/30 shadow-[0_0_0_1px_rgba(8,145,178,0.15),0_2px_12px_rgba(8,145,178,0.1)]"
-          : "border-slate-200 shadow-sm hover:border-slate-300"
+      className={`group flex flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 ${
+        isPremium
+          ? `premium-card ${isPromoted ? "ring-1 ring-[#0057FF]/30" : ""}`
+          : `rounded-2xl bg-white border hover:shadow-xl ${
+              isPromoted
+                ? "border-[#0057FF]/30 shadow-[0_0_0_1px_rgba(0,87,255,0.15),0_2px_12px_rgba(0,87,255,0.1)]"
+                : "border-slate-200 shadow-sm hover:border-slate-300"
+            }`
       }`}
     >
       {/* Image — 16:9 aspect ratio */}
@@ -215,20 +220,27 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
       <div className="flex flex-1 flex-col gap-3 p-4">
         {/* Title + price */}
         <div>
-          <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-[#0891B2] transition-colors">
+          <h3 className={`line-clamp-1 font-semibold transition-colors ${
+            isPremium
+              ? "uppercase tracking-wide text-white/90 group-hover:text-[#0057FF]"
+              : "text-slate-900 group-hover:text-[#0057FF]"
+          }`}>
             {listing.title}
           </h3>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-xl font-bold text-[#0891B2]">
+            <span className={`text-xl font-bold ${isPremium ? "text-[#0057FF]" : "text-[#0057FF]"}`}>
               {listing.priceAzn.toLocaleString("az-AZ")} ₼
             </span>
+            {isPremium && (
+              <span className="text-xs text-white/40">AZN-dən</span>
+            )}
             <DealBadge insight={listing.priceInsight} />
           </div>
         </div>
 
         {/* Specs row */}
         {isPart ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${isPremium ? "text-white/50" : "text-slate-500"}`}>
             {listing.partCategory && <span className="badge-neutral">{listing.partCategory}</span>}
             {listing.partBrand && <span>{listing.partBrand}</span>}
             {partConditionLabel && <span>{partConditionLabel}</span>}
@@ -248,7 +260,7 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
             </span>
           </div>
         ) : (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${isPremium ? "text-white/50" : "text-slate-500"}`}>
             <span className="flex items-center gap-1">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
@@ -274,7 +286,7 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
         )}
 
         {/* Trust badges */}
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+        <div className={`flex flex-wrap items-center gap-1.5 border-t pt-3 ${isPremium ? "border-white/10" : "border-slate-100"}`}>
           {(listing.vinProvided || listing.vinVerified) && (
             <span className="badge-verified" title="VIN nömrəsi satıcı tərəfindən daxil edilib">
               <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">

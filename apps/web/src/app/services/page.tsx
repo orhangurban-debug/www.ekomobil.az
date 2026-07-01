@@ -40,10 +40,10 @@ export default function ServicesPage() {
                 <div className="icon-tile icon-tile-teal mb-3">
                   <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{group.label}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-white/40">{group.label}</p>
                 <ul className="mt-3 space-y-1.5">
                   {group.types.map((type) => (
-                    <li key={type} className="flex items-center gap-2 text-sm text-slate-600">
+                    <li key={type} className="flex items-center gap-2 text-sm text-white/65">
                       <span className="h-1 w-1 rounded-full bg-brand-400" />
                       {SERVICE_PROVIDER_TYPE_LABELS[type]}
                     </li>

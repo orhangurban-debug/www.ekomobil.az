@@ -147,12 +147,13 @@ export default async function ListingsPage({
         icon={CarFront}
         title="Bütün elanlar"
         subtitle={`${result.total} avtomobil elanı tapıldı`}
+        variant="dark"
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar filters */}
-        <aside className="w-full shrink-0 lg:w-64">
+        <aside className="w-full shrink-0 lg:w-72">
           <ListingsFiltersPanel initialQuery={query} sortOptions={sortOptions} basePath="/listings" />
         </aside>
 
@@ -168,28 +169,28 @@ export default async function ListingsPage({
                   </Link>
                 ))
               ) : (
-                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
+                <span className="text-sm text-white/40">Aktiv filter yoxdur</span>
               )}
             </div>
-            <div className="hidden lg:block text-sm text-slate-500">{result.total} elan</div>
+            <div className="hidden text-sm text-white/50 lg:block">{result.total} elan</div>
           </div>
 
           {result.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 py-20 text-center">
-              <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="glass-panel flex flex-col items-center justify-center gap-4 py-20 text-center">
+              <svg className="h-12 w-12 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <div>
-                <p className="font-medium text-slate-700">Heç bir elan tapılmadı</p>
-                <p className="mt-1 text-sm text-slate-400">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
+                <p className="font-medium text-white/80">Heç bir elan tapılmadı</p>
+                <p className="mt-1 text-sm text-white/40">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
               </div>
               <Link href="/listings" className="btn-secondary text-sm">Bütün elanlara bax</Link>
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {result.items.map((listing, idx) => (
                 <>
-                  <ListingCard key={listing.id} listing={listing} />
+                  <ListingCard key={listing.id} listing={listing} variant="premium" />
                   {/* Hər 6 kartdan sonra native ad */}
                   {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && (
                     <NativeAdCard key={`ad-${idx}`} slotLabel={`listings-inline-${Math.floor(idx / 6)}`} />
@@ -214,7 +215,7 @@ export default async function ListingsPage({
             >
               ← Əvvəlki
             </Link>
-            <span className="px-4 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">{result.page}</span>
+            <span className="rounded-lg bg-[#0057FF]/15 px-4 py-2 text-sm font-semibold text-[#93c5fd]">{result.page}</span>
             <Link
               href={
                 result.total > result.page * result.pageSize

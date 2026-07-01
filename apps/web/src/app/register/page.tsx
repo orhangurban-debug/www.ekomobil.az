@@ -162,8 +162,8 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Hesab yaradın</h1>
-        <p className="mt-2 text-slate-500">EkoMobil-ə qoşulun — bütün hesab növləri eyni formadan başlayır</p>
+        <h1 className="text-3xl font-bold text-white">Hesab yaradın</h1>
+        <p className="mt-2 text-white/50">EkoMobil-ə qoşulun — bütün hesab növləri eyni formadan başlayır</p>
       </div>
 
       {/* Account intent selector */}
@@ -176,14 +176,14 @@ export default function RegisterPage() {
             className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 text-center transition ${
               intent === item.id
                 ? "border-[#0891B2] bg-[#0891B2]/5"
-                : "border-slate-200 bg-white hover:border-slate-300"
+                : "border-white/10 card hover:border-white/15"
             }`}
           >
             <span className="text-2xl">{item.icon}</span>
-            <span className={`text-sm font-semibold ${intent === item.id ? "text-[#0891B2]" : "text-slate-800"}`}>
+            <span className={`text-sm font-semibold ${intent === item.id ? "text-[#0891B2]" : "text-white/90"}`}>
               {item.label}
             </span>
-            <span className="text-[11px] leading-tight text-slate-400">{item.sub}</span>
+            <span className="text-[11px] leading-tight text-white/40">{item.sub}</span>
           </button>
         ))}
       </div>
@@ -202,13 +202,13 @@ export default function RegisterPage() {
               className={`rounded-xl border-2 p-3 text-left transition ${
                 businessVertical === item.id
                   ? "border-[#0891B2] bg-[#0891B2]/5"
-                  : "border-slate-200 bg-white hover:border-slate-300"
+                  : "border-white/10 card hover:border-white/15"
               }`}
             >
-              <p className={`text-sm font-semibold ${businessVertical === item.id ? "text-[#0891B2]" : "text-slate-800"}`}>
+              <p className={`text-sm font-semibold ${businessVertical === item.id ? "text-[#0891B2]" : "text-white/90"}`}>
                 {item.label}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">{item.sub}</p>
+              <p className="mt-1 text-[11px] text-white/50">{item.sub}</p>
             </button>
           ))}
         </div>
@@ -218,7 +218,7 @@ export default function RegisterPage() {
       {intent !== "personal" && (
         <div className="mb-6 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-4 text-sm">
           <p className="font-semibold text-[#0891B2]">{info.title}</p>
-          <p className="mt-1 text-slate-600 leading-relaxed">{info.body}</p>
+          <p className="mt-1 text-white/65 leading-relaxed">{info.body}</p>
           {info.cta && info.href && (
             <a
               href={info.href}
@@ -236,7 +236,7 @@ export default function RegisterPage() {
           prefetch={false}
           onClick={onGoogleClick}
           aria-disabled={googleLoading}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 ${
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/5 ${
             googleLoading ? "pointer-events-none opacity-60" : ""
           }`}
         >
@@ -245,7 +245,7 @@ export default function RegisterPage() {
           </svg>
           {googleLoading ? "Google-a yönləndirilir..." : "Google ilə qeydiyyat"}
         </Link>
-        <div className="text-center text-xs text-slate-400">və ya aşağıdakı formu doldurun</div>
+        <div className="text-center text-xs text-white/40">və ya aşağıdakı formu doldurun</div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -315,7 +315,7 @@ export default function RegisterPage() {
             required
           />
           {otpHintCode && (
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-white/50">
               Test kodu: <span className="font-mono">{otpHintCode}</span>
             </p>
           )}
@@ -337,13 +337,13 @@ export default function RegisterPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+        <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
             <input
               type="checkbox"
               checked={acceptTerms}
               onChange={(e) => setAcceptTerms(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300"
+              className="mt-0.5 h-4 w-4 rounded border-white/15"
             />
             <span>
               <Link href="/terms" className="font-medium text-[#0891B2] hover:underline" target="_blank">
@@ -352,12 +352,12 @@ export default function RegisterPage() {
               oxudum və qəbul edirəm.
             </span>
           </label>
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
             <input
               type="checkbox"
               checked={acceptPrivacy}
               onChange={(e) => setAcceptPrivacy(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300"
+              className="mt-0.5 h-4 w-4 rounded border-white/15"
             />
             <span>
               <Link href="/privacy" className="font-medium text-[#0891B2] hover:underline" target="_blank">
@@ -366,7 +366,7 @@ export default function RegisterPage() {
               oxudum və qəbul edirəm.
             </span>
           </label>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-white/50">
             Qeydiyyat məlumatlarınız fırıldaqçılıq hallarının araşdırılması və qanuni tələblər çərçivəsində
             saxlanıla bilər.{" "}
             <Link href="/legal" className="text-[#0891B2] hover:underline">
@@ -380,7 +380,7 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-white/50">
         Artıq hesabınız var?{" "}
         <Link href="/login" className="font-medium text-[#0891B2] hover:underline">
           Daxil olun

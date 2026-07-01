@@ -48,7 +48,7 @@ function CheckIcon() {
 
 function XIcon() {
   return (
-    <svg className="h-4 w-4 shrink-0 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+    <svg className="h-4 w-4 shrink-0 text-white/30" fill="currentColor" viewBox="0 0 20 20">
       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
     </svg>
   );
@@ -57,11 +57,11 @@ function XIcon() {
 function SectionHeader({ label, title, sub }: { label: string; title: string; sub: string }) {
   return (
     <div className="mb-10 text-center">
-      <span className="inline-block rounded-full bg-[#0891B2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0891B2]">
+      <span className="inline-block rounded-full bg-[#0057FF]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0057FF]">
         {label}
       </span>
-      <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">{title}</h2>
-      <p className="mt-2 text-slate-500">{sub}</p>
+      <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">{title}</h2>
+      <p className="mt-2 text-white/50">{sub}</p>
     </div>
   );
 }
@@ -78,9 +78,9 @@ type AuctionCategoryStyle = {
 
 const AUCTION_CATEGORY_STYLES: Record<ListingKind, AuctionCategoryStyle> = {
   vehicle: {
-    headerClass: "bg-[#0891B2]/10 border-[#0891B2]/20",
-    borderClass: "border-[#0891B2]/25",
-    ringClass: "ring-1 ring-[#0891B2]/15"
+    headerClass: "bg-[#0057FF]/10 border-[#0057FF]/20",
+    borderClass: "border-[#0057FF]/25",
+    ringClass: "ring-1 ring-[#0057FF]/15"
   },
   part: {
     headerClass: "bg-fuchsia-500/10 border-fuchsia-500/20",
@@ -104,11 +104,11 @@ function AuctionFeeRow({
     <div className="py-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          <p className="mt-0.5 text-xs font-medium text-slate-600">{who}</p>
-          <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">{desc}</p>
+          <p className="text-sm font-semibold text-white">{title}</p>
+          <p className="mt-0.5 text-xs font-medium text-white/65">{who}</p>
+          <p className="mt-1.5 text-xs text-white/40 leading-relaxed">{desc}</p>
         </div>
-        <div className="shrink-0 text-xl font-bold tabular-nums text-slate-900 sm:text-right sm:pt-0.5">
+        <div className="shrink-0 text-xl font-bold tabular-nums text-white sm:text-right sm:pt-0.5">
           {value}
         </div>
       </div>
@@ -124,16 +124,16 @@ function AuctionDetailsBlock({
   children: ReactNode;
 }) {
   return (
-    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm [&_summary::-webkit-details-marker]:hidden">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-slate-900 sm:px-5 sm:py-4">
+    <details className="group rounded-2xl border border-white/10 card shadow-sm [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-white sm:px-5 sm:py-4">
         <span>{title}</span>
-        <span className="shrink-0 text-slate-400 transition group-open:rotate-180" aria-hidden>
+        <span className="shrink-0 text-white/40 transition group-open:rotate-180" aria-hidden>
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </span>
       </summary>
-      <div className="border-t border-slate-100 px-4 pb-4 pt-1 text-sm text-slate-600 sm:px-5 sm:pb-5">{children}</div>
+      <div className="border-t border-white/10 px-4 pb-4 pt-1 text-sm text-white/65 sm:px-5 sm:pb-5">{children}</div>
     </details>
   );
 }
@@ -167,11 +167,11 @@ function AuctionCategoryPanel({
   return (
     <div
       id={kind === "vehicle" ? "auction-vehicle" : "auction-part"}
-      className={`scroll-mt-24 overflow-hidden rounded-2xl border bg-white shadow-sm ${s.borderClass} ${s.ringClass}`}
+      className={`scroll-mt-24 overflow-hidden rounded-2xl border card shadow-sm ${s.borderClass} ${s.ringClass}`}
     >
       <div className={`border-b px-5 py-3.5 ${s.headerClass}`}>
-        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-        <p className="mt-0.5 text-xs text-slate-600 sm:text-sm">{subtitle}</p>
+        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <p className="mt-0.5 text-xs text-white/65 sm:text-sm">{subtitle}</p>
       </div>
 
       <div className="divide-y divide-slate-100 px-5">
@@ -205,21 +205,21 @@ function AuctionCategoryPanel({
         />
       </div>
 
-      <div className="border-t border-slate-100 bg-slate-50/80 px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Nümunə hesab</p>
-        <p className="mt-1 text-xs text-slate-500">{exampleLabel}</p>
+      <div className="border-t border-white/10 bg-white/5/80 px-5 py-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Nümunə hesab</p>
+        <p className="mt-1 text-xs text-white/50">{exampleLabel}</p>
         <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
-            <dt className="text-[10px] text-slate-400">Lot</dt>
-            <dd className="mt-0.5 text-sm font-bold text-slate-900">{lot.toLocaleString("az-AZ")} ₼</dd>
+          <div className="rounded-lg card px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-white/40">Lot</dt>
+            <dd className="mt-0.5 text-sm font-bold text-white">{lot.toLocaleString("az-AZ")} ₼</dd>
           </div>
-          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
-            <dt className="text-[10px] text-slate-400">Komisyon</dt>
-            <dd className="mt-0.5 text-sm font-bold text-slate-900">{comm.toLocaleString("az-AZ")} ₼</dd>
+          <div className="rounded-lg card px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-white/40">Komisyon</dt>
+            <dd className="mt-0.5 text-sm font-bold text-white">{comm.toLocaleString("az-AZ")} ₼</dd>
           </div>
-          <div className="rounded-lg bg-white px-2 py-2 shadow-sm ring-1 ring-slate-100">
-            <dt className="text-[10px] text-slate-400">Cəmi</dt>
-            <dd className="mt-0.5 text-sm font-bold text-slate-900">{total.toLocaleString("az-AZ")} ₼</dd>
+          <div className="rounded-lg card px-2 py-2 shadow-sm ring-1 ring-slate-100">
+            <dt className="text-[10px] text-white/40">Cəmi</dt>
+            <dd className="mt-0.5 text-sm font-bold text-white">{total.toLocaleString("az-AZ")} ₼</dd>
           </div>
         </dl>
       </div>
@@ -270,17 +270,17 @@ export default async function PricingPage() {
     }
   ];
   return (
-    <div className="bg-slate-50">
+    <div className="bg-white/5">
       {/* ─── Page hero ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-14 text-center">
+      <div className="relative overflow-hidden border-b border-white/10 card px-4 py-14 text-center">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#0891B2]/10 blur-3xl" />
+          <div className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#0057FF]/10 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-3xl">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Qiymətlər
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-500">
+          <p className="mx-auto mt-3 max-w-2xl text-white/50">
             Elan, salon, mağaza və auksion xidmətləri.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -289,7 +289,7 @@ export default async function PricingPage() {
               "Avtomobilin qiymətinə görə dinamik tarif",
               "Biznes üçün aylıq sabit plan"
             ].map((item) => (
-              <span key={item} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+              <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/65">
                 {item}
               </span>
             ))}
@@ -299,24 +299,24 @@ export default async function PricingPage() {
 
       <div className="mx-auto max-w-5xl space-y-20 px-4 py-16 sm:px-6 lg:px-8">
         <section className="grid gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fərdi satıcı</p>
-            <p className="mt-1 text-base font-bold text-slate-900">Pulsuz başla</p>
-            <p className="mt-1 text-xs text-slate-500">1 aktiv pulsuz elan. Ödənişli plana keç — limit yoxdur.</p>
+          <div className="rounded-2xl border border-white/10 card p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Fərdi satıcı</p>
+            <p className="mt-1 text-base font-bold text-white">Pulsuz başla</p>
+            <p className="mt-1 text-xs text-white/50">1 aktiv pulsuz elan. Ödənişli plana keç — limit yoxdur.</p>
           </div>
-          <div className="rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">İrəlilətmə</p>
-            <p className="mt-1 text-base font-bold text-slate-900">Elanı öndə tut</p>
-            <p className="mt-1 text-xs text-slate-600">İrəli çək, VIP, Premium — elanı daha çox nəzərə çarpdır.</p>
+          <div className="rounded-2xl border border-[#0057FF]/30 bg-[#0057FF]/5 p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0057FF]">İrəlilətmə</p>
+            <p className="mt-1 text-base font-bold text-white">Elanı öndə tut</p>
+            <p className="mt-1 text-xs text-white/65">İrəli çək, VIP, Premium — elanı daha çox nəzərə çarpdır.</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Biznes satıcı</p>
-            <p className="mt-1 text-base font-bold text-slate-900">Salon və mağaza</p>
+            <p className="mt-1 text-base font-bold text-white">Salon və mağaza</p>
             <p className="mt-1 text-xs text-emerald-700">Eyni hesab, ayrı aylıq planlar — salon və mağaza bir-birindən asılı deyil.</p>
           </div>
           <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Auksion</p>
-            <p className="mt-1 text-base font-bold text-slate-900">Lot + komisyon</p>
+            <p className="mt-1 text-base font-bold text-white">Lot + komisyon</p>
             <p className="mt-1 text-xs text-violet-700">Lot yerləşdirmə haqqı + satış komisyonu. Alıcı üçün pulsuz.</p>
           </div>
         </section>
@@ -352,34 +352,34 @@ export default async function PricingPage() {
           </div>
 
           {/* Dynamic pricing table */}
-          <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3.5">
-              <p className="text-sm font-semibold text-slate-800">
+          <div className="mb-8 overflow-hidden rounded-2xl border border-white/10 card shadow-sm">
+            <div className="border-b border-white/10 bg-white/5 px-5 py-3.5">
+              <p className="text-sm font-semibold text-white/90">
                 Dinamik qiymət cədvəli — avtomobil satış qiymətinə görə
               </p>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-white/50">
                 Elan haqqı avtomobilin qiymət aralığına uyğun hesablanır. Pulsuz plan həmişə 0 ₼-dır.
               </p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs text-slate-500">
+                  <tr className="border-b border-white/10 text-xs text-white/50">
                     <th className="py-3 pl-5 pr-3 text-left font-medium">Avtomobil qiymət aralığı</th>
                     <th className="px-3 py-3 text-center font-medium">Pulsuz</th>
-                    <th className="px-3 py-3 text-center font-medium text-slate-700">Standart</th>
-                    <th className="px-3 py-3 text-center font-medium text-[#0891B2]">VIP</th>
+                    <th className="px-3 py-3 text-center font-medium text-white/80">Standart</th>
+                    <th className="px-3 py-3 text-center font-medium text-[#0057FF]">VIP</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {PRICING_TIERS.map((tier, i) => (
-                    <tr key={i} className="hover:bg-slate-50/60">
-                      <td className="py-3 pl-5 pr-3 font-medium text-slate-700">{tier.labelAz}</td>
-                      <td className="px-3 py-3 text-center text-slate-400">0 ₼</td>
-                      <td className="px-3 py-3 text-center font-semibold text-slate-800">
+                    <tr key={i} className="hover:bg-white/5/60">
+                      <td className="py-3 pl-5 pr-3 font-medium text-white/80">{tier.labelAz}</td>
+                      <td className="px-3 py-3 text-center text-white/40">0 ₼</td>
+                      <td className="px-3 py-3 text-center font-semibold text-white/90">
                         {tier.standardPriceAzn} ₼
                       </td>
-                      <td className="px-3 py-3 text-center font-bold text-[#0891B2]">
+                      <td className="px-3 py-3 text-center font-bold text-[#0057FF]">
                         {tier.vipPriceAzn} ₼
                       </td>
                     </tr>
@@ -387,8 +387,8 @@ export default async function PricingPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
-              <p className="text-xs text-slate-400">
+            <div className="border-t border-white/10 bg-white/5/60 px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
+              <p className="text-xs text-white/40">
                 Elan yerləşdirərkən qiymət aralığı avtomatik müəyyənləşir. Təsdiq addımında dəqiq məbləği görə bilərsiniz.
               </p>
               <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
@@ -398,11 +398,11 @@ export default async function PricingPage() {
           </div>
 
           {/* Image processing info */}
-          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
-            <p className="text-sm font-semibold text-slate-800">Şəkil emalı — bütün planlar üçün eynidir</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3 text-xs text-slate-600">
+          <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <p className="text-sm font-semibold text-white/90">Şəkil emalı — bütün planlar üçün eynidir</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3 text-xs text-white/65">
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 rounded bg-[#0891B2]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0891B2]">AVTO</span>
+                <span className="mt-0.5 shrink-0 rounded bg-[#0057FF]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0057FF]">AVTO</span>
                 <span><strong>İstənilən format qəbul olunur</strong> — JPEG, PNG, WebP, HEIC, BMP. Sistem avtomatik JPEG-ə çevirir.</span>
               </div>
               <div className="flex items-start gap-2">
@@ -427,55 +427,55 @@ export default async function PricingPage() {
               return (
           <div
             key={plan.id}
-                  className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                  className={`relative flex flex-col rounded-2xl border card p-6 ${
                     isVip
-                      ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
-                      : "border-slate-200 shadow-sm"
+                      ? "border-[#0057FF] shadow-[0_0_0_1px_rgba(0,87,255,0.4),0_8px_32px_rgba(0,87,255,0.12)]"
+                      : "border-white/10 shadow-sm"
                   }`}
                 >
                   {isVip && (
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0057FF] px-3 py-1 text-xs font-bold text-white shadow">
                 Ən populyar
               </span>
             )}
             <div className="mb-4">
-                    <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
+                    <h3 className="text-base font-semibold text-white">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
                       {plan.priceAzn === 0 ? (
-                        <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
+                        <span className="text-3xl font-bold text-white">Pulsuz</span>
                       ) : (
                         <>
-                          <span className="text-xs text-slate-400 font-medium">-dən</span>
-                          <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
+                          <span className="text-xs text-white/40 font-medium">-dən</span>
+                          <span className={`text-3xl font-bold ${isVip ? "text-[#0057FF]" : "text-white"}`}>
                             {isStandard ? listingPlanMinFee("standard") : listingPlanMinFee("vip")} ₼
                 </span>
-                          <span className="text-sm text-slate-400">/ elan</span>
+                          <span className="text-sm text-white/40">/ elan</span>
                         </>
                 )}
               </div>
-                    <p className="mt-1 text-xs text-slate-400">{plan.durationDays} gün aktiv</p>
+                    <p className="mt-1 text-xs text-white/40">{plan.durationDays} gün aktiv</p>
                   </div>
 
                   {/* Feature chips */}
                   <div className="mb-4 flex flex-wrap gap-1.5">
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.maxImages} şəkil</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{plan.storageMb} MB</span>
+                    <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">{plan.maxImages} şəkil</span>
+                    <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">{plan.storageMb} MB</span>
                     {plan.videoEnabled
                       ? <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">{plan.maxVideos} video</span>
-                      : <span className="rounded-md bg-slate-100 text-slate-400 px-2 py-0.5 text-xs">Video yoxdur</span>
+                      : <span className="rounded-md bg-white/8 text-white/40 px-2 py-0.5 text-xs">Video yoxdur</span>
                     }
                     {plan.id === "free" && (
                       <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">1 aktiv limit</span>
                     )}
             </div>
 
-                  <ul className="flex-1 space-y-2 text-sm text-slate-600">
+                  <ul className="flex-1 space-y-2 text-sm text-white/65">
               {plan.id === "free" && (
                 <>
                         <li className="flex items-center gap-2"><CheckIcon />Standart sıralanma</li>
                         <li className="flex items-center gap-2"><CheckIcon />Əsas axtarış görünüşü</li>
-                        <li className="flex items-center gap-2 text-slate-400"><XIcon />İrəlilətmə (ayrıca alına bilər)</li>
-                        <li className="flex items-center gap-2 text-slate-400"><XIcon />Video</li>
+                        <li className="flex items-center gap-2 text-white/40"><XIcon />İrəlilətmə (ayrıca alına bilər)</li>
+                        <li className="flex items-center gap-2 text-white/40"><XIcon />Video</li>
                 </>
               )}
               {plan.id === "standard" && (
@@ -503,8 +503,8 @@ export default async function PricingPage() {
               href="/publish"
                     className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
                       plan.priceAzn === 0
-                  ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  : "bg-[#0891B2] text-white hover:bg-[#0e7490]"
+                  ? "bg-white/8 text-white/80 hover:bg-slate-200"
+                  : "bg-[#0057FF] text-white hover:bg-[#0046CC]"
               }`}
             >
                     {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Elan ver"}
@@ -514,7 +514,7 @@ export default async function PricingPage() {
             })}
           </div>
 
-          <p className="mt-4 text-center text-xs text-slate-400">
+          <p className="mt-4 text-center text-xs text-white/40">
             * Standart və VIP plan qiyməti avtomobilin satış qiymətinə görə dəyişir. Yuxarıdakı cədvələ baxın.
           </p>
         </section>
@@ -532,13 +532,13 @@ export default async function PricingPage() {
             {[
               {
                 icon: (
-                  <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="h-6 w-6 text-white/65" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7M12 3v18" />
                   </svg>
                 ),
                 title: "İrəli çək",
                 desc: "Elanı ən yeni kimi sıralamaya qaldırır — axtarışda yuxarı mövqeyə çıxarır.",
-                color: "bg-slate-50 border-slate-200"
+                color: "bg-white/5 border-white/10"
               },
               {
                 icon: (
@@ -552,35 +552,35 @@ export default async function PricingPage() {
               },
               {
                 icon: (
-                  <svg className="h-6 w-6 text-[#0891B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="h-6 w-6 text-[#0057FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
                 ),
                 title: "Premium",
                 desc: "Ana səhifənin Premium blokunda yer alır. Ən güclü mövqe — VIP + İrəli çək xidmətləri daxildir.",
-                color: "bg-[#0891B2]/5 border-[#0891B2]/20"
+                color: "bg-[#0057FF]/5 border-[#0057FF]/20"
               }
             ].map((item) => (
               <div key={item.title} className={`rounded-2xl border p-5 ${item.color}`}>
                 <div className="mb-3">{item.icon}</div>
-                <h3 className="font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-1 text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+                <h3 className="font-semibold text-white">{item.title}</h3>
+                <p className="mt-1 text-xs text-white/65 leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </div>
 
           {/* Bump packages */}
           <div className="mb-10">
-            <h3 className="mb-4 text-base font-semibold text-slate-900">İrəli çək paketləri</h3>
+            <h3 className="mb-4 text-base font-semibold text-white">İrəli çək paketləri</h3>
             <div className="grid gap-3 sm:grid-cols-4">
               {BUMP_PACKAGES.map((pkg) => (
-                <div key={pkg.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-800">{pkg.nameAz}</p>
-                  <p className="mt-1 flex-1 text-xs text-slate-500 leading-relaxed">{pkg.descriptionAz}</p>
+                <div key={pkg.id} className="flex flex-col rounded-xl border border-white/10 card p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-white/90">{pkg.nameAz}</p>
+                  <p className="mt-1 flex-1 text-xs text-white/50 leading-relaxed">{pkg.descriptionAz}</p>
                   <div className="mt-3 flex items-baseline justify-between">
-                    <span className="text-xl font-bold text-slate-900">{pkg.priceAzn} ₼</span>
+                    <span className="text-xl font-bold text-white">{pkg.priceAzn} ₼</span>
                     {pkg.isPopular && (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Populyar</span>
+                      <span className="rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-semibold text-white/65">Populyar</span>
                     )}
                   </div>
                 </div>
@@ -590,12 +590,12 @@ export default async function PricingPage() {
 
           {/* VIP packages */}
           <div className="mb-10">
-            <h3 className="mb-4 text-base font-semibold text-slate-900">VIP paketləri</h3>
+            <h3 className="mb-4 text-base font-semibold text-white">VIP paketləri</h3>
             <div className="grid gap-3 sm:grid-cols-4">
               {VIP_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`flex flex-col rounded-xl border bg-white p-4 shadow-sm ${
+                  className={`flex flex-col rounded-xl border card p-4 shadow-sm ${
                     pkg.isPopular ? "border-amber-300 ring-1 ring-amber-200" : "border-amber-200"
                   }`}
                 >
@@ -616,31 +616,31 @@ export default async function PricingPage() {
 
           {/* Premium packages */}
           <div className="mb-6">
-            <h3 className="mb-4 text-base font-semibold text-slate-900">Premium paketləri</h3>
+            <h3 className="mb-4 text-base font-semibold text-white">Premium paketləri</h3>
             <div className="grid gap-3 sm:grid-cols-4">
               {PREMIUM_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`flex flex-col rounded-xl border bg-white p-4 shadow-sm ${
+                  className={`flex flex-col rounded-xl border card p-4 shadow-sm ${
                     pkg.isPopular
-                      ? "border-[#0891B2] ring-1 ring-[#0891B2]/30"
-                      : "border-[#0891B2]/25"
+                      ? "border-[#0057FF] ring-1 ring-[#0057FF]/30"
+                      : "border-[#0057FF]/25"
                   }`}
                 >
-                  <p className="text-sm font-semibold text-[#0891B2]">{pkg.nameAz}</p>
+                  <p className="text-sm font-semibold text-[#0057FF]">{pkg.nameAz}</p>
                   {pkg.includedBonuses.length > 0 && (
-                    <ul className="mt-1 flex-1 space-y-0.5 text-xs text-slate-500">
+                    <ul className="mt-1 flex-1 space-y-0.5 text-xs text-white/50">
                       {pkg.includedBonuses.map((b) => (
                         <li key={b} className="flex items-center gap-1">
-                          <span className="text-[#0891B2]">✓</span> {b}
+                          <span className="text-[#0057FF]">✓</span> {b}
                         </li>
                       ))}
                     </ul>
                   )}
                   <div className="mt-3 flex items-baseline justify-between">
-                    <span className="text-xl font-bold text-[#0891B2]">{pkg.priceAzn} ₼</span>
+                    <span className="text-xl font-bold text-[#0057FF]">{pkg.priceAzn} ₼</span>
                     {pkg.isPopular && (
-                      <span className="rounded-full bg-[#0891B2]/10 px-2 py-0.5 text-[10px] font-semibold text-[#0891B2]">Populyar</span>
+                      <span className="rounded-full bg-[#0057FF]/10 px-2 py-0.5 text-[10px] font-semibold text-[#0057FF]">Populyar</span>
                     )}
                   </div>
                 </div>
@@ -648,8 +648,8 @@ export default async function PricingPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
-            <strong className="text-slate-800">Necə əldə edilir?</strong> Aktiv elan idarə panelindən
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/65">
+            <strong className="text-white/90">Necə əldə edilir?</strong> Aktiv elan idarə panelindən
             istədiyiniz paketi seçib ödəniş edin. Xidmət dərhal işə düşür.
             Salon abunəsi ilə gələn irəlilətmə kreditləri avtomatik tətbiq olunur.
           </div>
@@ -684,8 +684,8 @@ export default async function PricingPage() {
             </div>
           </div>
 
-          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-xs text-slate-600">
-            <p className="font-semibold text-slate-800">Niyə bu limitlər var?</p>
+          <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-white/65">
+            <p className="font-semibold text-white/90">Niyə bu limitlər var?</p>
             <p className="mt-1 leading-relaxed">
               Limitlər real xərclərə görə hesablanır: şəkil saxlanması ({economics.storageCostPerImageAzn.toFixed(4)} ₼/şəkil), görüntü trafiki ({economics.egressCostPerImageViewAzn.toFixed(4)} ₼/görüntü), moderasiya ({economics.moderationCostPerListingAzn.toFixed(2)} ₼/elan) və dəstək ({economics.supportCostPerListingAzn.toFixed(2)} ₼/elan). Hədəf maya dəyəri nisbəti {economics.targetCogsRatioPct}% və risk buffer {economics.riskBufferPct}% saxlanır.
             </p>
@@ -695,31 +695,31 @@ export default async function PricingPage() {
             {dealerPlans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                className={`relative flex flex-col rounded-2xl border card p-6 ${
                   plan.highlight
-                    ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
-                    : "border-slate-200 shadow-sm"
+                    ? "border-[#0057FF] shadow-[0_0_0_1px_rgba(0,87,255,0.4),0_8px_32px_rgba(0,87,255,0.12)]"
+                    : "border-white/10 shadow-sm"
                 }`}
               >
                 {plan.highlight && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0057FF] px-3 py-1 text-xs font-bold text-white shadow">
                     Ən populyar
                   </span>
                 )}
                 <div className="mb-4">
-                  <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
+                  <h3 className="text-base font-semibold text-white">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
+                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-white"}`}>
                       {plan.priceAzn} ₼
                     </span>
-                    <span className="text-sm text-slate-400">/ ay</span>
+                    <span className="text-sm text-white/40">/ ay</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">Aylıq abunə planı</p>
+                  <p className="mt-1 text-xs text-white/40">Aylıq abunə planı</p>
                 </div>
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
                     {plan.maxActiveListings} aktiv elan
                   </span>
                   {plan.csvImportEnabled && (
@@ -740,7 +740,7 @@ export default async function PricingPage() {
                 </div>
 
                 {/* Real features */}
-                <ul className="flex-1 space-y-2 text-sm text-slate-600">
+                <ul className="flex-1 space-y-2 text-sm text-white/65">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <CheckIcon />
@@ -751,11 +751,11 @@ export default async function PricingPage() {
 
                 {/* Coming soon */}
                 {plan.comingSoon.length > 0 && (
-                  <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                  <div className="mt-4 rounded-xl border border-dashed border-white/10 px-3 py-3">
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Tezliklə</p>
                     <ul className="space-y-1">
                       {plan.comingSoon.map((f) => (
-                        <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-white/40">
                           <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -768,7 +768,7 @@ export default async function PricingPage() {
 
                 <Link
                   href="/dealer"
-                  className="mt-5 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+                  className="mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]"
                 >
                   Abunə ol
                 </Link>
@@ -806,8 +806,8 @@ export default async function PricingPage() {
             </div>
           </div>
 
-          <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-xs text-slate-600">
-            <p className="font-semibold text-slate-800">SKU limiti necə formalaşır?</p>
+          <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-white/65">
+            <p className="font-semibold text-white/90">SKU limiti necə formalaşır?</p>
             <p className="mt-1 leading-relaxed">
               Hər SKU üçün şəkil sayı, aylıq ortalama baxış yükü (parts üçün {economics.avgPartsImageViewsPerListingPerMonth}) və əməliyyat xərcləri hesablanır; bu səbəbdən plan qiyməti artdıqca saxlanılan aktiv SKU limiti də artır.
             </p>
@@ -817,34 +817,34 @@ export default async function PricingPage() {
             {partsPlans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                className={`relative flex flex-col rounded-2xl border card p-6 ${
                   plan.highlight
-                    ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
-                    : "border-slate-200 shadow-sm"
+                    ? "border-[#0057FF] shadow-[0_0_0_1px_rgba(0,87,255,0.4),0_8px_32px_rgba(0,87,255,0.12)]"
+                    : "border-white/10 shadow-sm"
                 }`}
               >
                 {plan.highlight && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0057FF] px-3 py-1 text-xs font-bold text-white shadow">
                     Ən populyar
                   </span>
                 )}
                 <div className="mb-5">
-                  <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
+                  <h3 className="text-base font-semibold text-white">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
+                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-white"}`}>
                       {plan.priceAzn} ₼
                     </span>
-                    <span className="text-sm text-slate-400">/ ay</span>
+                    <span className="text-sm text-white/40">/ ay</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">Aylıq mağaza planı</p>
+                  <p className="mt-1 text-xs text-white/40">Aylıq mağaza planı</p>
       </div>
 
                 {/* Feature chips */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
                     {plan.maxActiveListings.toLocaleString("az-AZ")} aktiv SKU
                   </span>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
                     {plan.perListingMaxImages} şəkil/SKU
                   </span>
                   {plan.analyticsEnabled && (
@@ -860,7 +860,7 @@ export default async function PricingPage() {
                 </div>
 
                 {/* Real features */}
-                <ul className="flex-1 space-y-2.5 text-sm text-slate-600">
+                <ul className="flex-1 space-y-2.5 text-sm text-white/65">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <CheckIcon />
@@ -871,11 +871,11 @@ export default async function PricingPage() {
 
                 {/* Coming soon */}
                 {plan.comingSoon.length > 0 && (
-                  <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                  <div className="mt-4 rounded-xl border border-dashed border-white/10 px-3 py-3">
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Tezliklə</p>
                     <ul className="space-y-1">
                       {plan.comingSoon.map((f) => (
-                        <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-white/40">
                           <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -888,7 +888,7 @@ export default async function PricingPage() {
 
                 <Link
                   href="/publish"
-                  className="mt-5 block w-full rounded-xl bg-[#0891B2] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0e7490]"
+                  className="mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]"
                 >
                   Paketi seç
                 </Link>
@@ -924,7 +924,7 @@ export default async function PricingPage() {
               <a
                 key={cat.id}
                 href={`#service-${cat.id}`}
-                className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/65 shadow-sm transition hover:border-[#0057FF]/40 hover:text-[#0057FF]"
               >
                 {cat.label}
               </a>
@@ -935,29 +935,29 @@ export default async function PricingPage() {
             {serviceCategories.map((cat) => (
               <div key={cat.id} id={`service-${cat.id}`} className="scroll-mt-24">
                 {/* Sub-header */}
-                <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-4">
+                <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-white/10 pb-4">
                   <div>
                     <h3 className={`text-lg font-bold ${cat.color}`}>{cat.label}</h3>
-                    <p className="mt-0.5 text-sm text-slate-500">{cat.subLabel}</p>
+                    <p className="mt-0.5 text-sm text-white/50">{cat.subLabel}</p>
                   </div>
                   <Link
                     href="/partners/inspection"
-                    className="text-xs font-medium text-[#0891B2] hover:underline"
+                    className="text-xs font-medium text-[#0057FF] hover:underline"
                   >
                     Tərəfdaşlıq müraciəti →
                   </Link>
                 </div>
 
                 {/* Subtypes list */}
-                <div className={`mb-6 rounded-xl border ${cat.borderColor} bg-white px-4 py-3`}>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className={`mb-6 rounded-xl border ${cat.borderColor} bg-white/5 px-4 py-3`}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
                     Bu plana uyğun servis növləri
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {cat.subtypes.map((s) => (
                       <span
                         key={s}
-                        className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600"
+                        className="rounded-full bg-white/8 px-2.5 py-1 text-xs text-white/65"
                       >
                         {s}
                       </span>
@@ -970,33 +970,33 @@ export default async function PricingPage() {
                   {cat.plans.map((plan) => (
                     <div
                       key={plan.id}
-                      className={`relative flex flex-col rounded-2xl border bg-white p-6 ${
+                      className={`relative flex flex-col rounded-2xl border card p-6 ${
                         plan.highlight
-                          ? "border-[#0891B2] shadow-[0_0_0_1px_rgba(8,145,178,0.4),0_8px_32px_rgba(8,145,178,0.12)]"
-                          : "border-slate-200 shadow-sm"
+                          ? "border-[#0057FF] shadow-[0_0_0_1px_rgba(0,87,255,0.4),0_8px_32px_rgba(0,87,255,0.12)]"
+                          : "border-white/10 shadow-sm"
                       }`}
                     >
                       {plan.tagAz && (
-                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0891B2] px-3 py-1 text-xs font-bold text-white shadow">
+                        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#0057FF] px-3 py-1 text-xs font-bold text-white shadow">
                           {plan.tagAz}
                         </span>
                       )}
 
                       <div className="mb-4">
-                        <h4 className="text-base font-semibold text-slate-900">{plan.nameAz}</h4>
+                        <h4 className="text-base font-semibold text-white">{plan.nameAz}</h4>
                         <div className="mt-2 flex items-baseline gap-1">
                           {plan.priceAzn === 0 ? (
-                            <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
+                            <span className="text-3xl font-bold text-white">Pulsuz</span>
                           ) : (
                             <>
-                              <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0891B2]" : "text-slate-900"}`}>
+                              <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-white"}`}>
                                 {plan.priceAzn} ₼
                               </span>
-                              <span className="text-sm text-slate-400">{plan.billingAz}</span>
+                              <span className="text-sm text-white/40">{plan.billingAz}</span>
                             </>
                           )}
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">{plan.descriptionAz}</p>
+                        <p className="mt-1 text-xs text-white/50">{plan.descriptionAz}</p>
                         {plan.launchOfferAz && (
                           <div className="mt-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
                             {plan.launchOfferAz}
@@ -1004,7 +1004,7 @@ export default async function PricingPage() {
                         )}
                       </div>
 
-                      <ul className="flex-1 space-y-2 text-sm text-slate-600">
+                      <ul className="flex-1 space-y-2 text-sm text-white/65">
                         {plan.features.map((f) => (
                           <li key={f} className="flex items-start gap-2">
                             <CheckIcon />
@@ -1014,11 +1014,11 @@ export default async function PricingPage() {
                       </ul>
 
                       {plan.comingSoon && plan.comingSoon.length > 0 && (
-                        <div className="mt-4 rounded-xl border border-dashed border-slate-200 px-3 py-3">
-                          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tezliklə</p>
+                        <div className="mt-4 rounded-xl border border-dashed border-white/10 px-3 py-3">
+                          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">Tezliklə</p>
                           <ul className="space-y-1">
                             {plan.comingSoon.map((f) => (
-                              <li key={f} className="flex items-center gap-1.5 text-xs text-slate-400">
+                              <li key={f} className="flex items-center gap-1.5 text-xs text-white/40">
                                 <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -1033,10 +1033,10 @@ export default async function PricingPage() {
                         href={plan.ctaHref}
                         className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
                           plan.highlight
-                            ? "bg-[#0891B2] text-white hover:bg-[#0e7490]"
+                            ? "bg-[#0057FF] text-white hover:bg-[#0046CC]"
                             : plan.priceAzn === 0
-                            ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                            : "border border-[#0891B2] text-[#0891B2] hover:bg-[#0891B2]/5"
+                            ? "bg-white/8 text-white/80 hover:bg-slate-200"
+                            : "border border-[#0057FF] text-[#0057FF] hover:bg-[#0057FF]/5"
                         }`}
                       >
                         {plan.ctaLabel}
@@ -1048,11 +1048,11 @@ export default async function PricingPage() {
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
-            <strong className="text-slate-800">Qeyd:</strong> EkoMobil servis profilini saytda siyahıya alır
+          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/65">
+            <strong className="text-white/90">Qeyd:</strong> EkoMobil servis profilini saytda siyahıya alır
             və müştəri əlaqəsini asanlaşdırır. Göstərilən xidmətin keyfiyyəti xidmət təminatçısının məsuliyyətindədir.
             Tərəfdaşlıq üçün{" "}
-            <Link href="/partners/inspection" className="font-semibold text-[#0891B2] hover:underline">
+            <Link href="/partners/inspection" className="font-semibold text-[#0057FF] hover:underline">
               müraciət formasını
             </Link>
             {" "}doldurun.
@@ -1068,19 +1068,19 @@ export default async function PricingPage() {
           />
 
           <div className="mx-auto mb-8 max-w-2xl text-center">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-white/65">
               Avtomobilin satış məbləği alıcıdan satıcıya birbaşa ödənilir — platforma vasitəçilik etmir.
               Aşağıdakı cədvəldə yalnız platforma haqları göstərilib.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
               <Link
                 href="/rules/auction"
-                className="font-semibold text-[#0891B2] underline decoration-[#0891B2]/40 underline-offset-4 hover:decoration-[#0891B2]"
+                className="font-semibold text-[#0057FF] underline decoration-[#0057FF]/40 underline-offset-4 hover:decoration-[#0057FF]"
               >
                 Auksion qaydaları (tam mətn)
               </Link>
-              <span className="hidden text-slate-300 sm:inline" aria-hidden>|</span>
-              <a href="#auction-vehicle" className="font-medium text-slate-700 hover:text-[#0891B2]">
+              <span className="hidden text-white/30 sm:inline" aria-hidden>|</span>
+              <a href="#auction-vehicle" className="font-medium text-white/80 hover:text-[#0057FF]">
                 Avtomobil haqları
               </a>
               <a href="#auction-part" className="font-medium text-fuchsia-800 hover:underline">
@@ -1116,26 +1116,26 @@ export default async function PricingPage() {
 
           <div className="mt-8 space-y-3">
             <AuctionDetailsBlock title="Ödəniş və öhdəlik haqları — necə işləyir?">
-              <p className="leading-relaxed text-slate-600">
+              <p className="leading-relaxed text-white/65">
                 EkoMobil auksionunda hər iki tərəf — alıcı da, satıcı da — öhdəlik verir. Öhdəlik pozulduqda
                 platforma öhdəlik haqqı tətbiq edilir; bu həm platforma tamlığını qoruyur, həm zərər görən tərəfi
                 kompensasiya edir. Məbləğlər ayrıca bank ödənişi ilə tutulur; kartdan avtomatik silinmə tətbiq edilmir.
                 Ətraflı hüquqi izah üçün{" "}
-                <Link href="/rules/auction" className="font-semibold text-[#0891B2] underline underline-offset-2">
+                <Link href="/rules/auction" className="font-semibold text-[#0057FF] underline underline-offset-2">
                   auksion qaydaları
                 </Link>{" "}
                 səhifəsinə keçin.
               </p>
             </AuctionDetailsBlock>
             <AuctionDetailsBlock title="Satıcı üçün addımlar (A–Z)">
-              <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0891B2]">
+              <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0057FF]">
                 {AUCTION_SELLER_STEPS_AZ.map((s) => (
                   <li key={s} className="leading-relaxed">{s}</li>
                 ))}
               </ol>
             </AuctionDetailsBlock>
             <AuctionDetailsBlock title="Alıcı üçün addımlar (A–Z)">
-              <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0891B2]">
+              <ol className="list-decimal space-y-2.5 pl-5 marker:font-medium marker:text-[#0057FF]">
                 {AUCTION_BUYER_STEPS_AZ.map((s) => (
                   <li key={s} className="leading-relaxed">{s}</li>
                 ))}
@@ -1154,13 +1154,13 @@ export default async function PricingPage() {
         </section>
 
         {/* ─── FAQ ───────────────────────────────────────────────────── */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
-          <h2 className="mb-6 text-xl font-bold text-slate-900">Tez-tez soruşulan suallar</h2>
+        <section className="rounded-2xl border border-white/10 card p-6 sm:p-8">
+          <h2 className="mb-6 text-xl font-bold text-white">Tez-tez soruşulan suallar</h2>
           <div className="space-y-5 divide-y divide-slate-100">
             {faqItems.map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">
-                <p className="font-medium text-slate-900">{item.q}</p>
-                <p className="mt-1.5 text-sm text-slate-500 leading-relaxed">{item.a}</p>
+                <p className="font-medium text-white">{item.q}</p>
+                <p className="mt-1.5 text-sm text-white/50 leading-relaxed">{item.a}</p>
               </div>
             ))}
           </div>

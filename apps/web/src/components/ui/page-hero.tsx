@@ -10,7 +10,7 @@ interface PageHeroProps {
   variant?: "light" | "dark";
 }
 
-export function PageHero({ title, subtitle, icon: Icon, badge, actions, variant = "light" }: PageHeroProps) {
+export function PageHero({ title, subtitle, icon: Icon, badge, actions, variant = "dark" }: PageHeroProps) {
   const isDark = variant === "dark";
 
   return (
@@ -25,7 +25,7 @@ export function PageHero({ title, subtitle, icon: Icon, badge, actions, variant 
             )}
             <div>
               {badge && (
-                <span className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${isDark ? "bg-white/10 text-cyan-200" : "bg-brand-50 text-brand-700"}`}>
+                <span className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${isDark ? "bg-[#0057FF]/15 text-[#93c5fd]" : "bg-brand-50 text-brand-700"}`}>
                   {badge}
                 </span>
               )}

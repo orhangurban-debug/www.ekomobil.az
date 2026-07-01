@@ -13,18 +13,18 @@ const COMPANY_EMAIL = "info@ekomobil.az";
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-20">
-      <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-      <div className="mt-4 space-y-3 text-slate-600 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-bold text-white">{title}</h2>
+      <div className="mt-4 space-y-3 text-white/65 leading-relaxed">{children}</div>
     </section>
   );
 }
 
 function DataTable({ rows }: { rows: { category: string; examples: string; purpose: string }[] }) {
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+    <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs text-slate-500">
+          <tr className="border-b border-white/10 bg-white/5 text-left text-xs text-white/50">
             <th className="px-4 py-3 font-semibold">Kateqoriya</th>
             <th className="px-4 py-3 font-semibold">Nümunələr</th>
             <th className="px-4 py-3 font-semibold hidden sm:table-cell">Məqsəd</th>
@@ -33,9 +33,9 @@ function DataTable({ rows }: { rows: { category: string; examples: string; purpo
         <tbody className="divide-y divide-slate-100">
           {rows.map((row) => (
             <tr key={row.category} className="align-top">
-              <td className="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">{row.category}</td>
-              <td className="px-4 py-3 text-slate-600">{row.examples}</td>
-              <td className="px-4 py-3 text-slate-500 hidden sm:table-cell">{row.purpose}</td>
+              <td className="px-4 py-3 font-medium text-white/90 whitespace-nowrap">{row.category}</td>
+              <td className="px-4 py-3 text-white/65">{row.examples}</td>
+              <td className="px-4 py-3 text-white/50 hidden sm:table-cell">{row.purpose}</td>
             </tr>
           ))}
         </tbody>
@@ -46,20 +46,20 @@ function DataTable({ rows }: { rows: { category: string; examples: string; purpo
 
 export default function PrivacyPage() {
   return (
-    <div className="bg-white">
+    <div className="card">
       {/* Hero */}
-      <div className="border-b border-slate-200 bg-slate-50 px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Məxfilik Siyasəti</h1>
-        <p className="mt-2 text-slate-500">Son yenilənmə: {EFFECTIVE_DATE}</p>
-        <p className="mt-1 text-sm text-slate-400">
+      <div className="border-b border-white/10 bg-white/5 px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold text-white">Məxfilik Siyasəti</h1>
+        <p className="mt-2 text-white/50">Son yenilənmə: {EFFECTIVE_DATE}</p>
+        <p className="mt-1 text-sm text-white/40">
           Məlumatlarınızın necə toplandığını, istifadə edildiyini və qorunduğunu izah edir.
         </p>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Quick nav */}
-        <nav className="mb-12 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Mündəricat</p>
+        <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
           <ol className="space-y-1 text-sm text-[#0891B2]">
             {[
               { href: "#collection", label: "1. Hansı məlumatları toplayırıq?" },
@@ -132,37 +132,37 @@ export default function PrivacyPage() {
               <li><strong>Hüquqi öhdəliklər:</strong> Vergi, audit, hüquq-mühafizə tələbləri</li>
               <li><strong>Bildirişlər:</strong> Elan baxış statistikası, plan bitim xəbərdarlığı, yeni mesaj (razılıqla)</li>
             </ul>
-            <p className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-sm">
+            <p className="rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-sm">
               Məlumatlarınızı üçüncü tərəf reklam şirkətlərinə <strong>satmırıq</strong>.
               Profilə əsaslanan reklam göstərmirik.
             </p>
           </Section>
 
           <Section id="legal-basis" title="3. Emalın hüquqi əsasları">
-            <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="overflow-hidden rounded-xl border border-white/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs text-slate-500">
+                  <tr className="border-b border-white/10 bg-white/5 text-left text-xs text-white/50">
                     <th className="px-4 py-3 font-semibold">Emal məqsədi</th>
                     <th className="px-4 py-3 font-semibold">Hüquqi əsas</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   <tr>
-                    <td className="px-4 py-3 text-slate-700">Qeydiyyat, giriş, hesab idarəetməsi</td>
-                    <td className="px-4 py-3 text-slate-700">Müqavilənin icrası</td>
+                    <td className="px-4 py-3 text-white/80">Qeydiyyat, giriş, hesab idarəetməsi</td>
+                    <td className="px-4 py-3 text-white/80">Müqavilənin icrası</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-slate-700">Ödəniş tarixi, invoys və audit qeydləri</td>
-                    <td className="px-4 py-3 text-slate-700">Qanuni öhdəlik</td>
+                    <td className="px-4 py-3 text-white/80">Ödəniş tarixi, invoys və audit qeydləri</td>
+                    <td className="px-4 py-3 text-white/80">Qanuni öhdəlik</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-slate-700">Saxtakarlığın qarşısının alınması və təhlükəsizlik</td>
-                    <td className="px-4 py-3 text-slate-700">Qanuni maraq</td>
+                    <td className="px-4 py-3 text-white/80">Saxtakarlığın qarşısının alınması və təhlükəsizlik</td>
+                    <td className="px-4 py-3 text-white/80">Qanuni maraq</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-slate-700">Analitik və funksional çərəzlər</td>
-                    <td className="px-4 py-3 text-slate-700">Razılıq (deaktiv etmək mümkündür)</td>
+                    <td className="px-4 py-3 text-white/80">Analitik və funksional çərəzlər</td>
+                    <td className="px-4 py-3 text-white/80">Razılıq (deaktiv etmək mümkündür)</td>
                   </tr>
                 </tbody>
               </table>
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section id="sharing" title="4. Məlumatları kimlərlə paylaşırıq?">
-            <p className="text-sm font-medium text-slate-700">Aşağıdakı hallarda məlumatlar paylaşıla bilər:</p>
+            <p className="text-sm font-medium text-white/80">Aşağıdakı hallarda məlumatlar paylaşıla bilər:</p>
             <div className="mt-3 space-y-3">
               {[
                 {
@@ -190,9 +190,9 @@ export default function PrivacyPage() {
                   what: "EkoMobil-in birləşməsi, satışı, yenidən quruluşu halında — bu siyasət qüvvəsini saxlamaq şərtilə"
                 }
               ].map((item) => (
-                <div key={item.who} className="rounded-lg border border-slate-200 px-4 py-3 text-sm">
-                  <p className="font-medium text-slate-800">{item.who}</p>
-                  <p className="mt-1 text-slate-500">{item.what}</p>
+                <div key={item.who} className="rounded-lg border border-white/10 px-4 py-3 text-sm">
+                  <p className="font-medium text-white/90">{item.who}</p>
+                  <p className="mt-1 text-white/50">{item.what}</p>
                 </div>
               ))}
             </div>
@@ -210,10 +210,10 @@ export default function PrivacyPage() {
           </Section>
 
           <Section id="retention" title="6. Məlumatları nə qədər saxlayırıq?">
-            <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="overflow-hidden rounded-xl border border-white/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs text-slate-500">
+                  <tr className="border-b border-white/10 bg-white/5 text-left text-xs text-white/50">
                     <th className="px-4 py-3 font-semibold">Məlumat növü</th>
                     <th className="px-4 py-3 font-semibold">Saxlama müddəti</th>
                   </tr>
@@ -229,8 +229,8 @@ export default function PrivacyPage() {
                     { type: "Silinmiş hesab məlumatları", duration: "30 gün (sonra tamamilə silinir)" }
                   ].map((row) => (
                     <tr key={row.type}>
-                      <td className="px-4 py-3 text-slate-700">{row.type}</td>
-                      <td className="px-4 py-3 font-medium text-slate-800">{row.duration}</td>
+                      <td className="px-4 py-3 text-white/80">{row.type}</td>
+                      <td className="px-4 py-3 font-medium text-white/90">{row.duration}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -247,7 +247,7 @@ export default function PrivacyPage() {
                 {
                   type: "Zəruri çərəzlər",
                   desc: "Giriş seansi, CSRF qoruması, dil seçimi. Bunlar olmadan sayt düzgün işləmir — deaktiv edilə bilməz.",
-                  badge: "bg-slate-100 text-slate-700"
+                  badge: "bg-white/8 text-white/80"
                 },
                 {
                   type: "Funksional çərəzlər",
@@ -260,11 +260,11 @@ export default function PrivacyPage() {
                   badge: "bg-purple-50 text-purple-700"
                 }
               ].map((item) => (
-                <div key={item.type} className="flex items-start gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                <div key={item.type} className="flex items-start gap-3 rounded-lg border border-white/10 px-4 py-3">
                   <span className={`mt-0.5 shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold ${item.badge}`}>
                     {item.type}
                   </span>
-                  <p className="text-slate-600">{item.desc}</p>
+                  <p className="text-white/65">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -323,18 +323,18 @@ export default function PrivacyPage() {
 
           <Section id="contact" title="12. Əlaqə">
             <p>Məxfilik məsələləri üçün:</p>
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-3">
+            <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm space-y-3">
               <p><strong>EkoMobil MMC — Məxfilik Məsul Şəxs</strong></p>
               <p>Bakı, Azərbaycan</p>
               <ContactActionButton intent="privacy" />
-              <p className="text-slate-400 text-xs">Cavab müddəti: 30 iş günü</p>
+              <p className="text-white/40 text-xs">Cavab müddəti: 30 iş günü</p>
             </div>
           </Section>
 
         </div>
 
         {/* Footer links */}
-        <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
+        <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
           <Link href="/terms" className="text-[#0891B2] hover:underline">İstifadəçi Razılaşması</Link>
           <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
           <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Geri qaytarma siyasəti</Link>

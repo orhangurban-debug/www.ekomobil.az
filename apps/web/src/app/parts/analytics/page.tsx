@@ -34,26 +34,26 @@ export default async function PartsAnalyticsPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Mağaza analitika paneli</h1>
-          <p className="mt-1 text-sm text-slate-500">Plan: {plan.nameAz}</p>
+          <h1 className="text-2xl font-bold text-white">Mağaza analitika paneli</h1>
+          <p className="mt-1 text-sm text-white/50">Plan: {plan.nameAz}</p>
         </div>
         <Link href="/parts" className="btn-secondary">Mağaza elanlarına qayıt</Link>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="card p-4"><div className="text-xs text-slate-500">Aktiv SKU</div><div className="mt-1 text-2xl font-bold">{summary.activeCount}</div></div>
-        <div className="card p-4"><div className="text-xs text-slate-500">Baxış</div><div className="mt-1 text-2xl font-bold">{summary.totalViews.toLocaleString("az-AZ")}</div></div>
-        <div className="card p-4"><div className="text-xs text-slate-500">Əlaqə klik</div><div className="mt-1 text-2xl font-bold">{summary.totalContactClicks.toLocaleString("az-AZ")}</div></div>
-        <div className="card p-4"><div className="text-xs text-slate-500">Dönüşüm siqnalı</div><div className="mt-1 text-2xl font-bold">{(summary.totalContactClicks > 0 ? ((summary.totalContactClicks / Math.max(summary.totalViews, 1)) * 100) : 0).toFixed(1)}%</div></div>
+        <div className="card p-4"><div className="text-xs text-white/50">Aktiv SKU</div><div className="mt-1 text-2xl font-bold">{summary.activeCount}</div></div>
+        <div className="card p-4"><div className="text-xs text-white/50">Baxış</div><div className="mt-1 text-2xl font-bold">{summary.totalViews.toLocaleString("az-AZ")}</div></div>
+        <div className="card p-4"><div className="text-xs text-white/50">Əlaqə klik</div><div className="mt-1 text-2xl font-bold">{summary.totalContactClicks.toLocaleString("az-AZ")}</div></div>
+        <div className="card p-4"><div className="text-xs text-white/50">Dönüşüm siqnalı</div><div className="mt-1 text-2xl font-bold">{(summary.totalContactClicks > 0 ? ((summary.totalContactClicks / Math.max(summary.totalViews, 1)) * 100) : 0).toFixed(1)}%</div></div>
       </div>
 
       <div className="mt-6 card overflow-hidden">
-        <div className="border-b border-slate-100 px-5 py-3">
-          <h2 className="font-semibold text-slate-900">Ən çox baxılan məhsul elanları</h2>
+        <div className="border-b border-white/10 px-5 py-3">
+          <h2 className="font-semibold text-white">Ən çox baxılan məhsul elanları</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-white/5 text-xs uppercase tracking-wide text-white/50">
               <tr>
                 <th className="px-4 py-2 text-left">Elan</th>
                 <th className="px-4 py-2 text-left">Şəhər</th>
@@ -65,7 +65,7 @@ export default async function PartsAnalyticsPage() {
             <tbody className="divide-y divide-slate-100">
               {summary.topListings.map((item) => (
                 <tr key={item.listingId}>
-                  <td className="px-4 py-2"><Link className="font-medium text-slate-900 hover:text-brand-700" href={`/listings/${item.listingId}`}>{item.title}</Link></td>
+                  <td className="px-4 py-2"><Link className="font-medium text-white hover:text-[#0057FF]" href={`/listings/${item.listingId}`}>{item.title}</Link></td>
                   <td className="px-4 py-2">{item.city}</td>
                   <td className="px-4 py-2">{item.status}</td>
                   <td className="px-4 py-2 text-right">{item.viewCount.toLocaleString("az-AZ")}</td>
@@ -74,7 +74,7 @@ export default async function PartsAnalyticsPage() {
               ))}
               {summary.topListings.length === 0 && (
                 <tr>
-                  <td className="px-4 py-10 text-center text-slate-400" colSpan={5}>Hələ statistik məlumat yoxdur.</td>
+                  <td className="px-4 py-10 text-center text-white/40" colSpan={5}>Hələ statistik məlumat yoxdur.</td>
                 </tr>
               )}
             </tbody>

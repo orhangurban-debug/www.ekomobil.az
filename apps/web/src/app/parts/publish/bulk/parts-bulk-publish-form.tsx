@@ -152,7 +152,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 text-sm text-slate-500">
+      <nav className="mb-6 text-sm text-white/50">
         <Link href="/parts" className="hover:text-[#0891B2]">
           Mağaza elanları
         </Link>
@@ -161,11 +161,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
           Yeni elan
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-800">Toplu yükləmə</span>
+        <span className="text-white/90">Toplu yükləmə</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Toplu məhsul elanı</h1>
-      <p className="mt-2 text-slate-600">
+      <h1 className="text-3xl font-bold text-white">Toplu məhsul elanı</h1>
+      <p className="mt-2 text-white/65">
         Çox sayda məhsul şəklini bir dəfəyə yükləyin — AI ayrı elanlar yaradacaq, siz yoxlayacaqsınız.
       </p>
 
@@ -182,7 +182,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
       {drafts.length > 0 && (
         <div className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-slate-900">{drafts.length} elan hazırlanıb</h2>
+            <h2 className="text-lg font-semibold text-white">{drafts.length} elan hazırlanıb</h2>
             <div className="grid gap-3 sm:grid-cols-3">
               <input className="input-field" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Şəhər" />
               {storeAccessEnabled ? (

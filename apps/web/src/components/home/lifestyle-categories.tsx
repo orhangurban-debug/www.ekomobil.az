@@ -65,7 +65,7 @@ export function LifestyleCategories() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="section-title">Kateqoriyalar</h2>
-          <Link href="/listings" className="hidden text-sm font-medium text-brand-600 hover:underline sm:block">
+          <Link href="/listings" className="hidden text-sm font-medium text-[#0057FF] hover:underline sm:block">
             Hamısı →
           </Link>
         </div>
@@ -79,7 +79,7 @@ export function LifestyleCategories() {
                 <div className={`icon-tile icon-tile-${cat.tone}`}>
                   <Icon className="h-6 w-6" strokeWidth={2.25} aria-hidden="true" />
                 </div>
-                <div className="text-sm font-semibold text-slate-900">{cat.label}</div>
+                <div className="text-sm font-semibold text-white/90">{cat.label}</div>
               </Link>
             );
           })}

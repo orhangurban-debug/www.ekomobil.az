@@ -43,7 +43,7 @@ export function PricingNav() {
   }, []);
 
   return (
-    <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
+    <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-white/10/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
       {NAV_ITEMS.map((item) => {
         const id = item.href.slice(1);
         const isActive = activeId === id;
@@ -54,7 +54,7 @@ export function PricingNav() {
             className={`rounded-full border px-4 py-1.5 text-sm font-medium shadow-sm transition-all duration-200 ${
               isActive
                 ? "border-[#0891B2] bg-[#0891B2] text-white shadow-[#0891B2]/20"
-                : "border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                : "border-white/10 card text-white/65 hover:-translate-y-0.5 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
             }`}
           >
             {item.label}
