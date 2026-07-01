@@ -46,7 +46,7 @@ export default function TermsPage() {
         {/* Quick nav */}
         <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
-          <ol className="space-y-1 text-sm text-[#0891B2]">
+          <ol className="space-y-1 text-sm text-[#0057FF]">
             {[
               { href: "#parties", label: "1. Tərəflər" },
               { href: "#platform-role", label: "2. Platformanın rolu" },
@@ -170,7 +170,7 @@ export default function TermsPage() {
             </Sub>
             <Sub title="Auksion iştirakçıları">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
-                <li>Auksionun gedişi, depozit saxlanması, intizam ödənişləri <Link href="/rules/auction" className="text-[#0891B2] hover:underline">Auksion çərçivəsi</Link> sənədinə tabedir — bu razılaşma ilə bərabər qüvvə daşıyır</li>
+                <li>Auksionun gedişi, depozit saxlanması, intizam ödənişləri <Link href="/rules/auction" className="text-[#0057FF] hover:underline">Auksion çərçivəsi</Link> sənədinə tabedir — bu razılaşma ilə bərabər qüvvə daşıyır</li>
                 <li>Hər bir bid <strong>bağlayıcı öhdəlikdir</strong>; texniki nasazlıq, şəbəkə problemi və ya istifadəçi xətası bid-i ləğv etmir</li>
                 <li>Satıcı lotu canlıya çıxardıqda qalib alıcıya satış öhdəliyi yaranır; imtina intizam ödənişi ilə nəticələnir</li>
               </ul>
@@ -211,7 +211,7 @@ export default function TermsPage() {
               <p className="text-sm">
                 Elan planları (Standart, VIP) hər elan üçün ayrıca bir dəfəlik ödənişdir. Plan qiyməti
                 avtomobilin elan qiymətinə görə dəyişir — bax:{" "}
-                <Link href="/pricing#listings" className="text-[#0891B2] hover:underline">Qiymət cədvəli</Link>.
+                <Link href="/pricing#listings" className="text-[#0057FF] hover:underline">Qiymət cədvəli</Link>.
               </p>
             </Sub>
             <Sub title="İrəlilətmə xidmətləri">
@@ -237,11 +237,11 @@ export default function TermsPage() {
               </ul>
               <p className="mt-2 text-sm">
                 Tam qaydalar üçün{" "}
-                <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund və cərimə siyasəti</Link>{" "}
+                <Link href="/refund-policy" className="text-[#0057FF] hover:underline">Refund və cərimə siyasəti</Link>{" "}
                 sənədinə baxın.
               </p>
             </Sub>
-            <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+            <p className="rounded-lg bg-amber-500/10 border border-amber-200 px-4 py-3 text-sm text-amber-200">
               Ödəniş prosesini üçüncü tərəf ödəniş sistemi (bank/prosessor) həyata keçirir. EkoMobil kart
               məlumatlarını saxlamır.
             </p>
@@ -296,7 +296,7 @@ export default function TermsPage() {
                     <th className="px-4 py-3 font-semibold">Tədbirlər</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/10">
                   {[
                     { level: "Xəbərdarlıq", action: "E-poçt bildirişi; pozucu elanın düzəldilməsi tələbi" },
                     { level: "Müvəqqəti məhdudiyyət", action: "Elan yerləşdirmə 7–30 günlük müvəqqəti blok" },
@@ -316,7 +316,7 @@ export default function TermsPage() {
               Ağır pozuntular (fırıldaqçılıq, oğurluq, saxta VIN) birbaşa daimi ban ilə nəticələnə bilər.
               Bu hallarda platforma qeydiyyat məlumatları, elan tarixçəsi, texniki loglar və şikayət qeydlərini
               qanuni əsasla hüquq-mühafizə orqanlarına təqdim edə bilər.{" "}
-              <Link href="/legal" className="text-[#0891B2] hover:underline">
+              <Link href="/legal" className="text-[#0057FF] hover:underline">
                 Hüquqi məlumat
               </Link>
             </p>
@@ -352,7 +352,7 @@ export default function TermsPage() {
                 bütün üçüncü tərəf tələblərindən platformanı azad edir (indemnification).
               </li>
             </ul>
-            <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+            <p className="rounded-lg bg-amber-500/10 border border-amber-200 px-4 py-3 text-sm text-amber-200">
               Həmin avtomobilin alınması qərarı <strong>alıcının özünün məsuliyyətidir</strong>.
               Platforma ekspertiza, hüquqi yoxlama əvəzi deyil.
             </p>
@@ -429,7 +429,7 @@ export default function TermsPage() {
             </p>
             <p>
               Cari versiyaya həmişə{" "}
-              <Link href="/terms" className="text-[#0891B2] hover:underline">ekomobil.az/terms</Link>{" "}
+              <Link href="/terms" className="text-[#0057FF] hover:underline">ekomobil.az/terms</Link>{" "}
               ünvanından daxil ola bilərsiniz. Yuxarıdakı &quot;Son yenilənmə&quot; tarixi hər dəyişiklikdə güncəllənir.
             </p>
           </Section>
@@ -448,10 +448,10 @@ export default function TermsPage() {
 
         {/* Footer links */}
         <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
-          <Link href="/privacy" className="text-[#0891B2] hover:underline">Məxfilik Siyasəti</Link>
-          <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
-          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund siyasəti</Link>
-          <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
+          <Link href="/privacy" className="text-[#0057FF] hover:underline">Məxfilik Siyasəti</Link>
+          <Link href="/rules" className="text-[#0057FF] hover:underline">Platforma Qaydaları</Link>
+          <Link href="/refund-policy" className="text-[#0057FF] hover:underline">Refund siyasəti</Link>
+          <Link href="/pricing" className="text-[#0057FF] hover:underline">Qiymətlər</Link>
         </div>
       </div>
     </div>

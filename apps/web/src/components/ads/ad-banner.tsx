@@ -56,7 +56,7 @@ const DEMO_ADS: AdBannerProps["demoContent"][] = [
     sub: "Bakı • 24 saat ərzində nəticə",
     cta: "Rezerv et",
     href: "#",
-    accent: "#0891B2"
+    accent: "#0057FF"
   },
   {
     logoText: "TechniCar",
@@ -141,7 +141,7 @@ function LeaderboardAd({ content, onClose }: { content: NonNullable<AdBannerProp
 function RectangleAd({ content }: { content: NonNullable<AdBannerProps["demoContent"]> }) {
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-between overflow-hidden rounded-xl border border-white/10 card p-5 shadow-sm"
+      className="flex h-full w-full flex-col items-center justify-between overflow-hidden rounded-xl border glass-panel border-white/10 p-5 shadow-sm"
     >
       {/* Top: Reklam etiket */}
       <div className="flex w-full items-center justify-between">
@@ -213,7 +213,7 @@ export function NativeAdCard({ slotLabel }: { slotLabel?: string }) {
   if (dismissed || !content) return null;
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 card shadow-sm">
+    <div className="relative flex flex-col overflow-hidden rounded-2xl border glass-panel border-white/10 shadow-sm">
       {/* "Reklam" işarəsi */}
       <div className="absolute right-3 top-3 z-10 rounded-md bg-white/8 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-white/40">
         Reklam

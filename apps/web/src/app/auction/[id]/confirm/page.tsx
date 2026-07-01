@@ -41,7 +41,7 @@ export default async function AuctionConfirmPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-white/10 card p-8 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-white/10 p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#0057FF]">Post-auction settlement</p>
           <h1 className="mt-2 text-3xl font-bold text-white">Satış nəticəsini təsdiqlə</h1>
@@ -72,7 +72,7 @@ export default async function AuctionConfirmPage({
           </div>
         </dl>
 
-        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="mt-6 rounded-xl alert-warning border p-4 text-sm text-amber-200">
           Əsas satış ödənişi bank köçürməsi, notariat və ya tərəflərin razılaşdığı birbaşa üsulla
           tamamlanmalıdır. EkoMobil bu məbləği qəbul etmir və saxlamır.
         </div>
@@ -95,7 +95,7 @@ export default async function AuctionConfirmPage({
         </div>
 
         {isDisputed && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="mt-6 rounded-2xl alert-danger border p-5">
             <h2 className="text-base font-semibold text-red-950">Mübahisə axını</h2>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl bg-white/80 p-4">
@@ -126,7 +126,7 @@ export default async function AuctionConfirmPage({
         {/* Dispute evidence section — visible only when disputed and user is a party */}
         {isDisputed && uploaderRole && (
           <div className="mt-8">
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+            <div className="mb-4 rounded-xl alert-danger border p-4 text-sm text-red-900">
               <p className="font-semibold">Mübahisə açıqdır</p>
               <p className="mt-1 text-red-800">
                 Aşağıdan mübahisənizi dəstəkləyən sübut faylları (foto, PDF, mesaj ekranı s.) yükləyin.

@@ -181,6 +181,6 @@ export function getBoostTypeColor(type: BoostType): {
   return {
     bump: { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" },
     vip: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-300" },
-    premium: { bg: "bg-[#0891B2]/10", text: "text-[#0891B2]", border: "border-[#0891B2]/30" }
+    premium: { bg: "bg-[#0057FF]/10", text: "text-[#0057FF]", border: "border-[#0057FF]/30" }
   }[type];
 }

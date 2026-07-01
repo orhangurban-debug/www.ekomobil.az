@@ -11,16 +11,18 @@ interface CompareContextValue {
 const CompareContext = createContext<CompareContextValue | null>(null);
 
 export function CompareProvider({ children }: { children: React.ReactNode }) {
-  const [ids, setIds] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
+  const [ids, setIds] = useState<string[]>([]);
+
+  useEffect(() => {
     const raw = window.localStorage.getItem("ekomobil_compare_ids");
-    if (!raw) return [];
+    if (!raw) return;
     try {
-      return JSON.parse(raw) as string[];
+      const parsed = JSON.parse(raw) as string[];
+      if (Array.isArray(parsed)) setIds(parsed.slice(0, 4));
     } catch {
-      return [];
+      // ignore corrupt storage
     }
-  });
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem("ekomobil_compare_ids", JSON.stringify(ids.slice(0, 4)));

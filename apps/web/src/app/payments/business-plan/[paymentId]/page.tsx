@@ -28,7 +28,7 @@ export default async function BusinessPlanPaymentPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-white/10 card p-8 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-white/10 p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#0057FF]">Kapital Bank / BirPay</p>
           <h1 className="mt-2 text-2xl font-bold text-white">Biznes plan abunə ödənişi</h1>
@@ -65,14 +65,14 @@ export default async function BusinessPlanPaymentPage({
         </dl>
 
         {query.status && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
             Son cavab: {query.status}
           </div>
         )}
 
         {payment.status === "succeeded" ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
               Abunə ödənişi təsdiqləndi və plan aktivləşdirildi.
             </div>
             <Link href={payment.businessType === "dealer" ? "/dealer" : "/parts"} className="btn-primary">
@@ -97,7 +97,7 @@ export default async function BusinessPlanPaymentPage({
                 Live merchant məlumatları hazırdır. Redirect checkotu ilə bank ödənişini tamamlayın.
               </div>
             ) : (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
                 Merchant məlumatları olmadan real checkout mümkün deyil.
               </div>
             )}

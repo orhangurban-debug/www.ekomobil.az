@@ -159,17 +159,17 @@ export function AuctionConfirmationPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Satış nəticəsini təsdiqlə</h2>
-      <p className="mt-2 text-sm text-slate-500">
+    <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+      <h2 className="text-lg font-semibold text-white">Satış nəticəsini təsdiqlə</h2>
+      <p className="mt-2 text-sm text-white/50">
         Burada əsas satış ödənişi deyil, yalnız satış nəticəsi qeyd olunur. Avtomobilin tam məbləği birbaşa tərəflər arasında ödənir.
         EkoMobil bu prosesə görə tərəflər arası mübahisələrdə məsuliyyət daşımır.
       </p>
 
       {auctionStatus === "seller_breach" && canActAsBuyer && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+        <div className="mt-4 rounded-xl alert-warning border p-4 text-sm text-amber-950">
           <p className="font-medium">Satıcı öhdəliyi pozulması qeydə alındı.</p>
-          <p className="mt-2 text-amber-900/90">
+          <p className="mt-2 text-amber-200/90">
             EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Satıcı öhdəliyini yerinə yetirmədikdə platforma
             satıcı öhdəlik haqqı (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼, avtomobil üçün{" "}
             {getSellerBreachPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>satıcı</strong> tərəfindən edilməlidir;
@@ -188,9 +188,9 @@ export function AuctionConfirmationPanel({
       )}
 
       {auctionStatus === "no_show" && canActAsSeller && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+        <div className="mt-4 rounded-xl alert-warning border p-4 text-sm text-amber-950">
           <p className="font-medium">Alıcı öhdəliyi pozulması qeydə alındı.</p>
-          <p className="mt-2 text-amber-900/90">
+          <p className="mt-2 text-amber-200/90">
             EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Qalib alıcı öhdəliyini yerinə yetirmədikdə platforma
             alıcı öhdəlik haqqı (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün{" "}
             {getNoShowPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>qalib alıcı</strong> tərəfindən edilməlidir;
@@ -232,7 +232,7 @@ export function AuctionConfirmationPanel({
                 type="button"
                 onClick={() => submit("buyer", "seller_breach")}
                 disabled={Boolean(loadingAction)}
-                className="btn-secondary justify-center sm:col-span-2 border-amber-300 text-amber-900 hover:bg-amber-50"
+                className="btn-secondary justify-center sm:col-span-2 border-amber-300 text-amber-200 hover:bg-amber-500/10"
               >
                 {loadingAction === "buyer-seller_breach" ? "Göndərilir..." : "Satıcı satış öhdəliyini pozub"}
               </button>
@@ -263,14 +263,14 @@ export function AuctionConfirmationPanel({
       )}
 
       {!settlementOpen && auctionStatus !== "seller_breach" && auctionStatus !== "no_show" && (canActAsBuyer || canActAsSeller) && (
-        <p className="mt-4 text-sm text-slate-500">
+        <p className="mt-4 text-sm text-white/50">
           Bu auksion üçün təsdiq pəncərəsi bağlanıb. Əlavə əməliyyat yoxdursa, ops və ya dəstək ilə əlaqə saxlayın.
         </p>
       )}
 
       {canRelist && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm text-slate-700">
+        <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
+          <p className="text-sm text-white/80">
             Bu lotu yenidən auksiona çıxara bilərsiniz. Yeni lot{" "}
             <strong>cari elan qiymətinizdən</strong> başlayacaq
             {typeof listingPriceAzn === "number" ? (
@@ -278,13 +278,13 @@ export function AuctionConfirmationPanel({
             ) : null}
             .
           </p>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-white/65">
             Qiyməti endirmək istəyirsinizsə, əvvəlcə elanı redaktə edin, sonra yenidən auksiona çıxarın.
           </p>
           {listingId && (
             <Link
               href={`/listings/${listingId}`}
-              className="mt-2 inline-block text-sm font-medium text-[#0891B2] hover:underline"
+              className="mt-2 inline-block text-sm font-medium text-[#0057FF] hover:underline"
             >
               Elan qiymətini redaktə et →
             </Link>
@@ -301,9 +301,9 @@ export function AuctionConfirmationPanel({
       )}
 
       {relistResult && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+        <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-300">
           <p className="font-semibold">Yeni lot yaradıldı: {relistResult.newAuctionId}</p>
-          <p className="mt-1 text-emerald-800">Lot aktivləşməsi üçün ödəniş addımlarını tamamlayın.</p>
+          <p className="mt-1 text-emerald-300">Lot aktivləşməsi üçün ödəniş addımlarını tamamlayın.</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
@@ -326,12 +326,12 @@ export function AuctionConfirmationPanel({
       )}
 
       {message && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
           {message}
         </div>
       )}
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">
           {error}
         </div>
       )}

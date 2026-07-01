@@ -10,12 +10,12 @@ function DealerAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
       <img
         src={logoUrl}
         alt={`${name} logo`}
-        className="h-14 w-14 shrink-0 rounded-2xl border border-white/10 card object-cover shadow-sm"
+        className="h-14 w-14 shrink-0 rounded-2xl border glass-panel border-white/10 object-cover shadow-sm"
       />
     );
   }
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0891B2] text-xl font-bold text-white shadow-sm">
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0057FF] text-xl font-bold text-white shadow-sm">
       {name.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -39,7 +39,7 @@ export default async function DealersPage() {
 
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
         {dealers.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 card p-12 text-center">
+          <div className="rounded-3xl border glass-panel border-white/10 p-12 text-center">
             <div className="icon-tile icon-tile-amber mx-auto mb-4 h-16 w-16 rounded-2xl">
               <Building2 className="h-8 w-8" strokeWidth={2} aria-hidden="true" />
             </div>
@@ -58,13 +58,13 @@ export default async function DealersPage() {
               <Link
                 key={dealer.id}
                 href={`/dealers/${dealer.id}`}
-                className="group rounded-2xl border border-white/10 card p-5 transition hover:border-[#0891B2]/50 hover:shadow-lg"
+                className="group rounded-2xl border glass-panel border-white/10 p-5 transition hover:border-[#0057FF]/50 hover:shadow-lg"
               >
                 <div className="flex items-start gap-4">
                   <DealerAvatar name={dealer.name} logoUrl={dealer.logoUrl} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate font-semibold text-white group-hover:text-[#0891B2]">
+                      <h3 className="truncate font-semibold text-white group-hover:text-[#0057FF]">
                         {dealer.name}
                       </h3>
                       {dealer.verified && (
@@ -81,7 +81,7 @@ export default async function DealersPage() {
                 </div>
                 <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/50">
                   <span>{dealer.activeListingCount} aktiv elan</span>
-                  <span className="text-[#0891B2] group-hover:underline">Profilə bax →</span>
+                  <span className="text-[#0057FF] group-hover:underline">Profilə bax →</span>
                 </div>
               </Link>
             ))}

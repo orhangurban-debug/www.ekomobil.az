@@ -14,9 +14,9 @@ export default async function PartsAnalyticsPage() {
   if (!plan.analyticsEnabled) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-xl font-bold text-amber-900">Mağaza analitikası bu plan üçün aktiv deyil</h1>
-          <p className="mt-2 text-sm text-amber-800">
+        <div className="rounded-2xl alert-warning border p-6">
+          <h1 className="text-xl font-bold text-amber-200">Mağaza analitikası bu plan üçün aktiv deyil</h1>
+          <p className="mt-2 text-sm text-amber-200">
             Aktiv planınız: <strong>{plan.nameAz}</strong>. Mağaza Peşəkar və ya daha yüksək plan seçin.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -62,7 +62,7 @@ export default async function PartsAnalyticsPage() {
                 <th className="px-4 py-2 text-right">Əlaqə klik</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/10">
               {summary.topListings.map((item) => (
                 <tr key={item.listingId}>
                   <td className="px-4 py-2"><Link className="font-medium text-white hover:text-[#0057FF]" href={`/listings/${item.listingId}`}>{item.title}</Link></td>

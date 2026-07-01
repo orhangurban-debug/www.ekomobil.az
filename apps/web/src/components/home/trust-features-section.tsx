@@ -50,8 +50,8 @@ export function TrustFeaturesSection() {
                 <div className={`icon-tile icon-tile-${feature.tone} mx-auto`}>
                   <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
                 </div>
-                <h3 className="mt-4 font-semibold text-slate-900">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">{feature.desc}</p>
+                <h3 className="mt-4 font-semibold text-white">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/50">{feature.desc}</p>
               </div>
             );
           })}

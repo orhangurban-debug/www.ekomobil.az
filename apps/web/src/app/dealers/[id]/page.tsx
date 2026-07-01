@@ -5,7 +5,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 
 function VerifiedBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 border border-emerald-500/25">
       <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
       </svg>
@@ -16,9 +16,9 @@ function VerifiedBadge() {
 
 function SlaLabel({ minutes }: { minutes: number }) {
   if (minutes <= 15)
-    return <span className="rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium border border-emerald-200">Cavab: ≤{minutes} dəq</span>;
+    return <span className="rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 text-xs font-medium border border-emerald-500/25">Cavab: ≤{minutes} dəq</span>;
   if (minutes <= 60)
-    return <span className="rounded-full bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium border border-amber-200">Cavab: ≤{minutes} dəq</span>;
+    return <span className="rounded-full bg-amber-500/15 text-amber-200 px-2 py-0.5 text-xs font-medium border border-amber-200">Cavab: ≤{minutes} dəq</span>;
   return <span className="rounded-full bg-white/8 text-white/65 px-2 py-0.5 text-xs font-medium">Cavab: ≤{minutes} dəq</span>;
 }
 
@@ -39,7 +39,7 @@ export default async function PublicDealerPage({
   return (
     <div className="min-h-screen bg-white/5">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="border-b border-white/10 card">
+      <div className="border-b glass-panel border-white/10">
         {profile.coverUrl && (
           <div className="h-40 w-full overflow-hidden bg-white/8 sm:h-52">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -51,12 +51,12 @@ export default async function PublicDealerPage({
             <div className="flex items-center gap-5">
               {/* Avatar — brand initials */}
               {profile.logoUrl ? (
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/10 card shadow-sm">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border glass-panel border-white/10 shadow-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={profile.logoUrl} alt={`${profile.name} logo`} className="h-full w-full object-cover" />
                 </div>
               ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#0891B2] text-2xl font-bold text-white shadow-sm">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#0057FF] text-2xl font-bold text-white shadow-sm">
                   {profile.name.slice(0, 2).toUpperCase()}
                 </div>
               )}
@@ -84,7 +84,7 @@ export default async function PublicDealerPage({
                       href={`https://wa.me/${profile.whatsappPhone.replace(/[^\d]/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                      className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20"
                     >
                       WhatsApp ilə yaz
                     </a>
@@ -94,7 +94,7 @@ export default async function PublicDealerPage({
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-slate-200"
+                      className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/10"
                     >
                       Website
                     </a>
@@ -122,7 +122,7 @@ export default async function PublicDealerPage({
               </div>
               <div className="border-l border-white/10" />
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#0891B2]">≤{profile.responseSlaMinutes}</p>
+                <p className="text-2xl font-bold text-[#0057FF]">≤{profile.responseSlaMinutes}</p>
                 <p className="text-xs text-white/40">Cavab (dəq)</p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default async function PublicDealerPage({
               {profile.activeListingCount}
             </span>
           </h2>
-          <Link href={`/listings?sellerType=dealer`} className="text-sm text-[#0891B2] hover:underline">
+          <Link href={`/listings?sellerType=dealer`} className="text-sm text-[#0057FF] hover:underline">
             Bütün salon elanları →
           </Link>
         </div>

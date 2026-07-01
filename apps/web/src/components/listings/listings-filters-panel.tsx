@@ -334,8 +334,8 @@ export function ListingsFiltersPanel({
                 onClick={() => setQuery((prev) => ({ ...prev, minPrice: p.min, maxPrice: p.max }))}
                 className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${
                   active
-                    ? "border-[#0891B2] bg-[#0891B2]/10 text-[#0891B2]"
-                    : "border-slate-200 text-slate-500 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                    ? "border-[#0057FF] bg-[#0057FF]/10 text-[#0057FF]"
+                    : "border-white/10 text-white/50 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
                 }`}
               >
                 {p.label}

@@ -86,13 +86,13 @@ export default function DealerApplyPage() {
 
       <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
         Ehtiyat hissə mağazası açmaq istəyirsinizsə{" "}
-        <Link href="/parts/apply" className="font-medium text-[#0891B2] hover:underline">
+        <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
           mağaza müraciəti
         </Link>{" "}
         formundan istifadə edin — salon hesabından asılı deyil.
       </div>
 
-      <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      <div className="mb-6 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
         <strong>Tələb olunan:</strong> VÖEN — müraciətin yoxlanması üçün lazımdır.
       </div>
 
@@ -166,7 +166,7 @@ export default function DealerApplyPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">
@@ -176,7 +176,7 @@ export default function DealerApplyPage() {
 
       <p className="mt-6 text-center text-xs text-white/40">
         Suallarınız varsa{" "}
-        <Link href="/trust#support-request" className="text-[#0891B2] hover:underline">
+        <Link href="/trust#support-request" className="text-[#0057FF] hover:underline">
           dəstək sorğusu göndərin
         </Link>
       </p>

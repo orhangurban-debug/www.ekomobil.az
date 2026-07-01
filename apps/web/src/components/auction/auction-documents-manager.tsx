@@ -101,15 +101,15 @@ export function AuctionDocumentsManager({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Lot sənədləri</h2>
-        <p className="mt-1 text-sm text-slate-500">{lotTitle}</p>
-        <p className="mt-2 text-xs text-slate-500">
+        <h2 className="text-lg font-semibold text-white">Lot sənədləri</h2>
+        <p className="mt-1 text-sm text-white/50">{lotTitle}</p>
+        <p className="mt-2 text-xs text-white/50">
           Tələb olunan sənədləri özünüz yükləyirsiniz. Yalnız PDF, JPEG, PNG və WebP; maks.{" "}
           {AUCTION_DOCUMENT_MAX_BYTES / (1024 * 1024)} MB / fayl.
         </p>
       </div>
 
-      <form onSubmit={(ev) => void onUpload(ev)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form onSubmit={(ev) => void onUpload(ev)} className="rounded-2xl border border-white/10 bg-[#141419] p-5 shadow-sm">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Sənəd növü</label>
@@ -126,7 +126,7 @@ export function AuctionDocumentsManager({
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
-              className="input-field text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[#0891B2]/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#0891B2]"
+              className="input-field text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[#0057FF]/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#0057FF]"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </div>
@@ -137,22 +137,22 @@ export function AuctionDocumentsManager({
       </form>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Yüklənmiş sənədlər</div>
+      <div className="rounded-2xl border border-white/10 bg-[#141419] shadow-sm">
+        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-white">Yüklənmiş sənədlər</div>
         {loading ? (
-          <div className="px-5 py-10 text-center text-sm text-slate-500">Yüklənir...</div>
+          <div className="px-5 py-10 text-center text-sm text-white/50">Yüklənir...</div>
         ) : documents.length === 0 ? (
-          <div className="px-5 py-10 text-center text-sm text-slate-500">Hələ sənəd yoxdur.</div>
+          <div className="px-5 py-10 text-center text-sm text-white/50">Hələ sənəd yoxdur.</div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-white/10">
             {documents.map((doc) => (
               <li key={doc.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                 <div className="min-w-0">
-                  <div className="truncate font-medium text-slate-900">{doc.originalFilename}</div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="truncate font-medium text-white">{doc.originalFilename}</div>
+                  <div className="mt-1 text-xs text-white/50">
                     {AUCTION_DOCUMENT_TYPE_LABELS[doc.docType]} · {AUCTION_DOCUMENT_STATUS_LABELS[doc.status]}
                     {doc.opsNote ? ` · ${doc.opsNote}` : ""}
                   </div>

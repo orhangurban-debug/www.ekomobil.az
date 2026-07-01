@@ -242,7 +242,7 @@ export function ListingAiAnalyzePanel({
       </div>
 
       {quota?.singleListingOnly && analysisContext === "vehicle" && (
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+        <div className="mt-3 rounded-xl alert-warning border px-3 py-2.5 text-xs text-amber-200">
           <strong>Salon / avtomobil qaydası:</strong> Yalnız <em>bir avtomobilin</em> şəkillərini yükləyin.
           Bir neçə avtomobil üçün ayrı-ayrı elan yaradın və ya{" "}
           <Link href="/dealer/import" className="font-semibold underline">
@@ -327,7 +327,7 @@ export function ListingAiAnalyzePanel({
           <button
             type="button"
             onClick={applyResult}
-            className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+            className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/20"
           >
             Formaya tətbiq et
           </button>
@@ -335,15 +335,15 @@ export function ListingAiAnalyzePanel({
       </div>
 
       {applied && (
-        <p className="mt-3 text-xs font-medium text-emerald-700">
+        <p className="mt-3 text-xs font-medium text-emerald-300">
           Təklif formaya tətbiq olundu — sahələri yoxlayın və lazım gələrsə redaktə edin.
         </p>
       )}
 
       {errors.length > 0 && (
-        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="mt-3 rounded-lg alert-danger border p-3">
           {errors.map((err) => (
-            <p key={err} className="text-xs text-red-700">
+            <p key={err} className="text-xs text-red-200">
               {err}
             </p>
           ))}
@@ -353,7 +353,7 @@ export function ListingAiAnalyzePanel({
       {result && (
         <div className="mt-4 rounded-xl border border-violet-100 bg-white p-4 text-sm">
           <p className="font-semibold text-slate-800">AI təklifi</p>
-          <p className="mt-1 text-xs text-slate-500">{result.disclaimer}</p>
+          <p className="mt-1 text-xs text-white/50">{result.disclaimer}</p>
           {(result.vehicle?.notes || result.part?.notes || result.service?.notes) && (
             <p className="mt-2 text-xs text-amber-700">
               {result.vehicle?.notes ?? result.part?.notes ?? result.service?.notes}
@@ -361,7 +361,7 @@ export function ListingAiAnalyzePanel({
           )}
 
           {result.vehicle && (
-            <ul className="mt-3 space-y-1 text-xs text-slate-700">
+            <ul className="mt-3 space-y-1 text-xs text-white/80">
               {[
                 ["Başlıq", result.vehicle.title],
                 ["Marka", result.vehicle.make],
@@ -373,7 +373,7 @@ export function ListingAiAnalyzePanel({
               ].map(([label, value]) =>
                 value ? (
                   <li key={String(label)}>
-                    <span className="text-slate-500">{label}:</span> {String(value)}
+                    <span className="text-white/50">{label}:</span> {String(value)}
                   </li>
                 ) : null
               )}
@@ -381,7 +381,7 @@ export function ListingAiAnalyzePanel({
           )}
 
           {result.part && (
-            <ul className="mt-3 space-y-1 text-xs text-slate-700">
+            <ul className="mt-3 space-y-1 text-xs text-white/80">
               {[
                 ["Başlıq", result.part.title],
                 ["Məhsul", result.part.partName],
@@ -392,7 +392,7 @@ export function ListingAiAnalyzePanel({
               ].map(([label, value]) =>
                 value ? (
                   <li key={String(label)}>
-                    <span className="text-slate-500">{label}:</span> {String(value)}
+                    <span className="text-white/50">{label}:</span> {String(value)}
                   </li>
                 ) : null
               )}
@@ -400,7 +400,7 @@ export function ListingAiAnalyzePanel({
           )}
 
           {result.service && (
-            <ul className="mt-3 space-y-1 text-xs text-slate-700">
+            <ul className="mt-3 space-y-1 text-xs text-white/80">
               {[
                 ["Ad", result.service.providerName],
                 ["Tip", result.service.providerType],
@@ -410,7 +410,7 @@ export function ListingAiAnalyzePanel({
               ].map(([label, value]) =>
                 value ? (
                   <li key={String(label)}>
-                    <span className="text-slate-500">{label}:</span> {String(value)}
+                    <span className="text-white/50">{label}:</span> {String(value)}
                   </li>
                 ) : null
               )}
@@ -419,13 +419,13 @@ export function ListingAiAnalyzePanel({
 
           {result.bulkProducts && result.bulkProducts.length > 0 && (
             <div className="mt-3 space-y-2">
-              <p className="text-xs font-medium text-slate-600">{result.bulkProducts.length} ayrı məhsul tapıldı</p>
+              <p className="text-xs font-medium text-white/65">{result.bulkProducts.length} ayrı məhsul tapıldı</p>
               {result.bulkProducts.map((product, idx) => (
-                <div key={idx} className="rounded-lg border border-slate-100 bg-slate-50 p-2 text-xs">
+                <div key={idx} className="rounded-lg border border-slate-100 bg-white/5 p-2 text-xs">
                   <p className="font-medium text-slate-800">
                     {product.title || product.partName || `Məhsul ${idx + 1}`}
                   </p>
-                  <p className="text-slate-500">
+                  <p className="text-white/50">
                     Şəkillər: {(product.imageIndices ?? []).map((i) => i + 1).join(", ") || "—"}
                   </p>
                 </div>

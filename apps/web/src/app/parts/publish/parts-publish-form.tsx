@@ -207,7 +207,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-white/50">
-        <Link href="/parts" className="hover:text-[#0891B2]">
+        <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
         </Link>
         <span className="mx-2">/</span>
@@ -224,7 +224,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
       {!storeAccessEnabled && (
         <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
           Fərdi satıcı kimi elan verə bilərsiniz. Mağaza rejimi üçün{" "}
-          <Link href="/parts/apply" className="font-medium text-[#0891B2] hover:underline">
+          <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
             mağaza planını
           </Link>{" "}
           aktivləşdirin.
@@ -232,7 +232,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
       )}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border-2 border-[#0891B2] bg-[#0891B2]/5 p-4">
+        <div className="rounded-xl border-2 border-[#0057FF] bg-[#0057FF]/5 p-4">
           <p className="text-sm font-semibold text-white">Tək məhsul rejimi</p>
           <p className="mt-1 text-xs text-white/65">
             Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
@@ -419,7 +419,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
                     onClick={() => setPlanType(plan.id)}
                     className={`rounded-lg border p-3 text-left ${
                       planType === plan.id
-                        ? "border-[#0891B2] bg-[#0891B2]/5"
+                        ? "border-[#0057FF] bg-[#0057FF]/5"
                         : "border-white/10 hover:border-white/15"
                     }`}
                   >
@@ -436,7 +436,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
               </p>
             </>
           ) : (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
               Mağaza planınız aktivdir — SKU elanları aylıq abunə limitinizdən sayılır, əlavə elan haqqı tutulmur.
             </div>
           )}
@@ -458,7 +458,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
               <>
                 <input className="input-field bg-white/5" value="Fərdi" readOnly />
                 <p className="mt-1 text-xs text-white/50">
-                  Mağaza rejimi üçün <Link href="/pricing#parts-store" className="text-[#0891B2] hover:underline">plan aktivləşdirin</Link>.
+                  Mağaza rejimi üçün <Link href="/pricing#parts-store" className="text-[#0057FF] hover:underline">plan aktivləşdirin</Link>.
                 </p>
               </>
             )}

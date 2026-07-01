@@ -19,7 +19,6 @@ export function PricingNav() {
 
   useEffect(() => {
     const handleIntersect: IntersectionObserverCallback = (entries) => {
-      // Find the topmost visible section
       const visible = entries
         .filter((e) => e.isIntersecting)
         .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -43,7 +42,7 @@ export function PricingNav() {
   }, []);
 
   return (
-    <nav className="sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 rounded-2xl border border-white/10/80 bg-white/90 px-3 py-3 shadow-sm backdrop-blur">
+    <nav className="glass-panel sticky top-20 z-10 -mx-1 flex flex-wrap justify-center gap-2 px-3 py-3">
       {NAV_ITEMS.map((item) => {
         const id = item.href.slice(1);
         const isActive = activeId === id;
@@ -51,10 +50,10 @@ export function PricingNav() {
           <a
             key={item.href}
             href={item.href}
-            className={`rounded-full border px-4 py-1.5 text-sm font-medium shadow-sm transition-all duration-200 ${
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? "border-[#0891B2] bg-[#0891B2] text-white shadow-[#0891B2]/20"
-                : "border-white/10 card text-white/65 hover:-translate-y-0.5 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                ? "border-[#0057FF] bg-[#0057FF] text-white shadow-[0_4px_14px_rgba(0,87,255,0.35)]"
+                : "border-white/10 bg-white/5 text-white/65 hover:-translate-y-0.5 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
             }`}
           >
             {item.label}

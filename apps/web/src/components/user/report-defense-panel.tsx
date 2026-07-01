@@ -45,7 +45,7 @@ export function ReportDefensePanel({ reports }: { reports: UserReportRecord[] })
 
   if (reports.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-white/50">
         Hazırda cavab gözləyən şikayət yoxdur.
       </div>
     );
@@ -54,23 +54,23 @@ export function ReportDefensePanel({ reports }: { reports: UserReportRecord[] })
   return (
     <div className="space-y-4">
       {message && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
       )}
 
       {reports.map((report) => (
-        <div key={report.id} className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div key={report.id} className="rounded-2xl border border-white/10 bg-[#141419] p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-white">
                 {USER_REPORT_REASON_LABELS[report.reasonCode as UserReportReason]}
               </p>
               {report.listingId && (
-                <Link href={`/listings/${report.listingId}`} className="text-xs text-[#0891B2] hover:underline">
+                <Link href={`/listings/${report.listingId}`} className="text-xs text-[#0057FF] hover:underline">
                   Elana bax →
                 </Link>
               )}
@@ -90,14 +90,14 @@ export function ReportDefensePanel({ reports }: { reports: UserReportRecord[] })
           </div>
 
           <div className="mt-4 space-y-3 text-sm">
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Şikayət</p>
-              <p className="mt-1 text-slate-700">{report.description}</p>
+            <div className="rounded-xl bg-white/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Şikayət</p>
+              <p className="mt-1 text-white/80">{report.description}</p>
             </div>
             {report.reporterEvidence && (
-              <div className="rounded-xl bg-amber-50/60 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Şikayət edənin sübutu</p>
-                <p className="mt-1 text-slate-700">{report.reporterEvidence}</p>
+              <div className="rounded-xl bg-amber-500/10 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-200">Şikayət edənin sübutu</p>
+                <p className="mt-1 text-white/80">{report.reporterEvidence}</p>
               </div>
             )}
           </div>
@@ -114,7 +114,7 @@ export function ReportDefensePanel({ reports }: { reports: UserReportRecord[] })
                 required
               />
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-white/50">
               Müdafiə sübutu təqdim etməsəniz, şikayət müddət bitdikdən sonra hüquq-mühafizə orqanlarına ötürülə bilər.
             </p>
             <button

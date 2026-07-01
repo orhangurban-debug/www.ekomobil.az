@@ -91,9 +91,9 @@ export default function RefundPolicyPage() {
         </div>
 
         <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
-          <Link href="/terms" className="text-[#0891B2] hover:underline">İstifadəçi Razılaşması</Link>
-          <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
-          <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
+          <Link href="/terms" className="text-[#0057FF] hover:underline">İstifadəçi Razılaşması</Link>
+          <Link href="/rules" className="text-[#0057FF] hover:underline">Platforma Qaydaları</Link>
+          <Link href="/pricing" className="text-[#0057FF] hover:underline">Qiymətlər</Link>
         </div>
       </div>
     </div>

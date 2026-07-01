@@ -153,11 +153,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-white/50">
-        <Link href="/parts" className="hover:text-[#0891B2]">
+        <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
         </Link>
         <span className="mx-2">/</span>
-        <Link href="/parts/publish" className="hover:text-[#0891B2]">
+        <Link href="/parts/publish" className="hover:text-[#0057FF]">
           Yeni elan
         </Link>
         <span className="mx-2">/</span>
@@ -186,7 +186,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
             <div className="grid gap-3 sm:grid-cols-3">
               <input className="input-field" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Şəhər" />
               {storeAccessEnabled ? (
-                <input className="input-field bg-emerald-50" value="Mağaza (abunə)" readOnly />
+                <input className="input-field bg-emerald-500/10" value="Mağaza (abunə)" readOnly />
               ) : (
                 <select className="input-field" value={sellerType} onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}>
                   <option value="private">Fərdi</option>
@@ -202,7 +202,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
                   ))}
                 </select>
               ) : (
-                <input className="input-field bg-emerald-50" value="Mağaza planı limiti" readOnly />
+                <input className="input-field bg-emerald-500/10" value="Mağaza planı limiti" readOnly />
               )}
             </div>
           </div>
@@ -269,7 +269,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
 
           {error && <p className="text-sm text-red-600">{error}</p>}
           {successCount > 0 && submitting && (
-            <p className="text-sm text-emerald-700">{successCount} / {drafts.length} elan yaradılır…</p>
+            <p className="text-sm text-emerald-300">{successCount} / {drafts.length} elan yaradılır…</p>
           )}
 
           <button

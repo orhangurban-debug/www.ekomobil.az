@@ -7,7 +7,7 @@ import type { ListingSummary } from "@/lib/marketplace-types";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-function RatingBar({ value, max = 10, color = "#0891B2" }: { value: number; max?: number; color?: string }) {
+function RatingBar({ value, max = 10, color = "#0057FF" }: { value: number; max?: number; color?: string }) {
   const pct = Math.round((value / max) * 100);
   return (
     <div className="flex items-center gap-2">
@@ -24,10 +24,10 @@ function RatingBar({ value, max = 10, color = "#0891B2" }: { value: number; max?
 
 function MaintenanceBadge({ cost }: { cost: CarModelInsights["maintenanceCost"] }) {
   const map: Record<CarModelInsights["maintenanceCost"], { label: string; cls: string }> = {
-    "aşağı": { label: "Aşağı", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    "orta": { label: "Orta", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-    "yüksək": { label: "Yüksək", cls: "bg-orange-50 text-orange-700 border-orange-200" },
-    "çox yüksək": { label: "Çox yüksək", cls: "bg-red-50 text-red-700 border-red-200" }
+    "aşağı": { label: "Aşağı", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25" },
+    "orta": { label: "Orta", cls: "bg-amber-500/15 text-amber-200 border-amber-500/25" },
+    "yüksək": { label: "Yüksək", cls: "bg-orange-500/15 text-orange-200 border-orange-500/25" },
+    "çox yüksək": { label: "Çox yüksək", cls: "bg-red-500/15 text-red-200 border-red-500/25" }
   };
   const { label, cls } = map[cost];
   return (
@@ -43,7 +43,7 @@ function SatisfactionArc({ pct }: { pct: number }) {
     <div className="flex flex-col items-center gap-1">
       <div className="relative flex h-16 w-16 items-center justify-center">
         <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="15" fill="none" stroke="#f1f5f9" strokeWidth="3" />
+          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
           <circle
             cx="18" cy="18" r="15" fill="none"
             stroke={color} strokeWidth="3"
@@ -76,9 +76,9 @@ function compareNumericLow(values: number[]): ("better" | "worse" | "equal")[] {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 card shadow-sm">
-      <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/5/80 px-5 py-3.5">
-        <span className="text-[#0891B2]">{icon}</span>
+    <section className="overflow-hidden rounded-2xl border glass-panel border-white/10 shadow-sm">
+      <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/5 px-5 py-3.5">
+        <span className="text-[#0057FF]">{icon}</span>
         <h2 className="text-sm font-semibold text-white">{title}</h2>
       </div>
       {children}
@@ -89,31 +89,31 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 // ── Column header ─────────────────────────────────────────────────────────
 
 function CarHeader({ item }: { item: ListingSummary }) {
-  const trustColor = item.trustScore >= 80 ? "text-emerald-600" : item.trustScore >= 60 ? "text-amber-600" : "text-red-500";
+  const trustColor = item.trustScore >= 80 ? "text-emerald-400" : item.trustScore >= 60 ? "text-amber-400" : "text-red-400";
   return (
     <div className="flex flex-col gap-2 px-4 py-4">
       <Link
         href={`/listings/${item.id}`}
-        className="text-sm font-semibold leading-tight text-white hover:text-[#0891B2] transition-colors"
+        className="text-sm font-semibold leading-tight text-white hover:text-[#0057FF] transition-colors"
       >
         {item.title}
       </Link>
       <div className="flex flex-wrap gap-1.5">
         <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">{item.city}</span>
         {item.vinVerified && (
-          <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">VIN ✓</span>
+          <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">VIN ✓</span>
         )}
         {item.planType === "vip" && (
-          <span className="rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">VIP</span>
+          <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-200">VIP</span>
         )}
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className="text-xl font-bold text-[#0891B2]">{item.priceAzn.toLocaleString()} ₼</span>
+        <span className="text-xl font-bold text-[#0057FF]">{item.priceAzn.toLocaleString()} ₼</span>
       </div>
       <div className="flex items-center gap-1.5">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/8">
           <div
-            className={`h-full rounded-full ${item.trustScore >= 80 ? "bg-emerald-500" : item.trustScore >= 60 ? "bg-amber-500" : "bg-red-400"}`}
+            className={`h-full rounded-full ${item.trustScore >= 80 ? "bg-emerald-500" : item.trustScore >= 60 ? "bg-amber-500/100" : "bg-red-400"}`}
             style={{ width: `${item.trustScore}%` }}
           />
         </div>
@@ -143,7 +143,7 @@ function SpecRow({
           <td
             key={i}
             className={`py-3 px-4 text-sm font-semibold ${
-              h === "better" ? "text-emerald-700" : h === "worse" ? "text-red-500" : "text-white"
+              h === "better" ? "text-emerald-300" : h === "worse" ? "text-red-500" : "text-white"
             }`}
           >
             {h === "better" && <span className="mr-1 text-emerald-500">▲</span>}
@@ -169,7 +169,7 @@ function ListColumn({
 }) {
   const styles = {
     strength: { dot: "bg-emerald-500", text: "text-white/80" },
-    weakness: { dot: "bg-amber-500", text: "text-white/80" },
+    weakness: { dot: "bg-amber-500/100", text: "text-white/80" },
     problem: { dot: "bg-red-400", text: "text-white/80" }
   }[variant];
 
@@ -190,10 +190,10 @@ function ListColumn({
 // ── Verdict card ──────────────────────────────────────────────────────────
 
 const TIER_LABELS: Record<BrandContext["reliabilityTier"], { label: string; cls: string }> = {
-  top: { label: "Ən yüksək", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  top: { label: "Ən yüksək", cls: "bg-emerald-500/10 text-emerald-300 border-emerald-500/25" },
   above_avg: { label: "Ortanın üstü", cls: "bg-sky-50 text-sky-700 border-sky-200" },
-  average: { label: "Orta", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  below_avg: { label: "Ortanın altı", cls: "bg-red-50 text-red-700 border-red-200" }
+  average: { label: "Orta", cls: "bg-amber-500/15 text-amber-200 border-amber-500/25" },
+  below_avg: { label: "Ortanın altı", cls: "bg-red-500/15 text-red-200 border-red-500/25" }
 };
 
 function VerdictCard({
@@ -211,11 +211,11 @@ function VerdictCard({
   return (
     <div
       className={`flex-1 rounded-2xl border p-5 ${
-        isFirst ? "border-[#0891B2] bg-[#0891B2]/5" : "border-white/10 card"
+        isFirst ? "border-[#0057FF] bg-[#0057FF]/5" : "glass-panel border-white/10"
       }`}
     >
       {isFirst && (
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#0891B2] px-3 py-1 text-xs font-semibold text-white">
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#0057FF] px-3 py-1 text-xs font-semibold text-white">
           <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
@@ -242,8 +242,8 @@ function VerdictCard({
         href={`/listings/${item.id}`}
         className={`mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition ${
           isFirst
-            ? "bg-[#0891B2] text-white hover:bg-[#0e7490]"
-            : "bg-white/8 text-white/80 hover:bg-slate-200"
+            ? "bg-[#0057FF] text-white hover:bg-[#0046CC]"
+            : "bg-white/8 text-white/80 hover:bg-white/10"
         }`}
       >
         Elana bax →
@@ -301,7 +301,7 @@ export default async function ComparePage({
   );
 
   // Column accent colors
-  const COLORS = ["#0891B2", "#7c3aed", "#d97706", "#16a34a"];
+  const COLORS = ["#0057FF", "#7c3aed", "#d97706", "#16a34a"];
 
   // Sort by trust score to determine "best" for verdict
   const ranked = [...items].map((item, i) => ({ item, insight: insightsData[i], i }))
@@ -332,7 +332,7 @@ export default async function ComparePage({
   return (
     <div className="min-h-screen bg-white/5">
       {/* ── Page header ─────────────────────────────────────────────────── */}
-      <div className="border-b border-white/10 card px-4 py-8 sm:px-6 lg:px-8">
+      <div className="border-b glass-panel border-white/10 px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -359,7 +359,7 @@ export default async function ComparePage({
             {items.map((item, i) => (
               <div
                 key={item.id}
-                className="rounded-2xl border card shadow-sm"
+                className="rounded-2xl glass-panel border-white/10 shadow-sm"
                 style={{ borderColor: `${COLORS[i]}40` }}
               >
                 <div
@@ -428,7 +428,7 @@ export default async function ComparePage({
               }
             >
               {/* Powertrain type badges */}
-              <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                 <span className="pl-5 py-3 text-xs font-medium text-white/40 flex items-center">Güc sistemi</span>
                 {items.map((_, i) => {
                   const pt = insightsData[i]?.powertrain;
@@ -449,7 +449,7 @@ export default async function ComparePage({
               </div>
 
               {/* System power */}
-              <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                 <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Sistem gücü</span>
                 {items.map((_, i) => {
                   const hp = insightsData[i]?.powertrain?.systemPowerHp;
@@ -463,7 +463,7 @@ export default async function ComparePage({
 
               {/* Engine displacement (for ICE) */}
               {insightsData.some((d) => d?.powertrain?.engineCc) && (
-                <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                   <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Mühərrik həcmi</span>
                   {items.map((_, i) => {
                     const cc = insightsData[i]?.powertrain?.engineCc;
@@ -477,7 +477,7 @@ export default async function ComparePage({
               )}
 
               {/* Fuel consumption */}
-              <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                 <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Kombinədir</span>
                 {items.map((_, i) => {
                   const fc = insightsData[i]?.powertrain?.fuelConsumption;
@@ -509,18 +509,18 @@ export default async function ComparePage({
               {/* Electric range & charging for PHEV/BEV */}
               {hasCharging && (
                 <>
-                  <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                     <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Elektrik diapazonu</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       return (
-                        <div key={i} className="px-4 py-2.5 text-sm font-semibold" style={{ color: ch?.electricRangeKm ? "#0891B2" : "#94a3b8" }}>
+                        <div key={i} className="px-4 py-2.5 text-sm font-semibold" style={{ color: ch?.electricRangeKm ? "#0057FF" : "#94a3b8" }}>
                           {ch?.electricRangeKm ? `${ch.electricRangeKm} km` : "—"}
                         </div>
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                     <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Batareya</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
@@ -531,7 +531,7 @@ export default async function ComparePage({
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                     <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">DC şarj (peak)</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
@@ -542,7 +542,7 @@ export default async function ComparePage({
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-slate-100 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                     <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">10→80% şarj</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
@@ -553,7 +553,7 @@ export default async function ComparePage({
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
                     <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Konnektoru</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
@@ -578,7 +578,7 @@ export default async function ComparePage({
                   {presentCategories.map((cat) => {
                     const info = getPowertrainInfo(cat);
                     return (
-                      <div key={cat} className="rounded-xl border border-white/10 card p-3">
+                      <div key={cat} className="rounded-xl border glass-panel border-white/10 p-3">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-sm">{info.icon}</span>
                           <span
@@ -592,10 +592,10 @@ export default async function ComparePage({
                         <p className="text-xs text-white/50 leading-relaxed">{info.howItWorks}</p>
                         <div className="mt-2 flex flex-wrap gap-1">
                           {info.pros.slice(0, 2).map((p) => (
-                            <span key={p} className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">✓ {p}</span>
+                            <span key={p} className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">✓ {p}</span>
                           ))}
                           {info.cons.slice(0, 1).map((c) => (
-                            <span key={c} className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] text-red-600">✗ {c}</span>
+                            <span key={c} className="rounded-md bg-red-500/15 px-2 py-0.5 text-[11px] text-red-300">✗ {c}</span>
                           ))}
                         </div>
                       </div>
@@ -619,7 +619,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="divide-y divide-slate-50 px-2 py-2">
+          <div className="divide-y divide-white/10 px-2 py-2">
             {ratingKeys.map(({ key, label }) => (
               <div key={key} className="grid items-center py-2.5" style={{ gridTemplateColumns: gridTemplate }}>
                 <span className="pl-3 text-xs font-medium text-white/40">{label}</span>
@@ -675,8 +675,8 @@ export default async function ComparePage({
 
           {/* Brand context for unmatched models */}
           {brandContexts.some((b) => b !== null) && (
-            <div className="border-t border-white/10 bg-amber-50/60 px-5 py-3">
-              <p className="mb-2 text-xs font-semibold text-amber-800">Marka konteksti — model məlumatı olmadan:</p>
+            <div className="border-t border-white/10 bg-amber-500/10 px-5 py-3">
+              <p className="mb-2 text-xs font-semibold text-amber-200">Marka konteksti — model məlumatı olmadan:</p>
               <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
                 {items.map((item, i) => {
                   const bc = brandContexts[i];
@@ -713,7 +713,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -736,7 +736,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -760,7 +760,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -772,7 +772,7 @@ export default async function ComparePage({
               </div>
             ))}
           </div>
-          <div className="border-t border-white/10 bg-amber-50/50 px-5 py-3">
+          <div className="border-t border-white/10 bg-amber-500/10 px-5 py-3">
             <p className="text-xs text-amber-700">
               ⚠ Bu problemlər statistik olaraq həmin model üçün daha tez rast gəlinir. Fərdi avtomobil ideal vəziyyətdə ola bilər. Alışdan əvvəl servis yoxlaması tövsiyə olunur.
             </p>

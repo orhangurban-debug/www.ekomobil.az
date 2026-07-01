@@ -44,7 +44,7 @@ export default function RulesPage() {
         {/* Quick nav */}
         <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
-          <ol className="grid grid-cols-1 gap-1 text-sm text-[#0891B2] sm:grid-cols-2">
+          <ol className="grid grid-cols-1 gap-1 text-sm text-[#0057FF] sm:grid-cols-2">
             {[
               { href: "#platform-status", label: "1. Platformanın statusu" },
               { href: "#account-rules", label: "2. Hesab qaydaları" },
@@ -119,9 +119,9 @@ export default function RulesPage() {
           </Section>
 
           <Section id="duplicate-rule" title="5. Dublikat elan qaydası (90 gün)">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-              <p className="font-semibold text-amber-900">90 günlük dublikat qaydası</p>
-              <p className="mt-2 text-sm text-amber-800 leading-relaxed">
+            <div className="rounded-xl alert-warning border px-5 py-4">
+              <p className="font-semibold text-amber-200">90 günlük dublikat qaydası</p>
+              <p className="mt-2 text-sm text-amber-200 leading-relaxed">
                 Eyni VIN nömrəsinə məxsus avtomobil üçün son 90 gün ərzində artıq elan
                 yerləşdirilmişsə, yeni elan avtomatik bloklanır. 90 gün dolduqdan sonra həmin
                 avtomobil üçün yeni elan açmaq mümkündür.
@@ -258,7 +258,7 @@ export default function RulesPage() {
                     <th className="px-4 py-3 font-semibold hidden sm:table-cell">Geri qaytarma</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/10">
                   {[
                     {
                       sanction: "Xəbərdarlıq",
@@ -305,7 +305,7 @@ export default function RulesPage() {
             </p>
             <p className="text-sm">
               Ödənişə təsir edən intizam qərarlarında istifadəçi 5 iş günü ərzində apellyasiya edə bilər. Ətraflı qaydalar{" "}
-              <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund və cərimə siyasəti</Link>{" "}
+              <Link href="/refund-policy" className="text-[#0057FF] hover:underline">Refund və cərimə siyasəti</Link>{" "}
               sənədində göstərilir.
             </p>
           </Section>
@@ -317,7 +317,7 @@ export default function RulesPage() {
             </p>
             <Link
               href="/rules/auction"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-5 py-3 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0057FF]/10"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-5 py-3 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
             >
               Auksion çərçivəsi sənədinə keç
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -364,9 +364,9 @@ export default function RulesPage() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex flex-col rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-[#0891B2]/40 hover:card"
+                  className="flex flex-col rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-[#0057FF]/40 hover:card"
                 >
-                  <span className="text-sm font-semibold text-[#0891B2]">{item.title}</span>
+                  <span className="text-sm font-semibold text-[#0057FF]">{item.title}</span>
                   <span className="mt-0.5 text-xs text-white/50">{item.desc}</span>
                 </Link>
               ))}

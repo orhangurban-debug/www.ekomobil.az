@@ -95,7 +95,7 @@ export default function LegalPage() {
           </ol>
           <p className="mt-4">
             Ümumi istifadəçi şikayətləri üçün{" "}
-            <Link href="/trust" className="text-[#0891B2] hover:underline">
+            <Link href="/trust" className="text-[#0057FF] hover:underline">
               etibar mərkəzi
             </Link>
             , hüquqi müraciətlər üçün isə{" "}
@@ -107,17 +107,17 @@ export default function LegalPage() {
           <h2 className="text-xl font-semibold text-white">Əlaqəli sənədlər</h2>
           <ul className="mt-3 space-y-2">
             <li>
-              <Link href="/terms" className="text-[#0891B2] hover:underline">
+              <Link href="/terms" className="text-[#0057FF] hover:underline">
                 İstifadəçi Razılaşması
               </Link>
             </li>
             <li>
-              <Link href="/privacy" className="text-[#0891B2] hover:underline">
+              <Link href="/privacy" className="text-[#0057FF] hover:underline">
                 Məxfilik Siyasəti
               </Link>
             </li>
             <li>
-              <Link href="/rules" className="text-[#0891B2] hover:underline">
+              <Link href="/rules" className="text-[#0057FF] hover:underline">
                 Platforma Qaydaları
               </Link>
             </li>

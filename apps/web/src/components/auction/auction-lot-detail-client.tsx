@@ -195,15 +195,15 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
   }
 
   if (loading) {
-    return <div className="mx-auto max-w-7xl px-4 py-16 text-sm text-slate-500">Lot məlumatları yüklənir...</div>;
+    return <div className="mx-auto max-w-7xl px-4 py-16 text-sm text-white/50">Lot məlumatları yüklənir...</div>;
   }
 
   if (!lot) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
-          <h1 className="text-2xl font-bold text-slate-900">Lot tapılmadı</h1>
-          <p className="mt-2 text-sm text-slate-500">Auksion lotu silinib və ya əlçatan deyil.</p>
+        <div className="rounded-3xl border border-white/10 bg-[#141419] p-10 text-center">
+          <h1 className="text-2xl font-bold text-white">Lot tapılmadı</h1>
+          <p className="mt-2 text-sm text-white/50">Auksion lotu silinib və ya əlçatan deyil.</p>
           <div className="mt-6 flex justify-center gap-3">
             <Link href="/auction" className="btn-primary">Auksiona qayıt</Link>
             <Link href="/pricing#auction" className="btn-secondary">Haqq strukturu</Link>
@@ -216,10 +216,10 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
   const lotOpen = isAuctionOpen(lot.status);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white/5">
       <div className="relative overflow-hidden bg-[#0c1a2e] px-4 py-12 text-center sm:px-6 lg:px-8">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-0 h-64 w-[600px] -translate-x-1/2 rounded-full bg-[#0891B2]/15 blur-[100px]" />
+          <div className="absolute left-1/2 top-0 h-64 w-[600px] -translate-x-1/2 rounded-full bg-[#0057FF]/15 blur-[100px]" />
         </div>
         <div className="relative mx-auto max-w-5xl">
           <div className="mb-4 text-left">
@@ -242,13 +242,13 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#141419]">
               <div className="relative flex h-64 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 sm:h-80">
                 <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-sm">
                   <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
                   <span className="text-xs font-bold text-white">{getAuctionStatusLabel(lot.status)}</span>
                 </div>
-                <div className="text-center text-slate-400">
+                <div className="text-center text-white/45">
                   <svg className="mx-auto h-12 w-12 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   <p className="mt-2 text-xs">Şəkil mövcud deyil</p>
                 </div>
@@ -261,17 +261,17 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                       {lot.depositRequired && <span className="badge-warning">Depozit tələb olunur</span>}
                       {lot.sellerBondRequired && <span className="badge-warning">Satıcı zəmanəti aktivdir</span>}
                     </div>
-                    <h2 className="mt-2 text-2xl font-bold text-slate-900">{lot.titleSnapshot}</h2>
+                    <h2 className="mt-2 text-2xl font-bold text-white">{lot.titleSnapshot}</h2>
                     {!lotOpen && (
-                      <p className="mt-1 text-sm text-slate-500">{getAuctionStatusLabel(lot.status)}</p>
+                      <p className="mt-1 text-sm text-white/50">{getAuctionStatusLabel(lot.status)}</p>
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-400">Minimum satış qiyməti</div>
-                    <div className="text-sm font-medium text-slate-700">
+                    <div className="text-xs text-white/45">Minimum satış qiyməti</div>
+                    <div className="text-sm font-medium text-white/80">
                       {lot.startingBidAzn.toLocaleString("az-AZ")} ₼
                     </div>
-                    <p className="mt-1 max-w-[12rem] text-[11px] leading-snug text-slate-500">
+                    <p className="mt-1 max-w-[12rem] text-[11px] leading-snug text-white/50">
                       Açıq minimum — bu məbləğin altında lot satılmır
                     </p>
                   </div>
@@ -287,45 +287,45 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                 )}
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-[#0891B2]/5 px-5 py-4 ring-1 ring-[#0891B2]/20">
-                    <div className="text-xs text-slate-500">Cari ən yüksək təklif</div>
-                    <div className="text-3xl font-bold text-[#0891B2]">
+                  <div className="rounded-2xl bg-[#0057FF]/5 px-5 py-4 ring-1 ring-[#0057FF]/20">
+                    <div className="text-xs text-white/50">Cari ən yüksək təklif</div>
+                    <div className="text-3xl font-bold text-[#0057FF]">
                       {(lot.currentBidAzn ?? lot.startingBidAzn).toLocaleString("az-AZ")} ₼
                     </div>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-5 py-4 ring-1 ring-slate-200">
-                    <div className="text-xs text-slate-500">Növbəti minimum</div>
-                    <div className="text-xl font-bold text-slate-900">{minBid.toLocaleString("az-AZ")} ₼</div>
+                  <div className="rounded-2xl bg-white/5 px-5 py-4 ring-1 ring-slate-200">
+                    <div className="text-xs text-white/50">Növbəti minimum</div>
+                    <div className="text-xl font-bold text-white">{minBid.toLocaleString("az-AZ")} ₼</div>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-5 py-4 ring-1 ring-slate-200">
-                    <div className="text-xs text-slate-500">Minimum artım</div>
-                    <div className="text-xl font-bold text-slate-900">{lot.minimumIncrementAzn.toLocaleString("az-AZ")} ₼</div>
+                  <div className="rounded-2xl bg-white/5 px-5 py-4 ring-1 ring-slate-200">
+                    <div className="text-xs text-white/50">Minimum artım</div>
+                    <div className="text-xl font-bold text-white">{lot.minimumIncrementAzn.toLocaleString("az-AZ")} ₼</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#141419]">
               <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                <h3 className="font-semibold text-slate-900">Təklif tarixi</h3>
-                <span className="text-xs text-slate-400">{bids.length} təklif</span>
+                <h3 className="font-semibold text-white">Təklif tarixi</h3>
+                <span className="text-xs text-white/45">{bids.length} təklif</span>
               </div>
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-white/10">
                 {bids.length === 0 ? (
-                  <div className="px-6 py-8 text-sm text-slate-500">Hələ bid daxil olmayıb.</div>
+                  <div className="px-6 py-8 text-sm text-white/50">Hələ bid daxil olmayıb.</div>
                 ) : (
                   bids.map((bid, index) => (
-                    <div key={bid.id} className={`flex items-center justify-between px-6 py-3 ${index === 0 ? "bg-emerald-50/60" : ""}`}>
+                    <div key={bid.id} className={`flex items-center justify-between px-6 py-3 ${index === 0 ? "bg-emerald-500/10" : ""}`}>
                       <div className="flex items-center gap-3">
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${index === 0 ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500"}`}>
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${index === 0 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/50"}`}>
                           {index === 0 ? "↑" : String(index + 1)}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-slate-900">{maskBidder(bid.bidderUserId)}</div>
-                          <div className="text-xs text-slate-400">{new Date(bid.createdAt).toLocaleString("az-AZ")}</div>
+                          <div className="text-sm font-medium text-white">{maskBidder(bid.bidderUserId)}</div>
+                          <div className="text-xs text-white/45">{new Date(bid.createdAt).toLocaleString("az-AZ")}</div>
                         </div>
                       </div>
-                      <div className={`text-sm font-bold ${index === 0 ? "text-emerald-600" : "text-slate-600"}`}>
+                      <div className={`text-sm font-bold ${index === 0 ? "text-emerald-600" : "text-white/65"}`}>
                         {bid.amountAzn.toLocaleString("az-AZ")} ₼
                       </div>
                     </div>
@@ -338,18 +338,18 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
           <div className="space-y-5">
             <div className="sticky top-20 space-y-4">
               {lotOpen ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                <div className="rounded-2xl border border-white/10 bg-[#141419] p-5">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-semibold text-slate-900">Təklif ver</h3>
+                    <h3 className="font-semibold text-white">Təklif ver</h3>
                     {bidderRulesAck && <AuctionTermsAcceptedBadge />}
                   </div>
-                  <div className="mt-3 flex rounded-xl bg-slate-100 p-1">
+                  <div className="mt-3 flex rounded-xl bg-white/10 p-1">
                     {(["bid", "auto"] as const).map((tab) => (
                       <button
                         key={tab}
                         type="button"
                         onClick={() => setActiveTab(tab)}
-                        className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === tab ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+                        className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === tab ? "bg-white shadow text-white" : "text-white/50 hover:text-white/80"}`}
                       >
                         {tab === "bid" ? "Birbaşa" : "Avtomatik təklif"}
                       </button>
@@ -396,7 +396,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                           placeholder={`Min: ${minBid.toLocaleString("az-AZ")} ₼`}
                         />
                       </div>
-                      <div className="rounded-xl bg-[#0891B2]/5 p-3 text-xs text-[#0891B2] ring-1 ring-[#0891B2]/15">
+                      <div className="rounded-xl bg-[#0057FF]/5 p-3 text-xs text-[#0057FF] ring-1 ring-[#0057FF]/15">
                         İlk bid minimum məbləğlə göndərilir, maksimal limit isə serverə saxlanılır.
                       </div>
                       <button
@@ -410,13 +410,13 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                     </div>
                   )}
 
-                  {message && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</div>}
-                  {error && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+                  {message && <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">{message}</div>}
+                  {error && <div className="mt-4 rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h3 className="font-semibold text-slate-900">Növbəti addım</h3>
-                  <p className="mt-2 text-sm text-slate-600">
+                <div className="rounded-2xl border border-white/10 bg-[#141419] p-5">
+                  <h3 className="font-semibold text-white">Növbəti addım</h3>
+                  <p className="mt-2 text-sm text-white/65">
                     Bu lot hazırda bid qəbul etmir. Statusa uyğun növbəti addımı aşağıdan edin.
                   </p>
                   <div className="mt-4 grid gap-2">
@@ -442,22 +442,22 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
 
               {otherLots.length > 0 && (
                 <div>
-                  <h4 className="mb-3 text-sm font-semibold text-slate-700">Digər lot-lar</h4>
+                  <h4 className="mb-3 text-sm font-semibold text-white/80">Digər lot-lar</h4>
                   <div className="space-y-3">
                     {otherLots.map((item) => (
                       <Link
                         key={item.id}
                         href={`/auction/${item.id}`}
-                        className="block rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-[#0891B2] hover:shadow-sm"
+                        className="block rounded-2xl border border-white/10 bg-[#141419] p-4 transition hover:border-[#0057FF] hover:shadow-sm"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="text-xs text-slate-400">{getAuctionStatusLabel(item.status)}</div>
-                            <div className="mt-1 truncate font-semibold text-slate-900">{item.titleSnapshot}</div>
+                            <div className="text-xs text-white/45">{getAuctionStatusLabel(item.status)}</div>
+                            <div className="mt-1 truncate font-semibold text-white">{item.titleSnapshot}</div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-slate-400">Cari</div>
-                            <div className="font-bold text-[#0891B2]">
+                            <div className="text-xs text-white/45">Cari</div>
+                            <div className="font-bold text-[#0057FF]">
                               {(item.currentBidAzn ?? item.startingBidAzn).toLocaleString("az-AZ")} ₼
                             </div>
                           </div>

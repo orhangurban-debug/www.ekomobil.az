@@ -37,7 +37,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
       </nav>
 
       {/* Profil header */}
-      <div className="rounded-2xl border border-white/10 card p-6 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-white/10 p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/8 text-2xl font-bold text-white/40">
@@ -50,9 +50,9 @@ export default async function ServiceProfilePage({ params }: PageProps) {
               </p>
             </div>
           </div>
-          <div className="rounded-xl bg-emerald-50 px-4 py-2.5 text-center">
-            <div className="text-xl font-bold text-emerald-700">{item.rating.toFixed(1)} ★</div>
-            <div className="text-xs text-emerald-700">{item.reviewCount} rəy</div>
+          <div className="rounded-xl bg-emerald-500/10 px-4 py-2.5 text-center">
+            <div className="text-xl font-bold text-emerald-300">{item.rating.toFixed(1)} ★</div>
+            <div className="text-xs text-emerald-300">{item.reviewCount} rəy</div>
           </div>
         </div>
 
@@ -72,7 +72,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
         <div className="mt-5 flex flex-wrap gap-3">
           <a
             href={`tel:${item.phone}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0891B2] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0891B2]/90 transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0057FF] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0057FF]/90 transition"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -83,7 +83,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
             href={`https://wa.me/${item.whatsapp.replace("+", "")}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-5 py-2.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100 transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-5 py-2.5 text-sm font-medium text-emerald-300 hover:bg-emerald-500/20 transition"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -97,12 +97,12 @@ export default async function ServiceProfilePage({ params }: PageProps) {
       {/* Detallı məlumat */}
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {/* Xidmətlər */}
-        <div className="rounded-2xl border border-white/10 card p-5">
+        <div className="rounded-2xl border glass-panel border-white/10 p-5">
           <h2 className="text-sm font-semibold text-white">Təqdim olunan xidmətlər</h2>
           <ul className="mt-3 space-y-2">
             {item.services.map((service) => (
               <li key={service} className="flex items-center gap-2 text-sm text-white/65">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0891B2]" />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0057FF]" />
                 {service}
               </li>
             ))}
@@ -110,7 +110,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
         </div>
 
         {/* Göstəricilər */}
-        <div className="rounded-2xl border border-white/10 card p-5">
+        <div className="rounded-2xl border glass-panel border-white/10 p-5">
           <h2 className="text-sm font-semibold text-white">Məlumat</h2>
           <dl className="mt-3 space-y-3">
             <div className="flex items-center justify-between text-sm">
@@ -133,7 +133,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
             </div>
             <div className="flex items-center justify-between text-sm">
               <dt className="text-white/50">Reytinq</dt>
-              <dd className="font-medium text-emerald-700">{item.rating.toFixed(1)} ★ ({item.reviewCount} rəy)</dd>
+              <dd className="font-medium text-emerald-300">{item.rating.toFixed(1)} ★ ({item.reviewCount} rəy)</dd>
             </div>
           </dl>
           {item.mapUrl && (
@@ -142,7 +142,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
                 href={item.mapUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex rounded-lg border border-white/10 px-3 py-2 text-sm text-[#0891B2] hover:bg-white/5"
+                className="inline-flex rounded-lg border border-white/10 px-3 py-2 text-sm text-[#0057FF] hover:bg-white/5"
               >
                 Xəritədə aç
               </a>
@@ -153,7 +153,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
 
       {/* Sertifikasiyalar */}
       {item.certifications && item.certifications.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-white/10 card p-5">
+        <div className="mt-4 rounded-2xl border glass-panel border-white/10 p-5">
           <h2 className="text-sm font-semibold text-white">Sertifikasiya və akkreditasiya</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {item.certifications.map((cert) => (
@@ -167,14 +167,14 @@ export default async function ServiceProfilePage({ params }: PageProps) {
       )}
 
       {/* Disclaimer */}
-      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
+      <div className="mt-4 rounded-xl alert-warning border p-4 text-xs leading-relaxed text-amber-200">
         EkoMobil bu profili məlumat məqsədilə təqdim edir. Xidmət keyfiyyəti və texniki nəticə xidmət göstərənin
         məsuliyyətindədir. Platforma hüquqi zəmanət vermir.
       </div>
 
       {/* Geri */}
       <div className="mt-6">
-        <Link href="/services" className="text-sm text-[#0891B2] hover:underline">
+        <Link href="/services" className="text-sm text-[#0057FF] hover:underline">
           ← Bütün servisləre qayıt
         </Link>
       </div>

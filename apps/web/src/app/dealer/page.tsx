@@ -10,9 +10,9 @@ import { RoleAccessGate } from "@/components/ui/role-access-gate";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
-    score >= 80 ? "bg-emerald-100 text-emerald-700" :
+    score >= 80 ? "bg-emerald-100 text-emerald-300" :
     score >= 60 ? "bg-amber-100 text-amber-700" :
-    "bg-red-100 text-red-700";
+    "bg-red-500/15 text-red-200";
   return <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{score}</span>;
 }
 
@@ -82,13 +82,13 @@ export default async function DealerPortalPage() {
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
         <div>
           <p className="text-sm font-medium text-white/90">
-            Aktiv plan: <span className="font-semibold text-[#0891B2]">{dealerPlan.nameAz}</span>
+            Aktiv plan: <span className="font-semibold text-[#0057FF]">{dealerPlan.nameAz}</span>
           </p>
           <p className="mt-0.5 text-xs text-white/50">
             Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
           </p>
         </div>
-        <Link href="/pricing#dealer" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0057FF]/10">
+        <Link href="/pricing#dealer" className="shrink-0 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-4 py-2 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10">
           Planları gör →
         </Link>
       </div>
@@ -126,9 +126,9 @@ export default async function DealerPortalPage() {
         ))}
       </div>
       {!dealerPlan.analyticsEnabled && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
           <span>Analitika modulu yalnız <strong>Salon Peşəkar</strong> və <strong>Salon Korporativ</strong> planlarında aktivdir.</span>
-          <Link href="/pricing#dealer" className="shrink-0 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900">
+          <Link href="/pricing#dealer" className="shrink-0 text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-200">
             Plana bax →
           </Link>
         </div>
@@ -159,12 +159,12 @@ export default async function DealerPortalPage() {
                 <th className="px-6 py-3 text-center">Hərəkət</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/10">
               {dashboard.inventory.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-white/40">
                     Hələ elan yoxdur.{" "}
-                    <Link href="/publish" className="font-medium text-[#0891B2] hover:underline">İlk elanı yerləşdir →</Link>
+                    <Link href="/publish" className="font-medium text-[#0057FF] hover:underline">İlk elanı yerləşdir →</Link>
                   </td>
                 </tr>
               ) : (
@@ -217,7 +217,7 @@ export default async function DealerPortalPage() {
                 <th className="px-6 py-3 text-center">Cavab müddəti</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/10">
               {dashboard.leads.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-sm text-white/40">

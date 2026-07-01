@@ -47,12 +47,12 @@ export function PlatformConsentForm({
 
   return (
     <form onSubmit={onSubmit} className="card space-y-5 p-8">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded-xl alert-warning border p-4 text-sm text-amber-200">
         Platformadan istifadə etmək üçün İstifadəçi Razılaşması və Məxfilik Siyasətini qəbul etməlisiniz.
         Bu, fırıldaqçılıq hallarında hüquqi qorunma və məlumatların qanuni paylaşımı üçün vacibdir.
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
         <input
           type="checkbox"
           checked={acceptTerms}
@@ -60,14 +60,14 @@ export function PlatformConsentForm({
           className="mt-0.5 h-4 w-4 rounded border-slate-300"
         />
         <span>
-          <Link href="/terms" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+          <Link href="/terms" className="font-medium text-[#0057FF] hover:underline" target="_blank">
             İstifadəçi Razılaşmasını
           </Link>{" "}
           oxudum və qəbul edirəm.
         </span>
       </label>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
         <input
           type="checkbox"
           checked={acceptPrivacy}
@@ -75,7 +75,7 @@ export function PlatformConsentForm({
           className="mt-0.5 h-4 w-4 rounded border-slate-300"
         />
         <span>
-          <Link href="/privacy" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+          <Link href="/privacy" className="font-medium text-[#0057FF] hover:underline" target="_blank">
             Məxfilik Siyasətini
           </Link>{" "}
           oxudum və qəbul edirəm.
@@ -83,7 +83,7 @@ export function PlatformConsentForm({
       </label>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
       )}
 
       <button type="submit" disabled={loading} className="btn-primary w-full justify-center disabled:opacity-50">

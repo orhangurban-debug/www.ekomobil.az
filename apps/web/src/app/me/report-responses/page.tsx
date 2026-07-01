@@ -17,7 +17,7 @@ export default async function ReportResponsesPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <Link href="/me" className="text-sm text-[#0891B2] hover:underline">
+      <Link href="/me" className="text-sm text-[#0057FF] hover:underline">
         ← Profilə qayıt
       </Link>
       <h1 className="mt-4 text-2xl font-bold text-white">Şikayət cavabları</h1>

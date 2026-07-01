@@ -25,15 +25,15 @@ export function PageHero({ title, subtitle, icon: Icon, badge, actions, variant 
             )}
             <div>
               {badge && (
-                <span className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${isDark ? "bg-[#0057FF]/15 text-[#93c5fd]" : "bg-brand-50 text-brand-700"}`}>
+                <span className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${isDark ? "bg-[#0057FF]/15 text-[#93c5fd]" : "bg-brand-50 text-[#0057FF]"}`}>
                   {badge}
                 </span>
               )}
-              <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? "text-white" : "text-slate-900"}`}>
+              <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? "text-white" : "text-white"}`}>
                 {title}
               </h1>
               {subtitle && (
-                <p className={`mt-1.5 text-sm sm:text-base ${isDark ? "text-white/65" : "text-slate-500"}`}>
+                <p className={`mt-1.5 text-sm sm:text-base ${isDark ? "text-white/65" : "text-white/50"}`}>
                   {subtitle}
                 </p>
               )}

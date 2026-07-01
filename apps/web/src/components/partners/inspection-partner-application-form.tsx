@@ -495,17 +495,17 @@ export function InspectionPartnerApplicationForm() {
     <form onSubmit={onSubmit} className="space-y-8">
 
       {/* ── 1. Servis tipi ──────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">
-          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">1</span>
+      <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-white">
+          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">1</span>
           Servis növünü seçin
         </h2>
-        <p className="mt-1 text-xs text-slate-500">Profil tipini seçin — növbəti bölmədəki xidmət tagları avtomatik dəyişəcək.</p>
+        <p className="mt-1 text-xs text-white/50">Profil tipini seçin — növbəti bölmədəki xidmət tagları avtomatik dəyişəcək.</p>
 
         <div className="mt-4 space-y-4">
           {PROVIDER_GROUPS.map((group) => (
             <div key={group.groupId}>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/45">
                 {group.groupLabel}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -525,8 +525,8 @@ export function InspectionPartnerApplicationForm() {
                     }}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
                       providerType === t.value
-                        ? "border-[#0891B2] bg-[#0891B2]/10 text-[#0891B2]"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-[#0891B2]/40 hover:text-[#0891B2]"
+                        ? "border-[#0057FF] bg-[#0057FF]/10 text-[#0057FF]"
+                        : "border-white/10 bg-[#141419] text-white/80 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
                     }`}
                   >
                     <span>{t.icon}</span>
@@ -541,14 +541,14 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 2. Xidmət tagları ───────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">2</span>
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-white">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">2</span>
             Xidmət növlərini seçin
-            <span className="ml-2 text-xs font-normal text-slate-400">(birdən çox seçilə bilər)</span>
+            <span className="ml-2 text-xs font-normal text-white/45">(birdən çox seçilə bilər)</span>
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Cari plan: <span className="font-medium text-slate-700">{selectedPlanMeta.label}</span>. Seçilmiş: {selectedTags.length}/{selectedPlanMeta.tagLimit}
+          <p className="mt-1 text-xs text-white/50">
+            Cari plan: <span className="font-medium text-white/80">{selectedPlanMeta.label}</span>. Seçilmiş: {selectedTags.length}/{selectedPlanMeta.tagLimit}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -559,8 +559,8 @@ export function InspectionPartnerApplicationForm() {
                 onClick={() => toggleTag(tag)}
                 className={`rounded-full border px-3 py-1.5 text-sm transition ${
                   selectedTags.includes(tag)
-                    ? "border-[#0891B2] bg-[#0891B2]/10 font-medium text-[#0891B2]"
-                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-[#0891B2]/40"
+                    ? "border-[#0057FF] bg-[#0057FF]/10 font-medium text-[#0057FF]"
+                    : "border-white/10 bg-white/5 text-white/65 hover:border-[#0057FF]/40"
                 }`}
               >
                 {selectedTags.includes(tag) ? "✓ " : ""}{tag}
@@ -573,10 +573,10 @@ export function InspectionPartnerApplicationForm() {
               {selectedTags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 rounded-full bg-[#0891B2]/10 px-2.5 py-1 text-xs font-medium text-[#0891B2]"
+                  className="inline-flex items-center gap-1 rounded-full bg-[#0057FF]/10 px-2.5 py-1 text-xs font-medium text-[#0057FF]"
                 >
                   {tag}
-                  <button type="button" onClick={() => toggleTag(tag)} className="hover:text-[#0891B2]/60">×</button>
+                  <button type="button" onClick={() => toggleTag(tag)} className="hover:text-[#0057FF]/60">×</button>
                 </span>
               ))}
             </div>
@@ -587,15 +587,15 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 3. Əsas məlumatlar ──────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">3</span>
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-white">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">3</span>
             Əsas məlumatlar
           </h2>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <label className="space-y-1 md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 {providerType === "mechanic" || providerType === "auto_electrician" || providerType === "body_shop" || providerType === "painting" || providerType === "ev_hybrid" || providerType === "ecu_programmer" || providerType === "adas_specialist" || providerType === "ac_specialist" || providerType === "audio_media" || providerType === "glass_sunroof" || providerType === "tire_wheel"
                   ? "Ad / Usta adı"
                   : "Şirkət / Mərkəz adı"}
@@ -613,7 +613,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Şəhər <span className="text-rose-500">*</span>
               </span>
               <select className="input-field" value={city} onChange={(e) => setCity(e.target.value)}>
@@ -625,7 +625,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">İş saatları</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">İş saatları</span>
               <input
                 className="input-field"
                 value={workingHours}
@@ -635,7 +635,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1 md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ünvan</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Ünvan</span>
               <input
                 className="input-field"
                 value={address}
@@ -645,7 +645,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1 md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Google Maps / xəritə linki</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Google Maps / xəritə linki</span>
               <input
                 className="input-field"
                 value={mapLink}
@@ -655,7 +655,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Təcrübə</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Təcrübə</span>
               <select className="input-field" value={experience} onChange={(e) => setExperience(e.target.value)}>
                 <option value="">Seçin</option>
                 <option value="1-2 il">1–2 il</option>
@@ -666,7 +666,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Lisenziya / akkreditasiya nömrəsi
               </span>
               <input
@@ -680,7 +680,7 @@ export function InspectionPartnerApplicationForm() {
 
           {/* Sertifikasiya tagları */}
           <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
               Sertifikasiya / nişanlar ({certifications.length}/{selectedPlanMeta.certLimit})
             </p>
             <div className="flex flex-wrap gap-2">
@@ -693,8 +693,8 @@ export function InspectionPartnerApplicationForm() {
                   onClick={() => toggleCert(cert)}
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     certifications.includes(cert)
-                      ? "border-emerald-400 bg-emerald-50 font-medium text-emerald-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300"
+                      ? "border-emerald-400 bg-emerald-500/10 font-medium text-emerald-300"
+                      : "border-white/10 bg-[#141419] text-white/65 hover:border-emerald-300"
                   }`}
                 >
                   {certifications.includes(cert) ? "✓ " : ""}{cert}
@@ -707,18 +707,18 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 4. Media və sənədlər ────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">4</span>
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-white">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">4</span>
             Şəkillər və sertifikat faylları
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-white/50">
             Cari plan üzrə maksimum {selectedPlanMeta.imageLimit} şəkil və {selectedPlanMeta.certFileLimit} sertifikat faylı yükləyə bilərsiniz.
           </p>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Servis şəkilləri ({serviceImages.length}/{selectedPlanMeta.imageLimit})
               </span>
               <input
@@ -731,7 +731,7 @@ export function InspectionPartnerApplicationForm() {
               {serviceImages.length > 0 && (
                 <div className="space-y-1">
                   {serviceImages.map((file, index) => (
-                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-xs text-white/65">
                       <span className="truncate">{file.name}</span>
                       <button type="button" className="text-rose-600" onClick={() => removeSelectedFile(index, "image")}>Sil</button>
                     </div>
@@ -741,7 +741,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Sertifikat faylları ({certificateFiles.length}/{selectedPlanMeta.certFileLimit})
               </span>
               <input
@@ -754,7 +754,7 @@ export function InspectionPartnerApplicationForm() {
               {certificateFiles.length > 0 && (
                 <div className="space-y-1">
                   {certificateFiles.map((file, index) => (
-                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-xs text-white/65">
                       <span className="truncate">{file.name}</span>
                       <button type="button" className="text-rose-600" onClick={() => removeSelectedFile(index, "certificate")}>Sil</button>
                     </div>
@@ -782,15 +782,15 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 5. Əlaqə məlumatları ────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">5</span>
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-white">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">5</span>
             Əlaqə məlumatları
           </h2>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Əlaqə şəxsi <span className="text-rose-500">*</span>
               </span>
               <input
@@ -802,7 +802,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                 Telefon <span className="text-rose-500">*</span>
               </span>
               <input
@@ -815,7 +815,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">WhatsApp</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">WhatsApp</span>
               <input
                 className="input-field"
                 value={whatsapp}
@@ -826,7 +826,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Email</span>
               <input
                 className="input-field"
                 value={email}
@@ -837,7 +837,7 @@ export function InspectionPartnerApplicationForm() {
             </label>
 
             <label className="space-y-1 md:col-span-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Vebsayt / Instagram</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Vebsayt / Instagram</span>
               <input
                 className="input-field"
                 value={website}
@@ -851,17 +851,17 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 6. Plan seçimi ──────────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-slate-900">
-              <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">6</span>
+            <h2 className="text-base font-semibold text-white">
+              <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">6</span>
               Maraqlandığınız plan
             </h2>
-            <Link href="/pricing#services" className="text-xs text-[#0891B2] hover:underline">
+            <Link href="/pricing#services" className="text-xs text-[#0057FF] hover:underline">
               Tam qiymət cədvəlinə bax →
             </Link>
           </div>
-          <p className="mt-1 text-xs text-slate-500">İlkin seçim avtomatik verilir, istəsəniz dəyişə bilərsiniz.</p>
+          <p className="mt-1 text-xs text-white/50">İlkin seçim avtomatik verilir, istəsəniz dəyişə bilərsiniz.</p>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
             {planOptions.map((plan) => (
@@ -878,16 +878,16 @@ export function InspectionPartnerApplicationForm() {
                 }}
                 className={`flex flex-col items-start rounded-xl border p-4 text-left transition ${
                   selectedPlan === plan.value
-                    ? "border-[#0891B2] bg-[#0891B2]/5"
-                    : "border-slate-200 bg-white hover:border-[#0891B2]/40"
+                    ? "border-[#0057FF] bg-[#0057FF]/5"
+                    : "border-white/10 bg-[#141419] hover:border-[#0057FF]/40"
                 }`}
               >
-                <span className={`text-sm font-semibold ${selectedPlan === plan.value ? "text-[#0891B2]" : "text-slate-800"}`}>
+                <span className={`text-sm font-semibold ${selectedPlan === plan.value ? "text-[#0057FF]" : "text-slate-800"}`}>
                   {plan.label}
                 </span>
-                <span className="mt-0.5 text-xs text-slate-500">{plan.desc}</span>
+                <span className="mt-0.5 text-xs text-white/50">{plan.desc}</span>
                 {plan.promo && (
-                  <span className="mt-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  <span className="mt-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
                     İlk 30 gün pulsuz
                   </span>
                 )}
@@ -899,11 +899,11 @@ export function InspectionPartnerApplicationForm() {
 
       {/* ── 7. Əlavə qeydlər ────────────────────────────────────────── */}
       {providerType && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900">
-            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0891B2]/10 text-xs font-bold text-[#0891B2]">7</span>
+        <div className="rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-white">
+            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">7</span>
             Əlavə məlumat
-            <span className="ml-2 text-xs font-normal text-slate-400">(isteğe bağlı)</span>
+            <span className="ml-2 text-xs font-normal text-white/45">(isteğe bağlı)</span>
           </h2>
           <textarea
             className="input-field mt-4 min-h-24"
@@ -912,7 +912,7 @@ export function InspectionPartnerApplicationForm() {
             placeholder="Filiallar, xüsusi avadanlıq, ixtisaslaşma, SLA, əlavə xidmətlər..."
           />
 
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 leading-relaxed">
+          <div className="mt-4 rounded-xl alert-warning border p-3 text-xs text-amber-200 leading-relaxed">
             EkoMobil servis profilini siyahıya alır və müştəri-xidmət əlaqəsini asanlaşdırır. Platforma konkret texniki
             nəticə və xidmət keyfiyyətinə hüquqi zəmanət vermir.
           </div>
@@ -930,7 +930,7 @@ export function InspectionPartnerApplicationForm() {
             {submitting ? "Göndərilir..." : "Partnyor müraciəti göndər"}
           </button>
           {feedback && (
-            <span className={`text-sm font-medium ${isError ? "text-rose-600" : "text-emerald-700"}`}>
+            <span className={`text-sm font-medium ${isError ? "text-rose-600" : "text-emerald-300"}`}>
               {feedback}
             </span>
           )}
@@ -938,7 +938,7 @@ export function InspectionPartnerApplicationForm() {
       )}
 
       {!providerType && (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-10 text-center text-sm text-slate-400">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white/5 py-10 text-center text-sm text-white/45">
           Başlamaq üçün yuxarıda servis növünü seçin
         </div>
       )}

@@ -55,11 +55,11 @@ export function TestDriveButton({ listingId }: { listingId: string }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="card max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Test sürüşü sifariş et</h2>
+              <h2 className="text-lg font-semibold text-white">Test sürüşü sifariş et</h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-lg p-1 text-white/45 hover:bg-white/10 hover:text-white/65"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -89,12 +89,12 @@ export function TestDriveButton({ listingId }: { listingId: string }) {
                 onChange={(e) => setForm((p) => ({ ...p, customerEmail: e.target.value }))}
               />
               {state === "saved" && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-emerald-300">
                   Sorğunuz qeydə alındı. Satıcı sizinlə əlaqə saxlayacaq.
                 </div>
               )}
               {state === "error" && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                <div className="rounded-lg alert-danger border p-3 text-sm text-red-800">
                   Xəta baş verdi. Yenidən cəhd edin.
                 </div>
               )}

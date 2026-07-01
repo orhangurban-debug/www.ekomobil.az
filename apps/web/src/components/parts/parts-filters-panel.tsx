@@ -240,22 +240,22 @@ export function PartsFiltersPanel({
         </select>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-slate-200 p-3">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+      <div className="space-y-2 rounded-xl border border-white/10 p-3">
+        <label className="flex items-center gap-2 text-sm text-white/75">
           <input
             type="checkbox"
             checked={query.inStock ?? false}
             onChange={(e) => setQuery((prev) => ({ ...prev, inStock: e.target.checked || undefined }))}
-            className="h-4 w-4 rounded accent-[#0891B2]"
+            className="h-4 w-4 rounded accent-[#0057FF]"
           />
           Stokda olanlar
         </label>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-white/75">
           <input
             type="checkbox"
             checked={query.sellerVerified ?? false}
             onChange={(e) => setQuery((prev) => ({ ...prev, sellerVerified: e.target.checked || undefined }))}
-            className="h-4 w-4 rounded accent-[#0891B2]"
+            className="h-4 w-4 rounded accent-[#0057FF]"
           />
           Satıcı doğrulanmış
         </label>
@@ -294,13 +294,13 @@ export function PartsFiltersPanel({
         </button>
       </div>
 
-      <div className="hidden lg:block card p-5">{panel}</div>
+      <div className="glass-panel hidden p-5 lg:block">{panel}</div>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden">
-          <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl bg-white p-5 max-h-[90vh] overflow-y-auto">
-            <div className="mb-4 flex items-center justify-between sticky top-0 bg-white pb-2 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
+        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#0a0a0f] p-5">
+            <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-white/10 bg-[#0a0a0f] pb-2">
+              <h2 className="font-semibold text-white">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
               <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
             </div>
             {panel}

@@ -85,7 +85,7 @@ export default function PartsApplyPage() {
 
       <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
         <strong>Qeyd:</strong> Avtomobil salonu açmaq istəyirsinizsə{" "}
-        <Link href="/dealer/apply" className="font-medium text-[#0891B2] hover:underline">
+        <Link href="/dealer/apply" className="font-medium text-[#0057FF] hover:underline">
           salon müraciəti
         </Link>{" "}
         formundan istifadə edin.
@@ -161,7 +161,7 @@ export default function PartsApplyPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">

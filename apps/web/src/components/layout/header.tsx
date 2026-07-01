@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
@@ -37,7 +37,8 @@ export function Header({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const [noticeVisible, setNoticeVisible] = useState(true);
+  const [noticeVisible, setNoticeVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
@@ -49,6 +50,7 @@ export function Header({
   }
 
   useEffect(() => {
+    setMounted(true);
     setNoticeVisible(window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1");
   }, []);
 
@@ -67,8 +69,8 @@ export function Header({
   return (
     <header className="glass-nav sticky top-0 z-50">
       {noticeVisible && (
-        <div className="border-b border-amber-500/20 bg-amber-500/10">
-          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-200 sm:px-6 lg:px-8">
+        <div className="border-b border-amber-500/25 bg-[#1a1205]">
+          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-100 sm:px-6 lg:px-8">
             <p className="leading-5">
               <span className="font-semibold">Diqqət:</span> Platforma hələ tam aktiv deyil. Yanlış əməliyyatların
               qarşısını almaq üçün qeydiyyat, ödəniş və auksion funksiyaları mərhələli şəkildə açılır. Zəhmət olmasa
@@ -88,7 +90,7 @@ export function Header({
               type="button"
               onClick={hideNotice}
               aria-label="Bildirişi bağla"
-              className="shrink-0 rounded-md border border-amber-500/30 bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-amber-200 transition hover:bg-white/10"
+              className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20"
             >
               Bağla
             </button>
@@ -96,18 +98,7 @@ export function Header({
         </div>
       )}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="group flex items-center gap-2">
-          <span className="brand-logo-surface brand-logo-surface-light transition group-hover:border-[#0057FF]/40">
-            <Image
-              src={logoUrl}
-              alt="EkoMobil loqosu"
-              width={144}
-              height={40}
-              unoptimized
-              className="h-10 w-auto rounded-md object-contain"
-            />
-          </span>
-        </Link>
+        <BrandLogo logoUrl={logoUrl} />
 
         <nav className="hidden md:flex items-center gap-0.5">
           {navLinks.map((link) => (
@@ -149,7 +140,7 @@ export function Header({
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
             </svg>
-            {compareIds.length > 0 && (
+            {mounted && compareIds.length > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0057FF] text-[10px] font-bold text-white">
                 {compareIds.length}
               </span>
@@ -237,7 +228,7 @@ export function Header({
               }`}
             >
               Müqayisə
-              {compareIds.length > 0 && (
+              {mounted && compareIds.length > 0 && (
                 <span className="rounded-full bg-[#0057FF] px-2 py-0.5 text-xs font-semibold text-white">
                   {compareIds.length}
                 </span>

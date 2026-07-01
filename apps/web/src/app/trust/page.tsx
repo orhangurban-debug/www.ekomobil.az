@@ -58,7 +58,7 @@ export default async function TrustPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <nav className="mb-8 text-sm text-white/50">
-        <Link href="/" className="hover:text-[#0891B2]">Ana səhifə</Link>
+        <Link href="/" className="hover:text-[#0057FF]">Ana səhifə</Link>
         <span className="mx-2">/</span>
         <span className="text-[#3E2F28]">Etibar mexanizmləri</span>
       </nav>

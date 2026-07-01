@@ -37,7 +37,7 @@ export default async function InvoicePrintPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-white/5">
       {/* Toolbar - hidden on print */}
-      <div className="print:hidden sticky top-0 z-10 border-b border-white/10 card px-6 py-3">
+      <div className="print:hidden sticky top-0 z-10 border-b glass-panel border-white/10 px-6 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/me/payments" className="btn-secondary text-sm">← Ödənişlərə qayıt</Link>
@@ -49,7 +49,7 @@ export default async function InvoicePrintPage({ params }: Props) {
 
       {/* Invoice document */}
       <div className="mx-auto max-w-3xl px-4 py-10 print:py-0 print:max-w-none print:px-8">
-        <div className="rounded-2xl border border-white/10 card shadow-sm print:shadow-none print:border-none">
+        <div className="rounded-2xl border glass-panel border-white/10 shadow-sm print:shadow-none print:border-none">
 
           {/* Header */}
           <div className="rounded-t-2xl bg-slate-900 px-10 py-8 print:rounded-none">
@@ -79,7 +79,7 @@ export default async function InvoicePrintPage({ params }: Props) {
             <div className="text-right">
               <div className="text-[11px] font-bold uppercase tracking-wider text-white/40">Ödəniş statusu</div>
               <div className="mt-2">
-                <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-700">
+                <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-300">
                   Ödənilib
                 </span>
               </div>
@@ -121,8 +121,8 @@ export default async function InvoicePrintPage({ params }: Props) {
                 <span className="font-bold text-white">Ümumi məbləğ</span>
                 <span className="text-xl font-extrabold text-white">{invoice.amountAzn.toFixed(2)} ₼</span>
               </div>
-              <div className="mt-3 rounded-xl bg-emerald-50 py-2 text-center">
-                <span className="text-sm font-bold text-emerald-700">Ödəniş təsdiqləndi</span>
+              <div className="mt-3 rounded-xl bg-emerald-500/10 py-2 text-center">
+                <span className="text-sm font-bold text-emerald-300">Ödəniş təsdiqləndi</span>
               </div>
             </div>
           </div>

@@ -50,7 +50,7 @@ export function LeadStageActions({
           className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
             s.value === currentStage
               ? "bg-brand-600 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              : "bg-white/10 text-white/65 hover:bg-white/10"
           }`}
         >
           {s.label}

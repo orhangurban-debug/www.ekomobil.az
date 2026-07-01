@@ -30,7 +30,7 @@ function DataTable({ rows }: { rows: { category: string; examples: string; purpo
             <th className="px-4 py-3 font-semibold hidden sm:table-cell">Məqsəd</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-white/10">
           {rows.map((row) => (
             <tr key={row.category} className="align-top">
               <td className="px-4 py-3 font-medium text-white/90 whitespace-nowrap">{row.category}</td>
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
         {/* Quick nav */}
         <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
-          <ol className="space-y-1 text-sm text-[#0891B2]">
+          <ol className="space-y-1 text-sm text-[#0057FF]">
             {[
               { href: "#collection", label: "1. Hansı məlumatları toplayırıq?" },
               { href: "#use", label: "2. Məlumatları necə istifadə edirik?" },
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                     <th className="px-4 py-3 font-semibold">Hüquqi əsas</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/10">
                   <tr>
                     <td className="px-4 py-3 text-white/80">Qeydiyyat, giriş, hesab idarəetməsi</td>
                     <td className="px-4 py-3 text-white/80">Müqavilənin icrası</td>
@@ -218,7 +218,7 @@ export default function PrivacyPage() {
                     <th className="px-4 py-3 font-semibold">Saxlama müddəti</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/10">
                   {[
                     { type: "Aktiv hesab məlumatları", duration: "Hesab aktiv olduğu müddətcə" },
                     { type: "Elan tarixi (arxivlənmiş)", duration: "3 il (hüquqi uyğunluq üçün)" },
@@ -286,7 +286,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-sm">
               Hüquqlarınızı həyata keçirmək üçün{" "}
-              <Link href="/me/privacy" className="text-[#0891B2] hover:underline">məxfilik hüquqları səhifəsindən</Link>{" "}
+              <Link href="/me/privacy" className="text-[#0057FF] hover:underline">məxfilik hüquqları səhifəsindən</Link>{" "}
               birbaşa sorğu yaradın. 30 iş günü ərzində cavablandırılır.
             </p>
           </Section>
@@ -335,10 +335,10 @@ export default function PrivacyPage() {
 
         {/* Footer links */}
         <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
-          <Link href="/terms" className="text-[#0891B2] hover:underline">İstifadəçi Razılaşması</Link>
-          <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
-          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Geri qaytarma siyasəti</Link>
-          <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
+          <Link href="/terms" className="text-[#0057FF] hover:underline">İstifadəçi Razılaşması</Link>
+          <Link href="/rules" className="text-[#0057FF] hover:underline">Platforma Qaydaları</Link>
+          <Link href="/refund-policy" className="text-[#0057FF] hover:underline">Geri qaytarma siyasəti</Link>
+          <Link href="/pricing" className="text-[#0057FF] hover:underline">Qiymətlər</Link>
         </div>
       </div>
     </div>

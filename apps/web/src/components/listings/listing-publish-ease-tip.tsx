@@ -41,11 +41,11 @@ const COPY: Record<ListingPublishEaseTipProps["variant"], { title: string; steps
 export function ListingPublishEaseTip({ variant, className = "" }: ListingPublishEaseTipProps) {
   const content = COPY[variant];
   return (
-    <div className={`rounded-2xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-3.5 ${className}`}>
-      <p className="text-sm font-semibold text-emerald-900">{content.title}</p>
+    <div className={`rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3.5 ${className}`}>
+      <p className="text-sm font-semibold text-emerald-300">{content.title}</p>
       <ol className="mt-2 space-y-1">
         {content.steps.map((step, index) => (
-          <li key={step} className="flex items-start gap-2 text-xs text-emerald-800/90">
+          <li key={step} className="flex items-start gap-2 text-xs text-emerald-300/90">
             <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
               {index + 1}
             </span>
@@ -53,7 +53,7 @@ export function ListingPublishEaseTip({ variant, className = "" }: ListingPublis
           </li>
         ))}
       </ol>
-      <p className="mt-2 text-[11px] text-emerald-700/70">
+      <p className="mt-2 text-[11px] text-emerald-300/70">
         AI yalnız köməkçidir — son qərar və dəqiqlik sizdədir.
       </p>
     </div>

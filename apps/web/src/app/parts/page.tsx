@@ -134,13 +134,13 @@ export default async function PartsPage({
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
           <div>
             <p className="text-sm font-medium text-white/90">
-              Aktiv plan: <span className="font-semibold text-[#0891B2]">{currentPartsPlan.nameAz}</span>
+              Aktiv plan: <span className="font-semibold text-[#0057FF]">{currentPartsPlan.nameAz}</span>
             </p>
             <p className="mt-0.5 text-xs text-white/50">
               Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
             </p>
           </div>
-          <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-2 text-sm font-semibold text-[#0891B2] transition hover:bg-[#0057FF]/10">
+          <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-4 py-2 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10">
             Planları gör →
           </Link>
         </div>

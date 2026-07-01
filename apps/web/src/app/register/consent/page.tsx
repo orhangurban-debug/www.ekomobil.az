@@ -34,7 +34,7 @@ export default async function RegisterConsentPage({
       </div>
       <PlatformConsentForm nextPath={nextPath} source="oauth" />
       <p className="mt-6 text-center text-sm text-white/50">
-        <Link href="/legal" className="text-[#0891B2] hover:underline">
+        <Link href="/legal" className="text-[#0057FF] hover:underline">
           Hüquqi məlumat və fırıldaqçılıqla mübarizə siyasəti
         </Link>
       </p>

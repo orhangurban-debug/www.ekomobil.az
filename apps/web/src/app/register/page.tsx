@@ -175,12 +175,12 @@ export default function RegisterPage() {
             onClick={() => setIntent(item.id)}
             className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 text-center transition ${
               intent === item.id
-                ? "border-[#0891B2] bg-[#0891B2]/5"
-                : "border-white/10 card hover:border-white/15"
+                ? "border-[#0057FF] bg-[#0057FF]/5"
+                : "glass-panel border-white/10 hover:border-white/15"
             }`}
           >
             <span className="text-2xl">{item.icon}</span>
-            <span className={`text-sm font-semibold ${intent === item.id ? "text-[#0891B2]" : "text-white/90"}`}>
+            <span className={`text-sm font-semibold ${intent === item.id ? "text-[#0057FF]" : "text-white/90"}`}>
               {item.label}
             </span>
             <span className="text-[11px] leading-tight text-white/40">{item.sub}</span>
@@ -201,11 +201,11 @@ export default function RegisterPage() {
               onClick={() => setBusinessVertical(item.id)}
               className={`rounded-xl border-2 p-3 text-left transition ${
                 businessVertical === item.id
-                  ? "border-[#0891B2] bg-[#0891B2]/5"
-                  : "border-white/10 card hover:border-white/15"
+                  ? "border-[#0057FF] bg-[#0057FF]/5"
+                  : "glass-panel border-white/10 hover:border-white/15"
               }`}
             >
-              <p className={`text-sm font-semibold ${businessVertical === item.id ? "text-[#0891B2]" : "text-white/90"}`}>
+              <p className={`text-sm font-semibold ${businessVertical === item.id ? "text-[#0057FF]" : "text-white/90"}`}>
                 {item.label}
               </p>
               <p className="mt-1 text-[11px] text-white/50">{item.sub}</p>
@@ -216,13 +216,13 @@ export default function RegisterPage() {
 
       {/* Intent-specific info */}
       {intent !== "personal" && (
-        <div className="mb-6 rounded-xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-4 py-4 text-sm">
-          <p className="font-semibold text-[#0891B2]">{info.title}</p>
+        <div className="mb-6 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-4 py-4 text-sm">
+          <p className="font-semibold text-[#0057FF]">{info.title}</p>
           <p className="mt-1 text-white/65 leading-relaxed">{info.body}</p>
           {info.cta && info.href && (
             <a
               href={info.href}
-              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#0891B2] hover:underline"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#0057FF] hover:underline"
             >
               {info.cta} →
             </a>
@@ -334,7 +334,7 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
         )}
 
         <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
@@ -346,7 +346,7 @@ export default function RegisterPage() {
               className="mt-0.5 h-4 w-4 rounded border-white/15"
             />
             <span>
-              <Link href="/terms" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+              <Link href="/terms" className="font-medium text-[#0057FF] hover:underline" target="_blank">
                 İstifadəçi Razılaşmasını
               </Link>{" "}
               oxudum və qəbul edirəm.
@@ -360,7 +360,7 @@ export default function RegisterPage() {
               className="mt-0.5 h-4 w-4 rounded border-white/15"
             />
             <span>
-              <Link href="/privacy" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+              <Link href="/privacy" className="font-medium text-[#0057FF] hover:underline" target="_blank">
                 Məxfilik Siyasətini
               </Link>{" "}
               oxudum və qəbul edirəm.
@@ -369,7 +369,7 @@ export default function RegisterPage() {
           <p className="text-xs text-white/50">
             Qeydiyyat məlumatlarınız fırıldaqçılıq hallarının araşdırılması və qanuni tələblər çərçivəsində
             saxlanıla bilər.{" "}
-            <Link href="/legal" className="text-[#0891B2] hover:underline">
+            <Link href="/legal" className="text-[#0057FF] hover:underline">
               Ətraflı
             </Link>
           </p>
@@ -382,7 +382,7 @@ export default function RegisterPage() {
 
       <p className="mt-6 text-center text-sm text-white/50">
         Artıq hesabınız var?{" "}
-        <Link href="/login" className="font-medium text-[#0891B2] hover:underline">
+        <Link href="/login" className="font-medium text-[#0057FF] hover:underline">
           Daxil olun
         </Link>
       </p>

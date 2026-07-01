@@ -104,7 +104,7 @@ export default function AuctionFrameworkPage() {
           <h2 className="text-xl font-semibold text-white">Əsas satışdan imtina və intizam ödənişləri</h2>
           <p className="mt-3">
             Aşağıdakı məbləğlər <strong>platforma xidmət/intizam haqlarıdır</strong>, avtomobilin qiyməti deyil. Dəqiq rəqəmlər{" "}
-            <Link href="/pricing#auction" className="text-[#0891B2] hover:underline">
+            <Link href="/pricing#auction" className="text-[#0057FF] hover:underline">
               qiymətlər səhifəsində
             </Link>{" "}
             göstərilir.
@@ -137,7 +137,7 @@ export default function AuctionFrameworkPage() {
             </ul>
             <p className="mt-2">
               Əlavə qaydalar üçün{" "}
-              <Link href="/refund-policy" className="text-[#0891B2] hover:underline">
+              <Link href="/refund-policy" className="text-[#0057FF] hover:underline">
                 refund və cərimə siyasətinə
               </Link>{" "}
               baxın.

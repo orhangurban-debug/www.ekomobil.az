@@ -71,18 +71,18 @@ export function AuctionBidderRulesAckLine({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/80 text-xs text-slate-700">
+    <div className="rounded-xl border border-white/10 bg-white/5 text-xs text-white/80">
       {/* Key points — collapsible */}
       {expanded && (
         <div className="border-b border-slate-100 px-4 pt-4 pb-3 space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45 mb-2">
             Əsas öhdəliklər
           </p>
           <ul className="space-y-1.5">
             {BIDDER_KEY_POINTS.map((point) => (
               <li key={point} className="flex items-start gap-2 leading-snug">
                 <svg
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0891B2]"
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0057FF]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -95,10 +95,10 @@ export function AuctionBidderRulesAckLine({
             ))}
           </ul>
           <div className="mt-2 flex gap-3 text-[11px]">
-            <Link href="/rules/auction" className="font-medium text-[#0891B2] hover:underline">
+            <Link href="/rules/auction" className="font-medium text-[#0057FF] hover:underline">
               Auksion qaydaları →
             </Link>
-            <Link href="/terms" className="font-medium text-[#0891B2] hover:underline">
+            <Link href="/terms" className="font-medium text-[#0057FF] hover:underline">
               İstifadəçi şərtləri →
             </Link>
           </div>
@@ -111,10 +111,10 @@ export function AuctionBidderRulesAckLine({
           type="checkbox"
           checked={acknowledged}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[#0891B2] focus:ring-[#0891B2]"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[#0057FF] focus:ring-[#0057FF]"
         />
         <span className="flex-1 leading-relaxed">
-          <strong className="text-slate-900">Qaydaları oxudum və qəbul edirəm</strong>
+          <strong className="text-white">Qaydaları oxudum və qəbul edirəm</strong>
           {" — "}
           qalib olduqda bütün öhdəliklərimi yerinə yetirəcəyimi təsdiqləyirəm.{" "}
           <button
@@ -123,7 +123,7 @@ export function AuctionBidderRulesAckLine({
               e.preventDefault();
               setExpanded((v) => !v);
             }}
-            className="font-medium text-[#0891B2] hover:underline"
+            className="font-medium text-[#0057FF] hover:underline"
           >
             {expanded ? "Gizlət" : "Əsas öhdəliklər →"}
           </button>
@@ -139,7 +139,7 @@ export function AuctionBidderRulesAckLine({
  */
 export function AuctionTermsAcceptedBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300">
       <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
       </svg>

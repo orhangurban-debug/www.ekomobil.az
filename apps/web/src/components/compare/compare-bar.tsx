@@ -1,15 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 
 export function CompareBar() {
+  const pathname = usePathname();
   const { ids, clear } = useCompare();
-  if (ids.length === 0) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || ids.length === 0 || pathname === "/") return null;
 
   const href = `/compare?ids=${ids.join(",")}`;
   return (
-    <div className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,640px)] -translate-x-1/2 rounded-2xl glass-panel p-4 shadow-card backdrop-blur">
+    <div className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,640px)] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#141419] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">Müqayisə aləti</div>

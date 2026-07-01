@@ -11,8 +11,8 @@ const PAYMENT_TYPE_LABELS = {
 } as const;
 
 const STATUS_BADGE = {
-  sent: { label: "E-poçta göndərildi", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  pending: { label: "Hazırlanır", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  sent: { label: "E-poçta göndərildi", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25" },
+  pending: { label: "Hazırlanır", cls: "bg-amber-500/15 text-amber-200 border-amber-500/25" },
   failed: { label: "E-poçt göndərilmədi", cls: "bg-white/8 text-white/65 border-white/10" }
 };
 
@@ -44,7 +44,7 @@ export default async function PaymentsPage() {
             const emailStatus = inv.emailSentAt ? "sent" : inv.emailError ? "failed" : "pending";
             const badge = STATUS_BADGE[emailStatus];
             return (
-              <div key={inv.id} className="rounded-2xl border border-white/10 card p-5 shadow-sm">
+              <div key={inv.id} className="rounded-2xl border glass-panel border-white/10 p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">

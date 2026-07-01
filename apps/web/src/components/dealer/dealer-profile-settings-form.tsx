@@ -62,25 +62,25 @@ export function DealerProfileSettingsForm({
 
   return (
     <div className="card p-5">
-      <h2 className="text-base font-semibold text-slate-900">Salon profil ayarları</h2>
-      <p className="mt-1 text-xs text-slate-500">
+      <h2 className="text-base font-semibold text-white">Salon profil ayarları</h2>
+      <p className="mt-1 text-xs text-white/50">
         Bəzi sahələr planınıza görə açılır. Public profildə yalnız aktiv icazə sahələri görünür.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ad</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Ad</span>
           <input className="input-field" value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Şəhər</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Şəhər</span>
           <input className="input-field" value={profile.city} onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value }))} />
         </label>
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Loqo URL</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Loqo URL</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseLogo}
@@ -90,7 +90,7 @@ export function DealerProfileSettingsForm({
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Cover URL</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Cover URL</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseCover}
@@ -103,7 +103,7 @@ export function DealerProfileSettingsForm({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">WhatsApp nömrəsi</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">WhatsApp nömrəsi</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseWhatsapp}
@@ -111,7 +111,7 @@ export function DealerProfileSettingsForm({
             onChange={(e) => setProfile((p) => ({ ...p, whatsappPhone: e.target.value }))}
             placeholder={entitlements.canUseWhatsapp ? "+994..." : "Peşəkar plan+"}
           />
-          <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+          <label className="mt-1 inline-flex items-center gap-2 text-xs text-white/50">
             <input
               type="checkbox"
               checked={profile.showWhatsapp}
@@ -122,7 +122,7 @@ export function DealerProfileSettingsForm({
           </label>
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Website URL</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Website URL</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseWebsite}
@@ -130,7 +130,7 @@ export function DealerProfileSettingsForm({
             onChange={(e) => setProfile((p) => ({ ...p, websiteUrl: e.target.value }))}
             placeholder={entitlements.canUseWebsite ? "https://..." : "Peşəkar plan+"}
           />
-          <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+          <label className="mt-1 inline-flex items-center gap-2 text-xs text-white/50">
             <input
               type="checkbox"
               checked={profile.showWebsite}
@@ -144,7 +144,7 @@ export function DealerProfileSettingsForm({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ünvan</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Ünvan</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseAddress}
@@ -154,7 +154,7 @@ export function DealerProfileSettingsForm({
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">İş saatları</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">İş saatları</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseWorkingHours}
@@ -166,7 +166,7 @@ export function DealerProfileSettingsForm({
       </div>
 
       <label className="mt-4 block space-y-1">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Təsvir</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Təsvir</span>
         <textarea
           className="input-field min-h-[96px]"
           disabled={!entitlements.canUseDescription}
@@ -180,7 +180,7 @@ export function DealerProfileSettingsForm({
         <button type="button" className="btn-primary" disabled={saving} onClick={save}>
           {saving ? "Yadda saxlanılır..." : "Profili yenilə"}
         </button>
-        {message && <span className="text-sm text-slate-600">{message}</span>}
+        {message && <span className="text-sm text-white/65">{message}</span>}
       </div>
     </div>
   );

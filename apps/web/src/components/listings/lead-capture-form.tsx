@@ -30,13 +30,13 @@ export function LeadCaptureForm({ listingId }: { listingId: string }) {
 
   if (state === "saved") {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+      <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-5 text-center">
         <svg className="mx-auto mb-2 h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        <p className="font-medium text-emerald-800">Sorğunuz göndərildi</p>
+        <p className="font-medium text-emerald-300">Sorğunuz göndərildi</p>
         <p className="mt-1 text-xs text-emerald-600">Satıcı sizinlə ən qısa zamanda əlaqə saxlayacaq.</p>
-        <button onClick={() => setState("idle")} className="mt-3 text-xs text-emerald-700 underline">
+        <button onClick={() => setState("idle")} className="mt-3 text-xs text-emerald-300 underline">
           Yeni sorğu göndər
         </button>
       </div>
@@ -80,7 +80,7 @@ export function LeadCaptureForm({ listingId }: { listingId: string }) {
         {isLoading ? "Göndərilir..." : "Sorğu göndər"}
       </button>
       {state === "error" && (
-        <p className="text-xs text-red-700">Sorğu göndərilmədi. Yenidən cəhd edin.</p>
+        <p className="text-xs text-red-200">Sorğu göndərilmədi. Yenidən cəhd edin.</p>
       )}
     </form>
   );

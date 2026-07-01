@@ -4,7 +4,7 @@ import { CONTACT_INTENTS, type ContactIntent } from "@/lib/support-contact";
 const VARIANT_CLASS: Record<"primary" | "secondary" | "link", string> = {
   primary: "btn-primary inline-flex items-center justify-center text-sm",
   secondary: "btn-secondary inline-flex items-center justify-center text-sm",
-  link: "inline-flex items-center text-sm font-medium text-[#0891B2] hover:underline"
+  link: "inline-flex items-center text-sm font-medium text-[#0057FF] hover:underline"
 };
 
 export function ContactActionButton({

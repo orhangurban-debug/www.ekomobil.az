@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export function Footer({ logoUrl }: { logoUrl: string }) {
@@ -8,18 +8,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="brand-logo-surface brand-logo-surface-soft">
-                <Image
-                  src={logoUrl}
-                  alt="EkoMobil loqosu"
-                  width={144}
-                  height={40}
-                  unoptimized
-                  className="h-10 w-auto rounded-md object-contain"
-                />
-              </span>
-            </Link>
+            <BrandLogo logoUrl={logoUrl} size="footer" />
           </div>
 
           <div>

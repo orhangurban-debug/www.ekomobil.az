@@ -456,12 +456,12 @@ export default function PublishPage() {
 
         <ListingPublishEaseTip variant="vehicle" className="mb-6" />
 
-        <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-white/80">
+        <div className="mb-6 rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4 text-sm text-white/80">
           Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
-          <Link href="/auction/sell" className="font-semibold text-[#0891B2] hover:underline">Auksion lotu yarat</Link>{" "}
+          <Link href="/auction/sell" className="font-semibold text-[#0057FF] hover:underline">Auksion lotu yarat</Link>{" "}
           axınından istifadə edin. Auksionda əsas satış ödənişi platformadan keçmir.
         </div>
-        <div className="mb-6 rounded-2xl border border-white/10 card p-4 text-sm text-white/80">
+        <div className="mb-6 rounded-2xl border glass-panel border-white/10 p-4 text-sm text-white/80">
           EkoMobil məlumatların yerləşdirilməsi və yayımlanması üçün platformadır. Elan məzmununun düzgünlüyü, tamlığı və
           aktuallığı satıcının məsuliyyətindədir. VIN, servis tarixçəsi və digər istinadların əlavə edilməsi elanın
           keyfiyyətini yüksəldir.
@@ -526,7 +526,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={seatHeating}
                       onChange={(e) => setSeatHeating(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Oturacaq isidilməsi
                   </label>
@@ -535,7 +535,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={seatCooling}
                       onChange={(e) => setSeatCooling(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Oturacaq soyudulması
                   </label>
@@ -547,7 +547,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={camera360}
                       onChange={(e) => setCamera360(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     360 kamera
                   </label>
@@ -556,7 +556,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={parkingSensors}
                       onChange={(e) => setParkingSensors(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Park sensoru
                   </label>
@@ -568,7 +568,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={adaptiveCruise}
                       onChange={(e) => setAdaptiveCruise(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Adaptive cruise control
                   </label>
@@ -577,7 +577,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={laneAssist}
                       onChange={(e) => setLaneAssist(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Zolaq izləmə (lane assist)
                   </label>
@@ -601,7 +601,7 @@ export default function PublishPage() {
                         type="checkbox"
                         checked={hasServiceBook}
                         onChange={(e) => setHasServiceBook(e.target.checked)}
-                        className="h-4 w-4 rounded accent-[#0891B2]"
+                        className="h-4 w-4 rounded accent-[#0057FF]"
                       />
                       Servis kitabçası var
                     </label>
@@ -610,7 +610,7 @@ export default function PublishPage() {
                         type="checkbox"
                         checked={hasRepairHistory}
                         onChange={(e) => setHasRepairHistory(e.target.checked)}
-                        className="h-4 w-4 rounded accent-[#0891B2]"
+                        className="h-4 w-4 rounded accent-[#0057FF]"
                       />
                       Təmir tarixçəsi var
                     </label>
@@ -641,7 +641,7 @@ export default function PublishPage() {
                     maxLength={17}
                   />
                   <p className="mt-1 text-xs text-white/40">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
-                  <p className="mt-1 text-xs text-[#0891B2]">
+                  <p className="mt-1 text-xs text-[#0057FF]">
                     VIN məcburi deyil, amma əlavə edildikdə elan alıcı üçün daha etibarlı görünür.
                   </p>
                 </div>
@@ -815,7 +815,7 @@ export default function PublishPage() {
                     type="checkbox"
                     checked={hasSunroof}
                     onChange={(e) => setHasSunroof(e.target.checked)}
-                    className="h-4 w-4 rounded accent-[#0891B2]"
+                    className="h-4 w-4 rounded accent-[#0057FF]"
                   />
                   Lyuku var
                 </label>
@@ -826,7 +826,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={creditAvailable}
                       onChange={(e) => setCreditAvailable(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Kreditə uyğundur
                   </label>
@@ -835,7 +835,7 @@ export default function PublishPage() {
                       type="checkbox"
                       checked={barterAvailable}
                       onChange={(e) => setBarterAvailable(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#0891B2]"
+                      className="h-4 w-4 rounded accent-[#0057FF]"
                     />
                     Barter mümkündür
                   </label>
@@ -849,8 +849,8 @@ export default function PublishPage() {
                 </div>
 
                 {vehicleValidationVisible && vehicleStepErrors.length > 0 && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-medium text-amber-800">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
+                  <div className="rounded-xl alert-warning border p-4">
+                    <p className="text-sm font-medium text-amber-200">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
                     <ul className="mt-2 space-y-1">
                       {vehicleStepErrors.map((error) => (
                         <li key={error} className="text-sm text-amber-700">
@@ -878,25 +878,25 @@ export default function PublishPage() {
                 </div>
 
                 {/* Photo angle guide */}
-                <div className="rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/4 p-4">
-                  <p className="mb-3 text-sm font-semibold text-[#0891B2]">📸 Tövsiyə olunan şəkil ardıcıllığı</p>
+                <div className="rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/4 p-4">
+                  <p className="mb-3 text-sm font-semibold text-[#0057FF]">📸 Tövsiyə olunan şəkil ardıcıllığı</p>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {[
                       {
                         label: "Ön sol 3/4", priority: "Əsas", tip: "Gündüz çəkin, kölgəsiz. Arxa fon sadə.",
                         icon: (
                           <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
-                            <rect x="8" y="18" width="60" height="20" rx="4" fill="#0891B2" opacity=".15"/>
-                            <rect x="12" y="20" width="52" height="16" rx="3" fill="#0891B2" opacity=".25"/>
+                            <rect x="8" y="18" width="60" height="20" rx="4" fill="#0057FF" opacity=".15"/>
+                            <rect x="12" y="20" width="52" height="16" rx="3" fill="#0057FF" opacity=".25"/>
                             <ellipse cx="22" cy="38" rx="7" ry="7" fill="#334155"/>
                             <ellipse cx="22" cy="38" rx="4" ry="4" fill="#94a3b8"/>
                             <ellipse cx="58" cy="38" rx="7" ry="7" fill="#334155"/>
                             <ellipse cx="58" cy="38" rx="4" ry="4" fill="#94a3b8"/>
                             <rect x="14" y="18" width="24" height="10" rx="2" fill="#bae6fd" opacity=".7"/>
                             <rect x="42" y="18" width="16" height="10" rx="2" fill="#bae6fd" opacity=".7"/>
-                            <path d="M5 32 L14 24" stroke="#0891B2" strokeWidth="2" strokeDasharray="3,2"/>
-                            <circle cx="5" cy="33" r="3" fill="#0891B2"/>
-                            <text x="1" y="46" fontSize="7" fill="#0891B2" fontWeight="bold">📷</text>
+                            <path d="M5 32 L14 24" stroke="#0057FF" strokeWidth="2" strokeDasharray="3,2"/>
+                            <circle cx="5" cy="33" r="3" fill="#0057FF"/>
+                            <text x="1" y="46" fontSize="7" fill="#0057FF" fontWeight="bold">📷</text>
                           </svg>
                         )
                       },
@@ -957,11 +957,11 @@ export default function PublishPage() {
                         label: "Salon / ön panel", priority: "Vacib", tip: "Sürücü qapısı açıq. Ön panel, sükan və ekranlar aydın görünsün.",
                         icon: (
                           <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
-                            <rect x="10" y="10" width="60" height="32" rx="4" fill="#0891B2" opacity=".1" stroke="#0891B2" strokeWidth=".5"/>
+                            <rect x="10" y="10" width="60" height="32" rx="4" fill="#0057FF" opacity=".1" stroke="#0057FF" strokeWidth=".5"/>
                             <rect x="14" y="13" width="34" height="18" rx="2" fill="#bae6fd" opacity=".5"/>
                             <circle cx="28" cy="31" r="8" fill="#334155" opacity=".3"/>
                             <circle cx="28" cy="31" r="5" fill="#64748b" opacity=".4"/>
-                            <rect x="18" y="25" width="14" height="1.5" rx=".7" fill="#0891B2" opacity=".6"/>
+                            <rect x="18" y="25" width="14" height="1.5" rx=".7" fill="#0057FF" opacity=".6"/>
                             <rect x="52" y="13" width="14" height="25" rx="2" fill="#f8fafc" stroke="#cbd5e1" strokeWidth=".5"/>
                             <rect x="54" y="15" width="10" height="12" rx="1" fill="#bae6fd" opacity=".5"/>
                           </svg>
@@ -999,19 +999,19 @@ export default function PublishPage() {
                             <rect x="14" y="18" width="52" height="18" rx="3" fill="#475569" opacity=".3"/>
                             <rect x="20" y="21" width="18" height="12" rx="2" fill="#64748b" opacity=".5"/>
                             <rect x="42" y="21" width="18" height="12" rx="2" fill="#64748b" opacity=".4"/>
-                            <circle cx="30" cy="20" r="3" fill="#0891B2" opacity=".7"/>
+                            <circle cx="30" cy="20" r="3" fill="#0057FF" opacity=".7"/>
                             <circle cx="50" cy="20" r="3" fill="#f59e0b" opacity=".7"/>
                             <path d="M8 14 L72 14" stroke="#94a3b8" strokeWidth=".5"/>
                           </svg>
                         )
                       }
                     ].map((angle) => (
-                      <div key={angle.label} className="rounded-xl border border-white/10 card p-2.5 text-center">
+                      <div key={angle.label} className="rounded-xl border glass-panel border-white/10 p-2.5 text-center">
                         <div className="mb-1.5">{angle.icon}</div>
                         <p className="text-xs font-semibold text-white/80 leading-tight">{angle.label}</p>
                         <span className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
-                          angle.priority === "Əsas" ? "bg-[#0057FF]/10 text-[#0891B2]" :
-                          angle.priority === "Vacib" ? "bg-emerald-50 text-emerald-700" :
+                          angle.priority === "Əsas" ? "bg-[#0057FF]/10 text-[#0057FF]" :
+                          angle.priority === "Vacib" ? "bg-emerald-500/10 text-emerald-300" :
                           "bg-white/8 text-white/50"
                         }`}>
                           {angle.priority}
@@ -1020,7 +1020,7 @@ export default function PublishPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-3 text-[11px] text-[#0891B2]/70">
+                  <p className="mt-3 text-[11px] text-[#0057FF]/70">
                     💡 Xarici şəkillər gündüz çəkiləndə, iç şəkillər yaxşı işıqlı mühitdə çəkiləndə alıcının marağı 2x artır.
                   </p>
                 </div>
@@ -1041,8 +1041,8 @@ export default function PublishPage() {
                   <div
                     className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 transition ${
                       uploadProcessing
-                        ? "border-[#0891B2]/40 bg-[#0891B2]/5"
-                        : "border-white/15 bg-white/5 hover:border-[#0891B2]/60 hover:bg-[#0891B2]/5"
+                        ? "border-[#0057FF]/40 bg-[#0057FF]/5"
+                        : "border-white/15 bg-white/5 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
                     }`}
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
@@ -1060,7 +1060,7 @@ export default function PublishPage() {
                       onChange={(e) => void handleImageFiles(e.target.files)}
                     />
                     {uploadProcessing ? (
-                      <div className="flex items-center gap-2 text-sm text-[#0891B2]">
+                      <div className="flex items-center gap-2 text-sm text-[#0057FF]">
                         <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -1073,7 +1073,7 @@ export default function PublishPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
                         <p className="text-sm text-white/50">
-                          <span className="font-semibold text-[#0891B2]">Fayl seçin</span> və ya bura sürükləyin
+                          <span className="font-semibold text-[#0057FF]">Fayl seçin</span> və ya bura sürükləyin
                         </p>
                         <p className="text-xs text-white/40">
                           JPEG · PNG · WebP · HEIC — istənilən ölçü qəbul olunur, sistem avtomatik sıxır
@@ -1084,9 +1084,9 @@ export default function PublishPage() {
 
                   {/* Upload errors */}
                   {uploadErrors.length > 0 && (
-                    <div className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3">
+                    <div className="mt-2 rounded-xl alert-danger border p-3">
                       {uploadErrors.map((e, i) => (
-                        <p key={i} className="text-xs text-red-700">{e}</p>
+                        <p key={i} className="text-xs text-red-200">{e}</p>
                       ))}
                     </div>
                   )}
@@ -1149,17 +1149,17 @@ export default function PublishPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
-                        media[key] ? "border-[#0891B2]/40 bg-[#0891B2]/5" : "border-white/10 card hover:border-white/15"
+                        media[key] ? "border-[#0057FF]/40 bg-[#0057FF]/5" : "glass-panel border-white/10 hover:border-white/15"
                       }`}>
                         <input
                           type="checkbox"
                           checked={media[key] as boolean}
                           onChange={(e) => updateBoolean(key, e.target.checked)}
-                          className="h-4 w-4 rounded accent-[#0891B2]"
+                          className="h-4 w-4 rounded accent-[#0057FF]"
                         />
                         <span className="text-sm font-medium text-white/80">{label}</span>
                         {media[key] && (
-                          <svg className="ml-auto h-4 w-4 text-[#0891B2]" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="ml-auto h-4 w-4 text-[#0057FF]" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                           </svg>
                         )}
@@ -1185,12 +1185,12 @@ export default function PublishPage() {
                 )}
 
                 {mediaValidationVisible && !mediaCheck.isComplete && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-medium text-amber-800 mb-2">Çatışmayan tələblər:</p>
+                  <div className="rounded-xl alert-warning border p-4">
+                    <p className="text-sm font-medium text-amber-200 mb-2">Çatışmayan tələblər:</p>
                     <ul className="space-y-1">
                       {mediaCheck.missingRequirements.map((req) => (
                         <li key={req} className="text-sm text-amber-700 flex items-center gap-2">
-                          <span className="h-1 w-1 rounded-full bg-amber-500 shrink-0" />
+                          <span className="h-1 w-1 rounded-full bg-amber-500/100 shrink-0" />
                           {req}
                         </li>
                       ))}
@@ -1226,12 +1226,12 @@ export default function PublishPage() {
                     <span className="font-semibold text-white/80">Şəkil limiti:</span> Pulsuz plan üçün də indi {LISTING_PLANS[0].maxImages} şəkil əlavə etmək olar.
                   </p>
                   <p>
-                    <span className="font-semibold text-white/80">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0891B2] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
+                    <span className="font-semibold text-white/80">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0057FF] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
                   </p>
                 </div>
 
                 {planType !== "free" && (
-                  <div className="rounded-xl border border-[#0891B2]/20 bg-[#0891B2]/5 px-4 py-3 text-sm text-[#0891B2]">
+                  <div className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/5 px-4 py-3 text-sm text-[#0057FF]">
                     Ödənişli plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, Kapital Bank ödənişi tamamlanandan sonra aktivləşir.
                   </div>
                 )}
@@ -1242,8 +1242,8 @@ export default function PublishPage() {
                       key={plan.id}
                       className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-4 transition ${
                         planType === plan.id
-                          ? "border-[#0891B2] bg-[#0891B2]/5"
-                          : "border-white/10 card hover:border-white/15"
+                          ? "border-[#0057FF] bg-[#0057FF]/5"
+                          : "glass-panel border-white/10 hover:border-white/15"
                       }`}
                     >
                       <input
@@ -1252,7 +1252,7 @@ export default function PublishPage() {
                         value={plan.id}
                         checked={planType === plan.id}
                         onChange={() => setPlanType(plan.id)}
-                        className="mt-1 h-4 w-4 accent-[#0891B2]"
+                        className="mt-1 h-4 w-4 accent-[#0057FF]"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -1278,12 +1278,12 @@ export default function PublishPage() {
                             {plan.maxImageSizeKb >= 1024 ? `${(plan.maxImageSizeKb/1024).toFixed(0)} MB` : `${plan.maxImageSizeKb} KB`}/foto
                           </span>
                           {plan.videoEnabled && (
-                            <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
+                            <span className="rounded-md bg-emerald-500/10 text-emerald-300 px-2 py-0.5 text-xs">
                               {plan.maxVideos} video ({plan.maxVideoSizeMb} MB)
                             </span>
                           )}
                           {plan.featuredInHome && (
-                            <span className="rounded-md bg-amber-50 text-amber-700 px-2 py-0.5 text-xs font-medium">
+                            <span className="rounded-md bg-amber-500/15 text-amber-200 px-2 py-0.5 text-xs font-medium">
                               ⭐ Ön səhifə
                             </span>
                           )}
@@ -1309,7 +1309,7 @@ export default function PublishPage() {
               <div className="card p-8 space-y-6">
                 <h2 className="text-lg font-semibold text-white">Məlumatları yoxlayın</h2>
 
-                <div className="rounded-xl bg-white/5 divide-y divide-slate-200">
+                <div className="rounded-xl bg-white/5 divide-y divide-white/10">
                   {[
                     ["Elan başlığı", title],
                     ["Marka / Model", `${make} ${model}`],
@@ -1342,8 +1342,8 @@ export default function PublishPage() {
                 </div>
 
                 {reviewErrors.length > 0 && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-medium text-amber-800">Dərc etməzdən əvvəl bunları düzəldin:</p>
+                  <div className="rounded-xl alert-warning border p-4">
+                    <p className="text-sm font-medium text-amber-200">Dərc etməzdən əvvəl bunları düzəldin:</p>
                     <ul className="mt-2 space-y-1">
                       {reviewErrors.map((error) => (
                         <li key={error} className="text-sm text-amber-700">
@@ -1386,7 +1386,7 @@ export default function PublishPage() {
               <p className="mt-2 text-white/50">Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong></p>
             </div>
             {result.signals?.mileageFlag && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 text-left">
+              <div className="rounded-xl alert-warning border p-4 text-sm text-amber-200 text-left">
                 <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
               </div>
             )}

@@ -101,7 +101,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     "--color-brand-700": brand.primaryHoverColor,
     "--color-deep-base": brand.deepBaseColor,
     "--color-soft-brown": brand.softBrownColor,
-    "--color-page-canvas": brand.canvasColor,
+    /* Public shell always dark — DB canvasColor is for admin brand-kit preview only */
+    "--color-page-canvas": "#0A0A0F",
     "--color-accent": "#0057FF",
     "--color-accent-hover": "#0046CC"
   } as CSSProperties;
@@ -118,7 +119,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
         <CompareProvider>
           <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-20">{children}</main>
           <Footer logoUrl={logoPath} />
           <CompareBar />
           <AiChatPanel />
