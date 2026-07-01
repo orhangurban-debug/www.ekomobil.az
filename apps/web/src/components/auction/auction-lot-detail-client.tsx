@@ -46,7 +46,7 @@ function CountdownDisplay({ endAt }: { endAt?: string }) {
 
   return (
     <div className={`flex items-center gap-1 ${urgent ? "text-rose-500" : "text-white"}`}>
-      {[[h, "S"], [m, "D"], [s, "SN"]].map(([value, label]) => (
+      {[[h, "Saat"], [m, "Dəq"], [s, "San"]].map(([value, label]) => (
         <div key={String(label)} className="flex flex-col items-center">
           <div className={`flex h-14 w-14 items-center justify-center rounded-xl font-mono text-2xl font-bold tabular-nums ${urgent ? "bg-rose-500/20 text-rose-400" : "bg-white/10"}`}>
             {String(value).padStart(2, "0")}
@@ -173,7 +173,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
             window.location.href = preauthPayload.checkoutUrl;
             return;
           }
-          setError(preauthPayload.error ?? payload.error ?? "Kart hold checkout-u yaradıla bilmədi");
+          setError(preauthPayload.error ?? payload.error ?? "Kart bloklama ödənişi yaradıla bilmədi");
           return;
         }
         if (payload.code === "RISK_BID_CAP" && payload.bidCapAzn) {
@@ -206,7 +206,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
           <p className="mt-2 text-sm text-slate-500">Auksion lotu silinib və ya əlçatan deyil.</p>
           <div className="mt-6 flex justify-center gap-3">
             <Link href="/auction" className="btn-primary">Auksiona qayıt</Link>
-            <Link href="/pricing#auction" className="btn-secondary">Haq strukturu</Link>
+            <Link href="/pricing#auction" className="btn-secondary">Haqq strukturu</Link>
           </div>
         </div>
       </div>
@@ -351,7 +351,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                         onClick={() => setActiveTab(tab)}
                         className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === tab ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
                       >
-                        {tab === "bid" ? "Birbaşa" : "Auto-Bid"}
+                        {tab === "bid" ? "Birbaşa" : "Avtomatik təklif"}
                       </button>
                     ))}
                   </div>
@@ -405,7 +405,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                         disabled={!autoBidMax || submitting || !bidderRulesAck}
                         className="btn-primary w-full py-3 text-base disabled:opacity-50"
                       >
-                        {submitting ? "Göndərilir..." : "Auto-Bid aktiv et"}
+                        {submitting ? "Göndərilir..." : "Avtomatik təklifi aktiv et"}
                       </button>
                     </div>
                   )}
@@ -434,7 +434,7 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                       Lot sənədləri
                     </Link>
                     <Link href="/pricing#auction" className="btn-secondary justify-center">
-                      Haq strukturu
+                      Haqq strukturu
                     </Link>
                   </div>
                 </div>

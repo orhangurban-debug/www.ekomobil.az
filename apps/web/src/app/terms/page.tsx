@@ -153,7 +153,7 @@ export default function TermsPage() {
                 <li>Elan qeydiyyatı zamanı verilən bəyannamə hüquqi öhdəlik doğurur</li>
               </ul>
             </Sub>
-            <Sub title="Salonlar / Diler mərkəzləri">
+            <Sub title="Salon mərkəzləri">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
                 <li>Salonlar aktiv VÖEN, hüquqi şəxs statusu və müvafiq ticarət icazəsi ilə fəaliyyət göstərməlidir</li>
                 <li>Salon öz profili altında yerləşdirilən bütün elanların məzmunundan <strong>tam məsul</strong>dur</li>
@@ -214,7 +214,7 @@ export default function TermsPage() {
                 <Link href="/pricing#listings" className="text-[#0891B2] hover:underline">Qiymət cədvəli</Link>.
               </p>
             </Sub>
-            <Sub title="Boost (irəliləmə) xidmətləri">
+            <Sub title="İrəlilətmə xidmətləri">
               <p className="text-sm">
                 İrəli çək, VIP, Premium — elan planından ayrıca satın alınır. Xidmət aktivləşdikdən sonra
                 ləğv edilə bilməz. Müddətli paketlər (3, 5, 15, 30 gün) qeyd edilmiş müddət doldumdan sonra
@@ -231,7 +231,7 @@ export default function TermsPage() {
             <Sub title="Geri qaytarma siyasəti">
               <ul className="list-disc space-y-1.5 pl-5 text-sm">
                 <li><strong>Elan planı:</strong> Uğurla aktivləşmiş plan geri qaytarılmır; texniki aktivləşmə xətasında 7 iş günü daxilində refund/kredit tətbiq edilir</li>
-                <li><strong>Boost xidməti:</strong> Aktivləşmiş boost geri qaytarılmır; texniki aktivləşmə xətasında bərpa və ya kredit tətbiq edilə bilər</li>
+                <li><strong>İrəlilətmə xidməti:</strong> Aktivləşmiş irəlilətmə geri qaytarılmır; texniki aktivləşmə xətasında bərpa və ya kredit tətbiq edilə bilər</li>
                 <li><strong>Salon abunəsi:</strong> Başlanmış ay geri qaytarılmır; ləğv yalnız növbəti dövr üçün qüvvəyə minir</li>
                 <li><strong>Auksion intizam ödənişləri:</strong> Yalnız qayda pozuntusu təsdiqləndikdə tətbiq edilir və ayrıca mübahisə proseduruna tabedir</li>
               </ul>

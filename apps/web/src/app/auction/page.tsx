@@ -47,7 +47,7 @@ function CountdownDisplay({ endAt, compact }: { endAt?: string; compact?: boolea
 
   return (
     <div className={`flex items-center gap-1 ${urgent ? "text-rose-500" : "text-white"}`}>
-      {[[h, "S"], [m, "D"], [s, "SN"]].map(([value, label]) => (
+      {[[h, "Saat"], [m, "Dəq"], [s, "San"]].map(([value, label]) => (
         <div key={String(label)} className="flex flex-col items-center">
           <div className={`flex h-14 w-14 items-center justify-center rounded-xl font-mono text-2xl font-bold tabular-nums ${urgent ? "bg-rose-500/20 text-rose-400" : "bg-white/10"}`}>
             {String(value).padStart(2, "0")}
@@ -89,7 +89,7 @@ function LotCard({
             <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${isLive ? "bg-rose-500/10 text-rose-600" : "bg-slate-100 text-slate-500"}`}>
               {isLive ? "Canlı" : lot.status === "scheduled" ? "Planlı" : "Bağlanır"}
             </span>
-            {lot.depositRequired && <span className="badge-warning">Deposit</span>}
+            {lot.depositRequired && <span className="badge-warning">Depozit</span>}
           </div>
           <h3 className="mt-2 font-semibold text-slate-900">{lot.titleSnapshot}</h3>
           <p className="text-xs text-slate-500">Lot ID: {lot.id}</p>
@@ -305,7 +305,7 @@ export default function AuctionPage() {
           <p className="mt-2 text-sm text-slate-500">Yeni lot açıldıqda bu səhifə realtime şəkildə yenilənəcək.</p>
           <div className="mt-6 flex justify-center gap-3">
             <Link href="/auction/sell" className="btn-primary">Lot yerləşdir</Link>
-            <Link href="/pricing#auction" className="btn-secondary">Haq strukturu</Link>
+            <Link href="/pricing#auction" className="btn-secondary">Haqq strukturu</Link>
           </div>
         </div>
       </div>
@@ -327,7 +327,7 @@ export default function AuctionPage() {
           </span>
           <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">EkoMobil Auksion</h1>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-white/50">
-            Canlı write-path ayrıca service üzərindən işləyir, bid tarixçəsi və lot statusu realtime stream ilə yenilənir.
+            Lot statusu və təklif tarixçəsi real vaxtda yenilənir.
           </p>
           <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/70 backdrop-blur">
             EkoMobil avtomobilin əsas satış ödənişini qəbul etmir. Platforma yalnız lot haqqı, deposit və digər xidmət haqlarını idarə edir.
@@ -354,8 +354,8 @@ export default function AuctionPage() {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="badge-verified">Write path secured</span>
-                      {activeLot.depositRequired && <span className="badge-warning">Deposit tələb olunur</span>}
+                      <span className="badge-verified">Canlı hərrac</span>
+                      {activeLot.depositRequired && <span className="badge-warning">Depozit tələb olunur</span>}
                     </div>
                     <h2 className="mt-2 text-2xl font-bold text-slate-900">{activeLot.titleSnapshot}</h2>
                     <p className="text-sm text-slate-500">Status: {activeLot.status}</p>
@@ -438,7 +438,7 @@ export default function AuctionPage() {
                       onClick={() => setActiveTab(tab)}
                       className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === tab ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
                     >
-                      {tab === "bid" ? "Birbaşa" : "Auto-Bid"}
+                      {tab === "bid" ? "Birbaşa" : "Avtomatik təklif"}
                     </button>
                   ))}
                 </div>
@@ -484,7 +484,7 @@ export default function AuctionPage() {
                       />
                     </div>
                     <div className="rounded-xl bg-[#0891B2]/5 p-3 text-xs text-[#0891B2] ring-1 ring-[#0891B2]/15">
-                      İlk bid minimum məbləğlə göndərilir, maksimal limit isə serverə saxlanılır.
+                      İlk təklif minimum məbləğlə göndərilir, maksimal limit isə sistemdə saxlanılır.
                     </div>
                     <button
                       type="button"
@@ -492,7 +492,7 @@ export default function AuctionPage() {
                       disabled={!lotOpen || !autoBidMax || submitting || !bidderRulesAck}
                       className="btn-primary w-full py-3 text-base disabled:opacity-50"
                     >
-                      {submitting ? "Göndərilir..." : "Auto-Bid aktiv et"}
+                      {submitting ? "Göndərilir..." : "Avtomatik təklifi aktiv et"}
                     </button>
                   </div>
                 )}

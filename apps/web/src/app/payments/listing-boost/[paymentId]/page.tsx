@@ -33,7 +33,7 @@ export default async function ListingBoostPaymentPage({
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-brand-600">Kapital Bank checkout</p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">Elan boost ödənişi</h1>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">Elan irəlilətmə ödənişi</h1>
           <p className="mt-2 text-sm text-slate-500">
             Ödəniş statusunu bu səhifədən izləyə bilərsiniz. Hosted checkout hazır olduqda bank səhifəsinə avtomatik yönləndirmə edilir.
           </p>
@@ -71,7 +71,7 @@ export default async function ListingBoostPaymentPage({
         {payment.status === "succeeded" ? (
           <div className="mt-6 space-y-4">
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              Ödəniş təsdiqləndi. Boost paketi aktivləşdirildi.
+              Ödəniş təsdiqləndi. İrəlilətmə paketi aktivləşdirildi.
             </div>
             <Link href={`/listings/${payment.listingId}`} className="btn-primary">
               Elana keç
@@ -101,7 +101,7 @@ export default async function ListingBoostPaymentPage({
               </>
             ) : isLiveReady ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                Ödəniş bankda tamamlandıqdan sonra status callback ilə yenilənir və boost paketi avtomatik tətbiq olunur.
+                Ödəniş bankda tamamlandıqdan sonra status callback ilə yenilənir və irəlilətmə paketi avtomatik tətbiq olunur.
               </div>
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

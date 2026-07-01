@@ -53,7 +53,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-4 text-base text-white/55 sm:text-lg">
-              VIN, etibar skoru, qiymət analizi.
+              VIN, etibar xalı, qiymət analizi.
             </p>
 
             <form action="/listings" method="GET" className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-0 sm:rounded-2xl sm:bg-white sm:p-1.5 sm:shadow-xl sm:ring-1 sm:ring-black/5">

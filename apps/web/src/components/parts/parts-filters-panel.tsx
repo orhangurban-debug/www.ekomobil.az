@@ -236,7 +236,7 @@ export function PartsFiltersPanel({
         >
           <option value="">Hamısı</option>
           <option value="private">Fərdi</option>
-          <option value="dealer">Mağaza / diler</option>
+          <option value="dealer">Mağaza / salon</option>
         </select>
       </div>
 

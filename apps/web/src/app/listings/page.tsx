@@ -136,7 +136,7 @@ export default async function ListingsPage({
     query.maxOwnersCount ? { label: `Sahib ≤ ${query.maxOwnersCount}`, href: chipHref(params, "maxOwnersCount") } : null,
     query.hasServiceBook ? { label: "Servis kitabçası", href: chipHref(params, "hasServiceBook") } : null,
     query.hasRepairHistory ? { label: "Təmir tarixçəsi", href: chipHref(params, "hasRepairHistory") } : null,
-    query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,
+    query.sellerType ? { label: query.sellerType === "dealer" ? "Salon" : "Fərdi", href: chipHref(params, "sellerType") } : null,
     query.vinVerified ? { label: "VIN verified", href: chipHref(params, "vinVerified") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;

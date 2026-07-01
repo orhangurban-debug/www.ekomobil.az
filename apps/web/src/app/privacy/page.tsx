@@ -124,7 +124,7 @@ export default function PrivacyPage() {
 
           <Section id="use" title="2. Məlumatları necə istifadə edirik?">
             <ul className="list-disc space-y-2 pl-5 text-sm">
-              <li><strong>Xidmət göstərmək:</strong> Elan dərcetmə, axtarış, auksion, boost aktivləşmə</li>
+              <li><strong>Xidmət göstərmək:</strong> Elan dərcetmə, axtarış, auksion, irəlilətmə aktivləşməsi</li>
               <li><strong>Hesabı idarə etmək:</strong> Giriş, parol sıfırlama, doğrulama bildirişləri</li>
               <li><strong>Saxtakarlığa qarşı:</strong> Dublikat hesab, spam, bot aktivliyinin aşkarlanması</li>
               <li><strong>Ödəniş prosesi:</strong> Tranzaksiya tarixçəsi, hesab-faktura göndərmə</li>
@@ -337,7 +337,7 @@ export default function PrivacyPage() {
         <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
           <Link href="/terms" className="text-[#0891B2] hover:underline">İstifadəçi Razılaşması</Link>
           <Link href="/rules" className="text-[#0891B2] hover:underline">Platforma Qaydaları</Link>
-          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Refund siyasəti</Link>
+          <Link href="/refund-policy" className="text-[#0891B2] hover:underline">Geri qaytarma siyasəti</Link>
           <Link href="/pricing" className="text-[#0891B2] hover:underline">Qiymətlər</Link>
         </div>
       </div>

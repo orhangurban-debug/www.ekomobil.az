@@ -145,7 +145,7 @@ export function AuctionConfirmationPanel({
         lotCheckoutUrl: payload.lotCheckoutUrl,
         bondCheckoutUrl: payload.bondCheckoutUrl
       });
-      setMessage("Yeni lot yaradıldı. Aşağıdakı checkout addımlarını tamamlayın.");
+      setMessage("Yeni lot yaradıldı. Aşağıdakı ödəniş addımlarını tamamlayın.");
       router.refresh();
     } catch {
       setError("Yenidən lot yaradılarkən şəbəkə xətası baş verdi.");
@@ -173,7 +173,7 @@ export function AuctionConfirmationPanel({
             EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Satıcı öhdəliyini yerinə yetirmədikdə platforma
             satıcı öhdəlik haqqı (hissə üçün {getSellerBreachPenaltyAzn("part")} ₼, avtomobil üçün{" "}
             {getSellerBreachPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>satıcı</strong> tərəfindən edilməlidir;
-            aşağıdakı checkout linkini satıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
+            aşağıdakı ödəniş linkini satıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
             öhdəliyinə görə tətbiq edilən haqdır.
           </p>
           <button
@@ -182,7 +182,7 @@ export function AuctionConfirmationPanel({
             disabled={Boolean(loadingAction)}
             className="btn-primary mt-4 w-full justify-center sm:w-auto"
           >
-            {loadingAction === "seller-breach-payment" ? "Hazırlanır..." : "Satıcı öhdəlik haqqı — checkout"}
+            {loadingAction === "seller-breach-payment" ? "Hazırlanır..." : "Satıcı öhdəlik haqqı — ödəniş səhifəsi"}
           </button>
         </div>
       )}
@@ -194,7 +194,7 @@ export function AuctionConfirmationPanel({
             EkoMobil hər iki tərəfin öhdəliyini ciddi qoruyur. Qalib alıcı öhdəliyini yerinə yetirmədikdə platforma
             alıcı öhdəlik haqqı (hissə üçün {getNoShowPenaltyAzn("part")} ₼, avtomobil üçün{" "}
             {getNoShowPenaltyAzn("vehicle")} ₼) tətbiq edir. Ödəniş <strong>qalib alıcı</strong> tərəfindən edilməlidir;
-            aşağıdakı checkout linkini alıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
+            aşağıdakı ödəniş linkini alıcı ilə paylaşın. Bu məbləğ avtomobilin qiyməti deyil — platforma
             öhdəliyinə görə tətbiq edilən haqdır.
           </p>
           <button
@@ -203,7 +203,7 @@ export function AuctionConfirmationPanel({
             disabled={Boolean(loadingAction)}
             className="btn-primary mt-4 w-full justify-center sm:w-auto"
           >
-            {loadingAction === "no-show-payment" ? "Hazırlanır..." : "Alıcı öhdəlik haqqı — checkout"}
+            {loadingAction === "no-show-payment" ? "Hazırlanır..." : "Alıcı öhdəlik haqqı — ödəniş səhifəsi"}
           </button>
         </div>
       )}
@@ -255,7 +255,7 @@ export function AuctionConfirmationPanel({
                 disabled={Boolean(loadingAction)}
                 className="btn-secondary justify-center"
               >
-                Alıcı no-show bildir
+                Alıcı öhdəliyini pozduğunu bildir
               </button>
             </>
           )}
@@ -303,7 +303,7 @@ export function AuctionConfirmationPanel({
       {relistResult && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">Yeni lot yaradıldı: {relistResult.newAuctionId}</p>
-          <p className="mt-1 text-emerald-800">Lot aktivləşməsi üçün checkout addımlarını tamamlayın.</p>
+          <p className="mt-1 text-emerald-800">Lot aktivləşməsi üçün ödəniş addımlarını tamamlayın.</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
@@ -318,7 +318,7 @@ export function AuctionConfirmationPanel({
                 className="btn-secondary justify-center"
                 onClick={() => router.push(relistResult.bondCheckoutUrl!)}
               >
-                Satıcı bond checkout
+                Satıcı girovunu ödə
               </button>
             )}
           </div>

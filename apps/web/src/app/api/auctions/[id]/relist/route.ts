@@ -54,7 +54,7 @@ export async function POST(
     });
     if (!bondPayment.ok || !bondPayment.payment.checkoutUrl) {
       return NextResponse.json(
-        { ok: false, error: bondPayment.ok ? "Satıcı bond checkout yaradıla bilmədi" : bondPayment.error },
+        { ok: false, error: bondPayment.ok ? "Satıcı girov ödənişi yaradıla bilmədi" : bondPayment.error },
         { status: 400 }
       );
     }

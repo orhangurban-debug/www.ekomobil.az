@@ -104,7 +104,7 @@ export default async function PartsPage({
           href: chipHref(params, "partAuthenticity")
         }
       : null,
-    query.sellerType ? { label: query.sellerType === "dealer" ? "Diler" : "Fərdi", href: chipHref(params, "sellerType") } : null,
+    query.sellerType ? { label: query.sellerType === "dealer" ? "Salon" : "Fərdi", href: chipHref(params, "sellerType") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null,
     query.inStock ? { label: "Stokda var", href: chipHref(params, "inStock") } : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;

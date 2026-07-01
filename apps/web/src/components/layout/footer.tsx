@@ -24,7 +24,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3E2F28]">Platform</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3E2F28]">Platforma</h4>
             <ul className="mt-3 space-y-2">
               {[
                 { href: "/listings", label: "Elanlar" },
@@ -69,7 +69,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
                 { href: "/terms", label: "İstifadə şərtləri" },
                 { href: "/privacy", label: "Məxfilik siyasəti" },
                 { href: "/legal", label: "Hüquqi məlumat" },
-                { href: "/refund-policy", label: "Refund siyasəti" }
+                { href: "/refund-policy", label: "Geri qaytarma siyasəti" }
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">

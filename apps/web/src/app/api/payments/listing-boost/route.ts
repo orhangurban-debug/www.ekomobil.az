@@ -28,10 +28,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Listing ID tələb olunur" }, { status: 400 });
   }
   if (!body.packageId?.trim()) {
-    return NextResponse.json({ ok: false, error: "Boost paketi tələb olunur" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "İrəlilətmə paketi tələb olunur" }, { status: 400 });
   }
   if (!getBoostPackageById(body.packageId)) {
-    return NextResponse.json({ ok: false, error: "Boost paketi tapılmadı" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "İrəlilətmə paketi tapılmadı" }, { status: 400 });
   }
 
   try {

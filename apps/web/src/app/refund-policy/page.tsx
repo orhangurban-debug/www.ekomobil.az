@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export const metadata = {
-  title: "Refund və cərimə siyasəti | EkoMobil",
+  title: "Geri qaytarma və cərimə siyasəti | EkoMobil",
   description: "EkoMobil platformasında geri qaytarma, texniki nasazlıq kompensasiyası və cərimə mübahisə qaydaları"
 };
 
@@ -22,7 +22,7 @@ export default function RefundPolicyPage() {
   return (
     <div className="bg-white">
       <div className="border-b border-slate-200 bg-slate-50 px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Refund və cərimə siyasəti</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Geri qaytarma və cərimə siyasəti</h1>
         <p className="mt-2 text-slate-500">Son yenilənmə: {EFFECTIVE_DATE}</p>
         <p className="mt-1 text-sm text-slate-400">
           Bu sənəd ödənişlərin geri qaytarılması, kompensasiya və intizam ödənişləri üzrə vahid qaydanı müəyyən edir.
@@ -33,7 +33,7 @@ export default function RefundPolicyPage() {
         <div className="space-y-12">
           <Section id="scope" title="1. Tətbiq dairəsi">
             <p>
-              Bu siyasət EkoMobil platformasında alınan xidmətlərə tətbiq edilir: elan planları, boost paketləri,
+              Bu siyasət EkoMobil platformasında alınan xidmətlərə tətbiq edilir: elan planları, irəlilətmə paketləri,
               biznes abunəlikləri və auksion üzrə intizam ödənişləri.
             </p>
             <p>
@@ -49,11 +49,11 @@ export default function RefundPolicyPage() {
             </ul>
           </Section>
 
-          <Section id="boost" title="3. Boost xidmətləri üzrə qayda">
+          <Section id="boost" title="3. İrəlilətmə xidmətləri üzrə qayda">
             <ul className="list-disc space-y-2 pl-5 text-sm">
-              <li>Boost (İrəli çək/VIP/Premium) aktivləşdikdən sonra geri qaytarılmır.</li>
-              <li>Boost texniki səbəblə aktivləşməyibsə, bərpa aktivasiya və ya kredit tətbiq edilir.</li>
-              <li>Müddət dolduqdan sonra istifadə olunmayan hissə üçün proporsional refund tətbiq edilmir.</li>
+              <li>İrəlilətmə (İrəli çək/VIP/Premium) aktivləşdikdən sonra geri qaytarılmır.</li>
+              <li>İrəlilətmə texniki səbəblə aktivləşməyibsə, bərpa aktivləşdirməsi və ya kredit tətbiq edilir.</li>
+              <li>Müddət dolduqdan sonra istifadə olunmayan hissə üçün proporsional geri qaytarma tətbiq edilmir.</li>
             </ul>
           </Section>
 
@@ -67,7 +67,7 @@ export default function RefundPolicyPage() {
 
           <Section id="auction-penalties" title="5. Auksion intizam ödənişləri">
             <p>
-              Auksion no-show və seller-breach ödənişləri intizam mexanizmidir, avtomobilin satış qiyməti deyil.
+              Auksion alıcı öhdəlik pozuntusu və satıcı öhdəlik pozuntusu ödənişləri intizam mexanizmidir, avtomobilin satış qiyməti deyil.
               Bu ödənişlər yalnız qayda pozuntusu təsdiqləndikdə tətbiq olunur.
             </p>
             <ul className="list-disc space-y-2 pl-5 text-sm">

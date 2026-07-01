@@ -105,7 +105,7 @@ export async function createListingBoostPayment(input: {
 
   const pkg = getBoostPackageById(input.packageId);
   if (!pkg || pkg.priceAzn <= 0) {
-    return { ok: false, error: "Boost paketi tapılmadı" };
+    return { ok: false, error: "İrəlilətmə paketi tapılmadı" };
   }
 
   // Idempotency: reuse a recent unfinished boost payment for the same listing/owner/package
@@ -312,7 +312,7 @@ export async function finalizeListingBoostPayment(input: {
     packageId: payment.boostPackageId
   });
   if (!boostResult.ok) {
-    return { ok: false, error: boostResult.error ?? "Boost tətbiq edilə bilmədi" };
+    return { ok: false, error: boostResult.error ?? "İrəlilətmə tətbiq edilə bilmədi" };
   }
 
   try {
@@ -325,7 +325,7 @@ export async function finalizeListingBoostPayment(input: {
         paymentType: "listing_boost",
         paymentId: updatedPayment.id,
         amountAzn: updatedPayment.amountAzn,
-        description: `Boost paketi – ${updatedPayment.boostPackageId}`,
+        description: `İrəlilətmə paketi – ${updatedPayment.boostPackageId}`,
         paymentReference: updatedPayment.providerReference,
         appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://ekomobil.az"
       });

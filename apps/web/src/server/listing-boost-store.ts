@@ -103,7 +103,7 @@ export async function applyListingBoostPackage(input: {
 
   const pkg = getBoostPackageById(input.packageId);
   if (!pkg) {
-    return { ok: false, error: "Boost paketi tapılmadı" };
+    return { ok: false, error: "İrəlilətmə paketi tapılmadı" };
   }
 
   try {
@@ -154,6 +154,6 @@ export async function applyListingBoostPackage(input: {
 
     return { ok: true, activation: result.rows[0] ? mapActivationRow(result.rows[0]) : undefined };
   } catch {
-    return { ok: false, error: "Boost tətbiq edilə bilmədi" };
+    return { ok: false, error: "İrəlilətmə tətbiq edilə bilmədi" };
   }
 }

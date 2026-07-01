@@ -17,7 +17,7 @@ const GATE_COPY: Record<GatePreset, GateCopy> = {
   "dealer-panel": {
     unauthenticated: {
       title: "Giriş tələb olunur",
-      description: "Salon paneli yalnız dealer hesabları üçündür.",
+      description: "Salon paneli yalnız salon hesabları üçündür.",
       actions: [
         { label: "Daxil ol", href: "/login?next=/dealer", variant: "primary" },
         { label: "Salon müraciəti", href: "/dealer/apply", variant: "secondary" }
@@ -35,7 +35,7 @@ const GATE_COPY: Record<GatePreset, GateCopy> = {
   "dealer-analytics": {
     unauthenticated: {
       title: "Giriş tələb olunur",
-      description: "Salon analitikası yalnız dealer hesabları üçündür.",
+      description: "Salon analitikası yalnız salon hesabları üçündür.",
       actions: [
         { label: "Daxil ol", href: "/login?next=/dealer/analytics", variant: "primary" },
         { label: "Salon müraciəti", href: "/dealer/apply", variant: "secondary" }
@@ -71,14 +71,14 @@ const GATE_COPY: Record<GatePreset, GateCopy> = {
   "dealer-import": {
     unauthenticated: {
       title: "Giriş tələb olunur",
-      description: "CSV import yalnız salon hesabları üçündür.",
+      description: "CSV idxalı yalnız salon hesabları üçündür.",
       actions: [
         { label: "Daxil ol", href: "/login?next=/dealer/import", variant: "primary" },
         { label: "Salon müraciəti", href: "/dealer/apply", variant: "secondary" }
       ]
     },
     forbidden: {
-      title: "CSV import mövcud deyil",
+      title: "CSV idxalı mövcud deyil",
       description: "Toplu import yalnız aktiv salon hesabları və uyğun planla açılır.",
       actions: [
         { label: "Salon müraciəti", href: "/dealer/apply", variant: "primary" },

@@ -157,7 +157,7 @@ export default async function ProfilePage({
                 <dd className="mt-1 text-sm font-medium text-slate-900">{profile?.phone || "Qeyd olunmayıb"}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wider text-slate-400">Deep KYC</dt>
+                <dt className="text-xs uppercase tracking-wider text-slate-400">Dərin identifikasiya</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-900">
                   {deepKyc?.status === "approved"
                     ? "Təsdiqlənib"
@@ -172,7 +172,7 @@ export default async function ProfilePage({
             <div className="mt-4">
               <div className="flex flex-wrap gap-2">
                 <Link href="/me/kyc" className="btn-secondary text-sm">
-                  Deep KYC səhifəsi
+                  Dərin identifikasiya səhifəsi
                 </Link>
                 <Link href="/me/privacy" className="btn-secondary text-sm">
                   Məlumat hüquqları

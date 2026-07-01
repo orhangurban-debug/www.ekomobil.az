@@ -25,7 +25,7 @@ export default async function FavoritesPage() {
       {items.length === 0 ? (
         <div className="card p-10 text-center">
           <h2 className="font-semibold text-slate-900">Favorilər boşdur</h2>
-          <p className="mt-2 text-sm text-slate-500">Bəyəndiyiniz elanları saxlayın ki sonra asan tapa biləsiniz.</p>
+          <p className="mt-2 text-sm text-slate-500">Bəyəndiyiniz elanları saxlayın ki, sonra asan tapa biləsiniz.</p>
           <Link href="/listings" className="btn-primary mt-6">Elanlara bax</Link>
         </div>
       ) : (

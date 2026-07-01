@@ -7,7 +7,7 @@ const PAYMENT_TYPE_LABELS = {
   listing_plan: "Elan planı",
   business_plan: "Biznes planı",
   auction_deposit: "Auksion depoziti",
-  listing_boost: "Elan boost paketi"
+  listing_boost: "Elan irəlilətmə paketi"
 } as const;
 
 const STATUS_BADGE = {

@@ -470,7 +470,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wider text-slate-400">Bazara uyğunluq</div>
-              <div className="mt-2 text-sm font-semibold text-slate-900">{listing.priceInsight || "market_rate"}</div>
+              <div className="mt-2 text-sm font-semibold text-slate-900">
+                {priceInsightMap[listing.priceInsight ?? "market_rate"].label}
+              </div>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
               <div className="text-xs uppercase tracking-wider text-slate-400">Etibar xalı</div>

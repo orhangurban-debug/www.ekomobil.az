@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: `CSV import yalnız "${DEALER_IMPORT_MIN_PLAN_LABEL}" və yuxarı planlarda aktivdir.`
+        error: `CSV idxalı yalnız "${DEALER_IMPORT_MIN_PLAN_LABEL}" və yuxarı planlarda aktivdir.`
       },
       { status: 403 }
     );

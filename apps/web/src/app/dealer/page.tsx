@@ -36,7 +36,7 @@ function StatusBadge({ status }: { status: string }) {
 function SlaBadge({ minutes }: { minutes: number }) {
   if (minutes <= 15) return <span className="badge-verified">Norma</span>;
   if (minutes <= 30) return <span className="badge-warning">Yavaş</span>;
-  return <span className="badge-danger">SLA pozulub</span>;
+  return <span className="badge-danger">Cavab müddəti aşılıb</span>;
 }
 
 export default async function DealerPortalPage() {
@@ -71,9 +71,9 @@ export default async function DealerPortalPage() {
             <Link href="/dealer/analytics" className="btn-secondary">Analitika</Link>
           ) : null}
           {dealerPlan.csvImportEnabled ? (
-            <Link href="/dealer/import" className="btn-secondary">CSV import</Link>
+            <Link href="/dealer/import" className="btn-secondary">CSV idxalı</Link>
           ) : (
-            <span className="btn-secondary pointer-events-none opacity-60">CSV import (Peşəkar+)</span>
+            <span className="btn-secondary pointer-events-none opacity-60">CSV idxalı (Peşəkar+)</span>
           )}
         </div>
       </div>
@@ -99,7 +99,7 @@ export default async function DealerPortalPage() {
           <p className="mt-1 text-xs text-violet-800/80">
             Hər elan = <strong>1 avtomobil</strong>. Elan başına {dealerPlan.perListingMaxImages} şəkil, gündə{" "}
             {Math.min(40, Math.max(8, Math.ceil(dealerPlan.maxActiveListings / 4)))} AI analiz ({dealerPlan.nameAz} planı).
-            Bir neçə avtomobil üçün ayrı elan və ya CSV import istifadə edin.
+            Bir neçə avtomobil üçün ayrı elan və ya CSV idxalı istifadə edin.
           </p>
         </div>
         <Link href="/publish" className="shrink-0 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700">
@@ -110,8 +110,8 @@ export default async function DealerPortalPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
         {[
           { label: "Aktiv elan", value: totalActive, icon: "🚗" },
-          { label: "Ümumi lead", value: totalLeads, icon: "📋" },
-          { label: "Yeni lead", value: newLeads, icon: "🔔" },
+          { label: "Ümumi sorğu", value: totalLeads, icon: "📋" },
+          { label: "Yeni sorğu", value: newLeads, icon: "🔔" },
           {
             label: dealerPlan.analyticsEnabled ? "Ort. cavab (dəq)" : "Analitika",
             value: dealerPlan.analyticsEnabled ? avgResponse : "—",
@@ -214,7 +214,7 @@ export default async function DealerPortalPage() {
                 <th className="px-6 py-3 text-center">Status</th>
                 <th className="px-6 py-3 text-center">Hərəkət</th>
                 <th className="px-6 py-3 text-center">Cavab (dəq)</th>
-                <th className="px-6 py-3 text-center">SLA</th>
+                <th className="px-6 py-3 text-center">Cavab müddəti</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

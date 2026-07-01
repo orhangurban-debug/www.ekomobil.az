@@ -116,7 +116,7 @@ export function AuctionSellForm({
       return;
     }
     if (isHighValue && !sellerBondRequired && !deepKycApproved) {
-      setError("Yüksək dəyərli lot üçün deep KYC yoxdursa satıcı bond aktiv edilməlidir.");
+      setError("Yüksək dəyərli lot üçün dərin identifikasiya təsdiqi yoxdursa satıcı girovu aktiv edilməlidir.");
       return;
     }
     if (!Number.isFinite(effectiveFloorAzn) || effectiveFloorAzn <= 0) {
@@ -174,7 +174,7 @@ export function AuctionSellForm({
         checkoutUrl?: string;
       };
       if (!lotPaymentPayload.ok || !lotPaymentPayload.checkoutUrl) {
-        setError(lotPaymentPayload.error || "Lot haqqı üçün checkout açıla bilmədi.");
+        setError(lotPaymentPayload.error || "Lot haqqı üçün ödəniş səhifəsi açıla bilmədi.");
         return;
       }
 
@@ -191,7 +191,7 @@ export function AuctionSellForm({
           checkoutUrl?: string;
         };
         if (!bondPayload.ok || !bondPayload.checkoutUrl) {
-          setError(bondPayload.error || "Satıcı bond checkout açıla bilmədi.");
+          setError(bondPayload.error || "Satıcı girov ödənişi açıla bilmədi.");
           return;
         }
         bondCheckoutUrl = bondPayload.checkoutUrl;
@@ -251,7 +251,7 @@ export function AuctionSellForm({
               className="btn-secondary justify-center"
               onClick={() => router.push(postCreate.bondCheckoutUrl!)}
             >
-              Satıcı bond checkout
+              Satıcı girovunu ödə
             </button>
           )}
           <button type="button" className="btn-secondary justify-center text-slate-500" onClick={() => setPostCreate(null)}>
@@ -357,7 +357,7 @@ export function AuctionSellForm({
         </div>
         <div>
           <label className="label flex items-center gap-2">
-            <span>Buy-now qiymət (opsional)</span>
+            <span>Dərhal al qiyməti (istəyə görə)</span>
             <InfoHint text="Alıcı bu qiyməti qəbul edərsə hərrac dərhal tamamlanır. Sürətli satış üçün istifadə olunur." />
           </label>
           <input
@@ -391,7 +391,7 @@ export function AuctionSellForm({
         <label className="flex items-center gap-3 text-sm font-medium text-slate-900">
           <input type="checkbox" checked={depositRequired} onChange={(e) => setDepositRequired(e.target.checked)} />
           <span className="inline-flex items-center gap-2">
-            Yüksək riskli lot üçün bidder deposit tələb et
+            Yüksək riskli lot üçün iştirakçı depoziti tələb et
             <InfoHint text="Alıcıların ciddi təklif verməsi üçün öncədən depozit tələb olunur. No-show halları azalır." />
           </span>
         </label>
@@ -409,8 +409,8 @@ export function AuctionSellForm({
               placeholder="Məs: 500"
             />
             <p className="mt-2 text-xs text-slate-500">
-              Depozit yalnız lot nəticəsi bağlanana qədər hold edilir: satış olmasa qaytarılır, qalib alıcı no-show olarsa
-              qalibin depoziti forfeit edilir.
+              Depozit yalnız lot nəticəsi bağlanana qədər bloklanır: satış olmasa qaytarılır, qalib alıcı öhdəliyini pozarsa
+              qalibin depoziti ləğv olunur (itirilir).
             </p>
           </div>
         )}
@@ -428,7 +428,7 @@ export function AuctionSellForm({
           <div>
             <label className="label flex items-center gap-2">
               <span>VIN məlumat formatı</span>
-              <InfoHint text="VIN tarixçəsini ya açıq URL ilə, ya da sənəd referansı ilə təqdim edin." />
+              <InfoHint text="VIN tarixçəsini ya açıq URL ilə, ya da sənəd istinadı ilə təqdim edin." />
             </label>
             <select
               className="input-field"
@@ -459,7 +459,7 @@ export function AuctionSellForm({
           <div>
             <label className="label flex items-center gap-2">
               <span>Servis tarixçə formatı</span>
-              <InfoHint text="Servis qeydlərini ya açıq URL, ya da sənəd referansı ilə əlavə edin." />
+              <InfoHint text="Servis qeydlərini ya açıq URL, ya da sənəd istinadı ilə əlavə edin." />
             </label>
             <select
               className="input-field"
@@ -503,24 +503,24 @@ export function AuctionSellForm({
             }}
           />
           <span className="inline-flex items-center gap-2">
-            Yüksək dəyərli lot üçün satıcı performans bond aktiv et
+            Yüksək dəyərli lot üçün satıcı performans girovu aktiv et
             <InfoHint text="Bu məbləğ satıcının öhdəliyini təmin edən zəmanətdir. Lot yaradarkən ayrıca ödənir və qayda pozuntusu yoxdursa proses sonunda geri qaytarılır." />
           </span>
         </label>
         {isHighValue && (
           <p className="mt-2 text-xs text-amber-700">
             Bu lot yüksək dəyərli sayılır ({AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN.toLocaleString("az-AZ")} ₼+).
-            {deepKycApproved ? " Deep KYC təsdiqiniz var, bond opsionaldır." : " Deep KYC yoxdursa bond tələb olunur."}
+            {deepKycApproved ? " Dərin identifikasiya təsdiqiniz var, girov opsionaldır." : " Dərin identifikasiya təsdiqi yoxdursa girov tələb olunur."}
           </p>
         )}
         <p className="mt-2 text-xs text-slate-500">
           Bond satıcı üçün intizam təminatıdır. Bu seçim yalnız yüksək risk/yüksək dəyərli lotlar üçün tövsiyə olunur;
-          yüksək dəyər + deep KYC yoxdursa isə zəruridir.
+          yüksək dəyər + dərin identifikasiya təsdiqi yoxdursa isə mütləqdir.
         </p>
         {sellerBondRequired && (
           <div className="mt-3">
             <label className="label flex items-center gap-2">
-              <span>Satıcı bond məbləği (₼)</span>
+              <span>Satıcı girov məbləği (₼)</span>
               <InfoHint text="Sistem təklif etdiyi məbləği göstərir; ehtiyac olduqda daha yüksək məbləğ seçə bilərsiniz." />
             </label>
             <input
@@ -536,21 +536,21 @@ export function AuctionSellForm({
 
       <div className="rounded-xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
         Avtomobilin əsas satış ödənişi EkoMobil üzərindən keçmir. Qalib alıcı əsas məbləği birbaşa satıcıya ödəyir.
-        Bu mərhələdə yalnız platforma lot haqqı checkout-u açılacaq ({listingFeeAzn.toLocaleString("az-AZ")} ₼).
+        Bu mərhələdə yalnız platforma lot haqqı ödənişi açılacaq ({listingFeeAzn.toLocaleString("az-AZ")} ₼).
         Alıcı iştirak etməzsə lot satışsız bağlanır və satış komisyonu tutulmur.
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="text-sm font-semibold text-slate-900">Tez-tez verilən suallar (depozit və bond)</div>
+        <div className="text-sm font-semibold text-slate-900">Tez-tez verilən suallar (depozit və girov)</div>
         <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-slate-600">
           <li>
             Auksionda satış olmasa depozit qaytarılır (status: <span className="font-medium">returned</span>).
           </li>
           <li>
-            Depozit lotun nəticəsi bağlanana qədər hold qalır; nəticə bağlanan kimi sistem avtomatik settle edir.
+            Depozit lotun nəticəsi bağlanana qədər blokda qalır; nəticə bağlanan kimi sistem avtomatik hesablaşdırır.
           </li>
           <li>
-            Qalib alıcı no-show olarsa qalibin depoziti forfeit, digər iştirakçıların depoyiti qaytarılır.
+            Qalib alıcı öhdəliyini pozarsa qalibin depoziti ləğv olunur, digər iştirakçıların depoziti qaytarılır.
           </li>
           <li>
             Satıcı satışdan çıxarsa (`seller_breach`) alıcı depoziti qaytarılır, satıcıya öhdəlik cəriməsi tətbiq olunur.

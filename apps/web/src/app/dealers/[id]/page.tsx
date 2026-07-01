@@ -140,7 +140,7 @@ export default async function PublicDealerPage({
             </span>
           </h2>
           <Link href={`/listings?sellerType=dealer`} className="text-sm text-[#0891B2] hover:underline">
-            Bütün diler elanları →
+            Bütün salon elanları →
           </Link>
         </div>
 

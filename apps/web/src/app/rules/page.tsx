@@ -70,7 +70,7 @@ export default function RulesPage() {
 
           <Section id="platform-status" title="1. Platformanın statusu">
             <p>
-              EkoMobil <strong>elan platformasıdır</strong> — alıcı, satıcı, broker, komissioner deyil.
+              EkoMobil <strong>elan platformasıdır</strong> — alıcı, satıcı, broker və ya komissiya agenti deyil.
               Platforma avtomobil sahiblərini potensial alıcılarla texniki mühit vasitəsilə birləşdirir.
             </p>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm">
@@ -152,12 +152,12 @@ export default function RulesPage() {
                 ]} />
               </div>
               <div className="rounded-lg border border-slate-200 px-4 py-3">
-                <p className="text-sm font-semibold text-slate-800">Boost xidmətləri (İrəli çək / VIP / Premium)</p>
+                <p className="text-sm font-semibold text-slate-800">İrəlilətmə xidmətləri (İrəli çək / VIP / Premium)</p>
                 <RuleList items={[
                   "Elan planından ayrıca satın alınır — istənilən plana əlavə edilə bilər",
                   "Xidmət aktivləşdikdən sonra ləğv edilə bilməz, geri qaytarılmır",
                   "Müddətli paketlər vaxt dolduqda avtomatik dayandırılır, uzadılmır",
-                  "Salon / mağaza abunəsindəki boost kreditləri aylıq yenilənir, keçmir"
+                  "Salon / mağaza abunəsindəki irəlilətmə kreditləri aylıq yenilənir, keçmir"
                 ]} />
               </div>
               <div className="rounded-lg border border-slate-200 px-4 py-3">
@@ -178,7 +178,7 @@ export default function RulesPage() {
               "Elan məlumatları şirkətin real inventarını əks etdirməlidir",
               "Salon inventarında olmayan avtomobil elan edilə bilməz",
               "CSV toplu yüklənmədə eyni VIN-in 90 günlük dublikat qaydası tətbiq olunur",
-              "Salon planında mövcud olan boost kreditlərindən başqa əlavə boost da alına bilər",
+              "Salon planında mövcud olan irəlilətmə kreditlərindən başqa əlavə irəlilətmə də alına bilər",
               "Filial idarəetməsi yalnız Enterprise planında mövcuddur; hər filial ayrıca hesab ola bilməz"
             ]} />
           </Section>

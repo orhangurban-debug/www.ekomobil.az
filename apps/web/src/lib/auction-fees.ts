@@ -10,7 +10,7 @@ import type { ListingKind } from "@/lib/marketplace-types";
  * Alıcıya tətbiq olunan:
  *  - BUYER_PREMIUM_RATE: opsional (pilot mərhələdə 0)
  *
- * Öhdəlik haqqları (platforma öhdəlik qaydası — avtomobilin əsas qiyməti deyil):
+ * Öhdəlik haqları (platforma öhdəlik qaydası — avtomobilin əsas qiyməti deyil):
  *  - Alıcı öhdəlik haqqı (no-show): alıcı öhdəliyini pozduqda
  *  - Satıcı öhdəlik haqqı (seller-breach): satıcı öhdəliyini pozduqda
  *  EkoMobil hər iki tərəfin öhdəliyini eyni şəkildə qoruyur.

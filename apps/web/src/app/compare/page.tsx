@@ -801,7 +801,7 @@ export default async function ComparePage({
           </div>
           <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-4">
             <p className="text-xs text-slate-400 leading-relaxed">
-              <strong className="text-slate-600">Qeyd:</strong> Tövsiyə etibar skoru + beynəlxalq etibarlılıq reytinqi əsasında hesablanır. Yekun qərar fərdi istifadə şərtlərini, büdcəni və üstünlükləri nəzərə almalıdır. Servis yoxlaması hər zaman tövsiyə olunur.
+              <strong className="text-slate-600">Qeyd:</strong> Tövsiyə etibar xalı və beynəlxalq etibarlılıq reytinqi əsasında hesablanır. Yekun qərar fərdi istifadə şərtlərini, büdcəni və üstünlükləri nəzərə almalıdır. Servis yoxlaması hər zaman tövsiyə olunur.
             </p>
           </div>
         </Section>

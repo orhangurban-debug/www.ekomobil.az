@@ -161,8 +161,8 @@ function AuctionCategoryPanel({
       : (AUCTION_FEES.SELLER_COMMISSION_PART_RATE * 100).toFixed(1);
   const minCap =
     kind === "vehicle"
-      ? `${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`
-      : `${AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN} ₼, max ${AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN} ₼`;
+      ? `${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼, maksimum ${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`
+      : `${AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN} ₼, maksimum ${AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN} ₼`;
 
   return (
     <div
@@ -189,7 +189,7 @@ function AuctionCategoryPanel({
           title="Satış komisyonu"
           value={`${ratePct}%`}
           who="Satıcıdan — yalnız uğurlu satışda"
-          desc={`Min ${minCap}`}
+          desc={`Minimum ${minCap}`}
         />
         <AuctionFeeRow
           title="Alıcı öhdəlik haqqı"
@@ -258,11 +258,11 @@ export default async function PricingPage() {
     },
     {
       q: "Salon üçün minimum plan hansıdır?",
-      a: `Salonlar üçün giriş planı (${dealerBaza.nameAz}) aylıq ${dealerBaza.priceAzn} ₼-dır. Bu planla əsas salon paneli, inventar və lead idarəetməsi açılır. CSV import və analitika üçün ${dealerPro.nameAz} planına keçmək lazımdır.`
+      a: `Salonlar üçün giriş planı (${dealerBaza.nameAz}) aylıq ${dealerBaza.priceAzn} ₼-dır. Bu planla əsas salon paneli, inventar və müştəri sorğularının idarəetməsi açılır. CSV idxalı və analitika üçün ${dealerPro.nameAz} planına keçmək lazımdır.`
     },
     {
       q: "Auksion lotunda satış olmasa lot haqqı geri qaytarılırmı?",
-      a: "Xeyr. Lot yerləşdirmə haqqı geri qaytarılmır — platforma yoxlama və aktivasiya xərclərini əhatə edir. Satış komisyonu isə yalnız uğurlu satış baş verdikdə tutulur."
+      a: "Xeyr. Lot yerləşdirmə haqqı geri qaytarılmır — platforma yoxlama və aktivləşdirmə xərclərini əhatə edir. Satış komisyonu isə yalnız uğurlu satış baş verdikdə tutulur."
     },
     {
       q: "Avtomobilin satış məbləğini EkoMobil vasitəsilə ödəmək olarmı?",
@@ -402,15 +402,15 @@ export default async function PricingPage() {
             <p className="text-sm font-semibold text-slate-800">Şəkil emalı — bütün planlar üçün eynidir</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3 text-xs text-slate-600">
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 rounded bg-[#0891B2]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0891B2]">AUTO</span>
+                <span className="mt-0.5 shrink-0 rounded bg-[#0891B2]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#0891B2]">AVTO</span>
                 <span><strong>İstənilən format qəbul olunur</strong> — JPEG, PNG, WebP, HEIC, BMP. Sistem avtomatik JPEG-ə çevirir.</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">SXIL</span>
-                <span><strong>Böyük fayllar avtomatik sıxılır</strong> — 85% JPEG keyfiyyəti, max 1280 px. 10 MB telefon fotosu ~800 KB-a endirilir.</span>
+                <span className="mt-0.5 shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">SIX</span>
+                <span><strong>Böyük fayllar avtomatik sıxılır</strong> — 85% JPEG keyfiyyəti, maksimum 1280 px. 10 MB telefon fotosu ~800 KB-a endirilir.</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LIMIT</span>
+                <span className="mt-0.5 shrink-0 rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">LİMİT</span>
                 <span>
                   <strong>Hər plan öz limitləri ilə işləyir</strong> — Pulsuz: {FREE_LISTING_PLAN?.maxImages ?? 15} şəkil,
                   Standart: {STANDARD_LISTING_PLAN?.maxImages ?? 15} şəkil, VIP: {VIP_LISTING_PLAN?.maxImages ?? 20} şəkil.
@@ -474,7 +474,7 @@ export default async function PricingPage() {
                 <>
                         <li className="flex items-center gap-2"><CheckIcon />Standart sıralanma</li>
                         <li className="flex items-center gap-2"><CheckIcon />Əsas axtarış görünüşü</li>
-                        <li className="flex items-center gap-2 text-slate-400"><XIcon />Boost (ayrıca alına bilər)</li>
+                        <li className="flex items-center gap-2 text-slate-400"><XIcon />İrəlilətmə (ayrıca alına bilər)</li>
                         <li className="flex items-center gap-2 text-slate-400"><XIcon />Video</li>
                 </>
               )}
@@ -484,7 +484,7 @@ export default async function PricingPage() {
                         <li className="flex items-center gap-2"><CheckIcon />2× prioritet sıralama</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />1 video ({STANDARD_LISTING_PLAN?.maxVideoSizeMb ?? 50} MB)</li>
-                        <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
+                        <li className="flex items-center gap-2"><CheckIcon />İrəlilətmə xidmətləri əlavə edilə bilər</li>
                 </>
               )}
               {plan.id === "vip" && (
@@ -494,7 +494,7 @@ export default async function PricingPage() {
                         <li className="flex items-center gap-2"><CheckIcon />Vurğulanmış görünüş + ribbon</li>
                         <li className="flex items-center gap-2"><CheckIcon />Baxış & klik statistikası</li>
                         <li className="flex items-center gap-2"><CheckIcon />{VIP_LISTING_PLAN?.maxVideos ?? 1} video ({VIP_LISTING_PLAN?.maxVideoSizeMb ?? 200} MB/video)</li>
-                        <li className="flex items-center gap-2"><CheckIcon />Boost xidmətləri əlavə edilə bilər</li>
+                        <li className="flex items-center gap-2"><CheckIcon />İrəlilətmə xidmətləri əlavə edilə bilər</li>
                 </>
               )}
             </ul>
@@ -675,7 +675,7 @@ export default async function PricingPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">②</span>
-                <span><strong>Peşəkar plan ({dealerPro.priceAzn} ₼):</strong> {dealerPro.maxActiveListings} aktiv elan limiti + CSV import + analitika ilə iş axını sürətlənir.</span>
+                <span><strong>Peşəkar plan ({dealerPro.priceAzn} ₼):</strong> {dealerPro.maxActiveListings} aktiv elan limiti + CSV idxalı + analitika ilə iş axını sürətlənir.</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 shrink-0 text-blue-500">③</span>
@@ -687,7 +687,7 @@ export default async function PricingPage() {
           <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-xs text-slate-600">
             <p className="font-semibold text-slate-800">Niyə bu limitlər var?</p>
             <p className="mt-1 leading-relaxed">
-              Limitlər real xərclərə görə hesablanır: şəkil saxlanması ({economics.storageCostPerImageAzn.toFixed(4)} ₼/şəkil), görüntü trafiki ({economics.egressCostPerImageViewAzn.toFixed(4)} ₼/görüntü), moderasiya ({economics.moderationCostPerListingAzn.toFixed(2)} ₼/elan) və dəstək ({economics.supportCostPerListingAzn.toFixed(2)} ₼/elan). Hədəf COGS nisbəti {economics.targetCogsRatioPct}% və risk buffer {economics.riskBufferPct}% saxlanır.
+              Limitlər real xərclərə görə hesablanır: şəkil saxlanması ({economics.storageCostPerImageAzn.toFixed(4)} ₼/şəkil), görüntü trafiki ({economics.egressCostPerImageViewAzn.toFixed(4)} ₼/görüntü), moderasiya ({economics.moderationCostPerListingAzn.toFixed(2)} ₼/elan) və dəstək ({economics.supportCostPerListingAzn.toFixed(2)} ₼/elan). Hədəf maya dəyəri nisbəti {economics.targetCogsRatioPct}% və risk buffer {economics.riskBufferPct}% saxlanır.
             </p>
           </div>
 
@@ -724,7 +724,7 @@ export default async function PricingPage() {
                   </span>
                   {plan.csvImportEnabled && (
                     <span className="rounded-md bg-blue-50 text-blue-700 px-2 py-0.5 text-xs font-medium">
-                      CSV import
+                      CSV idxalı
                     </span>
                   )}
                   {plan.analyticsEnabled && (
@@ -734,7 +734,7 @@ export default async function PricingPage() {
                   )}
                   {plan.id === "korporativ" && (
                     <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
-                      Cover + ünvan
+                      Kapak şəkli + ünvan
                     </span>
                   )}
                 </div>
@@ -854,7 +854,7 @@ export default async function PricingPage() {
                   )}
                   {plan.id === "şəbəkə" && (
                     <span className="rounded-md bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs">
-                      Cover + ünvan
+                      Kapak şəkli + ünvan
                     </span>
                   )}
                 </div>
@@ -901,7 +901,7 @@ export default async function PricingPage() {
         <section id="services" className="scroll-mt-20">
           <SectionHeader
             label="Servislər və ustalar"
-            title="Servis provayderi planları"
+            title="Xidmət təminatçısı planları"
             sub="Rəsmi servis, ekspertiza şirkəti və usta profilləri üçün aylıq abunə planları."
           />
 
@@ -910,10 +910,10 @@ export default async function PricingPage() {
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-blue-900">Servis provayderlər üçün xüsusi şərtlər</p>
+              <p className="text-sm font-semibold text-blue-900">Xidmət təminatçıları üçün xüsusi şərtlər</p>
               <p className="mt-1 text-xs text-blue-800 leading-relaxed">
                 Fərdi ustalar Pulsuz plan ilə başlaya bilər. Ödənişli plana keçən ilk tərəfdaşlar üçün
-                ilk 30 günlük pulsuz aktivasiya imkanı mövcuddur. Müraciət telefon təsdiqindən sonra nəzərdən keçirilir.
+                ilk 30 günlük pulsuz aktivləşdirmə imkanı mövcuddur. Müraciət telefon təsdiqindən sonra nəzərdən keçirilir.
               </p>
             </div>
           </div>
@@ -1063,14 +1063,14 @@ export default async function PricingPage() {
         <section id="auction" className="scroll-mt-20">
           <SectionHeader
             label="Canlı hərrac"
-            title="Auksion haqqları"
-            sub="Aşağıdakı cədvəldə platforma haqqları göstərilib. Avtomobilin əsas satış məbləği platformadan keçmir."
+            title="Auksion haqları"
+            sub="Aşağıdakı cədvəldə platforma haqları göstərilib. Avtomobilin əsas satış məbləği platformadan keçmir."
           />
 
           <div className="mx-auto mb-8 max-w-2xl text-center">
             <p className="text-sm text-slate-600">
               Avtomobilin satış məbləği alıcıdan satıcıya birbaşa ödənilir — platforma vasitəçilik etmir.
-              Aşağıdakı cədvəldə yalnız platforma haqqları göstərilib.
+              Aşağıdakı cədvəldə yalnız platforma haqları göstərilib.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
               <Link
@@ -1115,7 +1115,7 @@ export default async function PricingPage() {
           </div>
 
           <div className="mt-8 space-y-3">
-            <AuctionDetailsBlock title="Ödəniş və öhdəlik haqqları — necə işləyir?">
+            <AuctionDetailsBlock title="Ödəniş və öhdəlik haqları — necə işləyir?">
               <p className="leading-relaxed text-slate-600">
                 EkoMobil auksionunda hər iki tərəf — alıcı da, satıcı da — öhdəlik verir. Öhdəlik pozulduqda
                 platforma öhdəlik haqqı tətbiq edilir; bu həm platforma tamlığını qoruyur, həm zərər görən tərəfi

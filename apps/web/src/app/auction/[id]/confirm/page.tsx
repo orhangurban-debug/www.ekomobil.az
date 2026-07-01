@@ -149,7 +149,7 @@ export default async function AuctionConfirmPage({
             Auksiona qayıt
           </Link>
           <Link href="/pricing#auction" className="btn-secondary">
-            Haq strukturu
+            Haqq strukturu
           </Link>
         </div>
       </div>

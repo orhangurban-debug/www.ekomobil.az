@@ -60,7 +60,7 @@ export default async function AdminListingsPage({
         <select name="sellerType" defaultValue={sellerType ?? ""} className="input-field">
           <option value="">Satıcı (hamısı)</option>
           <option value="private">Fərdi</option>
-          <option value="dealer">Diler</option>
+          <option value="dealer">Salon</option>
         </select>
         <input name="city" defaultValue={city} placeholder="Şəhər" className="input-field" />
         <div className="flex gap-2">

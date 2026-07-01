@@ -23,7 +23,7 @@ export function DealerImportForm() {
       });
       const payload = (await response.json()) as { ok?: boolean; created?: number; errors?: string[]; error?: string };
       if (!response.ok || payload.ok === false) {
-        setResult({ created: 0, errors: payload.errors, error: payload.error ?? "CSV import mümkün olmadı." });
+        setResult({ created: 0, errors: payload.errors, error: payload.error ?? "CSV idxalı mümkün olmadı." });
         return;
       }
       setResult({ created: payload.created, errors: payload.errors });
@@ -39,7 +39,7 @@ export function DealerImportForm() {
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">CSV import</h1>
+          <h1 className="text-2xl font-bold text-slate-900">CSV idxalı</h1>
           <p className="mt-1 text-sm text-slate-500">Toplu inventar yükləmə</p>
         </div>
         <Link href="/dealer" className="btn-secondary text-sm">Salon paneli</Link>

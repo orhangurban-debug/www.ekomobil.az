@@ -142,7 +142,7 @@ export function BoostListingButton({
                 );
               })}
               <div className="my-1 border-t border-slate-100" />
-              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Boost paketləri</div>
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">İrəlilətmə paketləri</div>
               {BUMP_PACKAGES.slice(0, 2).map(renderCompactBoostButton)}
               {VIP_PACKAGES.slice(0, 1).map(renderCompactBoostButton)}
               {PREMIUM_PACKAGES.slice(0, 1).map(renderCompactBoostButton)}
@@ -191,7 +191,7 @@ export function BoostListingButton({
           </div>
 
           <div className="pt-2">
-            <p className="text-sm font-medium text-slate-700">Boost paketləri</p>
+            <p className="text-sm font-medium text-slate-700">İrəlilətmə paketləri</p>
             <p className="mt-1 text-xs text-slate-500">
               İrəli çək / VIP / Premium paketləri ilə elanın görünürlüğünü artırın.
             </p>

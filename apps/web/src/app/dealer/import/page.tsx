@@ -15,9 +15,9 @@ export default async function DealerImportPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-xl font-bold text-amber-900">CSV import bu plan üçün aktiv deyil</h1>
+          <h1 className="text-xl font-bold text-amber-900">CSV idxalı bu plan üçün aktiv deyil</h1>
           <p className="mt-2 text-sm text-amber-800">
-            Aktiv planınız: <strong>{plan.nameAz}</strong>. CSV import Salon Peşəkar və ya daha yüksək planda açılır.
+            Aktiv planınız: <strong>{plan.nameAz}</strong>. CSV idxalı Salon Peşəkar və ya daha yüksək planda açılır.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/pricing#dealer" className="btn-primary">Planı yüksəlt</Link>

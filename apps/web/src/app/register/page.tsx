@@ -243,7 +243,7 @@ export default function RegisterPage() {
           <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
             <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.5 3.6-5.5 3.6-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 4 1.5l2.7-2.6C17 2.6 14.7 1.7 12 1.7 6.9 1.7 2.8 6 2.8 11.3S6.9 20.9 12 20.9c6.9 0 9.2-4.9 9.2-7.5 0-.5 0-.9-.1-1.3H12z" />
           </svg>
-          {googleLoading ? "Google-a yönləndirilir..." : "Google ilə daxil ol"}
+          {googleLoading ? "Google-a yönləndirilir..." : "Google ilə qeydiyyat"}
         </Link>
         <div className="text-center text-xs text-slate-400">və ya aşağıdakı formu doldurun</div>
 
@@ -316,7 +316,7 @@ export default function RegisterPage() {
           />
           {otpHintCode && (
             <p className="mt-1 text-xs text-slate-500">
-              Dev kodu: <span className="font-mono">{otpHintCode}</span>
+              Test kodu: <span className="font-mono">{otpHintCode}</span>
             </p>
           )}
         </div>

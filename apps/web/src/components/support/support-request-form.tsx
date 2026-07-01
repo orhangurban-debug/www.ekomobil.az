@@ -105,7 +105,7 @@ export function SupportRequestForm({
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət tipi</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət növü</span>
           <select className="input-field" value={requestType} onChange={(e) => setRequestType(e.target.value)}>
             {requestTypes.map((item) => (
               <option key={item.value} value={item.value}>

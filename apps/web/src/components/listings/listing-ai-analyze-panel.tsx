@@ -246,7 +246,7 @@ export function ListingAiAnalyzePanel({
           <strong>Salon / avtomobil qaydası:</strong> Yalnız <em>bir avtomobilin</em> şəkillərini yükləyin.
           Bir neçə avtomobil üçün ayrı-ayrı elan yaradın və ya{" "}
           <Link href="/dealer/import" className="font-semibold underline">
-            CSV import
+            CSV idxalı
           </Link>{" "}
           istifadə edin.
         </div>

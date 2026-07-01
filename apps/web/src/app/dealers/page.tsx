@@ -23,7 +23,7 @@ function DealerAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
 
 export const metadata = {
   title: "Salonlar | EkoMobil",
-  description: "Azərbaycanda avtomobil salonları və diler profillərini kəşf edin."
+  description: "Azərbaycanda avtomobil salonları və salon profillərini kəşf edin."
 };
 
 export default async function DealersPage() {

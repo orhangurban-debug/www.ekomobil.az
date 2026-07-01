@@ -94,7 +94,7 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
       "Mağaza Peşəkar planındakı bütün imkanlar",
       "1000 aktiv məhsul elanı (SKU) limiti",
       "Elan başına maksimum 8 şəkil",
-      "Profildə korporativ sahələr: cover şəkli və ünvan",
+      "Profildə korporativ sahələr: kapak şəkli və ünvan",
       "Analitika paneli",
       "Biznes profilində geniş məlumat sahələri"
     ],

@@ -27,7 +27,7 @@ import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 
-const STEPS = ["Avtomobil", "Media", "Plan", "Yoxlama"] as const;
+const STEPS = ["Avtomobil", "Mediya", "Plan", "Yoxlama"] as const;
 type Step = (typeof STEPS)[number];
 
 interface TrustApiResponse {
@@ -62,7 +62,7 @@ const mediaAngles: { key: keyof MediaProtocolInput; label: string }[] = [
   { key: "hasRightSide", label: "Sağ tərəf" },
   { key: "hasDashboard", label: "Ön panel" },
   { key: "hasInterior", label: "Salon" },
-  { key: "hasOdometer", label: "Odometr" },
+  { key: "hasOdometer", label: "Yürüş sayğacı" },
   { key: "hasTrunk", label: "Baqaj" }
 ];
 
@@ -227,7 +227,7 @@ export default function PublishPage() {
     setVehicleValidationVisible(true);
     if (vehicleStepErrors.length > 0) return;
     setReviewErrors([]);
-    setStep("Media");
+    setStep("Mediya");
   }
 
   function handleMediaNext() {
@@ -321,7 +321,7 @@ export default function PublishPage() {
     }
 
     if (!mediaCheck.isComplete) {
-      setStep("Media");
+      setStep("Mediya");
       return;
     }
 
@@ -862,16 +862,16 @@ export default function PublishPage() {
                 )}
 
                 <button type="button" onClick={handleVehicleNext} className="btn-primary w-full justify-center py-3">
-                  Növbəti: Media
+                  Növbəti: Mediya
                 </button>
               </div>
             )}
 
             {/* Step 2: Media */}
-            {step === "Media" && (
+            {step === "Mediya" && (
               <div className="card p-8 space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Media protokolu</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">Mediya protokolu</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     Daha çox foto = daha yüksək etibar balı = daha sürətli satış
                   </p>
@@ -980,7 +980,7 @@ export default function PublishPage() {
                         )
                       },
                       {
-                        label: "Odometr", priority: "Vacib", tip: "Yürüş açıq oxunmalıdır. Gecə rejimi yox.",
+                        label: "Yürüş sayğacı", priority: "Vacib", tip: "Yürüş açıq oxunmalıdır. Gecə rejimi yox.",
                         icon: (
                           <svg viewBox="0 0 80 50" className="h-12 w-full" fill="none">
                             <circle cx="40" cy="28" r="18" fill="#334155" opacity=".9"/>
@@ -1294,7 +1294,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Media")} className="btn-secondary flex-1 justify-center py-3">
+                  <button type="button" onClick={() => setStep("Mediya")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
                   <button type="button" onClick={handlePlanNext} className="btn-primary flex-1 justify-center py-3">
@@ -1331,7 +1331,7 @@ export default function PublishPage() {
                       "Servis tarixçəsi",
                       serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
                     ],
-                    ["Media", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
+                    ["Mediya", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
                     ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${formatListingPlanPrice(planType, typeof priceAzn === "number" ? priceAzn : undefined)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">

@@ -308,14 +308,14 @@ export function ListingsFiltersPanel({
             type="number"
             value={query.minPrice ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, minPrice: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Min"
+            placeholder="Min."
           />
           <input
             className="input-field"
             type="number"
             value={query.maxPrice ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, maxPrice: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Max"
+            placeholder="Maks."
           />
         </div>
         {/* Quick price presets */}
@@ -354,14 +354,14 @@ export function ListingsFiltersPanel({
             type="number"
             value={query.minYear ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, minYear: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Min"
+            placeholder="Min."
           />
           <input
             className="input-field"
             type="number"
             value={query.maxYear ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, maxYear: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Max"
+            placeholder="Maks."
           />
         </div>
       </div>
@@ -375,14 +375,14 @@ export function ListingsFiltersPanel({
             type="number"
             value={query.minMileage ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, minMileage: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Min"
+            placeholder="Min."
           />
           <input
             className="input-field"
             type="number"
             value={query.maxMileage ?? ""}
             onChange={(e) => setQuery((prev) => ({ ...prev, maxMileage: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Max"
+            placeholder="Maks."
           />
         </div>
       </div>
@@ -534,7 +534,7 @@ export function ListingsFiltersPanel({
                   type="number"
                   value={query.minEngineVolumeCc ?? ""}
                   onChange={(e) => setQuery((prev) => ({ ...prev, minEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
-                  placeholder="Min"
+                  placeholder="Min."
                   disabled={isElectricPowertrain}
                 />
                 <input
@@ -542,12 +542,12 @@ export function ListingsFiltersPanel({
                   type="number"
                   value={query.maxEngineVolumeCc ?? ""}
                   onChange={(e) => setQuery((prev) => ({ ...prev, maxEngineVolumeCc: e.target.value ? Number(e.target.value) : undefined }))}
-                  placeholder="Max"
+                  placeholder="Maks."
                   disabled={isElectricPowertrain}
                 />
               </div>
               {isElectricPowertrain && (
-                <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillər üçün həcm filteri tətbiq edilmir.</p>
+                <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillər üçün həcm filtri tətbiq edilmir.</p>
               )}
             </div>
 
@@ -582,7 +582,7 @@ export function ListingsFiltersPanel({
               <select className="input-field" value={query.sellerType ?? ""} onChange={(e) => setQuery((prev) => ({ ...prev, sellerType: (e.target.value || undefined) as "private" | "dealer" | undefined }))}>
                 <option value="">Hamısı</option>
                 <option value="private">Fərdi</option>
-                <option value="dealer">Diler</option>
+                <option value="dealer">Salon</option>
               </select>
             </div>
 

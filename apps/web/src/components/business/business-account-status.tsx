@@ -50,7 +50,7 @@ export function BusinessAccountStatus({
         <VerticalCard
           emoji="🚗"
           title="Avtomobil salonu"
-          description="Avtomobil inventarı, salon paneli, lead CRM, CSV import."
+          description="Avtomobil inventarı, salon paneli, müştəri sorğuları, CSV idxalı."
           status={salonStatusLabel(snapshot)}
           active={salonActive}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}

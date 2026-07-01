@@ -14,7 +14,7 @@ import { SERVICE_PROVIDER_GROUPS, SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/ser
 export const metadata: Metadata = {
   title: "Servislər və ustalar | EkoMobil",
   description:
-    "Ekspertiza, rəsmi servis, dəmirçi, elektrik və digər avtomobil xidmətləri. EkoMobil-də servis provayderləri və ustalar."
+    "Ekspertiza, rəsmi servis, dəmirçi, elektrik və digər avtomobil xidmətləri. EkoMobil-də xidmət təminatçıları və ustalar."
 };
 
 const groupIcons: Record<string, LucideIcon> = {

@@ -32,7 +32,7 @@ const COPY: Record<ListingPublishEaseTipProps["variant"], { title: string; steps
     title: "Sürətli profil — 3 addım",
     steps: [
       "Emalatxana/servis şəkillərini yükləyin",
-      "AI xidmət tipi və tag-ları təklif etsin",
+      "AI xidmət tipi və teqləri təklif etsin",
       "Yoxlayın və müraciəti göndərin"
     ]
   }

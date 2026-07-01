@@ -8,7 +8,7 @@ type UserStatus = "active" | "suspended" | "review";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   viewer: "İzləyici",
-  dealer: "Diler",
+  dealer: "Salon",
   support: "Dəstək",
   admin: "Admin"
 };

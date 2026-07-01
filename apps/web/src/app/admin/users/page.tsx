@@ -49,7 +49,7 @@ export default async function AdminUsersPage({
           <option value="">Bütün rollar</option>
           <option value="admin">Admin</option>
           <option value="support">Dəstək</option>
-          <option value="dealer">Diler</option>
+          <option value="dealer">Salon</option>
           <option value="viewer">İzləyici</option>
         </select>
         <select name="status" defaultValue={status ?? ""} className="input-field">

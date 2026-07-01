@@ -17,7 +17,7 @@ export default async function ProfileKycPage() {
           Profil
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-900">Deep KYC</span>
+        <span className="text-slate-900">Dərin identifikasiya</span>
       </nav>
 
       <DeepKycForm

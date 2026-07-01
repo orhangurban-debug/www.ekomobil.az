@@ -21,7 +21,7 @@ interface LifestyleCategory {
 
 const categories: LifestyleCategory[] = [
   {
-    label: "SUV & Krossover",
+    label: "SUV və krossover",
     href: "/listings?bodyType=SUV",
     icon: CarFront,
     tone: "sky"

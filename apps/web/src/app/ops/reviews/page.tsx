@@ -102,11 +102,11 @@ export default async function ReviewQueuePage() {
 
       <div className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Deep KYC review növbəsi</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Dərin identifikasiya yoxlama növbəsi</h2>
           <span className="text-xs text-slate-500">{pendingDeepKyc.length} müraciət</span>
         </div>
         {pendingDeepKyc.length === 0 ? (
-          <div className="card p-8 text-center text-sm text-slate-500">Hazırda deep KYC review gözləyən müraciət yoxdur.</div>
+          <div className="card p-8 text-center text-sm text-slate-500">Hazırda dərin identifikasiya yoxlaması gözləyən müraciət yoxdur.</div>
         ) : (
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">

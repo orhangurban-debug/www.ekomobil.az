@@ -17,7 +17,7 @@ const STORAGE_KEY = "ekomobil_auction_bidder_ack_v1";
 const BIDDER_KEY_POINTS = [
   "Qalib olduqda avtomobil ödənişini satıcıya birbaşa ödəyirəm — platforma bu məbləği saxlamır.",
   "Qalib olduqda öhdəlimdən imtina edə bilmərəm — şərtlər hər iki tərəf üçün eyni dərəcədə tətbiq edilir.",
-  "Satıcı öhdəliyini pozsa, qalib alıcı olaraq mənə satıcı öhdəlik haqqı üçün checkout yarada bilərəm.",
+  "Satıcı öhdəliyini pozsa, qalib alıcı olaraq mənə satıcı öhdəlik haqqı üçün ödəniş səhifəsi yarada bilərəm.",
   "Mübahisə yarandıqda sübutları platforma vasitəsilə təqdim edirəm; EkoMobil müstəqil mediasiya prosesini idarə edir.",
   "Tam şərtlər üçün Auksion çərçivəsi və İstifadəçi şərtlərini oxudum."
 ];

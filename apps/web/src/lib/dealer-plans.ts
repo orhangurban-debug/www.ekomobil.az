@@ -127,7 +127,7 @@ export const DEALER_PLANS: DealerPlan[] = [
     features: [
       "Salon Peşəkar planındakı bütün imkanlar",
       "200 aktiv avtomobil elanı limiti",
-      "Profildə korporativ sahələr: cover şəkli və ünvan",
+      "Profildə korporativ sahələr: kapak şəkli və ünvan",
       "CSV toplu yükləmə və analitika paneli",
       "Biznes profilində geniş məlumat sahələri"
     ],

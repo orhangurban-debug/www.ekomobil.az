@@ -145,7 +145,7 @@ export async function createAuctionServicePayment(input: {
     chargedUserId = auction.sellerUserId;
   } else if (input.eventType === "seller_performance_bond") {
     if (auction.sellerUserId !== input.actorUserId) {
-      return { ok: false, error: "Satıcı bond checkout-u yalnız satıcı yarada bilər" };
+      return { ok: false, error: "Satıcı girov ödənişi yalnız satıcı yarada bilər" };
     }
     if (!auction.sellerBondRequired || !auction.sellerBondAmountAzn) {
       return { ok: false, error: "Bu lot üçün satıcı bond tələb olunmur" };

@@ -59,7 +59,7 @@ export default async function AuctionOpsPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Auction Ops Console</h1>
-        <p className="mt-1 text-slate-500">Dispute, no-show, outcome confirmation və audit axını</p>
+        <p className="mt-1 text-slate-500">Mübahisə, öhdəlik pozuntusu, nəticə təsdiqi və audit axını</p>
       </div>
 
       <section className="mb-6 grid gap-4 md:grid-cols-5">

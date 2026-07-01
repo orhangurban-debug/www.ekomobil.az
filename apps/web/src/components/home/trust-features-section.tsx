@@ -16,8 +16,8 @@ const features: TrustFeature[] = [
   },
   {
     icon: ClipboardCheck,
-    title: "Etibar Skoru",
-    desc: "Hər elan məlumatlarının dolğunluğuna görə avtomatik etibar skoru alır — alıcı üçün şəffaf meyar.",
+    title: "Etibar xalı",
+    desc: "Hər elan məlumatlarının dolğunluğuna görə avtomatik etibar xalı alır — alıcı üçün şəffaf meyar.",
     tone: "sky"
   },
   {
@@ -29,7 +29,7 @@ const features: TrustFeature[] = [
   {
     icon: Gavel,
     title: "Canlı Auksion",
-    desc: "Real vaxt sayac, auto-bid sistemi və tam hərrac tarixi ilə şəffaf hərrac platforması.",
+    desc: "Real vaxtlı sayğac, avtomatik təklif sistemi və tam hərrac tarixi ilə şəffaf hərrac platforması.",
     tone: "rose"
   }
 ];
