@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
+import { resolvePrimaryHeaderCta } from "@/lib/page-cta";
+import type { UserRole } from "@/lib/auth";
 
 const GLOBAL_NOTICE_VERSION = "v2";
 const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE_VERSION}`;
@@ -24,7 +26,7 @@ export function Header({
   logoUrl
 }: {
   userEmail?: string;
-  userRole?: string;
+  userRole?: UserRole;
   logoUrl: string;
 }) {
   const pathname = usePathname();
@@ -35,23 +37,7 @@ export function Header({
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
 
-  const suppressCta = pathname.startsWith("/publish") || pathname.startsWith("/parts/publish");
-
-  const primaryCta = suppressCta
-    ? null
-    : pathname.startsWith("/services") || pathname.startsWith("/partners")
-      ? { label: "Servis müraciəti", href: "/partners/inspection" }
-      : pathname.startsWith("/dealers")
-        ? { label: "Salon müraciəti", href: "/dealer/apply" }
-        : pathname.startsWith("/dealer")
-          ? { label: "Yeni elan", href: "/publish" }
-          : pathname.startsWith("/parts")
-            ? { label: "Hissə elanı", href: "/parts/publish" }
-            : pathname.startsWith("/auction")
-              ? { label: "Lot yerləşdir", href: "/auction/sell" }
-              : pathname.startsWith("/listings")
-                ? { label: "Elan yerləşdir", href: "/publish" }
-                : { label: "Elan yerləşdir", href: "/publish" };
+  const primaryCta = resolvePrimaryHeaderCta(pathname, userRole);
 
   function hideNotice() {
     setNoticeVisible(false);

@@ -1,18 +1,13 @@
 import Link from "next/link";
 import { requirePageRoles } from "@/lib/rbac";
+import { RoleAccessGate } from "@/components/ui/role-access-gate";
 import { getEffectivePartsPlan } from "@/server/business-plan-store";
 import { getBusinessAnalyticsSummary } from "@/server/business-analytics-store";
 
 export default async function PartsAnalyticsPage() {
   const auth = await requirePageRoles(["admin", "dealer"]);
   if (!auth.ok) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-slate-900">Giriş tələb olunur</h1>
-        <p className="mt-2 text-sm text-slate-500">Bu səhifə yalnız mağaza/dealer hesabları üçündür.</p>
-        <Link href="/login" className="btn-primary mt-6 inline-flex">Daxil ol</Link>
-      </div>
-    );
+    return <RoleAccessGate reason={auth.reason} preset="parts-analytics" />;
   }
 
   const plan = await getEffectivePartsPlan(auth.user.id);
@@ -22,10 +17,11 @@ export default async function PartsAnalyticsPage() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
           <h1 className="text-xl font-bold text-amber-900">Mağaza analitikası bu plan üçün aktiv deyil</h1>
           <p className="mt-2 text-sm text-amber-800">
-            Aktiv planınız: <strong>{plan.nameAz}</strong>. Bu modulu açmaq üçün Mağaza Peşəkar və ya daha yüksək plan seçin.
+            Aktiv planınız: <strong>{plan.nameAz}</strong>. Mağaza Peşəkar və ya daha yüksək plan seçin.
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/pricing#parts-store" className="btn-primary">Planı yüksəlt</Link>
+            <Link href="/parts" className="btn-secondary">Mağaza elanları</Link>
           </div>
         </div>
       </div>

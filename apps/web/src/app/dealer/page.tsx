@@ -6,6 +6,7 @@ import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
 import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
 import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
+import { RoleAccessGate } from "@/components/ui/role-access-gate";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -41,20 +42,7 @@ function SlaBadge({ minutes }: { minutes: number }) {
 export default async function DealerPortalPage() {
   const auth = await requirePageRoles(["admin", "dealer"]);
   if (!auth.ok) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="card p-10 text-center max-w-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50">
-            <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 className="font-bold text-slate-900">Giriş tələb olunur</h2>
-          <p className="mt-2 text-sm text-slate-500">Salon paneli yalnız dealer hesabları üçündür.</p>
-          <Link href="/login" className="btn-primary mt-6 w-full justify-center">Daxil ol</Link>
-        </div>
-      </div>
-    );
+    return <RoleAccessGate reason={auth.reason} preset="dealer-panel" />;
   }
 
   const [dashboard, dealerPlan, profileSettings, profileEntitlements] = await Promise.all([

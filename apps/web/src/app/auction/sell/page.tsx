@@ -9,15 +9,18 @@ export default async function AuctionSellPage() {
   const user = await getServerSessionUser();
   if (!user) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-4">
+      <div className="mx-auto flex min-h-[60vh] max-w-sm items-center justify-center px-4">
         <div className="card p-10 text-center">
-          <h1 className="text-2xl font-bold text-slate-900">Auksion lotu yarat</h1>
-          <p className="mt-3 text-sm text-slate-500">
-            Auksion lotu yaratmaq üçün əvvəlcə hesabınıza daxil olun.
-          </p>
-          <Link href="/login?next=%2Fauction%2Fsell" className="btn-primary mt-6 w-full justify-center">
-            Daxil ol
-          </Link>
+          <h1 className="text-xl font-bold text-slate-900">Giriş tələb olunur</h1>
+          <p className="mt-2 text-sm text-slate-500">Lot yaratmaq üçün hesabınıza daxil olun.</p>
+          <div className="mt-6 flex flex-col gap-2">
+            <Link href="/login?next=/auction/sell" className="btn-primary w-full justify-center">
+              Daxil ol
+            </Link>
+            <Link href="/register" className="btn-secondary w-full justify-center">
+              Qeydiyyat
+            </Link>
+          </div>
         </div>
       </div>
     );

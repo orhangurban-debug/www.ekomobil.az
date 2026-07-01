@@ -1,18 +1,13 @@
 import Link from "next/link";
 import { requirePageRoles } from "@/lib/rbac";
+import { RoleAccessGate } from "@/components/ui/role-access-gate";
 import { getEffectiveDealerPlan } from "@/server/business-plan-store";
 import { getBusinessAnalyticsSummary } from "@/server/business-analytics-store";
 
 export default async function DealerAnalyticsPage() {
   const auth = await requirePageRoles(["admin", "dealer"]);
   if (!auth.ok) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-slate-900">Giriş tələb olunur</h1>
-        <p className="mt-2 text-sm text-slate-500">Bu səhifə yalnız dealer və admin hesabları üçündür.</p>
-        <Link href="/login" className="btn-primary mt-6 inline-flex">Daxil ol</Link>
-      </div>
-    );
+    return <RoleAccessGate reason={auth.reason} preset="dealer-analytics" />;
   }
 
   const plan = await getEffectiveDealerPlan(auth.user.id);
@@ -22,10 +17,11 @@ export default async function DealerAnalyticsPage() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
           <h1 className="text-xl font-bold text-amber-900">Analitika bu plan üçün aktiv deyil</h1>
           <p className="mt-2 text-sm text-amber-800">
-            Aktiv planınız: <strong>{plan.nameAz}</strong>. Bu modulu açmaq üçün Salon Peşəkar və ya daha yüksək plan seçin.
+            Aktiv planınız: <strong>{plan.nameAz}</strong>. Salon Peşəkar və ya daha yüksək plan seçin.
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/pricing#dealer" className="btn-primary">Planı yüksəlt</Link>
+            <Link href="/dealer" className="btn-secondary">Salon paneli</Link>
           </div>
         </div>
       </div>
