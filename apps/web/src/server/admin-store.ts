@@ -4,6 +4,34 @@ import type { UserRole } from "@/lib/auth";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 
+let supportEnrichColumnsReadyCache: boolean | null = null;
+
+async function supportEnrichColumnsReady(): Promise<boolean> {
+  if (supportEnrichColumnsReadyCache !== null) return supportEnrichColumnsReadyCache;
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'support_requests'
+         AND column_name IN ('risk_flag', 'reporter_ip', 'internal_notes')`
+    );
+    supportEnrichColumnsReadyCache = n(result.rows[0]?.count) >= 3;
+  } catch {
+    supportEnrichColumnsReadyCache = false;
+  }
+  return supportEnrichColumnsReadyCache;
+}
+
+async function supportEnrichSelectSql(alias = "sr"): Promise<string> {
+  const enrich = await supportEnrichColumnsReady();
+  if (enrich) {
+    return `${alias}.reporter_ip, ${alias}.reporter_user_agent, ${alias}.internal_notes, ${alias}.risk_flag`;
+  }
+  return `NULL::text AS reporter_ip, NULL::text AS reporter_user_agent, NULL::text AS internal_notes, 'none'::text AS risk_flag`;
+}
+
 export interface AdminOverview {
   usersTotal: number;
   activeUsers: number;
@@ -653,6 +681,10 @@ export async function getCrmSnapshot(): Promise<CrmSnapshot> {
 export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
   try {
     const pool = getPgPool();
+    const enrich = await supportEnrichColumnsReady();
+    const riskCountSql = enrich
+      ? "SUM(CASE WHEN risk_flag <> 'none' THEN 1 ELSE 0 END)::text AS c_risk"
+      : "'0'::text AS c_risk";
     const [summary, avgRes, byType, totals] = await Promise.all([
       pool.query<{
         c_new: string;
@@ -669,7 +701,7 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
            SUM(CASE WHEN status = 'waiting_user' THEN 1 ELSE 0 END)::text AS c_waiting,
            SUM(CASE WHEN status IN ('resolved', 'closed') THEN 1 ELSE 0 END)::text AS c_resolved,
            SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END)::text AS c_urgent,
-           SUM(CASE WHEN risk_flag <> 'none' THEN 1 ELSE 0 END)::text AS c_risk,
+           ${riskCountSql},
            SUM(CASE WHEN request_type = 'complaint' THEN 1 ELSE 0 END)::text AS c_complaint
          FROM support_requests`
       ),
@@ -764,7 +796,7 @@ async function getSupportReporterContext(input: {
          FROM incident_cases
          WHERE reporter_user_id = $1 AND status NOT IN ('resolved', 'dismissed')`,
         [input.reporterUserId]
-      )
+      ).catch(() => ({ rows: [{ count: "0" }] }))
     ]);
     context.otherRequestCount = n(otherReqRes.rows[0]?.count);
     context.openIncidentCount = n(incidentRes.rows[0]?.count);
@@ -878,6 +910,7 @@ function mapSupportRow(row: {
 
 export async function getAdminSupportRequestById(id: string): Promise<AdminSupportRequestRow | null> {
   const pool = getPgPool();
+  const enrichSelect = await supportEnrichSelectSql("sr");
   const result = await pool.query<{
     id: string;
     request_type: string;
@@ -906,9 +939,9 @@ export async function getAdminSupportRequestById(id: string): Promise<AdminSuppo
     `SELECT
        sr.id, sr.request_type, sr.subject, sr.message, sr.status, sr.priority, sr.source,
        sr.reporter_user_id, sr.reporter_name, sr.reporter_email, sr.reporter_phone,
-       sr.reporter_ip, sr.reporter_user_agent, sr.listing_id,
+       ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
-       sr.admin_response, sr.internal_notes, sr.risk_flag,
+       sr.admin_response,
        sr.response_at, sr.resolved_at, sr.last_activity_at, sr.created_at
      FROM support_requests sr
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
@@ -942,6 +975,28 @@ export async function listAdminSupportRequestsPaged(input: {
 }): Promise<PaginatedResult<AdminSupportRequestRow>> {
   const page = clampPage(input.page);
   const pageSize = clampPageSize(input.pageSize);
+  try {
+  return await listAdminSupportRequestsPagedInternal({ ...input, page, pageSize });
+  } catch (error) {
+    console.error("listAdminSupportRequestsPaged failed:", error);
+    return { items: [], total: 0, page, pageSize, totalPages: 1 };
+  }
+}
+
+async function listAdminSupportRequestsPagedInternal(input: {
+  page: number;
+  pageSize: number;
+  q?: string;
+  status?: string;
+  priority?: string;
+  requestType?: string;
+  requestGroup?: string;
+  riskFlag?: string;
+  assigned?: "yes" | "no";
+  sortDir?: "asc" | "desc";
+}): Promise<PaginatedResult<AdminSupportRequestRow>> {
+  const page = input.page;
+  const pageSize = input.pageSize;
   const offset = (page - 1) * pageSize;
   const where: string[] = [];
   const values: Array<string | number> = [];
@@ -978,7 +1033,7 @@ export async function listAdminSupportRequestsPaged(input: {
       where.push(`sr.request_type IN (${placeholders.join(", ")})`);
     }
   }
-  if (input.riskFlag?.trim()) {
+  if (input.riskFlag?.trim() && (await supportEnrichColumnsReady())) {
     values.push(input.riskFlag.trim());
     where.push(`sr.risk_flag = $${values.length}`);
   }
@@ -987,6 +1042,7 @@ export async function listAdminSupportRequestsPaged(input: {
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
   const pool = getPgPool();
+  const enrichSelect = await supportEnrichSelectSql("sr");
   const countResult = await pool.query<{ total: string }>(
     `SELECT COUNT(*)::text AS total
      FROM support_requests sr
@@ -1023,9 +1079,9 @@ export async function listAdminSupportRequestsPaged(input: {
     `SELECT
        sr.id, sr.request_type, sr.subject, sr.message, sr.status, sr.priority, sr.source,
        sr.reporter_user_id, sr.reporter_name, sr.reporter_email, sr.reporter_phone,
-       sr.reporter_ip, sr.reporter_user_agent, sr.listing_id,
+       ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
-       sr.admin_response, sr.internal_notes, sr.risk_flag,
+       sr.admin_response,
        sr.response_at, sr.resolved_at, sr.last_activity_at, sr.created_at
      FROM support_requests sr
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
@@ -1068,6 +1124,37 @@ export async function updateAdminSupportRequest(input: {
   riskFlag?: string;
 }): Promise<void> {
   const pool = getPgPool();
+  const enrich = await supportEnrichColumnsReady();
+  if (enrich) {
+    await pool.query(
+      `UPDATE support_requests
+       SET
+         status = COALESCE($2, status),
+         priority = COALESCE($3, priority),
+         assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
+         admin_response = COALESCE($5, admin_response),
+         internal_notes = CASE WHEN $8 THEN $7 ELSE internal_notes END,
+         risk_flag = COALESCE($9, risk_flag),
+         response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
+         resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
+         last_activity_at = NOW(),
+         updated_at = NOW()
+       WHERE id = $1`,
+      [
+        input.id,
+        input.status ?? null,
+        input.priority ?? null,
+        input.assignedToUserId ?? null,
+        input.adminResponse ?? null,
+        input.assigneeProvided ?? false,
+        input.internalNotes ?? null,
+        input.internalNotesProvided ?? false,
+        input.riskFlag ?? null
+      ]
+    );
+    return;
+  }
+
   await pool.query(
     `UPDATE support_requests
      SET
@@ -1075,8 +1162,6 @@ export async function updateAdminSupportRequest(input: {
        priority = COALESCE($3, priority),
        assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
        admin_response = COALESCE($5, admin_response),
-       internal_notes = CASE WHEN $8 THEN $7 ELSE internal_notes END,
-       risk_flag = COALESCE($9, risk_flag),
        response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
        resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
        last_activity_at = NOW(),
@@ -1088,10 +1173,7 @@ export async function updateAdminSupportRequest(input: {
       input.priority ?? null,
       input.assignedToUserId ?? null,
       input.adminResponse ?? null,
-      input.assigneeProvided ?? false,
-      input.internalNotes ?? null,
-      input.internalNotesProvided ?? false,
-      input.riskFlag ?? null
+      input.assigneeProvided ?? false
     ]
   );
 }
