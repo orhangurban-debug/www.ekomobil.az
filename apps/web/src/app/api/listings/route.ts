@@ -5,7 +5,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
-import { getEffectiveDealerPlan, getEffectivePartsPlan } from "@/server/business-plan-store";
+import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import {
   countDealerListingsForUserByKind,
   countConcurrentFreeVehicleListingsForUser,
@@ -161,11 +161,19 @@ export async function POST(req: Request) {
       sellerType?: "private" | "dealer";
       planType?: "free" | "standard" | "vip";
     };
-    if ((partPayload.sellerType ?? "private") === "dealer" && !["dealer", "admin"].includes(sessionUser.role)) {
-      return NextResponse.json(
-        { ok: false, error: "Mağaza/diler kimi hissə elanı üçün dealer hesabı tələb olunur." },
-        { status: 403 }
-      );
+    if ((partPayload.sellerType ?? "private") === "dealer") {
+      if (sessionUser.role !== "admin") {
+        const hasStorePlan = await hasActiveBusinessSubscription(sessionUser.id, "parts_store");
+        if (!hasStorePlan) {
+          return NextResponse.json(
+            {
+              ok: false,
+              error: "Mağaza kimi hissə elanı üçün aktiv mağaza planı tələb olunur. /parts/apply və ya /pricing#parts-store."
+            },
+            { status: 403 }
+          );
+        }
+      }
     }
 
     const isDealerPartSeller = (partPayload.sellerType ?? "private") === "dealer";
@@ -391,6 +399,15 @@ export async function POST(req: Request) {
   }
 
   if ((vehiclePayload.sellerType ?? "private") === "dealer") {
+    if (!["dealer", "admin"].includes(sessionUser.role)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Salon kimi avtomobil elanı üçün təsdiqlənmiş salon hesabı tələb olunur. /dealer/apply."
+        },
+        { status: 403 }
+      );
+    }
     const dealerPlan = await getEffectiveDealerPlan(sessionUser.id);
     const dealerVehicleListingCount = await countDealerListingsForUserByKind(sessionUser.id, "vehicle");
     if (dealerVehicleListingCount >= dealerPlan.maxActiveListings) {

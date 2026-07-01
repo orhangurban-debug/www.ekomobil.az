@@ -10,6 +10,7 @@ export function resolvePrimaryHeaderCta(pathname: string, userRole?: UserRole): 
   if (
     pathname.startsWith("/publish") ||
     pathname.startsWith("/parts/publish") ||
+    pathname.startsWith("/parts/apply") ||
     pathname.startsWith("/dealer/apply") ||
     pathname.startsWith("/auction/sell") ||
     pathname.startsWith("/partners")

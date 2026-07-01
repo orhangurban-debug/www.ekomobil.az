@@ -53,18 +53,18 @@ const GATE_COPY: Record<GatePreset, GateCopy> = {
   "parts-analytics": {
     unauthenticated: {
       title: "Giriş tələb olunur",
-      description: "Mağaza analitikası yalnız mağaza/dealer hesabları üçündür.",
+      description: "Mağaza analitikası yalnız aktiv mağaza planı olan hesablar üçündür.",
       actions: [
         { label: "Daxil ol", href: "/login?next=/parts/analytics", variant: "primary" },
-        { label: "Mağaza elanları", href: "/parts", variant: "secondary" }
+        { label: "Mağaza müraciəti", href: "/parts/apply", variant: "secondary" }
       ]
     },
     forbidden: {
       title: "Mağaza analitikası mövcud deyil",
-      description: "Bu modul mağaza planı olan hesablar üçündür.",
+      description: "Bu modul aktiv mağaza planı tələb edir. Salon hesabı mağaza planını avtomatik açmır.",
       actions: [
-        { label: "Qiymət planları", href: "/pricing#parts-store", variant: "primary" },
-        { label: "Mağaza elanları", href: "/parts", variant: "secondary" }
+        { label: "Mağaza planları", href: "/pricing#parts-store", variant: "primary" },
+        { label: "Mağaza müraciəti", href: "/parts/apply", variant: "secondary" }
       ]
     }
   },

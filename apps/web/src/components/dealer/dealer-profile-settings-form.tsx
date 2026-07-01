@@ -62,7 +62,7 @@ export function DealerProfileSettingsForm({
 
   return (
     <div className="card p-5">
-      <h2 className="text-base font-semibold text-slate-900">Salon/Mağaza profil ayarları</h2>
+      <h2 className="text-base font-semibold text-slate-900">Salon profil ayarları</h2>
       <p className="mt-1 text-xs text-slate-500">
         Bəzi sahələr planınıza görə açılır. Public profildə yalnız aktiv icazə sahələri görünür.
       </p>

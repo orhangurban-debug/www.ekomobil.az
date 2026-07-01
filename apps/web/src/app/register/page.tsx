@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CONTACT_INTENTS } from "@/lib/support-contact";
 
 type AccountIntent = "personal" | "business" | "service";
+type BusinessVertical = "salon" | "magaza" | "both";
 
 const ACCOUNT_INTENTS: { id: AccountIntent; icon: string; label: string; sub: string }[] = [
   {
@@ -17,8 +18,8 @@ const ACCOUNT_INTENTS: { id: AccountIntent; icon: string; label: string; sub: st
   {
     id: "business",
     icon: "🏢",
-    label: "Salon / Mağaza",
-    sub: "Diler mərkəzi, ehtiyat hissə mağazası"
+    label: "Biznes satıcı",
+    sub: "Avtomobil salonu və/və ya ehtiyat hissə mağazası"
   },
   {
     id: "service",
@@ -34,10 +35,8 @@ const INTENT_INFO: Record<AccountIntent, { title: string; body: string; cta?: st
     body: "Standart hesabla elan yerləşdirə, auksionlarda iştirak edə, favorilər saxlaya bilərsiniz. Gələcəkdə salon hesabına keçid mümkündür."
   },
   business: {
-    title: "Salon / Mağaza hesabı",
-    body: "Eyni qeydiyyat forması ilə hesab yaradın. Qeydiyyatdan sonra salon müraciəti göndərin və Biznes Planı ilə panelinizi aktivləşdirin.",
-    cta: CONTACT_INTENTS.dealer.label,
-    href: CONTACT_INTENTS.dealer.href
+    title: "Biznes satıcı hesabı",
+    body: "Eyni hesabla salon və mağaza ayrıca aktivləşir. Qeydiyyatdan sonra uyğun müraciət göndərin və biznes planını seçin."
   },
   service: {
     title: "Servis / Usta profili",
@@ -50,6 +49,7 @@ const INTENT_INFO: Record<AccountIntent, { title: string; body: string; cta?: st
 export default function RegisterPage() {
   const router = useRouter();
   const [intent, setIntent] = useState<AccountIntent>("personal");
+  const [businessVertical, setBusinessVertical] = useState<BusinessVertical>("salon");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
@@ -108,7 +108,9 @@ export default function RegisterPage() {
       }
       // Redirect based on intent so post-register guidance is shown
       if (intent === "business") {
-        router.push("/me?welcome=business");
+        if (businessVertical === "salon") router.push("/me?welcome=salon");
+        else if (businessVertical === "magaza") router.push("/me?welcome=magaza");
+        else router.push("/me?welcome=business");
       } else if (intent === "service") {
         router.push("/me?welcome=service");
       } else {
@@ -185,6 +187,32 @@ export default function RegisterPage() {
           </button>
         ))}
       </div>
+
+      {intent === "business" && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+          {([
+            { id: "salon" as const, label: "Avtomobil salonu", sub: "Avto inventar, salon paneli" },
+            { id: "magaza" as const, label: "Ehtiyat hissə mağazası", sub: "SKU kataloqu, toplu elan" },
+            { id: "both" as const, label: "Hər ikisi", sub: "Eyni hesab, ayrı planlar" }
+          ]).map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setBusinessVertical(item.id)}
+              className={`rounded-xl border-2 p-3 text-left transition ${
+                businessVertical === item.id
+                  ? "border-[#0891B2] bg-[#0891B2]/5"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+            >
+              <p className={`text-sm font-semibold ${businessVertical === item.id ? "text-[#0891B2]" : "text-slate-800"}`}>
+                {item.label}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-500">{item.sub}</p>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Intent-specific info */}
       {intent !== "personal" && (

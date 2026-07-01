@@ -8,7 +8,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { listListings } from "@/server/listing-store";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import { getServerSessionUser } from "@/lib/auth";
-import { getEffectivePartsPlan } from "@/server/business-plan-store";
+import { hasActiveBusinessSubscription, getEffectivePartsPlan } from "@/server/business-plan-store";
 
 export const metadata: Metadata = {
   title: "Mağaza elanları",
@@ -58,7 +58,10 @@ export default async function PartsPage({
 }) {
   const params = await searchParams;
   const sessionUser = await getServerSessionUser();
-  const currentPartsPlan = sessionUser && ["dealer", "admin"].includes(sessionUser.role)
+  const hasStorePlan = sessionUser
+    ? sessionUser.role === "admin" || (await hasActiveBusinessSubscription(sessionUser.id, "parts_store"))
+    : false;
+  const currentPartsPlan = hasStorePlan && sessionUser
     ? await getEffectivePartsPlan(sessionUser.id)
     : null;
   const canSeePartsAnalytics = currentPartsPlan?.analyticsEnabled ?? false;

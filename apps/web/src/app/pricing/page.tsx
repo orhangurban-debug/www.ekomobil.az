@@ -282,9 +282,9 @@ export default async function PricingPage() {
             <p className="mt-1 text-xs text-slate-600">İrəli çək, VIP, Premium — elanı daha çox nəzərə çarpdır.</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Salon / Mağaza</p>
-            <p className="mt-1 text-base font-bold text-slate-900">Aylıq abunə</p>
-            <p className="mt-1 text-xs text-emerald-700">Salon və ehtiyat hissə mağazası üçün sabit aylıq tarif.</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Biznes satıcı</p>
+            <p className="mt-1 text-base font-bold text-slate-900">Salon və mağaza</p>
+            <p className="mt-1 text-xs text-emerald-700">Eyni hesab, ayrı aylıq planlar — salon və mağaza bir-birindən asılı deyil.</p>
           </div>
           <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Auksion</p>

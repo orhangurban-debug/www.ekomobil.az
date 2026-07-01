@@ -5,7 +5,7 @@ import { getAdminUserMembershipProfile } from "@/server/admin-store";
 
 const ROLE_LABELS: Record<string, string> = {
   viewer: "Fərdi istifadəçi",
-  dealer: "Salon / Mağaza",
+  dealer: "Salon (dealer rolü)",
   support: "Dəstək",
   admin: "Admin"
 };
@@ -55,7 +55,7 @@ export default async function AdminUserMembershipPage({
   const displayName = profile.user.fullName?.trim() || profile.user.email;
   const membershipLabel =
     profile.dealerProfile
-      ? "Salon / Mağaza üzvü"
+      ? "Salon üzvü (dealer)"
       : profile.stats.partListings > 0 && profile.stats.vehicleListings === 0
         ? "Mağaza satıcısı"
         : profile.stats.vehicleListings > 0

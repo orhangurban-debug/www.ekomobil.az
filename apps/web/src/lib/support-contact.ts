@@ -32,6 +32,7 @@ export type ContactIntent =
   | "complaint"
   | "partnership"
   | "dealer"
+  | "partsStore"
   | "service"
   | "privacy"
   | "refund"
@@ -76,6 +77,11 @@ export const CONTACT_INTENTS: Record<
   dealer: {
     label: "Salon müraciəti",
     href: "/dealer/apply",
+    variant: "primary"
+  },
+  partsStore: {
+    label: "Mağaza müraciəti",
+    href: "/parts/apply",
     variant: "primary"
   },
   service: {

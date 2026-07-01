@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { requirePageRoles } from "@/lib/rbac";
+import { requirePartsStoreAccess } from "@/server/business-access";
 import { RoleAccessGate } from "@/components/ui/role-access-gate";
 import { getEffectivePartsPlan } from "@/server/business-plan-store";
 import { getBusinessAnalyticsSummary } from "@/server/business-analytics-store";
 
 export default async function PartsAnalyticsPage() {
-  const auth = await requirePageRoles(["admin", "dealer"]);
+  const auth = await requirePartsStoreAccess();
   if (!auth.ok) {
     return <RoleAccessGate reason={auth.reason} preset="parts-analytics" />;
   }

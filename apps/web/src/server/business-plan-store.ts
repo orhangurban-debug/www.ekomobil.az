@@ -105,6 +105,42 @@ async function getPartsFallbackPlan(): Promise<PartsStorePlan> {
   return catalog.find((p) => p.id === fallback) ?? catalog[0];
 }
 
+export async function hasActiveBusinessSubscription(
+  userId: string,
+  businessType: BusinessType
+): Promise<boolean> {
+  const sub = await getActiveSubscription(userId, businessType);
+  return sub !== null;
+}
+
+export interface BusinessAccountSnapshot {
+  salonRoleApproved: boolean;
+  salonSubscriptionActive: boolean;
+  salonPlanName?: string;
+  magazaSubscriptionActive: boolean;
+  magazaPlanName?: string;
+}
+
+export async function getBusinessAccountSnapshot(
+  userId: string,
+  role: "admin" | "support" | "dealer" | "viewer"
+): Promise<BusinessAccountSnapshot> {
+  const [dealerSub, partsSub, dealerPlan, partsPlan] = await Promise.all([
+    getActiveSubscription(userId, "dealer"),
+    getActiveSubscription(userId, "parts_store"),
+    getEffectiveDealerPlan(userId),
+    getEffectivePartsPlan(userId)
+  ]);
+
+  return {
+    salonRoleApproved: role === "dealer" || role === "admin",
+    salonSubscriptionActive: dealerSub !== null,
+    salonPlanName: dealerSub ? dealerPlan.nameAz : undefined,
+    magazaSubscriptionActive: partsSub !== null,
+    magazaPlanName: partsSub ? partsPlan.nameAz : undefined
+  };
+}
+
 async function getActiveSubscription(userId: string, businessType: BusinessType): Promise<SubscriptionRow | null> {
   try {
     const pool = getPgPool();

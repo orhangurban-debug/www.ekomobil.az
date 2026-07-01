@@ -10,6 +10,9 @@ import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/u
 import { getUserKycProfile } from "@/server/user-kyc-store";
 import { listPendingDefenseReportsForUser } from "@/server/user-report-store";
 import { listInvoicesForUser } from "@/server/invoice-store";
+import { loadBusinessAccountSnapshot } from "@/server/business-access";
+import { formatAccountTypeLabel } from "@/lib/business-account";
+import { BusinessAccountStatus } from "@/components/business/business-account-status";
 
 export default async function ProfilePage({
   searchParams
@@ -22,7 +25,7 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, pendingReports] =
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, pendingReports, businessSnapshot] =
     await Promise.all([
     getUserProfile(user.id),
     listUserFavorites(user.id),
@@ -31,7 +34,8 @@ export default async function ProfilePage({
     getUserKycProfile(user.id),
     listAuctionNotificationsForUser(user.id, 8),
     listInvoicesForUser(user.id, 5),
-    listPendingDefenseReportsForUser(user.id)
+    listPendingDefenseReportsForUser(user.id),
+    loadBusinessAccountSnapshot(user)
   ]);
   const hasNonActiveListings = myListings.some((item) => item.status !== "active");
 
@@ -52,14 +56,42 @@ export default async function ProfilePage({
         <div className="mb-6 rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-6 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-semibold text-[#0891B2]">Salon / Mağaza hesabı üçün növbəti addım</p>
+              <p className="font-semibold text-[#0891B2]">Biznes hesabı üçün növbəti addım</p>
               <p className="mt-1 text-sm text-slate-600">
-                Biznes Planı satın alın — ödəniş təsdiqləndikdən sonra salon paneliniz aktivləşəcək.
-                VÖEN məlumatlarınızı sənəd yükləmə bölməsindən əlavə edin.
+                Salon və mağaza eyni hesabda, ayrı planlarla aktivləşir. Aşağıdakı bölmədən uyğun müraciəti seçin.
+              </p>
+            </div>
+            <Link href="/me" className="btn-secondary text-sm shrink-0">Başa düşdüm</Link>
+          </div>
+        </div>
+      )}
+      {welcome === "salon" && (
+        <div className="mb-6 rounded-2xl border border-[#0891B2]/30 bg-[#0891B2]/5 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-[#0891B2]">Avtomobil salonu üçün müraciət</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Salon müraciəti göndərin, admin təsdiqindən sonra salon planını aktivləşdirin.
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <Link href="/dealer/apply" className="btn-primary text-sm">Müraciət formu</Link>
+              <Link href="/dealer/apply" className="btn-primary text-sm">Salon müraciəti</Link>
+              <Link href="/me" className="btn-secondary text-sm">Sonraya qoy</Link>
+            </div>
+          </div>
+        </div>
+      )}
+      {welcome === "magaza" && (
+        <div className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-violet-900">Ehtiyat hissə mağazası üçün müraciət</p>
+              <p className="mt-1 text-sm text-violet-800">
+                Mağaza planı salon hesabından asılı deyil — eyni hesabla ayrıca aktivləşir.
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Link href="/parts/apply" className="btn-primary text-sm bg-violet-700 hover:bg-violet-800 border-violet-700">Mağaza müraciəti</Link>
               <Link href="/me" className="btn-secondary text-sm">Sonraya qoy</Link>
             </div>
           </div>
@@ -111,10 +143,7 @@ export default async function ProfilePage({
               <div>
                 <dt className="text-xs uppercase tracking-wider text-slate-400">Hesab növü</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-900">
-                  {profile?.role === "dealer" ? "Salon / Mağaza" :
-                   profile?.role === "admin" ? "Admin" :
-                   profile?.role === "support" ? "Dəstək" :
-                   "Fərdi istifadəçi"}
+                  {formatAccountTypeLabel(user.role, businessSnapshot)}
                 </dd>
               </div>
               <div>
@@ -236,6 +265,8 @@ export default async function ProfilePage({
         </div>
 
         <section className="space-y-6">
+          <BusinessAccountStatus snapshot={businessSnapshot} />
+
           <div className="card p-6">
             <h2 className="font-semibold text-slate-900">Profil qısa statistikası</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -268,19 +299,16 @@ export default async function ProfilePage({
           {user.role === "viewer" && (
             <div className="card p-6">
               <h2 className="font-semibold text-slate-900">Hesabı yüksəlt</h2>
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-slate-200 p-4">
-                  <p className="text-sm font-medium text-slate-800">🏢 Salon / Mağaza</p>
-                  <p className="mt-1 text-xs text-slate-500">VÖEN ilə qeydiyyat, çox elan, salon paneli</p>
-                  <Link href="/dealer/apply" className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline">
-                    Müraciət formu →
-                  </Link>
-                </div>
-                <div className="rounded-xl border border-slate-200 p-4">
-                  <p className="text-sm font-medium text-slate-800">🔧 Servis / Usta profili</p>
-                  <p className="mt-1 text-xs text-slate-500">Bu hesabla həm elan yerləşdirə, həm servis profili aça bilərsiniz</p>
-                  <ContactActionButton intent="service" variant="link" className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline" />
-                </div>
+              <p className="mt-2 text-xs text-slate-500">
+                Salon və mağaza ayrıca aktivləşir — eyni hesab, fərqli planlar.
+              </p>
+              <div className="mt-4">
+                <BusinessAccountStatus snapshot={businessSnapshot} compact />
+              </div>
+              <div className="mt-4 rounded-xl border border-slate-200 p-4">
+                <p className="text-sm font-medium text-slate-800">🔧 Servis / Usta profili</p>
+                <p className="mt-1 text-xs text-slate-500">Bu hesabla həm elan yerləşdirə, həm servis profili aça bilərsiniz</p>
+                <ContactActionButton intent="service" variant="link" className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline" />
               </div>
             </div>
           )}

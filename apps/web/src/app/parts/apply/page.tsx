@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 
-export default function DealerApplyPage() {
+export default function PartsApplyPage() {
   const [form, setForm] = useState({
     businessName: "",
     voen: "",
@@ -26,8 +26,8 @@ export default function DealerApplyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "partnership",
-          subject: `Salon müraciəti: ${form.businessName}`,
-          message: `Biznes növü: Avtomobil salonu\nBiznes adı: ${form.businessName}\nVÖEN: ${form.voen}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`,
+          subject: `Mağaza müraciəti: ${form.businessName}`,
+          message: `Biznes adı: ${form.businessName}\nVÖEN: ${form.voen}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`,
           phone: form.phone
         })
       });
@@ -56,12 +56,11 @@ export default function DealerApplyPage() {
         </div>
         <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
         <p className="mt-3 text-slate-500">
-          Komandamız 1–2 iş günü ərzində e-poçt vasitəsilə əlaqə saxlayacaq. 
-          VÖEN arayışı tələb oluna bilər.
+          Komandamız 1–2 iş günü ərzində əlaqə saxlayacaq. Təsdiqdən sonra mağaza planını aktivləşdirə bilərsiniz.
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Link href="/me" className="btn-primary">Profil səhifəsinə qayıt</Link>
-          <Link href="/pricing#business" className="btn-secondary">Biznes planları</Link>
+          <Link href="/pricing#parts-store" className="btn-secondary">Mağaza planları</Link>
         </div>
       </div>
     );
@@ -72,38 +71,34 @@ export default function DealerApplyPage() {
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/" className="hover:text-slate-900">Ana səhifə</Link>
         <span className="mx-2">/</span>
-        <Link href="/pricing#business" className="hover:text-slate-900">Biznes planları</Link>
+        <Link href="/pricing#parts-store" className="hover:text-slate-900">Mağaza planları</Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-900">Salon müraciəti</span>
+        <span className="text-slate-900">Mağaza müraciəti</span>
       </nav>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Avtomobil salonu</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Ehtiyat hissə mağazası</h1>
         <p className="mt-2 text-slate-500">
-          Salon müraciətini göndərin — admin təsdiqindən sonra salon planını aktivləşdirin.
+          SKU kataloqu, toplu elan və mağaza analitikası üçün müraciət göndərin. Salon hesabından asılı deyil.
         </p>
       </div>
 
       <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-        Ehtiyat hissə mağazası açmaq istəyirsinizsə{" "}
-        <Link href="/parts/apply" className="font-medium text-[#0891B2] hover:underline">
-          mağaza müraciəti
+        <strong>Qeyd:</strong> Avtomobil salonu açmaq istəyirsinizsə{" "}
+        <Link href="/dealer/apply" className="font-medium text-[#0891B2] hover:underline">
+          salon müraciəti
         </Link>{" "}
-        formundan istifadə edin — salon hesabından asılı deyil.
-      </div>
-
-      <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        <strong>Tələb olunan:</strong> VÖEN — müraciətin yoxlanması üçün lazımdır.
+        formundan istifadə edin.
       </div>
 
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
         <div>
-          <label className="label">Biznes adı <span className="text-red-400">*</span></label>
+          <label className="label">Mağaza / biznes adı <span className="text-red-400">*</span></label>
           <input
             className="input-field"
             value={form.businessName}
             onChange={(e) => setForm((p) => ({ ...p, businessName: e.target.value }))}
-            placeholder="Salon adı, MMC adı və s."
+            placeholder="Mağaza adı, MMC adı və s."
             required
           />
         </div>
@@ -161,7 +156,7 @@ export default function DealerApplyPage() {
             className="input-field min-h-[80px] resize-none"
             value={form.description}
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-            placeholder="Biznes haqqında qısa məlumat, neçə avtomobil satırsınız və s."
+            placeholder="Hansı hissə kateqoriyalarında satış edirsiniz, təxmini SKU sayı və s."
           />
         </div>
 
@@ -173,13 +168,6 @@ export default function DealerApplyPage() {
           {loading ? "Göndərilir..." : "Müraciəti göndər"}
         </button>
       </form>
-
-      <p className="mt-6 text-center text-xs text-slate-400">
-        Suallarınız varsa{" "}
-        <Link href="/trust#support-request" className="text-[#0891B2] hover:underline">
-          dəstək sorğusu göndərin
-        </Link>
-      </p>
     </div>
   );
 }
