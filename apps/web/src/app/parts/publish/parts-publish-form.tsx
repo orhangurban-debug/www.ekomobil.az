@@ -13,7 +13,7 @@ import {
   PART_CONDITIONS,
   PART_SUBCATEGORIES_BY_CATEGORY
 } from "@/lib/parts-catalog";
-import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
+import { LISTING_PLANS, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
 import { formatFileSize, processImageForUpload, type ProcessedImage } from "@/lib/image-processor";
 
 async function fileToDataUrl(file: File): Promise<string> {
@@ -136,8 +136,8 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           partSku: partSku.trim() || undefined,
           partQuantity: Number(partQuantity || 0),
           partCompatibility: partCompatibility.trim() || undefined,
-          sellerType,
-          planType,
+          sellerType: storeAccessEnabled ? "dealer" : sellerType,
+          planType: storeAccessEnabled ? "free" : planType,
           sellerVerified: false,
           imageUrls,
           mediaProtocol: {
@@ -408,29 +408,38 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         </div>
 
         <div>
-          <label className="label">Elan planı</label>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {LISTING_PLANS.map((plan) => (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setPlanType(plan.id)}
-                className={`rounded-lg border p-3 text-left ${
-                  planType === plan.id
-                    ? "border-[#0891B2] bg-[#0891B2]/5"
-                    : "border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
-                <p className="text-xs text-slate-500">
-                  {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼ / ${plan.durationDays} gün`}
-                </p>
-              </button>
-            ))}
-          </div>
-          <p className="mt-1 text-xs text-slate-400">
-            Paid plan seçiləndə elan əvvəl draft olaraq yaranır və ödənişdən sonra aktivləşir.
-          </p>
+          {!storeAccessEnabled ? (
+            <>
+              <label className="label">Elan planı</label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {LISTING_PLANS.map((plan) => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setPlanType(plan.id)}
+                    className={`rounded-lg border p-3 text-left ${
+                      planType === plan.id
+                        ? "border-[#0891B2] bg-[#0891B2]/5"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
+                    <p className="text-xs text-slate-500">
+                      {formatListingPlanPrice(plan.id, typeof priceAzn === "number" ? priceAzn : undefined)}
+                      {plan.id !== "free" ? ` · ${plan.durationDays} gün` : ""}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-slate-400">
+                Ödənişli plan seçiləndə elan əvvəl draft olaraq yaranır və ödənişdən sonra aktivləşir.
+              </p>
+            </>
+          ) : (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              Mağaza planınız aktivdir — SKU elanları aylıq abunə limitinizdən sayılır, əlavə elan haqqı tutulmur.
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

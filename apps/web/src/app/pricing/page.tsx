@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { PricingNav } from "./pricing-nav";
-import { LISTING_PLANS, PRICING_TIERS } from "@/lib/listing-plans";
+import { LISTING_PLANS, PRICING_TIERS, listingPlanMinFee } from "@/lib/listing-plans";
 import { BUMP_PACKAGES, VIP_PACKAGES, PREMIUM_PACKAGES } from "@/lib/listing-boost-plans";
 import { getServicePlanCategoriesWithOverrides } from "@/lib/service-plans";
 import type { ListingKind } from "@/lib/marketplace-types";
@@ -419,7 +419,7 @@ export default async function PricingPage() {
                         <>
                           <span className="text-xs text-slate-400 font-medium">-dən</span>
                           <span className={`text-3xl font-bold ${isVip ? "text-[#0891B2]" : "text-slate-900"}`}>
-                            {isStandard ? "4" : "8"} ₼
+                            {isStandard ? listingPlanMinFee("standard") : listingPlanMinFee("vip")} ₼
                 </span>
                           <span className="text-sm text-slate-400">/ elan</span>
                         </>

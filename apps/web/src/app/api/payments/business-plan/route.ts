@@ -8,9 +8,6 @@ export async function POST(req: Request) {
   if (!user) {
     return NextResponse.json({ ok: false, error: "Ödəniş üçün daxil olmalısınız" }, { status: 401 });
   }
-  if (!["dealer", "admin"].includes(user.role)) {
-    return NextResponse.json({ ok: false, error: "Bu ödəniş yalnız dealer hesabları üçündür." }, { status: 403 });
-  }
 
   const ip = getClientIp(req);
   const limit = await checkRateLimit(`pay-business-plan:${user.id}:${ip}`, 10, 1);
@@ -25,6 +22,9 @@ export async function POST(req: Request) {
   }
   if (!["dealer", "parts_store"].includes(body.businessType)) {
     return NextResponse.json({ ok: false, error: "Biznes tipi yanlışdır." }, { status: 400 });
+  }
+  if (body.businessType === "dealer" && !["dealer", "admin"].includes(user.role)) {
+    return NextResponse.json({ ok: false, error: "Salon planı yalnız təsdiqlənmiş salon hesabları üçündür." }, { status: 403 });
   }
 
   try {

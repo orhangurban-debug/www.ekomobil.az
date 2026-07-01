@@ -1,9 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { PaymentCheckoutStrategy, PaymentProviderMode, PaymentProviderPayload } from "@/lib/payments";
 import { getPgPool } from "@/lib/postgres";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
-import { type BusinessType, upsertBusinessPlanSubscription } from "@/server/business-plan-store";
+import { type BusinessType, getDealerPlanCatalog, getPartsPlanCatalog, upsertBusinessPlanSubscription } from "@/server/business-plan-store";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
 import { issueAndSendInvoice } from "@/server/invoice-store";
 import { getUserProfile } from "@/server/user-store";
@@ -70,11 +68,10 @@ function toRecord(row: BusinessPlanPaymentRow): BusinessPlanPaymentRecord {
   };
 }
 
-function getPlanPriceAzn(businessType: BusinessType, planId: string): number | null {
-  if (businessType === "dealer") {
-    return DEALER_PLANS.find((item) => item.id === planId)?.priceAzn ?? null;
-  }
-  return PARTS_STORE_PLANS.find((item) => item.id === planId)?.priceAzn ?? null;
+async function getPlanPriceAzn(businessType: BusinessType, planId: string): Promise<number | null> {
+  const catalog =
+    businessType === "dealer" ? await getDealerPlanCatalog() : await getPartsPlanCatalog();
+  return catalog.find((item) => item.id === planId)?.priceAzn ?? null;
 }
 
 const BILLING_DAYS = 30;
@@ -84,7 +81,7 @@ export async function createBusinessPlanPayment(input: {
   businessType: BusinessType;
   planId: string;
 }): Promise<{ ok: true; payment: BusinessPlanPaymentRecord } | { ok: false; error: string }> {
-  const amountAzn = getPlanPriceAzn(input.businessType, input.planId);
+  const amountAzn = await getPlanPriceAzn(input.businessType, input.planId);
   if (!amountAzn || amountAzn <= 0) {
     return { ok: false, error: "Plan tapılmadı və ya ödəniş məbləği düzgün deyil." };
   }

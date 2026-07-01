@@ -17,7 +17,7 @@ import {
 } from "@/lib/car-data";
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
-import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, type PlanType } from "@/lib/listing-plans";
+import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
 import {
   processImageForUpload,
   formatFileSize,
@@ -1258,7 +1258,7 @@ export default function PublishPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-slate-900">{plan.nameAz}</span>
                           <span className="font-bold text-slate-900 shrink-0">
-                            {plan.priceAzn === 0 ? "Pulsuz" : `${plan.priceAzn} ₼`}
+                            {formatListingPlanPrice(plan.id, typeof priceAzn === "number" ? priceAzn : undefined)}
                           </span>
                         </div>
                         {/* Plan details chips */}
@@ -1332,7 +1332,7 @@ export default function PublishPage() {
                       serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
                     ],
                     ["Media", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
-                    ["Plan", LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType]
+                    ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${formatListingPlanPrice(planType, typeof priceAzn === "number" ? priceAzn : undefined)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
                       <span className="text-slate-500">{label}</span>

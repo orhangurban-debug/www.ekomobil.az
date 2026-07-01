@@ -10,6 +10,8 @@
  *     və ya Standart/VIP plana yüksəlməlidir.
  *   • Ödənişli planlar (Standart/VIP) isə limitsiz sayda eyni vaxtda aktiv
  *     ola bilər — hər biri ayrıca ödənir.
+ *   • Aktivlik müddətləri: Pulsuz 30 gün · Standart 60 gün · VIP 90 gün
+ *     (lütf müddəti bitdikdən sonra arxiv).
  *
  * SALON (dealer) — ayrıca DEALER_PLANS abunəliyi var:
  *   • Aylıq sabit abunə → N aktiv elan hüququ.
@@ -107,7 +109,8 @@ export const LISTING_PLANS: ListingPlan[] = [
     id: "standard",
     name: "Standard",
     nameAz: "Standart",
-    priceAzn: 9,
+    /** Fallback minimum; real ödəniş calculateListingFee() ilə hesablanır. */
+    priceAzn: 4,
     durationDays: 60,
     priorityMultiplier: 2,
     isHighlighted: true,
@@ -124,7 +127,8 @@ export const LISTING_PLANS: ListingPlan[] = [
     id: "vip",
     name: "VIP",
     nameAz: "VIP",
-    priceAzn: 19,
+    /** Fallback minimum; real ödəniş calculateListingFee() ilə hesablanır. */
+    priceAzn: 8,
     durationDays: 90,
     priorityMultiplier: 4,
     isHighlighted: true,
@@ -314,4 +318,20 @@ export function calculateListingFee(
   if (planType === "free") return 0;
   const tier = getPricingTierForVehicle(vehiclePriceAzn);
   return planType === "standard" ? tier.standardPriceAzn : tier.vipPriceAzn;
+}
+
+/** UI və ödəniş öncəsi göstərim üçün plan haqqı mətni. */
+export function formatListingPlanPrice(planType: PlanType, itemPriceAzn?: number): string {
+  if (planType === "free") return "Pulsuz";
+  if (itemPriceAzn && itemPriceAzn > 0) {
+    return `${calculateListingFee(planType, itemPriceAzn)} ₼`;
+  }
+  const plan = getPlanById(planType);
+  return `${plan?.priceAzn ?? 0} ₼-dən`;
+}
+
+export function listingPlanMinFee(planType: PlanType): number {
+  if (planType === "free") return 0;
+  const plan = getPlanById(planType);
+  return plan?.priceAzn ?? 0;
 }

@@ -710,6 +710,8 @@ export async function createListingRecord(input: {
   hasRepairHistory?: boolean;
   status?: ListingStatus;
   planType?: PlanType;
+  /** Verilsə, avtomatik müddət hesablamasını əvəz edir (mağaza elanları üçün null). */
+  planExpiresAt?: Date | null;
   listingKind?: ListingKind;
   partCategory?: string;
   partSubcategory?: string;
@@ -739,7 +741,12 @@ export async function createListingRecord(input: {
 
   const status = input.status ?? "active";
   const planType = input.planType ?? "free";
-  const planExpiresAt = status === "active" ? calculatePlanExpiry(planType) : null;
+  const planExpiresAt =
+    input.planExpiresAt !== undefined
+      ? input.planExpiresAt
+      : status === "active"
+        ? calculatePlanExpiry(planType)
+        : null;
 
   try {
     await ensureSeedData();
@@ -932,6 +939,28 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
   } catch (error) {
     console.error("listListingsForUser failed:", error);
     return [];
+  }
+}
+
+export async function countConcurrentFreePartListingsForUser(userId: string): Promise<number> {
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `
+        SELECT COUNT(*)::text AS count
+        FROM listings l
+        WHERE COALESCE(l.plan_type, 'free') = 'free'
+          AND COALESCE(l.listing_kind, 'vehicle') = 'part'
+          AND l.status IN ('active', 'pending_review')
+          AND COALESCE(l.seller_type, 'private') = 'private'
+          AND l.owner_user_id = $1
+      `,
+      [userId]
+    );
+    return Number(result.rows[0]?.count ?? "0");
+  } catch {
+    return 0;
   }
 }
 

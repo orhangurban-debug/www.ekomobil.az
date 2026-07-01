@@ -145,7 +145,8 @@ export default function RulesPage() {
                 <p className="text-sm font-semibold text-slate-800">Elan planları (Standart / VIP)</p>
                 <RuleList items={[
                   "Hər elan üçün ayrıca bir dəfəlik ödəniş — qiymət avtomobilin elan qiymətinə görə dəyişir",
-                  "Pulsuz plan: eyni anda yalnız 1 aktiv pulsuz elan (fərdi istifadəçi üçün)",
+                  "Pulsuz plan: 30 gün aktiv, eyni anda yalnız 1 aktiv pulsuz elan (fərdi istifadəçi üçün)",
+                  "Standart plan: 60 gün aktiv · VIP plan: 90 gün aktiv",
                   "Ödənişli planlar (Standart, VIP): eyni anda limitsiz sayda aktiv ola bilər",
                   "Plan aktivləşdikdən sonra geri qaytarılmır (texniki nasazlıq istisna)"
                 ]} />

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { calculateListingFee, getPlanById } from "@/lib/listing-plans";
+import { calculateListingFee, getPlanById, isPaidPlan } from "@/lib/listing-plans";
 import {
   type PaymentProviderPayload,
   type ListingPlanPaymentRecord,
@@ -93,7 +93,7 @@ export async function createListingPlanPayment(input: {
   }
 
   const plan = getPlanById(input.planType);
-  if (!plan || plan.priceAzn <= 0) {
+  if (!plan || !isPaidPlan(input.planType)) {
     return { ok: false, error: "Ödəniş üçün keçərli plan seçin" };
   }
 

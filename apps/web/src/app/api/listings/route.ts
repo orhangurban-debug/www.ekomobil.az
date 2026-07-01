@@ -8,6 +8,7 @@ import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit
 import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import {
   countDealerListingsForUserByKind,
+  countConcurrentFreePartListingsForUser,
   countConcurrentFreeVehicleListingsForUser,
   createListingRecord,
   hasRecentPartDuplicate,
@@ -181,6 +182,23 @@ export async function POST(req: Request) {
     const maxPartImageCount = effectivePartsPlan?.perListingMaxImages ?? 4;
     const maxPartListings = effectivePartsPlan?.maxActiveListings ?? Number.POSITIVE_INFINITY;
 
+    const partPlanType = isDealerPartSeller ? "free" : (partPayload.planType ?? "free");
+    const partPaidPlan = isPaidPlan(partPlanType);
+
+    if (!isDealerPartSeller && partPlanType === "free") {
+      const currentFreeParts = await countConcurrentFreePartListingsForUser(sessionUser.id);
+      if (currentFreeParts >= FREE_LISTING_CONCURRENT_LIMIT) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              `Pulsuz plan limiti dolub: eyni anda maksimum ${FREE_LISTING_CONCURRENT_LIMIT} aktiv/yoxlamada pulsuz hissə elanı ola bilər.`
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     if (isDealerPartSeller) {
       const dealerPartListingCount = await countDealerListingsForUserByKind(sessionUser.id, "part");
       if (dealerPartListingCount >= maxPartListings) {
@@ -218,7 +236,7 @@ export async function POST(req: Request) {
       partSku: partPayload.partSku,
       partCategory: category,
       partName: partLine,
-      globalScope: requestedPlanType === "free"
+      globalScope: partPlanType === "free"
     });
     if (hasDuplicatePart) {
       return NextResponse.json(
@@ -261,8 +279,9 @@ export async function POST(req: Request) {
       transmission: "—",
       vin: "PARTS-NOVIN",
       sellerType: partPayload.sellerType || "private",
-      planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
-      status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
+      planType: partPaidPlan ? "free" : partPlanType,
+      planExpiresAt: isDealerPartSeller ? null : undefined,
+      status: (partPaidPlan ? "draft" : "pending_review") as "draft" | "pending_review",
       listingKind: "part" as const,
       partCategory: category,
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,
@@ -293,8 +312,8 @@ export async function POST(req: Request) {
         id: created.id,
         trustScore,
         listingKind: "part",
-        paymentRequired: isPaidPlan(requestedPlanType),
-        requestedPlanType
+        paymentRequired: !isDealerPartSeller && partPaidPlan,
+        requestedPlanType: partPlanType
       });
     } catch (error) {
       console.error("Failed to persist part listing", error);
