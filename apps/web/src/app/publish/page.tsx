@@ -23,6 +23,8 @@ import {
   formatFileSize,
   type ProcessedImage
 } from "@/lib/image-processor";
+import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 
 const STEPS = ["Avtomobil", "Media", "Plan", "Yoxlama"] as const;
 type Step = (typeof STEPS)[number];
@@ -238,6 +240,37 @@ export default function PublishPage() {
     setReviewErrors([]);
     setStep("Yoxlama");
   }
+
+  const applyVehicleAiSuggestion = useCallback((suggestion: VehicleAiSuggestion) => {
+    if (suggestion.title) setTitle(suggestion.title);
+    if (suggestion.make) setMake(suggestion.make);
+    if (suggestion.model) setModel(suggestion.model);
+    if (suggestion.year) setYear(suggestion.year);
+    if (suggestion.color) setColor(suggestion.color);
+    if (suggestion.bodyType) setBodyType(suggestion.bodyType);
+    if (suggestion.fuelType) setFuelType(suggestion.fuelType);
+    if (suggestion.engineType) setEngineType(suggestion.engineType);
+    if (suggestion.transmission) setTransmission(suggestion.transmission);
+    if (suggestion.driveType) setDriveType(suggestion.driveType);
+    if (suggestion.vehicleCondition) setVehicleCondition(suggestion.vehicleCondition);
+    if (suggestion.vin) setVin(suggestion.vin);
+    if (suggestion.declaredMileageKm !== undefined) setDeclaredMileageKm(suggestion.declaredMileageKm);
+    if (suggestion.priceAzn) setPriceAzn(suggestion.priceAzn);
+    if (suggestion.mediaAngles) {
+      setMedia((prev) => ({
+        ...prev,
+        imageCount: uploadedImages.length,
+        hasFrontAngle: suggestion.mediaAngles?.hasFrontAngle ?? prev.hasFrontAngle,
+        hasRearAngle: suggestion.mediaAngles?.hasRearAngle ?? prev.hasRearAngle,
+        hasLeftSide: suggestion.mediaAngles?.hasLeftSide ?? prev.hasLeftSide,
+        hasRightSide: suggestion.mediaAngles?.hasRightSide ?? prev.hasRightSide,
+        hasDashboard: suggestion.mediaAngles?.hasDashboard ?? prev.hasDashboard,
+        hasInterior: suggestion.mediaAngles?.hasInterior ?? prev.hasInterior,
+        hasOdometer: suggestion.mediaAngles?.hasOdometer ?? prev.hasOdometer,
+        hasTrunk: suggestion.mediaAngles?.hasTrunk ?? prev.hasTrunk
+      }));
+    }
+  }, [uploadedImages.length]);
 
   const handleImageFiles = useCallback(
     async (files: FileList | null) => {
@@ -1094,6 +1127,13 @@ export default function PublishPage() {
                     </p>
                   )}
                 </div>
+
+                <ListingAiAnalyzePanel
+                  listingKind="vehicle"
+                  maxImages={currentPlan.maxImages}
+                  externalImages={uploadedImages}
+                  onApplyVehicle={applyVehicleAiSuggestion}
+                />
 
                 {/* ── Angle checklist ─────────────────────────────────────── */}
                 <div>

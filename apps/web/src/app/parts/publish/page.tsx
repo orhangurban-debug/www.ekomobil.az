@@ -1,15 +1,39 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PART_AUTHENTICITY_OPTIONS, PART_BRANDS, PART_CATEGORIES, PART_CONDITIONS, PART_SUBCATEGORIES_BY_CATEGORY } from "@/lib/parts-catalog";
+import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import type { PartAiSuggestion } from "@/lib/ai/listing-vision-types";
+import {
+  PART_AUTHENTICITY_OPTIONS,
+  PART_BRANDS,
+  PART_CATEGORIES,
+  PART_CONDITIONS,
+  PART_SUBCATEGORIES_BY_CATEGORY
+} from "@/lib/parts-catalog";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
+import { formatFileSize, processImageForUpload, type ProcessedImage } from "@/lib/image-processor";
+
+async function fileToDataUrl(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Şəkil oxuna bilmədi"));
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Şəkil oxuna bilmədi"));
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function PartsPublishPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
+  const [uploadProcessing, setUploadProcessing] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -26,98 +50,146 @@ export default function PartsPublishPage() {
   const [partQuantity, setPartQuantity] = useState<number | "">(1);
   const [partCompatibility, setPartCompatibility] = useState("");
   const [sellerType, setSellerType] = useState<"private" | "dealer">("dealer");
-  const [mediaImageCount, setMediaImageCount] = useState<number | "">(4);
   const [planType, setPlanType] = useState<PlanType>("free");
 
+  const maxImages = 8;
   const subcategories = useMemo(() => {
     if (!partCategory) return [];
     return PART_SUBCATEGORIES_BY_CATEGORY[partCategory] ?? [];
   }, [partCategory]);
+
+  const applyPartAiSuggestion = useCallback((suggestion: PartAiSuggestion) => {
+    if (suggestion.title) setTitle(suggestion.title);
+    if (suggestion.partName) setPartName(suggestion.partName);
+    if (suggestion.partCategory) {
+      setPartCategory(suggestion.partCategory);
+      setPartSubcategory(suggestion.partSubcategory ?? "");
+    } else if (suggestion.partSubcategory) {
+      setPartSubcategory(suggestion.partSubcategory);
+    }
+    if (suggestion.partBrand) setPartBrand(suggestion.partBrand);
+    if (suggestion.partCondition) setPartCondition(suggestion.partCondition);
+    if (suggestion.partAuthenticity) setPartAuthenticity(suggestion.partAuthenticity);
+    if (suggestion.partOemCode) setPartOemCode(suggestion.partOemCode);
+    if (suggestion.partSku) setPartSku(suggestion.partSku);
+    if (suggestion.partCompatibility) setPartCompatibility(suggestion.partCompatibility);
+    if (suggestion.description) setDescription(suggestion.description);
+    if (suggestion.priceAzn) setPriceAzn(suggestion.priceAzn);
+    if (suggestion.partQuantity) setPartQuantity(suggestion.partQuantity);
+  }, []);
+
+  async function handleImageFiles(files: FileList | null) {
+    if (!files?.length) return;
+    setUploadProcessing(true);
+    setUploadErrors([]);
+    const next: ProcessedImage[] = [];
+    const localErrors: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      if (uploadedImages.length + next.length >= maxImages) {
+        localErrors.push(`Maksimum ${maxImages} şəkil.`);
+        break;
+      }
+      const processed = await processImageForUpload(files[i]);
+      if (processed.ok) next.push(processed);
+      else localErrors.push(`${files[i].name}: ${processed.error}`);
+    }
+
+    setUploadedImages((prev) => [...prev, ...next]);
+    setUploadErrors(localErrors);
+    setUploadProcessing(false);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
-    const response = await fetch("/api/listings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        listingKind: "part",
-        title: title.trim(),
-        description: description.trim(),
-        priceAzn: Number(priceAzn),
-        city,
-        partCategory,
-        partSubcategory: partSubcategory || undefined,
-        partName: partName.trim(),
-        partBrand: partBrand || undefined,
-        partCondition,
-        partAuthenticity,
-        partOemCode: partOemCode.trim() || undefined,
-        partSku: partSku.trim() || undefined,
-        partQuantity: Number(partQuantity || 0),
-        partCompatibility: partCompatibility.trim() || undefined,
-        sellerType,
-        planType,
-        sellerVerified: false,
-        mediaProtocol: {
-          imageCount: Number(mediaImageCount || 0),
-          engineVideoDurationSec: 0,
-          hasFrontAngle: false,
-          hasRearAngle: false,
-          hasLeftSide: false,
-          hasRightSide: false,
-          hasDashboard: false,
-          hasInterior: false,
-          hasOdometer: false,
-          hasTrunk: false
-        }
-      })
-    });
+      const imageUrls =
+        uploadedImages.length > 0
+          ? await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)))
+          : undefined;
 
-    const payload = (await response.json()) as {
-      ok: boolean;
-      id?: string;
-      errors?: string[];
-      error?: string;
-      paymentRequired?: boolean;
-    };
-    if (response.status === 401) {
-      router.push("/login?next=/parts/publish");
-      return;
-    }
-    if (!response.ok || !payload.ok || !payload.id) {
-      setError(payload.errors?.[0] || payload.error || "Hissə elanı yaradıla bilmədi.");
-      setSubmitting(false);
-      return;
-    }
-    if (payload.paymentRequired) {
-      const paymentResponse = await fetch("/api/payments/listing-plan", {
+      const response = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          listingId: payload.id,
+          listingKind: "part",
+          title: title.trim(),
+          description: description.trim(),
+          priceAzn: Number(priceAzn),
+          city,
+          partCategory,
+          partSubcategory: partSubcategory || undefined,
+          partName: partName.trim(),
+          partBrand: partBrand || undefined,
+          partCondition,
+          partAuthenticity,
+          partOemCode: partOemCode.trim() || undefined,
+          partSku: partSku.trim() || undefined,
+          partQuantity: Number(partQuantity || 0),
+          partCompatibility: partCompatibility.trim() || undefined,
+          sellerType,
           planType,
-          source: "publish"
+          sellerVerified: false,
+          imageUrls,
+          mediaProtocol: {
+            imageCount: uploadedImages.length || 4,
+            engineVideoDurationSec: 0,
+            hasFrontAngle: false,
+            hasRearAngle: false,
+            hasLeftSide: false,
+            hasRightSide: false,
+            hasDashboard: false,
+            hasInterior: false,
+            hasOdometer: false,
+            hasTrunk: false
+          }
         })
       });
-      const paymentPayload = (await paymentResponse.json()) as {
+
+      const payload = (await response.json()) as {
         ok: boolean;
+        id?: string;
+        errors?: string[];
         error?: string;
-        checkoutUrl?: string;
+        paymentRequired?: boolean;
       };
-      if (paymentPayload.ok && paymentPayload.checkoutUrl) {
-        router.push(paymentPayload.checkoutUrl);
-        router.refresh();
+      if (response.status === 401) {
+        router.push("/login?next=/parts/publish");
         return;
       }
-      setError(paymentPayload.error || "Ödəniş axını başladılmadı.");
-      setSubmitting(false);
-      return;
-    }
-    router.push(`/listings/${payload.id}`);
-    router.refresh();
+      if (!response.ok || !payload.ok || !payload.id) {
+        setError(payload.errors?.[0] || payload.error || "Hissə elanı yaradıla bilmədi.");
+        setSubmitting(false);
+        return;
+      }
+      if (payload.paymentRequired) {
+        const paymentResponse = await fetch("/api/payments/listing-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            listingId: payload.id,
+            planType,
+            source: "publish"
+          })
+        });
+        const paymentPayload = (await paymentResponse.json()) as {
+          ok: boolean;
+          error?: string;
+          checkoutUrl?: string;
+        };
+        if (paymentPayload.ok && paymentPayload.checkoutUrl) {
+          router.push(paymentPayload.checkoutUrl);
+          router.refresh();
+          return;
+        }
+        setError(paymentPayload.error || "Ödəniş axını başladılmadı.");
+        setSubmitting(false);
+        return;
+      }
+      router.push(`/listings/${payload.id}`);
+      router.refresh();
     } catch (err) {
       console.error("parts publish error:", err);
       setError("Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.");
@@ -128,15 +200,89 @@ export default function PartsPublishPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/parts" className="hover:text-[#0891B2]">Mağaza elanları</Link>
+        <Link href="/parts" className="hover:text-[#0891B2]">
+          Mağaza elanları
+        </Link>
         <span className="mx-2">/</span>
         <span className="text-slate-800">Yeni hissə elanı</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
-      <p className="mt-2 text-slate-600">Təkər, aksesuar, yağ və digər məhsullar üçün strukturlaşdırılmış elan formu.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
+          <p className="mt-2 text-slate-600">Təkər, aksesuar, yağ və digər məhsullar üçün strukturlaşdırılmış elan formu.</p>
+        </div>
+        <Link
+          href="/parts/publish/bulk"
+          className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-100"
+        >
+          Toplu yükləmə (30 şəkil)
+        </Link>
+      </div>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5 card p-6">
+        <div>
+          <label className="label">Şəkillər</label>
+          <div
+            className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center"
+            onClick={() => document.getElementById("part-image-input")?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              void handleImageFiles(e.dataTransfer.files);
+            }}
+          >
+            <input
+              id="part-image-input"
+              type="file"
+              accept="image/*,.heic,.heif"
+              multiple
+              className="hidden"
+              onChange={(e) => void handleImageFiles(e.target.files)}
+            />
+            {uploadProcessing ? (
+              <p className="text-sm text-slate-600">Şəkillər hazırlanır…</p>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-slate-700">Şəkil əlavə et</p>
+                <p className="text-xs text-slate-500">
+                  {uploadedImages.length} / {maxImages} · minimum 4 tövsiyə olunur
+                </p>
+              </>
+            )}
+          </div>
+          {uploadErrors.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {uploadErrors.map((item) => (
+                <p key={item} className="text-xs text-red-600">
+                  {item}
+                </p>
+              ))}
+            </div>
+          )}
+          {uploadedImages.length > 0 && (
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {uploadedImages.map((img, i) => (
+                <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-slate-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={URL.createObjectURL(img.file)} alt="" className="h-full w-full object-cover" />
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-center text-[9px] text-white">
+                    {formatFileSize(img.compressedSizeBytes)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <ListingAiAnalyzePanel
+          listingKind="part"
+          maxImages={maxImages}
+          optional
+          externalImages={uploadedImages}
+          onApplyPart={applyPartAiSuggestion}
+        />
+
         <div>
           <label className="label">Elan başlığı</label>
           <input className="input-field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Məs: BOSCH Yağ filtri Toyota Corolla 2018+" required />
@@ -230,18 +376,6 @@ export default function PartsPublishPage() {
           <div>
             <label className="label">Stok sayı</label>
             <input className="input-field" type="number" min={0} value={partQuantity} onChange={(e) => setPartQuantity(e.target.value ? Number(e.target.value) : "")} />
-          </div>
-          <div>
-            <label className="label">Şəkil sayı</label>
-            <input
-              className="input-field"
-              type="number"
-              min={4}
-              max={8}
-              value={mediaImageCount}
-              onChange={(e) => setMediaImageCount(e.target.value ? Number(e.target.value) : "")}
-            />
-            <p className="mt-1 text-xs text-slate-400">Plan üzrə hissə elanlarında şəkil limiti 4-8 aralığındadır.</p>
           </div>
         </div>
 
