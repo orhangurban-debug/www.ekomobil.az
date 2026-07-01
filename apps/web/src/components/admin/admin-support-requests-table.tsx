@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   PRIORITY_LABELS,
@@ -103,11 +104,13 @@ export function AdminSupportRequestsTable({
   items: AdminSupportRequestRow[];
   assignees: AssignableStaff[];
 }) {
+  const router = useRouter();
   const [rows, setRows] = useState(items);
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null);
   const [busy, setBusy] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const selected = useMemo(
     () => rows.find((row) => row.id === selectedId) ?? null,
@@ -131,13 +134,15 @@ export function AdminSupportRequestsTable({
     });
     setError(null);
     setEmailSent(false);
+    setEmailError(null);
   }
 
-  async function saveSelected() {
+  async function saveSelected(options?: { resendEmail?: boolean }) {
     if (!selected) return;
     setBusy(true);
     setError(null);
     setEmailSent(false);
+    setEmailError(null);
     try {
       const response = await fetch("/api/admin/support-requests", {
         method: "PATCH",
@@ -147,21 +152,30 @@ export function AdminSupportRequestsTable({
           status: draft.status,
           priority: draft.priority,
           assignedToUserId: draft.assignedToUserId.trim() || null,
-          adminResponse: draft.adminResponse.trim() || undefined
+          adminResponse: draft.adminResponse.trim() || undefined,
+          resendEmail: options?.resendEmail === true
         })
       });
-      const payload = (await response.json()) as { ok: boolean; error?: string; emailSent?: boolean };
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        emailSent?: boolean;
+        emailError?: string;
+        status?: string;
+      };
       if (!response.ok || !payload.ok) {
         setError(payload.error ?? "Yeniləmə uğursuz oldu.");
         return;
       }
+      const savedStatus = payload.status ?? draft.status;
       const assignee = assignees.find((a) => a.id === draft.assignedToUserId);
+      setDraft((d) => ({ ...d, status: savedStatus }));
       setRows((prev) =>
         prev.map((row) =>
           row.id === selected.id
             ? {
                 ...row,
-                status: draft.status,
+                status: savedStatus,
                 priority: draft.priority,
                 assignedToUserId: draft.assignedToUserId || undefined,
                 assignedToEmail: assignee?.email,
@@ -172,9 +186,13 @@ export function AdminSupportRequestsTable({
             : row
         )
       );
+      router.refresh();
       if (payload.emailSent) {
         setEmailSent(true);
         setTimeout(() => setEmailSent(false), 6000);
+      }
+      if (payload.emailError) {
+        setEmailError(payload.emailError);
       }
     } finally {
       setBusy(false);
@@ -375,12 +393,27 @@ export function AdminSupportRequestsTable({
                 >
                   {busy ? "Saxlanılır..." : "Saxla və cavab göndər"}
                 </button>
+                {draft.adminResponse.trim() && selected.reporterEmail && (
+                  <button
+                    type="button"
+                    onClick={() => void saveSelected({ resendEmail: true })}
+                    disabled={busy}
+                    className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60"
+                  >
+                    E-poçtu yenidən göndər
+                  </button>
+                )}
                 {emailSent && (
                   <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     E-poçt göndərildi
+                  </span>
+                )}
+                {emailError && (
+                  <span className="text-sm text-amber-700">
+                    Cavab saxlanıldı, lakin e-poçt göndərilmədi: {emailError}
                   </span>
                 )}
                 {error && <span className="text-sm text-rose-600">{error}</span>}

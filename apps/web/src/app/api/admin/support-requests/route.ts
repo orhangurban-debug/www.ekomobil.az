@@ -43,6 +43,7 @@ export async function PATCH(req: Request) {
     assignedToUserId?: string | null;
     adminResponse?: string;
     reason?: string;
+    resendEmail?: boolean;
   };
   if (!body.id) {
     return NextResponse.json({ ok: false, error: "Sorğu ID mütləqdir." }, { status: 400 });
@@ -85,9 +86,21 @@ export async function PATCH(req: Request) {
     }
   }
 
+  const newResponse = body.adminResponse?.trim();
+  const isNewOrChangedResponse = hasNewResponse && newResponse !== (previousResponse ?? "").trim();
+
+  let effectiveStatus = body.status;
+  if (
+    isNewOrChangedResponse &&
+    effectiveStatus &&
+    (effectiveStatus === "new" || effectiveStatus === "in_progress")
+  ) {
+    effectiveStatus = "waiting_user";
+  }
+
   await updateAdminSupportRequest({
     id: body.id,
-    status: body.status,
+    status: effectiveStatus,
     priority: body.priority,
     assignedToUserId: body.assignedToUserId === null || body.assignedToUserId === ""
       ? null
@@ -106,29 +119,41 @@ export async function PATCH(req: Request) {
     entityId: body.id,
     reason: body.reason,
     metadata: {
-      status: body.status,
+      status: effectiveStatus,
       priority: body.priority,
       assignedToUserId: body.assignedToUserId,
       responded: hasNewResponse
     }
   });
 
-  // Send email notification only when a new/changed response is saved and reporter has email
-  const newResponse = body.adminResponse?.trim();
-  const isNewOrChangedResponse = hasNewResponse && newResponse !== (previousResponse ?? "").trim();
+  let emailSent = false;
+  let emailError: string | undefined;
 
-  if (isNewOrChangedResponse && reporterEmail) {
-    // Fire-and-forget: don't block the API response on email delivery
-    sendSupportReplyEmail({
+  const shouldSendEmail =
+    Boolean(newResponse && reporterEmail) &&
+    (isNewOrChangedResponse || body.resendEmail === true);
+
+  if (shouldSendEmail && reporterEmail && newResponse) {
+    const emailResult = await sendSupportReplyEmail({
       to: reporterEmail,
       recipientName: reporterName ?? undefined,
       originalSubject: requestSubject,
       requestId: body.id,
       adminResponse: newResponse!
-    }).catch((err: unknown) => {
-      console.error("[support-requests PATCH] Email send failed:", err);
     });
+    emailSent = emailResult.ok;
+    emailError = emailResult.error;
+    if (!emailResult.ok) {
+      console.error("[support-requests PATCH] Email send failed:", emailResult.error);
+    }
+  } else if ((isNewOrChangedResponse || body.resendEmail) && !reporterEmail) {
+    emailError = "Müraciətçinin e-poçt ünvanı yoxdur.";
   }
 
-  return NextResponse.json({ ok: true, emailSent: isNewOrChangedResponse && Boolean(reporterEmail) });
+  return NextResponse.json({
+    ok: true,
+    emailSent,
+    emailError,
+    status: effectiveStatus
+  });
 }
