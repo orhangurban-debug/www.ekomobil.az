@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AUCTION_FEES,
@@ -55,7 +55,7 @@ export function AuctionSellForm({
 }) {
   const router = useRouter();
   const [listingId, setListingId] = useState(listings[0]?.id ?? "");
-  const [reservePriceAzn, setReservePriceAzn] = useState("");
+  const [minimumSalePriceAzn, setMinimumSalePriceAzn] = useState("");
   const [buyNowPriceAzn, setBuyNowPriceAzn] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
@@ -87,10 +87,20 @@ export function AuctionSellForm({
     () => listings.find((item) => item.id === listingId) ?? listings[0],
     [listingId, listings]
   );
-  const isHighValue = Boolean(selected && selected.priceAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN);
-  const suggestedSellerBond = selected ? calcSellerPerformanceBond(selected.priceAzn) : 0;
+
+  useEffect(() => {
+    if (selected) {
+      setMinimumSalePriceAzn(String(selected.priceAzn));
+    }
+  }, [selected?.id, selected?.priceAzn]);
+
+  const minimumSalePrice = Number(minimumSalePriceAzn);
+  const effectiveFloorAzn =
+    Number.isFinite(minimumSalePrice) && minimumSalePrice > 0 ? minimumSalePrice : (selected?.priceAzn ?? 0);
+  const isHighValue = effectiveFloorAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN;
+  const suggestedSellerBond = effectiveFloorAzn > 0 ? calcSellerPerformanceBond(effectiveFloorAzn) : 0;
   const listingFeeAzn = getLotListingFeeAzn(selected?.listingKind);
-  const successFeePreviewAzn = selected ? calcSellerCommission(selected.priceAzn, selected.listingKind) : 0;
+  const successFeePreviewAzn = effectiveFloorAzn > 0 ? calcSellerCommission(effectiveFloorAzn, selected?.listingKind) : 0;
   const successFeeRateLabel = selected?.listingKind === "part" ? "3%" : "1.2%";
   const successFeeMinLabel = selected?.listingKind === "part" ? "2 ₼" : "25 ₼";
   const successFeeCapLabel = selected?.listingKind === "part" ? "40 ₼" : "700 ₼";
@@ -106,6 +116,14 @@ export function AuctionSellForm({
       setError("Yüksək dəyərli lot üçün deep KYC yoxdursa satıcı bond aktiv edilməlidir.");
       return;
     }
+    if (!Number.isFinite(effectiveFloorAzn) || effectiveFloorAzn <= 0) {
+      setError("Minimum satış qiymətini düzgün daxil edin.");
+      return;
+    }
+    if (effectiveFloorAzn > selected.priceAzn) {
+      setError("Minimum satış qiyməti elandakı qiymətdən yüksək ola bilməz. Əvvəlcə elan qiymətini yeniləyin.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -114,9 +132,7 @@ export function AuctionSellForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           listingId: selected.id,
-          mode: reservePriceAzn ? "reserve" : "ascending",
-          startingBidAzn: selected.priceAzn,
-          reservePriceAzn: reservePriceAzn ? Number(reservePriceAzn) : undefined,
+          startingBidAzn: effectiveFloorAzn,
           buyNowPriceAzn: buyNowPriceAzn ? Number(buyNowPriceAzn) : undefined,
           startsAt: startsAt || undefined,
           endsAt: endsAt || undefined,
@@ -262,7 +278,19 @@ export function AuctionSellForm({
       {selected && (
         <div className="rounded-xl bg-slate-50 p-4 text-sm">
           <div className="font-medium text-slate-900">{selected.title}</div>
-          <div className="mt-1 text-slate-500">Başlanğıc bid: {selected.priceAzn.toLocaleString("az-AZ")} ₼</div>
+          <div className="mt-1 text-slate-500">
+            Elan qiyməti: {selected.priceAzn.toLocaleString("az-AZ")} ₼
+          </div>
+          <p className="mt-2 text-xs text-slate-600">
+            Auksion elan qiymətinizdən (və ya aşağıda seçdiyiniz minimum satış qiymətindən) başlayacaq. Qiyməti
+            endirmək istəyirsinizsə, burada minimum satış qiymətini azaldın — elan qiyməti avtomatik yenilənəcək.
+          </p>
+          <Link
+            href={`/listings/${selected.id}`}
+            className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline"
+          >
+            Elanı redaktə et →
+          </Link>
           <div className="mt-2 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
             <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
               <span className="text-slate-400">Marka/Model</span>
@@ -304,16 +332,25 @@ export function AuctionSellForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="label flex items-center gap-2">
-            <span>Rezerv qiymət (opsional)</span>
-            <InfoHint text="Gizli minimum satış qiymətidir. Hərrac bu məbləğin altında bitərsə, satıcı satışdan imtina edə bilər." />
+            <span>Minimum satış qiyməti (açıq)</span>
+            <InfoHint text="Bu qiymət həm hərracın başlanğıcı, həm də minimum satış həddidir. Alıcılar bunu görür. Bu məbləğin altında lot satılmır. Qiyməti endirsəniz, elan qiyməti də eyni məbləğə yenilənir." />
           </label>
           <input
             type="number"
             className="input-field"
-            value={reservePriceAzn}
-            onChange={(e) => setReservePriceAzn(e.target.value)}
+            value={minimumSalePriceAzn}
+            onChange={(e) => setMinimumSalePriceAzn(e.target.value)}
+            min={1}
+            max={selected?.priceAzn}
             placeholder="Məs: 32500"
+            required
           />
+          {selected && effectiveFloorAzn < selected.priceAzn && (
+            <p className="mt-2 text-xs text-amber-700">
+              Elan qiyməti {selected.priceAzn.toLocaleString("az-AZ")} ₼ →{" "}
+              {effectiveFloorAzn.toLocaleString("az-AZ")} ₼ olaraq yenilənəcək.
+            </p>
+          )}
         </div>
         <div>
           <label className="label flex items-center gap-2">
@@ -516,7 +553,10 @@ export function AuctionSellForm({
             Satıcı satışdan çıxarsa (`seller_breach`) alıcı depoziti qaytarılır, satıcıya öhdəlik cəriməsi tətbiq olunur.
           </li>
           <li>
-            İlk və ya ikinci auksionda satış alınmasa satıcı yenidən lot yarada bilər; lot haqqı hər yeni lotda yenidən tətbiq edilir.
+            Minimum satış qiyməti açıqdır — hərrac bu qiymətdən başlayır və altında tamamlanmır.
+          </li>
+          <li>
+            İlk və ya ikinci auksionda satış alınmasa satıcı elan qiymətini endirib yenidən lot yarada bilər; lot haqqı hər yeni lotda yenidən tətbiq edilir.
           </li>
         </ul>
       </div>

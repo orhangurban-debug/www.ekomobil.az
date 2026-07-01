@@ -58,9 +58,8 @@ export const registerSchema = z.object({
 export const createAuctionSchema = z
   .object({
     listingId: uuidSchema,
-    mode: z.enum(["ascending", "reserve"]).optional(),
+    /** Açıq minimum satış qiyməti — boşdursa elan qiymətindən götürülür */
     startingBidAzn: aznAmountSchema.optional(),
-    reservePriceAzn: aznAmountSchema.optional(),
     buyNowPriceAzn: aznAmountSchema.optional(),
     startsAt: z
       .string()
@@ -88,10 +87,10 @@ export const createAuctionSchema = z
   )
   .refine(
     (data) =>
-      !data.reservePriceAzn ||
+      !data.buyNowPriceAzn ||
       !data.startingBidAzn ||
-      data.reservePriceAzn >= data.startingBidAzn,
-    { message: "Rezerv qiyməti başlanğıc qiymətdən böyük olmalıdır" }
+      data.buyNowPriceAzn >= data.startingBidAzn,
+    { message: "Buy-now qiyməti minimum satış qiymətindən aşağı ola bilməz" }
   )
   .refine(
     (data) => !data.sellerBondRequired || !!data.sellerBondAmountAzn,

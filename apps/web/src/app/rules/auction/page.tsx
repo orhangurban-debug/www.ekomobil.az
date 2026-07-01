@@ -59,7 +59,7 @@ export default function AuctionFrameworkPage() {
           <h2 className="text-xl font-semibold text-slate-900">Lot yaratma axını (satıcı)</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
             <li>Elan hazır olur: avtomobildə VIN + satıcı + media, hissədə satıcı + media.</li>
-            <li>Lot parametrləri seçilir (başlanğıc qiymət, vaxt, istəyə görə rezerv/deposit).</li>
+            <li>Lot parametrləri seçilir (açıq minimum satış qiyməti, vaxt, istəyə görə buy-now/deposit).</li>
             <li>Lot haqqı ödənir və lot canlıya çıxır.</li>
             <li>Auksion bitəndən sonra nəticə təsdiq edilir.</li>
           </ol>
@@ -67,6 +67,27 @@ export default function AuctionFrameworkPage() {
             Qeyd: ayrıca &quot;sorğu topla sonra auksionu başlat&quot; mərhələsi məcburi deyil. Satıcı birbaşa lot yarada bilər; alıcı
             iştirak etməzsə lot satışsız bağlanır və yalnız lot haqqı tətbiq olunur.
           </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-slate-900">Minimum satış qiyməti (şəffaf qayda)</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-6">
+            <li>
+              Hər lot üçün <strong>açıq minimum satış qiyməti</strong> göstərilir. Hərrac bu qiymətdən başlayır və
+              bu məbləğin altında satış tamamlanmır.
+            </li>
+            <li>
+              Gizli rezerv yoxdur — alıcılar gördükləri minimum həddə etibar edə bilərlər.
+            </li>
+            <li>
+              Satıcı lot yaradarkən minimum qiyməti elan qiymətinə bərabər və ya ondan aşağı təyin edə bilər; aşağı
+              seçildikdə elan qiyməti də eyni məbləğə yenilənir.
+            </li>
+            <li>
+              Satış alınmasa satıcı elan qiymətini endirib lotu yenidən auksiona çıxara bilər; yeni lot cari elan
+              qiymətindən başlayacaq.
+            </li>
+          </ul>
         </section>
 
         <section>

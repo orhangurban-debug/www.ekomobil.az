@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuctionStatus } from "@/lib/auction";
@@ -10,13 +11,17 @@ export function AuctionConfirmationPanel({
   auctionStatus,
   canActAsBuyer,
   canActAsSeller,
-  canRelist
+  canRelist,
+  listingId,
+  listingPriceAzn
 }: {
   auctionId: string;
   auctionStatus: AuctionStatus;
   canActAsBuyer: boolean;
   canActAsSeller: boolean;
   canRelist: boolean;
+  listingId?: string;
+  listingPriceAzn?: number;
 }) {
   const router = useRouter();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -266,8 +271,24 @@ export function AuctionConfirmationPanel({
       {canRelist && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-sm text-slate-700">
-            Bu lotu bir kliklə yenidən auksiona çıxara bilərsiniz. Sistem eyni elanla yeni lot yaradır.
+            Bu lotu yenidən auksiona çıxara bilərsiniz. Yeni lot{" "}
+            <strong>cari elan qiymətinizdən</strong> başlayacaq
+            {typeof listingPriceAzn === "number" ? (
+              <> ({listingPriceAzn.toLocaleString("az-AZ")} ₼)</>
+            ) : null}
+            .
           </p>
+          <p className="mt-2 text-sm text-slate-600">
+            Qiyməti endirmək istəyirsinizsə, əvvəlcə elanı redaktə edin, sonra yenidən auksiona çıxarın.
+          </p>
+          {listingId && (
+            <Link
+              href={`/listings/${listingId}`}
+              className="mt-2 inline-block text-sm font-medium text-[#0891B2] hover:underline"
+            >
+              Elan qiymətini redaktə et →
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => void relistAuction()}

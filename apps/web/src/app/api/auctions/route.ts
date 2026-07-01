@@ -65,9 +65,7 @@ export async function POST(req: Request) {
     const result = await createAuctionListing({
       listingId: parsed.listingId,
       sellerUserId: user.id,
-      mode: parsed.mode,
       startingBidAzn: parsed.startingBidAzn,
-      reservePriceAzn: parsed.reservePriceAzn,
       buyNowPriceAzn: parsed.buyNowPriceAzn,
       startsAt: parsed.startsAt,
       endsAt: parsed.endsAt,

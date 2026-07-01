@@ -10,7 +10,11 @@ import type { ListingDetail } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { createAuctionNotification } from "@/server/auction-notification-store";
 import { settleHeldDepositsForAuctionOutcome } from "@/server/auction-deposit-settlement-store";
-import { getListingDetail, validateListingOwnership } from "@/server/listing-store";
+import {
+  resolveTransparentAuctionFloor,
+  validateMinimumSalePriceAgainstListing
+} from "@/lib/auction-pricing";
+import { getListingDetail, updateListingForOwner, validateListingOwnership } from "@/server/listing-store";
 import { getDeepKycStatus } from "@/server/user-kyc-store";
 import {
   getAuctionAuditLogsMemory,
@@ -239,7 +243,43 @@ export async function createAuctionListing(input: {
     return { ok: false, error: "Auksion vaxt aralığı düzgün deyil" };
   }
 
-  const startingBidAzn = input.startingBidAzn ?? listing.priceAzn;
+  const requestedFloorAzn = input.startingBidAzn ?? listing.priceAzn;
+  const floorValidation = validateMinimumSalePriceAgainstListing({
+    minimumSalePriceAzn: requestedFloorAzn,
+    listingPriceAzn: listing.priceAzn
+  });
+  if (!floorValidation.ok) {
+    return { ok: false, error: floorValidation.error };
+  }
+
+  let startingBidAzn: number;
+  let reservePriceAzn: number;
+  let mode: "ascending" | "reserve";
+  try {
+    const resolved = resolveTransparentAuctionFloor(requestedFloorAzn);
+    startingBidAzn = resolved.startingBidAzn;
+    reservePriceAzn = resolved.reservePriceAzn;
+    mode = resolved.mode;
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Minimum satış qiyməti düzgün deyil"
+    };
+  }
+
+  if (input.buyNowPriceAzn !== undefined && input.buyNowPriceAzn < startingBidAzn) {
+    return { ok: false, error: "Buy-now qiyməti minimum satış qiymətindən aşağı ola bilməz" };
+  }
+
+  if (startingBidAzn < listing.priceAzn) {
+    const syncListingPrice = await updateListingForOwner(input.listingId, input.sellerUserId, {
+      priceAzn: startingBidAzn
+    });
+    if (!syncListingPrice.ok) {
+      return { ok: false, error: syncListingPrice.error ?? "Elan qiyməti yenilənə bilmədi" };
+    }
+  }
+
   const deepKycStatus = await getDeepKycStatus(input.sellerUserId);
   const isHighValueLot = startingBidAzn >= AUCTION_FEES.HIGH_VALUE_LOT_THRESHOLD_AZN;
   const sellerDeepKycApproved = deepKycStatus === "approved";
@@ -277,10 +317,10 @@ export async function createAuctionListing(input: {
         input.listingId,
         input.sellerUserId,
         listing.dealerProfileId ?? null,
-        input.mode ?? "ascending",
+        mode,
         listing.title,
         startingBidAzn,
-        input.reservePriceAzn ?? null,
+        reservePriceAzn,
         input.buyNowPriceAzn ?? null,
         minimumIncrementAzn,
         startsAt,
@@ -345,11 +385,11 @@ export async function createAuctionListing(input: {
       listingId: input.listingId,
       sellerUserId: input.sellerUserId,
       sellerDealerProfileId: listing.dealerProfileId,
-      mode: input.mode ?? "ascending",
+      mode,
       settlementModel: "off_platform_direct",
       titleSnapshot: listing.title,
       startingBidAzn,
-      reservePriceAzn: input.reservePriceAzn,
+      reservePriceAzn,
       buyNowPriceAzn: input.buyNowPriceAzn,
       minimumIncrementAzn,
       startsAt: startsAt.toISOString(),
@@ -438,13 +478,19 @@ export async function relistAuctionFromPrevious(input: {
   const now = new Date();
   const nextEndsAt = new Date(now.getTime() + boundedDurationMs);
 
+  const listing = await getListingDetail(sourceAuction.listingId);
+  if (!listing) return { ok: false, error: "Elan tapılmadı" };
+
+  const buyNowPriceAzn =
+    sourceAuction.buyNowPriceAzn && sourceAuction.buyNowPriceAzn >= listing.priceAzn
+      ? sourceAuction.buyNowPriceAzn
+      : undefined;
+
   return createAuctionListing({
     listingId: sourceAuction.listingId,
     sellerUserId: input.actorUserId,
-    mode: sourceAuction.mode,
-    startingBidAzn: sourceAuction.startingBidAzn,
-    reservePriceAzn: sourceAuction.reservePriceAzn,
-    buyNowPriceAzn: sourceAuction.buyNowPriceAzn,
+    startingBidAzn: listing.priceAzn,
+    buyNowPriceAzn,
     startsAt: now.toISOString(),
     endsAt: nextEndsAt.toISOString(),
     depositRequired: sourceAuction.depositRequired,

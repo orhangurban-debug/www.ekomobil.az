@@ -5,6 +5,7 @@ import { DisputeEvidenceManager } from "@/components/auction/dispute-evidence-ma
 import { getServerSessionUser } from "@/lib/auth";
 import { getAuctionStatusLabel } from "@/lib/auction";
 import { getAuctionListingForRead } from "@/server/auction-read-model";
+import { getListingDetail } from "@/server/listing-store";
 
 export default async function AuctionConfirmPage({
   params,
@@ -17,6 +18,8 @@ export default async function AuctionConfirmPage({
     getServerSessionUser(),
   ]);
   if (!auction) notFound();
+
+  const listing = await getListingDetail(auction.listingId);
 
   const winnerUserId = auction.winnerUserId ?? auction.currentBidderUserId;
   const canActAsBuyer = Boolean(user && winnerUserId && user.id === winnerUserId);
@@ -86,6 +89,8 @@ export default async function AuctionConfirmPage({
             canActAsBuyer={canActAsBuyer}
             canActAsSeller={canActAsSeller}
             canRelist={canRelist}
+            listingId={auction.listingId}
+            listingPriceAzn={listing?.priceAzn}
           />
         </div>
 

@@ -361,8 +361,13 @@ export default function AuctionPage() {
                     <p className="text-sm text-slate-500">Status: {activeLot.status}</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-400">Başlanğıc qiyməti</div>
-                    <div className="text-sm text-slate-500">{activeLot.startingBidAzn.toLocaleString("az-AZ")} ₼</div>
+                    <div className="text-xs text-slate-400">Minimum satış qiyməti</div>
+                    <div className="text-sm font-medium text-slate-700">
+                      {activeLot.startingBidAzn.toLocaleString("az-AZ")} ₼
+                    </div>
+                    <p className="mt-1 max-w-[12rem] text-[11px] leading-snug text-slate-500">
+                      Açıq minimum — bu məbləğin altında lot satılmır
+                    </p>
                   </div>
                 </div>
 
