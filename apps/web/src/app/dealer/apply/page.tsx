@@ -25,8 +25,10 @@ export default function DealerApplyPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          requestType: "dealer_upgrade",
-          message: `Salon/Mağaza müraciəti:\nBiznes adı: ${form.businessName}\nVÖEN: ${form.voen}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`
+          requestType: "partnership",
+          subject: `Salon/Mağaza müraciəti: ${form.businessName}`,
+          message: `Biznes adı: ${form.businessName}\nVÖEN: ${form.voen}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`,
+          phone: form.phone
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };

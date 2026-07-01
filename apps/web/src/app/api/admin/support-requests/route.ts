@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { listAdminSupportRequestsPaged, updateAdminSupportRequest } from "@/server/admin-store";
+import { getPgPool } from "@/lib/postgres";
+import { sendSupportReplyEmail } from "@/lib/email";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed"]);
 const ALLOWED_PRIORITY = new Set(["low", "normal", "high", "urgent"]);
@@ -51,6 +53,38 @@ export async function PATCH(req: Request) {
   if (body.priority && !ALLOWED_PRIORITY.has(body.priority)) {
     return NextResponse.json({ ok: false, error: "Prioritet yanlışdır." }, { status: 400 });
   }
+
+  // Fetch reporter contact info before updating (needed for email notification)
+  const hasNewResponse = Boolean(body.adminResponse?.trim());
+  let reporterEmail: string | null = null;
+  let reporterName: string | null = null;
+  let requestSubject: string = "Müraciətiniz";
+  let previousResponse: string | null = null;
+
+  if (hasNewResponse) {
+    try {
+      const pool = getPgPool();
+      const row = await pool.query<{
+        reporter_email: string | null;
+        reporter_name: string | null;
+        subject: string;
+        admin_response: string | null;
+      }>(
+        `SELECT reporter_email, reporter_name, subject, admin_response
+         FROM support_requests WHERE id = $1 LIMIT 1`,
+        [body.id]
+      );
+      if (row.rows[0]) {
+        reporterEmail = row.rows[0].reporter_email;
+        reporterName = row.rows[0].reporter_name;
+        requestSubject = row.rows[0].subject || "Müraciətiniz";
+        previousResponse = row.rows[0].admin_response;
+      }
+    } catch (err) {
+      console.error("[support-requests PATCH] Failed to fetch reporter info:", err);
+    }
+  }
+
   await updateAdminSupportRequest({
     id: body.id,
     status: body.status,
@@ -58,6 +92,7 @@ export async function PATCH(req: Request) {
     assignedToUserId: typeof body.assignedToUserId === "string" ? body.assignedToUserId : undefined,
     adminResponse: body.adminResponse
   });
+
   await createAdminAuditLog({
     actorUserId: auth.user.id,
     actorRole: auth.user.role,
@@ -69,8 +104,26 @@ export async function PATCH(req: Request) {
       status: body.status,
       priority: body.priority,
       assignedToUserId: body.assignedToUserId,
-      responded: Boolean(body.adminResponse?.trim())
+      responded: hasNewResponse
     }
   });
-  return NextResponse.json({ ok: true });
+
+  // Send email notification only when a new/changed response is saved and reporter has email
+  const newResponse = body.adminResponse?.trim();
+  const isNewOrChangedResponse = hasNewResponse && newResponse !== (previousResponse ?? "").trim();
+
+  if (isNewOrChangedResponse && reporterEmail) {
+    // Fire-and-forget: don't block the API response on email delivery
+    sendSupportReplyEmail({
+      to: reporterEmail,
+      recipientName: reporterName ?? undefined,
+      originalSubject: requestSubject,
+      requestId: body.id,
+      adminResponse: newResponse!
+    }).catch((err: unknown) => {
+      console.error("[support-requests PATCH] Email send failed:", err);
+    });
+  }
+
+  return NextResponse.json({ ok: true, emailSent: isNewOrChangedResponse && Boolean(reporterEmail) });
 }

@@ -181,3 +181,114 @@ export async function sendInvoiceEmail(data: InvoiceEmailData): Promise<{ ok: bo
     return { ok: false, error: err instanceof Error ? err.message : "E-poçt göndərilə bilmədi" };
   }
 }
+
+// ─── Support reply email ──────────────────────────────────────────────────────
+
+export interface SupportReplyEmailData {
+  to: string;
+  recipientName?: string;
+  originalSubject: string;
+  requestId: string;
+  adminResponse: string;
+}
+
+function buildSupportReplyHtml(data: SupportReplyEmailData): string {
+  const greeting = data.recipientName ? `Hörmətli ${data.recipientName},` : "Salam,";
+  const escapedResponse = data.adminResponse
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+
+  return `<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Müraciətinizə cavab – Ekomobil.az</title>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="580" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);padding:28px 40px;">
+              <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">Ekomobil<span style="color:#38bdf8;">.az</span></div>
+              <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Dəstək xidməti</div>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:.8px;">Müraciətinizə cavab</p>
+              <p style="margin:0 0 20px;font-size:22px;font-weight:700;color:#0f172a;line-height:1.3;">Müraciətiniz cavablandırıldı</p>
+
+              <p style="margin:0 0 8px;font-size:15px;color:#334155;">${greeting}</p>
+              <p style="margin:0 0 24px;font-size:14px;color:#64748b;">
+                <strong style="color:#0f172a;">${data.originalSubject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</strong>
+                mövzusundakı müraciətinizə cavab verildi.
+              </p>
+
+              <!-- Reply box -->
+              <div style="background:#f0f9ff;border-left:4px solid #0891b2;border-radius:8px;padding:20px 24px;margin-bottom:28px;">
+                <p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.8px;">EkoMobil Dəstəyin cavabı</p>
+                <p style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">${escapedResponse}</p>
+              </div>
+
+              <p style="margin:0 0 6px;font-size:13px;color:#64748b;">
+                Əlavə sualınız varsa bu e-poçta cavab verə bilərsiniz, ya da aşağıdakı düyməyə basın:
+              </p>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding:0 40px 36px;">
+              <a href="mailto:info@ekomobil.az?subject=Re%3A%20${encodeURIComponent(data.originalSubject)}%20%5B${data.requestId.slice(0, 8)}%5D"
+                 style="display:inline-block;background:#0891b2;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:10px;">
+                Cavab ver
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">Ekomobil.az · Bakı, Azərbaycan</p>
+              <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">
+                Bu e-poçt müraciət ID: ${data.requestId.slice(0, 8)} üçün göndərilib ·
+                <a href="mailto:info@ekomobil.az" style="color:#38bdf8;text-decoration:none;">info@ekomobil.az</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendSupportReplyEmail(data: SupportReplyEmailData): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resend = getResend();
+    const { error } = await resend.emails.send({
+      from: "EkoMobil Dəstək <info@ekomobil.az>",
+      to: data.to,
+      replyTo: "info@ekomobil.az",
+      subject: `Re: ${data.originalSubject}`,
+      html: buildSupportReplyHtml(data)
+    });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "E-poçt göndərilə bilmədi" };
+  }
+}

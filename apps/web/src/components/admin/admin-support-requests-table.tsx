@@ -63,6 +63,8 @@ export function AdminSupportRequestsTable({ items }: { items: AdminSupportReques
     [rows]
   );
 
+  const [emailSentById, setEmailSentById] = useState<Record<string, boolean>>({});
+
   async function saveRow(id: string) {
     const status = statusById[id] ?? initial[id]?.status ?? "new";
     const priority = priorityById[id] ?? initial[id]?.priority ?? "normal";
@@ -81,10 +83,14 @@ export function AdminSupportRequestsTable({ items }: { items: AdminSupportReques
           adminResponse: adminResponse.trim() ? adminResponse.trim() : undefined
         })
       });
-      const payload = (await response.json()) as { ok: boolean; error?: string };
+      const payload = (await response.json()) as { ok: boolean; error?: string; emailSent?: boolean };
       if (!response.ok || !payload.ok) {
         alert(payload.error ?? "Yeniləmə uğursuz oldu.");
         return;
+      }
+      if (payload.emailSent) {
+        setEmailSentById((prev) => ({ ...prev, [id]: true }));
+        setTimeout(() => setEmailSentById((prev) => ({ ...prev, [id]: false })), 5000);
       }
       setRows((prev) =>
         prev.map((row) =>
@@ -174,16 +180,31 @@ export function AdminSupportRequestsTable({ items }: { items: AdminSupportReques
                       className="input-field min-h-24"
                       value={noteById[row.id] ?? row.adminResponse ?? ""}
                       onChange={(e) => setNoteById((prev) => ({ ...prev, [row.id]: e.target.value }))}
-                      placeholder="Admin cavabı / daxili qeyd"
+                      placeholder="Admin cavabı — istifadəçinin e-poçtuna göndəriləcək"
                     />
-                    <button
-                      type="button"
-                      onClick={() => void saveRow(row.id)}
-                      disabled={busy}
-                      className="btn-primary px-3 py-1.5 text-xs disabled:opacity-60"
-                    >
-                      {busy ? "Saxlanılır..." : "Yadda saxla"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveRow(row.id)}
+                        disabled={busy}
+                        className="btn-primary px-3 py-1.5 text-xs disabled:opacity-60"
+                      >
+                        {busy ? "Saxlanılır..." : "Yadda saxla"}
+                      </button>
+                      {emailSentById[row.id] && (
+                        <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          E-poçt göndərildi
+                        </span>
+                      )}
+                      {row.reporterEmail ? (
+                        <span className="text-[10px] text-slate-400">→ {row.reporterEmail}</span>
+                      ) : (
+                        <span className="text-[10px] text-amber-500">e-poçt yoxdur</span>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-500">
