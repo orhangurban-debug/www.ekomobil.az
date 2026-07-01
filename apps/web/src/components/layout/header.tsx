@@ -41,13 +41,17 @@ export function Header({
     ? null
     : pathname.startsWith("/services") || pathname.startsWith("/partners")
       ? { label: "Servis müraciəti", href: "/partners/inspection" }
-      : pathname.startsWith("/dealer")
-        ? { label: "Yeni elan", href: "/publish" }
-        : pathname.startsWith("/parts")
-          ? { label: "Hissə elanı", href: "/parts/publish" }
-          : pathname.startsWith("/auction")
-            ? { label: "Lot yerləşdir", href: "/auction/sell" }
-            : { label: "Elan yerləşdir", href: "/publish" };
+      : pathname.startsWith("/dealers")
+        ? { label: "Salon müraciəti", href: "/dealer/apply" }
+        : pathname.startsWith("/dealer")
+          ? { label: "Yeni elan", href: "/publish" }
+          : pathname.startsWith("/parts")
+            ? { label: "Hissə elanı", href: "/parts/publish" }
+            : pathname.startsWith("/auction")
+              ? { label: "Lot yerləşdir", href: "/auction/sell" }
+              : pathname.startsWith("/listings")
+                ? { label: "Elan yerləşdir", href: "/publish" }
+                : { label: "Elan yerləşdir", href: "/publish" };
 
   function hideNotice() {
     setNoticeVisible(false);

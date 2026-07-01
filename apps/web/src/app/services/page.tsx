@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ContactActionButton } from "@/components/support/contact-action-button";
 import type { Metadata } from "next";
 import {
   Car,
@@ -11,7 +10,6 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
-import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { SERVICE_PROVIDER_GROUPS, SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 
 export const metadata: Metadata = {
@@ -40,17 +38,6 @@ export default function ServicesPage() {
       />
 
       <div className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 lg:px-8">
-        <PagePublishStrip
-          icon={Sparkles}
-          tone="teal"
-          title="Servis biznesisiniz var?"
-          description="Profil yaradın, müştərilərə çatın və xidmət elanlarınızı idarə edin."
-          primaryLabel="Servis müraciəti"
-          primaryHref="/partners/inspection"
-          secondaryLabel="Biznes planları"
-          secondaryHref="/pricing#business"
-        />
-
         <div className="mb-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICE_PROVIDER_GROUPS.map((group) => {
             const Icon = groupIcons[group.id] ?? Car;
@@ -85,8 +72,7 @@ export default function ServicesPage() {
               Ekspertiza şirkəti, mexanik, rəsmi servis və ya avto elektrik — biznesisinizi
               minlərlə potensial müştəriyə çatdırın.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <ContactActionButton intent="service" className="btn-primary px-8 py-3" />
+            <div className="mt-6 flex justify-center">
               <Link href="/pricing#business" className="rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
                 Biznes planları
               </Link>

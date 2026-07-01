@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Building2, Store } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
-import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { listPublicDealers } from "@/server/dealer-store";
 
 function DealerAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
@@ -39,17 +38,6 @@ export default async function DealersPage() {
       />
 
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
-        <PagePublishStrip
-          icon={Store}
-          tone="amber"
-          title="Salon sahibisiniz?"
-          description="Biznes planı ilə panel, CRM və geniş elan imkanlarından yararlanın."
-          primaryLabel="Salon müraciəti"
-          primaryHref="/dealer/apply"
-          secondaryLabel="Biznes planları"
-          secondaryHref="/pricing#business"
-        />
-
         {dealers.length === 0 ? (
           <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
             <div className="icon-tile icon-tile-amber mx-auto mb-4 h-16 w-16 rounded-2xl">
@@ -61,7 +49,7 @@ export default async function DealersPage() {
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link href="/listings" className="btn-primary">Elanlara bax</Link>
-              <Link href="/pricing#business" className="btn-secondary">Salon planları</Link>
+              <Link href="/pricing#business" className="btn-secondary">Biznes planları</Link>
             </div>
           </div>
         ) : (

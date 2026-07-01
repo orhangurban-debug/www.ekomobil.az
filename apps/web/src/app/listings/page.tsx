@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CarFront, PlusCircle } from "lucide-react";
+import { CarFront } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
@@ -148,12 +148,6 @@ export default async function ListingsPage({
         icon={CarFront}
         title="Bütün elanlar"
         subtitle={`${result.total} avtomobil elanı tapıldı`}
-        actions={
-          <Link href="/publish" className="btn-primary text-sm">
-            <PlusCircle className="h-4 w-4" aria-hidden="true" />
-            Elan yerləşdir
-          </Link>
-        }
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
@@ -162,8 +156,6 @@ export default async function ListingsPage({
           tone="teal"
           title="Avtomobilinizi satırsınız?"
           description="VIN, foto və qiymət analizi ilə elanınız daha tez diqqət çəkir."
-          primaryLabel="Avtomobil elanı"
-          primaryHref="/publish"
           secondaryLabel="Qiymət planları"
           secondaryHref="/pricing"
         />

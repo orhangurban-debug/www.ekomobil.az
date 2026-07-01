@@ -4,8 +4,8 @@ import type { LucideIcon } from "lucide-react";
 interface PagePublishStripProps {
   title: string;
   description: string;
-  primaryLabel: string;
-  primaryHref: string;
+  primaryLabel?: string;
+  primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
   icon: LucideIcon;
@@ -22,6 +22,10 @@ export function PagePublishStrip({
   icon: Icon,
   tone = "teal"
 }: PagePublishStripProps) {
+  const showPrimary = Boolean(primaryLabel && primaryHref);
+  const showSecondary = Boolean(secondaryLabel && secondaryHref);
+  const showActions = showPrimary || showSecondary;
+
   return (
     <div className="publish-strip">
       <div className={`icon-tile icon-tile-${tone} shrink-0`}>
@@ -31,16 +35,20 @@ export function PagePublishStrip({
         <p className="font-semibold text-slate-900">{title}</p>
         <p className="mt-0.5 text-sm text-slate-500">{description}</p>
       </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
-        <Link href={primaryHref} className="btn-primary text-sm">
-          {primaryLabel}
-        </Link>
-        {secondaryLabel && secondaryHref && (
-          <Link href={secondaryHref} className="btn-secondary text-sm">
-            {secondaryLabel}
-          </Link>
-        )}
-      </div>
+      {showActions && (
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {showPrimary && (
+            <Link href={primaryHref!} className="btn-primary text-sm">
+              {primaryLabel}
+            </Link>
+          )}
+          {showSecondary && (
+            <Link href={secondaryHref!} className="btn-secondary text-sm">
+              {secondaryLabel}
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Package, PlusCircle, Upload } from "lucide-react";
+import { Package, Upload } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
@@ -114,17 +114,11 @@ export default async function PartsPage({
         title="Mağaza elanları"
         subtitle={`${result.total} hissə və aksesuar elanı tapıldı`}
         actions={
-          <>
-            {canSeePartsAnalytics && (
-              <Link href="/parts/analytics" className="btn-secondary text-sm">
-                Analitika
-              </Link>
-            )}
-            <Link href="/parts/publish" className="btn-primary text-sm">
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              Hissə elanı
+          canSeePartsAnalytics ? (
+            <Link href="/parts/analytics" className="btn-secondary text-sm">
+              Analitika
             </Link>
-          </>
+          ) : undefined
         }
       />
 
@@ -133,9 +127,7 @@ export default async function PartsPage({
           icon={Upload}
           tone="violet"
           title="Ehtiyat hissəsi satırsınız?"
-          description="Tək elan və ya toplu yükləmə ilə mağazanızı genişləndirin."
-          primaryLabel="Hissə elanı"
-          primaryHref="/parts/publish"
+          description="Bir neçə SKU üçün toplu yükləmə mövcuddur."
           secondaryLabel="Toplu yükləmə"
           secondaryHref="/parts/publish/bulk"
         />
@@ -185,10 +177,8 @@ export default async function PartsPage({
               <p className="text-sm text-slate-400">
                 {activeChips.length > 0 ? "Filterləri dəyişin və ya sıfırlayın." : "İlk hissə elanınızı yerləşdirin."}
               </p>
-              {activeChips.length > 0 ? (
+              {activeChips.length > 0 && (
                 <Link href="/parts" className="btn-secondary text-sm">Filterləri sıfırla</Link>
-              ) : (
-                <Link href="/parts/publish" className="btn-primary text-sm">+ Hissə elanı yerləşdir</Link>
               )}
             </div>
           ) : (
