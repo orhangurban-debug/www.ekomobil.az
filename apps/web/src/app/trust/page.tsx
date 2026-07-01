@@ -30,7 +30,15 @@ const sections = [
   }
 ];
 
-export default function TrustPage() {
+export default async function TrustPage({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const initialRequestType = typeof params.type === "string" ? params.type : "question";
+  const initialSubject = typeof params.subject === "string" ? params.subject : "";
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <nav className="mb-8 text-sm text-slate-500">
@@ -66,7 +74,10 @@ export default function TrustPage() {
       </div>
 
       <section id="support-request" className="mt-12 scroll-mt-24">
-        <SupportRequestForm />
+        <SupportRequestForm
+          initialRequestType={initialRequestType}
+          initialSubject={initialSubject}
+        />
       </section>
     </div>
   );

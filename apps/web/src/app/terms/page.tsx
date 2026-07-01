@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export const metadata = {
   title: "İstifadəçi Razılaşması | EkoMobil",
@@ -406,8 +407,8 @@ export default function TermsPage() {
           <Section id="disputes" title="13. Mübahisələrin həlli">
             <p>
               Bu razılaşmadan doğan mübahisələr ilk növbədə{" "}
-              <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
-              ünvanına yazılı müraciətlə həll edilməyə çalışılır. Refund və cərimə mübahisələrində ilkin cavab müddəti 2 iş günü,
+              <ContactActionButton intent="legal" />{" "}
+              vasitəsilə həll edilməyə çalışılır. Refund və cərimə mübahisələrində ilkin cavab müddəti 2 iş günü,
               yekun qərar müddəti 10 iş günüdür; qərardan sonra 5 iş günü ərzində apellyasiya vermək mümkündür.
               30 gün ərzində razılığa gəlinmirsə, mübahisə
               Azərbaycan Respublikası qanunvericiliyinə uyğun olaraq Bakı şəhəri məhkəmələrinin yurisdiksiyasına
@@ -431,14 +432,11 @@ export default function TermsPage() {
 
           <Section id="contact" title="15. Əlaqə">
             <p>Bu razılaşma ilə bağlı suallarınız üçün:</p>
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-1">
+            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-3">
               <p><strong>{COMPANY_NAME}</strong></p>
               <p>{COMPANY_ADDRESS}</p>
-              <p>Hüquqi rekvizitlər (VÖEN və qeydiyyat məlumatı) sorğu əsasında təqdim edilir.</p>
-              <p>
-                E-poçt:{" "}
-                <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>
-              </p>
+              <p className="text-slate-500">Hüquqi rekvizitlər (VÖEN və qeydiyyat məlumatı) sorğu əsasında təqdim edilir.</p>
+              <ContactActionButton intent="legal" />
             </div>
           </Section>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 import type { Metadata } from "next";
 import { SERVICE_PROVIDER_GROUPS, SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 
@@ -56,12 +57,7 @@ export default function ServicesPage() {
             minlərlə potensial müştəriyə çatdırın.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <a
-              href="mailto:partner@ekomobil.az?subject=Servis%20t%C9%99r%C9%99fda%C5%9Fl%C4%B1%C4%9F%C4%B1"
-              className="rounded-xl bg-[#0891B2] px-8 py-3 font-semibold text-white transition hover:bg-[#0e7490]"
-            >
-              Müraciət et
-            </a>
+            <ContactActionButton intent="service" className="rounded-xl bg-[#0891B2] px-8 py-3 font-semibold text-white transition hover:bg-[#0e7490]" />
             <Link href="/pricing#business" className="rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
               Biznes planları
             </Link>

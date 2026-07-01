@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CONTACT_INTENTS } from "@/lib/support-contact";
 
 type AccountIntent = "personal" | "business" | "service";
 
@@ -34,15 +35,15 @@ const INTENT_INFO: Record<AccountIntent, { title: string; body: string; cta?: st
   },
   business: {
     title: "Salon / Mağaza hesabı",
-    body: "Eyni qeydiyyat forması ilə hesab yaradın. Qeydiyyatdan sonra Biznes Planı satın alaraq salon/mağaza panelinə çıxış əldə edirsiniz. VÖEN tələb olunur.",
-    cta: "Biznes planlarına bax",
-    href: "/pricing#business"
+    body: "Eyni qeydiyyat forması ilə hesab yaradın. Qeydiyyatdan sonra salon müraciəti göndərin və Biznes Planı ilə panelinizi aktivləşdirin.",
+    cta: CONTACT_INTENTS.dealer.label,
+    href: CONTACT_INTENTS.dealer.href
   },
   service: {
     title: "Servis / Usta profili",
     body: "Hesab yaradın, sonra servis profili üçün müraciət edin. Fərdi hesabla eyni zamanda elan yerləşdirə bilərsiniz — iki funksiya bir hesabda birləşir.",
-    cta: "Tərəfdaşlıq müraciəti",
-    href: "mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
+    cta: CONTACT_INTENTS.service.label,
+    href: CONTACT_INTENTS.service.href
   }
 };
 
@@ -178,8 +179,6 @@ export default function RegisterPage() {
             <a
               href={info.href}
               className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#0891B2] hover:underline"
-              target={info.href.startsWith("mailto") ? undefined : "_blank"}
-              rel="noreferrer"
             >
               {info.cta} →
             </a>

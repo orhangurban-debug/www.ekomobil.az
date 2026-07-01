@@ -40,6 +40,7 @@ export interface AdminUserLookup {
   id: string;
   email: string;
   role: UserRole;
+  fullName?: string;
 }
 
 export interface AdminBusinessProfileRow {
@@ -333,6 +334,27 @@ export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
       expiringSubscriptions7d: 0,
       totalRevenueAzn: 0
     };
+  }
+}
+
+export async function listSupportAssignableStaff(): Promise<AdminUserLookup[]> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ id: string; email: string; role: string; full_name: string | null }>(
+      `SELECT u.id, u.email, u.role, up.full_name
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.role IN ('admin', 'support')
+       ORDER BY u.role ASC, u.email ASC`
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: row.role as UserRole,
+      fullName: row.full_name ?? undefined
+    }));
+  } catch {
+    return [];
   }
 }
 
@@ -707,6 +729,7 @@ export async function updateAdminSupportRequest(input: {
   status?: string;
   priority?: string;
   assignedToUserId?: string | null;
+  assigneeProvided?: boolean;
   adminResponse?: string;
 }): Promise<void> {
   const pool = getPgPool();
@@ -715,14 +738,21 @@ export async function updateAdminSupportRequest(input: {
      SET
        status = COALESCE($2, status),
        priority = COALESCE($3, priority),
-       assigned_to_user_id = COALESCE($4, assigned_to_user_id),
+       assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
        admin_response = COALESCE($5, admin_response),
        response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
        resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
        last_activity_at = NOW(),
        updated_at = NOW()
      WHERE id = $1`,
-    [input.id, input.status ?? null, input.priority ?? null, input.assignedToUserId ?? null, input.adminResponse ?? null]
+    [
+      input.id,
+      input.status ?? null,
+      input.priority ?? null,
+      input.assignedToUserId ?? null,
+      input.adminResponse ?? null,
+      input.assigneeProvided ?? false
+    ]
   );
 }
 

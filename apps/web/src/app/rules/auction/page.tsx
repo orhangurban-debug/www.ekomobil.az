@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 import { getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
 
 export const metadata = {
@@ -140,10 +141,8 @@ export default function AuctionFrameworkPage() {
           </p>
           <p className="mt-3">
             Tərəfdaş müraciəti üçün{" "}
-            <a href="mailto:partner@ekomobil.az?subject=Ekspertiza%20t%C9%99r%C9%99fda%C5%9Fl%C4%B1%C4%9F%C4%B1" className="text-[#0891B2] hover:underline">
-              partner@ekomobil.az
-            </a>{" "}
-            ünvanına müraciət edə bilərsiniz.
+            <ContactActionButton intent="service" />{" "}
+            göndərin.
           </p>
         </section>
       </div>

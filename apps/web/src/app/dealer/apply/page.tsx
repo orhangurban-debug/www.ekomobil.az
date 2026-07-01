@@ -167,11 +167,10 @@ export default function DealerApplyPage() {
       </form>
 
       <p className="mt-6 text-center text-xs text-slate-400">
-        Müraciəti göndərdikdən sonra hesabınız admin tərəfindən aktivləşdirilir (1–2 iş günü).
-        Suallar üçün:{" "}
-        <a href="mailto:info@ekomobil.az" className="text-[#0891B2] hover:underline">
-          info@ekomobil.az
-        </a>
+        Suallarınız varsa{" "}
+        <Link href="/trust#support-request" className="text-[#0891B2] hover:underline">
+          dəstək sorğusu göndərin
+        </Link>
       </p>
     </div>
   );

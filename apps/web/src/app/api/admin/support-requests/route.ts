@@ -89,7 +89,12 @@ export async function PATCH(req: Request) {
     id: body.id,
     status: body.status,
     priority: body.priority,
-    assignedToUserId: typeof body.assignedToUserId === "string" ? body.assignedToUserId : undefined,
+    assignedToUserId: body.assignedToUserId === null || body.assignedToUserId === ""
+      ? null
+      : typeof body.assignedToUserId === "string"
+        ? body.assignedToUserId
+        : undefined,
+    assigneeProvided: "assignedToUserId" in body,
     adminResponse: body.adminResponse
   });
 

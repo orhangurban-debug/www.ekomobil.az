@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export const metadata = {
   title: "Refund və cərimə siyasəti | EkoMobil",
@@ -7,7 +8,6 @@ export const metadata = {
 };
 
 const EFFECTIVE_DATE = "28 aprel 2026";
-const CONTACT_EMAIL = "info@ekomobil.az";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -79,9 +79,9 @@ export default function RefundPolicyPage() {
 
           <Section id="dispute" title="6. Mübahisə və müraciət proseduru">
             <p>
-              Refund və cərimə mübahisələri üçün sorğunu{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#0891B2] hover:underline">{CONTACT_EMAIL}</a>{" "}
-              ünvanına və ya platformadakı dəstək forması vasitəsilə göndərin.
+              Refund və cərimə mübahisələri üçün{" "}
+              <ContactActionButton intent="refund" />{" "}
+              göndərin.
             </p>
             <p>
               Sorğuda əməliyyat ID-si, tarix, hadisə təsviri və mövcud sübutlar göstərilməlidir. Natamam sorğular

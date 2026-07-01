@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export function Footer({ logoUrl }: { logoUrl: string }) {
   return (
@@ -85,14 +86,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
             <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3E2F28]">Əlaqə</h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <a href="mailto:info@ekomobil.az" className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">
-                  info@ekomobil.az
-                </a>
-              </li>
-              <li>
-                <Link href="/trust#support-request" className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition">
-                  Müraciət göndər
-                </Link>
+                <ContactActionButton intent="support" className="text-sm text-[#3E2F28]/80 hover:text-[#0891B2] transition !bg-transparent !border-0 !p-0 !shadow-none font-normal" variant="link" />
               </li>
               <li className="text-sm text-[#3E2F28]/80">Bakı, Azərbaycan</li>
             </ul>

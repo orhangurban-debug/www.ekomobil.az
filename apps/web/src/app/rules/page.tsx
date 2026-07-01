@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export const metadata = {
   title: "Platforma Qaydaları | EkoMobil",
@@ -238,10 +239,8 @@ export default function RulesPage() {
             ]} />
             <p className="text-sm">
               Moderasiya qərarına etiraz üçün{" "}
-              <a href="mailto:info@ekomobil.az" className="text-[#0891B2] hover:underline">
-                info@ekomobil.az
-              </a>{" "}
-              ünvanına yazın. İlkin cavab müddəti 2 iş günü, əsaslı etirazların yekun baxışı 5 iş günü ərzində tamamlanır.
+              <ContactActionButton intent="complaint" />{" "}
+              göndərin. İlkin cavab müddəti 2 iş günü, əsaslı etirazların yekun baxışı 5 iş günü ərzində tamamlanır.
             </p>
           </Section>
 

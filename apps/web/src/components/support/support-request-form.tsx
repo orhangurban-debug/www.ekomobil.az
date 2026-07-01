@@ -117,7 +117,7 @@ export function SupportRequestForm({ listingId, initialRequestType = "question",
         </label>
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</span>
-          <input className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@ekomobil.az" />
+          <input className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sizin@email.com" />
         </label>
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Telefon</span>

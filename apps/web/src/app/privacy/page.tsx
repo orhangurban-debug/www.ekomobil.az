@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 
 export const metadata = {
   title: "Məxfilik Siyasəti | EkoMobil",
@@ -284,8 +285,6 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-sm">
               Hüquqlarınızı həyata keçirmək üçün{" "}
-              <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
-              ünvanına yazın və ya{" "}
               <Link href="/me/privacy" className="text-[#0891B2] hover:underline">məxfilik hüquqları səhifəsindən</Link>{" "}
               birbaşa sorğu yaradın. 30 iş günü ərzində cavablandırılır.
             </p>
@@ -308,9 +307,8 @@ export default function PrivacyPage() {
           <Section id="minors" title="10. Uşaqların məxfiliyi">
             <p>
               EkoMobil 18 yaşdan kiçik şəxslərə xidmət göstərmir. Uşağın məlumatlarını bilərəkdən
-              toplamırıq. Belə məlumatla rastlaşsaq, dərhal silirik. Şübhəniz varsa{" "}
-              <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>{" "}
-              ünvanına yazın.
+              toplamırıq. Belə məlumatla rastlaşsaq, dərhal silirik.{" "}
+              <ContactActionButton intent="privacy" /> vasitəsilə bildirin.
             </p>
           </Section>
 
@@ -324,13 +322,10 @@ export default function PrivacyPage() {
 
           <Section id="contact" title="12. Əlaqə">
             <p>Məxfilik məsələləri üçün:</p>
-            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-1">
+            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm space-y-3">
               <p><strong>EkoMobil MMC — Məxfilik Məsul Şəxs</strong></p>
               <p>Bakı, Azərbaycan</p>
-              <p>
-                E-poçt:{" "}
-                <a href={`mailto:${COMPANY_EMAIL}`} className="text-[#0891B2] hover:underline">{COMPANY_EMAIL}</a>
-              </p>
+              <ContactActionButton intent="privacy" />
               <p className="text-slate-400 text-xs">Cavab müddəti: 30 iş günü</p>
             </div>
           </Section>

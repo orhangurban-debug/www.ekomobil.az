@@ -152,7 +152,7 @@ function buildInvoiceHtml(data: InvoiceEmailData): string {
           <tr>
             <td style="padding:24px 40px;text-align:center;border-top:1px solid #f1f5f9;">
               <p style="margin:0;font-size:12px;color:#94a3b8;">Ekomobil.az · Bakı, Azərbaycan</p>
-              <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">Bu e-poçt avtomatik olaraq göndərilib. Suallarınız üçün <a href="mailto:info@ekomobil.az" style="color:#38bdf8;text-decoration:none;">info@ekomobil.az</a></p>
+              <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">Bu e-poçt avtomatik olaraq göndərilib. Suallarınız üçün <a href="${getAppBaseUrl()}/trust#support-request" style="color:#38bdf8;text-decoration:none;">yeni müraciət göndərin</a></p>
             </td>
           </tr>
 
@@ -192,8 +192,14 @@ export interface SupportReplyEmailData {
   adminResponse: string;
 }
 
+function getAppBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL || "https://ekomobil.az").replace(/\/$/, "");
+}
+
 function buildSupportReplyHtml(data: SupportReplyEmailData): string {
   const greeting = data.recipientName ? `Hörmətli ${data.recipientName},` : "Salam,";
+  const followUpSubject = `Re: ${data.originalSubject}`;
+  const supportFormUrl = `${getAppBaseUrl()}/trust?type=question&subject=${encodeURIComponent(followUpSubject)}#support-request`;
   const escapedResponse = data.adminResponse
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -239,19 +245,27 @@ function buildSupportReplyHtml(data: SupportReplyEmailData): string {
                 <p style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">${escapedResponse}</p>
               </div>
 
-              <p style="margin:0 0 6px;font-size:13px;color:#64748b;">
-                Əlavə sualınız varsa bu e-poçta cavab verə bilərsiniz, ya da aşağıdakı düyməyə basın:
+              <p style="margin:0 0 16px;font-size:13px;color:#64748b;">
+                Əlavə sualınız varsa saytdan yeni müraciət yaradın:
               </p>
+              <a href="${supportFormUrl}"
+                 style="display:inline-block;background:#0891b2;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:10px;">
+                Yeni müraciət göndər
+              </a>
             </td>
           </tr>
 
-          <!-- CTA -->
+          <!-- No-reply notice -->
           <tr>
-            <td style="padding:0 40px 36px;">
-              <a href="mailto:info@ekomobil.az?subject=Re%3A%20${encodeURIComponent(data.originalSubject)}%20%5B${data.requestId.slice(0, 8)}%5D"
-                 style="display:inline-block;background:#0891b2;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:10px;">
-                Cavab ver
-              </a>
+            <td style="padding:0 40px 28px;">
+              <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;">
+                <p style="margin:0;font-size:13px;font-weight:600;color:#92400e;">Bu e-poçta cavab yazmayın</p>
+                <p style="margin:6px 0 0;font-size:12px;color:#b45309;line-height:1.5;">
+                  Bu ünvana göndərilən cavablar qəbul edilmir. Yeni sual və ya əlavə məlumat üçün
+                  <a href="${supportFormUrl}" style="color:#0891b2;font-weight:600;text-decoration:none;">ekomobil.az/trust</a>
+                  səhifəsindən müraciət formu doldurun.
+                </p>
+              </div>
             </td>
           </tr>
 
@@ -260,8 +274,7 @@ function buildSupportReplyHtml(data: SupportReplyEmailData): string {
             <td style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
               <p style="margin:0;font-size:12px;color:#94a3b8;">Ekomobil.az · Bakı, Azərbaycan</p>
               <p style="margin:6px 0 0;font-size:11px;color:#cbd5e1;">
-                Bu e-poçt müraciət ID: ${data.requestId.slice(0, 8)} üçün göndərilib ·
-                <a href="mailto:info@ekomobil.az" style="color:#38bdf8;text-decoration:none;">info@ekomobil.az</a>
+                Müraciət ID: ${data.requestId.slice(0, 8)} · Avtomatik bildiriş, cavab gözlənilmir
               </p>
             </td>
           </tr>
@@ -280,7 +293,6 @@ export async function sendSupportReplyEmail(data: SupportReplyEmailData): Promis
     const { error } = await resend.emails.send({
       from: "EkoMobil Dəstək <info@ekomobil.az>",
       to: data.to,
-      replyTo: "info@ekomobil.az",
       subject: `Re: ${data.originalSubject}`,
       html: buildSupportReplyHtml(data)
     });

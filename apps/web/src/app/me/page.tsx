@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
+import { ContactActionButton } from "@/components/support/contact-action-button";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
@@ -68,12 +69,7 @@ export default async function ProfilePage({
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <a
-                href="mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
-                className="btn-primary text-sm bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
-              >
-                Müraciət et
-              </a>
+              <ContactActionButton intent="service" className="btn-primary text-sm bg-emerald-600 hover:bg-emerald-700 border-emerald-600" />
               <Link href="/me" className="btn-secondary text-sm">Sonraya qoy</Link>
             </div>
           </div>
@@ -268,12 +264,7 @@ export default async function ProfilePage({
                 <div className="rounded-xl border border-slate-200 p-4">
                   <p className="text-sm font-medium text-slate-800">🔧 Servis / Usta profili</p>
                   <p className="mt-1 text-xs text-slate-500">Bu hesabla həm elan yerləşdirə, həm servis profili aça bilərsiniz</p>
-                  <a
-                    href="mailto:partner@ekomobil.az?subject=Servis%20profili%20m%C3%BCraci%C9%99ti"
-                    className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline"
-                  >
-                    Müraciət et →
-                  </a>
+                  <ContactActionButton intent="service" variant="link" className="mt-2 inline-block text-xs font-medium text-[#0891B2] hover:underline" />
                 </div>
               </div>
             </div>
