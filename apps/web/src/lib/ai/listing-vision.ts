@@ -24,7 +24,7 @@ import type {
   VehicleAiSuggestion
 } from "@/lib/ai/listing-vision-types";
 
-const GEMINI_MODEL = "gemini-1.5-flash";
+import { GEMINI_MODEL } from "@/lib/ai/gemini-model";
 
 async function resolveImageBase64(imageUrl: string, appBaseUrl: string): Promise<{ mimeType: string; data: string } | null> {
   try {

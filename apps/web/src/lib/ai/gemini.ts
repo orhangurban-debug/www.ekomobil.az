@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { GEMINI_MODEL } from "@/lib/ai/gemini-model";
 import type { ListingQuery } from "@/lib/marketplace-types";
 import type { CarModelInsights } from "@/lib/car-insights";
 import {
@@ -43,7 +44,7 @@ export async function extractSearchParams(userMessage: string): Promise<Partial<
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: GEMINI_MODEL,
       contents: `${EXTRACT_SEARCH_PROMPT}\n\nİstifadəçi: ${userMessage}`,
       config: {
         responseMimeType: "application/json",
@@ -156,7 +157,7 @@ async function generateFromGemini(make: string, model: string, year: number): Pr
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: GEMINI_MODEL,
       contents: `${CAR_INSIGHTS_PROMPT}\n\nModel: ${make} ${model} (${year} il, ən çox yayılmış mühərrik versiyası)`,
       config: {
         responseMimeType: "application/json",
@@ -229,7 +230,7 @@ export async function generateChatReply(
       : `${REPLY_PROMPT}\n\nİstifadəçi: ${userMessage}`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: GEMINI_MODEL,
       contents: content,
       config: {
         temperature: 0.5,

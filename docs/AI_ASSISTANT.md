@@ -22,7 +22,7 @@ Limitlər `ai_chat_usage` cədvəlində saxlanılır. Migrasiya: `npm run db:mig
 
 - **API:** `POST /api/ai/chat` – mesaj alır, Gemini ilə parametr çıxarır, `listListings` çağırır, cavab qaytarır
 - **GET /api/ai/chat** – qalan limit sayını qaytarır
-- **Model:** Gemini 1.5 Flash
+- **Model:** Gemini 2.5 Flash-Lite (`lib/ai/gemini-model.ts`)
 - **Limitlər:** `lib/ai/limits.ts` – PostgreSQL əsaslı
 
 ## Məhdudiyyətlər
