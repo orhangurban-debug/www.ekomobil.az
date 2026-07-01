@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Package, Upload } from "lucide-react";
+import { Package } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
 import { PageHero } from "@/components/ui/page-hero";
-import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { listListings } from "@/server/listing-store";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import { getServerSessionUser } from "@/lib/auth";
@@ -114,24 +113,20 @@ export default async function PartsPage({
         title="Mağaza elanları"
         subtitle={`${result.total} hissə və aksesuar elanı tapıldı`}
         actions={
-          canSeePartsAnalytics ? (
-            <Link href="/parts/analytics" className="btn-secondary text-sm">
-              Analitika
+          <>
+            {canSeePartsAnalytics && (
+              <Link href="/parts/analytics" className="btn-secondary text-sm">
+                Analitika
+              </Link>
+            )}
+            <Link href="/parts/publish/bulk" className="btn-secondary text-sm">
+              Toplu yükləmə
             </Link>
-          ) : undefined
+          </>
         }
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
-        <PagePublishStrip
-          icon={Upload}
-          tone="violet"
-          title="Ehtiyat hissəsi satırsınız?"
-          description="Bir neçə SKU üçün toplu yükləmə mövcuddur."
-          secondaryLabel="Toplu yükləmə"
-          secondaryHref="/parts/publish/bulk"
-        />
-
       {currentPartsPlan && (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
           <div>

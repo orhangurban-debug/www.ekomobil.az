@@ -249,15 +249,11 @@ export default async function PricingPage() {
           <div className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#0891B2]/10 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#0891B2]/20 bg-[#0891B2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0891B2]">
-            Şəffaf qiymət siyasəti
-          </span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Sadə, ədalətli, gizli ödənişsiz
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Qiymətlər
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            Avtomobil elanından tutmuş salon abunəsinə, ehtiyat hissə mağazasından auksiona qədər —
-            hər xidmətin qiyməti burada açıq şəkildə göstərilib.
+          <p className="mx-auto mt-3 max-w-2xl text-slate-500">
+            Elan, salon, mağaza və auksion xidmətləri.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {[

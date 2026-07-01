@@ -21,9 +21,6 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
                 />
               </span>
             </Link>
-            <p className="mt-3 text-sm text-[#3E2F28]/80 leading-relaxed">
-              Azərbaycanda etibar əsaslı avtomobil alqı-satqı platforması.
-            </p>
           </div>
 
           <div>

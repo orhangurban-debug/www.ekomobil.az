@@ -5,7 +5,6 @@ import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
 import { PageHero } from "@/components/ui/page-hero";
-import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { listListings } from "@/server/listing-store";
 
 export const metadata: Metadata = {
@@ -151,15 +150,6 @@ export default async function ListingsPage({
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
-        <PagePublishStrip
-          icon={CarFront}
-          tone="teal"
-          title="Avtomobilinizi satırsınız?"
-          description="VIN, foto və qiymət analizi ilə elanınız daha tez diqqət çəkir."
-          secondaryLabel="Qiymət planları"
-          secondaryHref="/pricing"
-        />
-
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar filters */}
         <aside className="w-full shrink-0 lg:w-64">
