@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { CarFront, PlusCircle } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
+import { PageHero } from "@/components/ui/page-hero";
+import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { listListings } from "@/server/listing-store";
 
 export const metadata: Metadata = {
@@ -140,12 +143,30 @@ export default async function ListingsPage({
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="section-title">Bütün elanlar</h1>
-        <p className="section-subtitle">{result.total} elan tapıldı</p>
-      </div>
+    <div>
+      <PageHero
+        icon={CarFront}
+        title="Bütün elanlar"
+        subtitle={`${result.total} avtomobil elanı tapıldı`}
+        actions={
+          <Link href="/publish" className="btn-primary text-sm">
+            <PlusCircle className="h-4 w-4" aria-hidden="true" />
+            Elan yerləşdir
+          </Link>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <PagePublishStrip
+          icon={CarFront}
+          tone="teal"
+          title="Avtomobilinizi satırsınız?"
+          description="VIN, foto və qiymət analizi ilə elanınız daha tez diqqət çəkir."
+          primaryLabel="Avtomobil elanı"
+          primaryHref="/publish"
+          secondaryLabel="Qiymət planları"
+          secondaryHref="/pricing"
+        />
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar filters */}
@@ -226,6 +247,7 @@ export default async function ListingsPage({
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

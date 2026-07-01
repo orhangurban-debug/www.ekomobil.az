@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { type CSSProperties, ReactNode } from "react";
 import { AiChatPanel } from "@/components/ai/ai-chat-panel";
 import { CompareBar } from "@/components/compare/compare-bar";
@@ -8,6 +9,12 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getServerSessionUser } from "@/lib/auth";
 import { getBrandSettings } from "@/server/system-settings-store";
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sans",
+  display: "swap"
+});
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://ekomobil.az";
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
@@ -98,7 +105,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   } as CSSProperties;
 
   return (
-    <html lang="az">
+    <html lang="az" className={plusJakarta.variable}>
       <head>
         <link rel="icon" href={faviconPath} />
       </head>

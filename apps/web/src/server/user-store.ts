@@ -1,5 +1,6 @@
 import { randomInt, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
+import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
 
 export interface UserRecord {
@@ -177,13 +178,10 @@ export async function createPhoneOtpChallenge(input: {
     `,
     [challengeId, input.phoneNormalized, code]
   );
-  const exposeOtpForDev =
-    process.env.ALLOW_OTP_PLAINTEXT_IN_RESPONSE === "true" &&
-    process.env.NODE_ENV !== "production";
   return {
     challengeId,
     expiresAt: result.rows[0]?.expires_at?.toISOString() ?? new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    codeForDev: exposeOtpForDev ? code : undefined
+    codeForDev: isOtpPlaintextExposureAllowed() ? code : undefined
   };
 }
 

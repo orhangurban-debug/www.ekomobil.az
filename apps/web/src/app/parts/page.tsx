@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Package, PlusCircle, Upload } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
 import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
+import { PageHero } from "@/components/ui/page-hero";
+import { PagePublishStrip } from "@/components/ui/page-publish-strip";
 import { listListings } from "@/server/listing-store";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import { getServerSessionUser } from "@/lib/auth";
@@ -105,22 +108,37 @@ export default async function PartsPage({
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="section-title">Mağaza elanları</h1>
-            <p className="section-subtitle">{result.total} hissə və aksesuar elanı tapıldı</p>
-          </div>
-          <div className="flex gap-2">
+    <div>
+      <PageHero
+        icon={Package}
+        title="Mağaza elanları"
+        subtitle={`${result.total} hissə və aksesuar elanı tapıldı`}
+        actions={
+          <>
             {canSeePartsAnalytics && (
               <Link href="/parts/analytics" className="btn-secondary text-sm">
                 Analitika
               </Link>
             )}
-          </div>
-        </div>
-      </div>
+            <Link href="/parts/publish" className="btn-primary text-sm">
+              <PlusCircle className="h-4 w-4" aria-hidden="true" />
+              Hissə elanı
+            </Link>
+          </>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <PagePublishStrip
+          icon={Upload}
+          tone="violet"
+          title="Ehtiyat hissəsi satırsınız?"
+          description="Tək elan və ya toplu yükləmə ilə mağazanızı genişləndirin."
+          primaryLabel="Hissə elanı"
+          primaryHref="/parts/publish"
+          secondaryLabel="Toplu yükləmə"
+          secondaryHref="/parts/publish/bulk"
+        />
 
       {currentPartsPlan && (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-4">
@@ -216,6 +234,7 @@ export default async function PartsPage({
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
