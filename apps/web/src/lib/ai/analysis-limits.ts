@@ -1,12 +1,9 @@
 import { getPgPool } from "@/lib/postgres";
 
-const LIMIT_ANONYMOUS = 3;
-const LIMIT_LOGGED_IN = 15;
 const LISTING_AI_PREFIX = "listing-ai:";
 
-export async function checkListingAiLimit(userId: string | null, ip: string) {
+export async function checkListingAiLimit(userId: string | null, ip: string, dailyLimit: number) {
   const identifier = userId ? `${LISTING_AI_PREFIX}${userId}` : `${LISTING_AI_PREFIX}ip:${ip}`;
-  const limit = userId ? LIMIT_LOGGED_IN : LIMIT_ANONYMOUS;
   const today = new Date().toISOString().slice(0, 10);
 
   try {
@@ -20,10 +17,10 @@ export async function checkListingAiLimit(userId: string | null, ip: string) {
       [identifier, today]
     );
     const count = r.rows[0]?.request_count ?? 0;
-    const remaining = Math.max(0, limit - count);
-    return { allowed: count < limit, remaining, limit, identifier };
+    const remaining = Math.max(0, dailyLimit - count);
+    return { allowed: count < dailyLimit, remaining, limit: dailyLimit, identifier };
   } catch {
-    return { allowed: true, remaining: limit, limit, identifier };
+    return { allowed: true, remaining: dailyLimit, limit: dailyLimit, identifier };
   }
 }
 

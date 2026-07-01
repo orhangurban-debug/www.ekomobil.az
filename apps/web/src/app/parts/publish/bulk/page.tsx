@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { PartBulkProductSuggestion } from "@/lib/ai/listing-vision-types";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
 import type { ProcessedImage } from "@/lib/image-processor";
@@ -56,8 +57,6 @@ export default function PartsBulkPublishPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState(0);
-
-  const maxImages = 30;
 
   const applyBulkParts = useCallback((products: PartBulkProductSuggestion[]) => {
     setDrafts(products.map((product, index) => toDraft(product, index)));
@@ -167,13 +166,14 @@ export default function PartsBulkPublishPage() {
 
       <h1 className="text-3xl font-bold text-slate-900">Toplu məhsul elanı</h1>
       <p className="mt-2 text-slate-600">
-        30 şəkilə qədər yükləyin — AI eyni məhsulları qruplaşdıracaq, siz hər elanı yoxlayıb redaktə edə bilərsiniz.
+        Çox sayda məhsul şəklini bir dəfəyə yükləyin — AI ayrı elanlar yaradacaq, siz yoxlayacaqsınız.
       </p>
 
+      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
+
       <ListingAiAnalyzePanel
-        listingKind="part"
+        analysisContext="part_bulk"
         bulkMode
-        maxImages={maxImages}
         onImagesChange={setImages}
         onApplyBulkParts={applyBulkParts}
         className="mt-6"

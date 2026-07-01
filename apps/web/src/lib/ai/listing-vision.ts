@@ -21,8 +21,10 @@ import type {
   ListingKindForAi,
   PartBulkProductSuggestion,
   PartAiSuggestion,
+  ServiceAiSuggestion,
   VehicleAiSuggestion
 } from "@/lib/ai/listing-vision-types";
+import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 
 import { GEMINI_MODEL } from "@/lib/ai/gemini-model";
 
@@ -125,6 +127,9 @@ function sanitizePart(raw: Record<string, unknown>): PartAiSuggestion {
 
   const conditionValues = PART_CONDITIONS.map((item) => item.value);
   const authValues = PART_AUTHENTICITY_OPTIONS.map((item) => item.value);
+  const searchKeywords = Array.isArray(raw.searchKeywords)
+    ? raw.searchKeywords.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean).slice(0, 12)
+    : undefined;
 
   return {
     title: typeof raw.title === "string" ? raw.title.trim() : undefined,
@@ -144,6 +149,7 @@ function sanitizePart(raw: Record<string, unknown>): PartAiSuggestion {
     description: typeof raw.description === "string" ? raw.description.trim() : undefined,
     priceAzn: typeof raw.priceAzn === "number" ? Math.max(0, Math.round(raw.priceAzn)) : undefined,
     partQuantity: typeof raw.partQuantity === "number" ? Math.max(1, Math.round(raw.partQuantity)) : undefined,
+    searchKeywords,
     fieldConfidence:
       raw.fieldConfidence && typeof raw.fieldConfidence === "object"
         ? (raw.fieldConfidence as Record<string, number>)
@@ -196,34 +202,91 @@ async function callGeminiVision(input: {
 }
 
 const VEHICLE_PROMPT = `Sən avtomobil elanı analiz ekspertisən. Şəkillərdən avtomobil haqqında JSON çıxar.
+STANDART title formatı (axtarış üçün): "[Marka] [Model] [İl] — [Yanacaq/Mühərrik] — [Yürüş] km — [Rəng]"
+Nümunə: "Hyundai Tucson 2019 — Benzin — 84 000 km — Ağ"
 Yalnız şəkildə görünən və ya etiket/salon ekranında oxunan məlumatları yaz. Təxmin etdiyin hər sahə üçün fieldConfidence 0-1 ver.
 Kateqoriyalar: make markalarından (${CAR_MAKES.slice(0, 20).join(", ")}...), fuelType: ${FUEL_TYPES.join(", ")}, bodyType: ${BODY_TYPES.join(", ")}.
 mediaAngles: hansı rakursların şəkildə olduğunu boolean olaraq qeyd et.
 Cavab YALNIZ JSON:
 {"title":"","make":"","model":"","year":2020,"color":"","bodyType":"","fuelType":"","transmission":"","driveType":"","vehicleCondition":"","declaredMileageKm":null,"vin":"","description":"","priceAzn":null,"mediaAngles":{"hasFrontAngle":false,"hasRearAngle":false,"hasLeftSide":false,"hasRightSide":false,"hasDashboard":false,"hasInterior":false,"hasOdometer":false,"hasTrunk":false},"fieldConfidence":{},"notes":""}`;
 
+const STANDARD_PART_NAMING = `
+STANDART ADLANDIRMA (axtarış/filter üçün vacibdir):
+- title formatı: "[Brend] [Məhsul adı] — [OEM kodu və/və ya uyğunluq qısa]"
+  Nümunə: "BOSCH Yağ filtri — Toyota Corolla 2014-2021 1.6"
+- partName: qısa, standart məhsul tipi (məs: "Yağ filtri", "Əyləc diski")
+- partCategory və partSubcategory: kataloq filterlərinə uyğun dəqiq seç
+- description: 2-3 cümlə — material, vəziyyət, qablaşdırma, istifadə sahəsi
+- searchKeywords: 5-10 açar söz (brend, model, OEM, hissə tipi) — alıcı axtarışında tapılmaq üçün
+`;
+
 const PART_PROMPT = `Sən avtomobil hissəsi/məhsul elanı analiz ekspertisən. Şəkillərdən məhsul haqqında JSON çıxar.
+${STANDARD_PART_NAMING}
 partCategory seç: ${PART_CATEGORIES.join(" | ")}.
 partBrand seç: ${PART_BRANDS.slice(0, 15).join(", ")} və s.
 partCondition: new|used|refurbished. partAuthenticity: original|oem|aftermarket.
 Yalnız oxunan/ görünən məlumat; fieldConfidence 0-1.
 Cavab YALNIZ JSON:
-{"title":"","partName":"","partCategory":"","partSubcategory":"","partBrand":"","partCondition":"new","partAuthenticity":"oem","partOemCode":"","partSku":"","partCompatibility":"","description":"","priceAzn":null,"partQuantity":1,"fieldConfidence":{},"notes":""}`;
+{"title":"","partName":"","partCategory":"","partSubcategory":"","partBrand":"","partCondition":"new","partAuthenticity":"oem","partOemCode":"","partSku":"","partCompatibility":"","description":"","searchKeywords":[],"priceAzn":null,"partQuantity":1,"fieldConfidence":{},"notes":""}`;
 
 const PART_BULK_PROMPT = `Sən avtomobil mağazası inventar analiz ekspertisən. Verilən şəkilləri eyni məhsula aid qrupla.
 Hər qrup üçün ayrı elan sahələri çıxar. imageIndices 0-based indekslərdir.
+${STANDARD_PART_NAMING}
 partCategory: ${PART_CATEGORIES.join(" | ")}.
 Cavab YALNIZ JSON:
-{"products":[{"imageIndices":[0,1],"title":"","partName":"","partCategory":"","partSubcategory":"","partBrand":"","partCondition":"new","partAuthenticity":"oem","partOemCode":"","partCompatibility":"","description":"","priceAzn":null,"partQuantity":1,"fieldConfidence":{},"notes":""}]}`;
+{"products":[{"imageIndices":[0,1],"title":"","partName":"","partCategory":"","partSubcategory":"","partBrand":"","partCondition":"new","partAuthenticity":"oem","partOemCode":"","partCompatibility":"","description":"","searchKeywords":[],"priceAzn":null,"partQuantity":1,"fieldConfidence":{},"notes":""}]}`;
+
+function sanitizeService(raw: Record<string, unknown>, hintProviderType?: string): ServiceAiSuggestion {
+  const types = Object.keys(SERVICE_PROVIDER_TYPE_LABELS);
+  const providerType =
+    pickEnum(raw.providerType, types as readonly string[]) ??
+    (typeof raw.providerType === "string" ? raw.providerType : hintProviderType);
+
+  const tags = Array.isArray(raw.suggestedTags)
+    ? raw.suggestedTags.filter((v): v is string => typeof v === "string").slice(0, 12)
+    : undefined;
+  const certs = Array.isArray(raw.suggestedCertifications)
+    ? raw.suggestedCertifications.filter((v): v is string => typeof v === "string").slice(0, 8)
+    : undefined;
+
+  return {
+    providerName: typeof raw.providerName === "string" ? raw.providerName.trim() : undefined,
+    providerType,
+    city: typeof raw.city === "string" ? raw.city.trim() : undefined,
+    address: typeof raw.address === "string" ? raw.address.trim() : undefined,
+    description: typeof raw.description === "string" ? raw.description.trim() : undefined,
+    experience: typeof raw.experience === "string" ? raw.experience.trim() : undefined,
+    workingHours: typeof raw.workingHours === "string" ? raw.workingHours.trim() : undefined,
+    suggestedTags: tags,
+    suggestedCertifications: certs,
+    fieldConfidence:
+      raw.fieldConfidence && typeof raw.fieldConfidence === "object"
+        ? (raw.fieldConfidence as Record<string, number>)
+        : undefined,
+    notes: typeof raw.notes === "string" ? raw.notes : undefined
+  };
+}
+
+const SERVICE_PROMPT = `Sən avtomobil servis/usta profili analiz ekspertisən. Şəkillərdən servis emalatxanası, rəsmi servis və ya usta profili haqqında JSON çıxar.
+providerType seç: ${Object.entries(SERVICE_PROVIDER_TYPE_LABELS)
+  .map(([k, v]) => `${k}=${v}`)
+  .join(" | ")}.
+suggestedTags: şəkildə görünən avadanlıq, xidmət və ixtisas tag-ları (array).
+Yalnız oxunan/görünən məlumat; fieldConfidence 0-1.
+Cavab YALNIZ JSON:
+{"providerName":"","providerType":"mechanic","city":"","address":"","description":"","experience":"","workingHours":"","suggestedTags":[],"suggestedCertifications":[],"fieldConfidence":{},"notes":""}`;
 
 export async function analyzeListingImages(input: {
   listingKind: ListingKindForAi;
   imageUrls: string[];
   bulkMode?: boolean;
+  maxImages?: number;
+  maxBulkImages?: number;
+  providerTypeHint?: string;
   appBaseUrl: string;
 }): Promise<ListingAiAnalyzeResult | null> {
-  const maxImages = input.bulkMode ? 30 : 12;
-  const urls = input.imageUrls.slice(0, maxImages);
+  const cap = input.bulkMode ? (input.maxBulkImages ?? 30) : (input.maxImages ?? 12);
+  const urls = input.imageUrls.slice(0, cap);
   const encoded: Array<{ mimeType: string; data: string }> = [];
   for (const url of urls) {
     const image = await resolveImageBase64(url, input.appBaseUrl);
@@ -232,10 +295,30 @@ export async function analyzeListingImages(input: {
   if (encoded.length === 0) return null;
 
   const disclaimer =
-    "AI təklifi yalnız kömək üçündür. Yoxlamadan əvvəl bütün sahələri redaktə edin. Məhsul/ avtomobil həqiqətinə uyğunluq satıcının məsuliyyətidir.";
+    "AI təklifi yalnız kömək üçündür. Yoxlamadan əvvəl bütün sahələri redaktə edin. Məlumatın düzgünlüyü profil sahibinin məsuliyyətidir.";
+
+  if (input.listingKind === "service") {
+    const raw = await callGeminiVision({
+      prompt: input.providerTypeHint
+        ? `${SERVICE_PROMPT}\n\nİstifadəçi seçimi: ${input.providerTypeHint}`
+        : SERVICE_PROMPT,
+      images: encoded.slice(0, input.maxImages ?? 12)
+    });
+    if (!raw) return null;
+    return {
+      listingKind: "service",
+      service: sanitizeService(raw, input.providerTypeHint),
+      analyzedImageCount: encoded.length,
+      optional: true,
+      disclaimer
+    };
+  }
 
   if (input.listingKind === "vehicle") {
-    const raw = await callGeminiVision({ prompt: VEHICLE_PROMPT, images: encoded.slice(0, 8) });
+    const raw = await callGeminiVision({
+      prompt: VEHICLE_PROMPT,
+      images: encoded.slice(0, Math.min(encoded.length, input.maxImages ?? 8))
+    });
     if (!raw) return null;
     return {
       listingKind: "vehicle",
@@ -268,7 +351,10 @@ export async function analyzeListingImages(input: {
     };
   }
 
-  const raw = await callGeminiVision({ prompt: PART_PROMPT, images: encoded.slice(0, 8) });
+  const raw = await callGeminiVision({
+    prompt: PART_PROMPT,
+    images: encoded.slice(0, Math.min(encoded.length, input.maxImages ?? 8))
+  });
   if (!raw) return null;
   return {
     listingKind: "part",

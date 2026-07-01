@@ -1,12 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import type { AiAnalysisContext } from "@/lib/ai/listing-ai-quota";
 import type {
   ListingAiAnalyzeResult,
   PartAiSuggestion,
   PartBulkProductSuggestion,
+  ServiceAiSuggestion,
   VehicleAiSuggestion
 } from "@/lib/ai/listing-vision-types";
+import type { PlanType } from "@/lib/listing-plans";
+import type { ServicePlanGroup } from "@/lib/ai/service-plan-limits";
 import { formatFileSize, processImageForUpload, type ProcessedImage } from "@/lib/image-processor";
 
 async function fileToDataUrl(file: File): Promise<string> {
@@ -28,29 +33,54 @@ function confidenceLabel(value?: number): string {
   return "aşağı";
 }
 
-interface ListingAiAnalyzePanelProps {
-  listingKind: "vehicle" | "part";
-  bulkMode?: boolean;
+interface QuotaInfo {
+  remaining: number;
+  dailyLimit: number;
   maxImages: number;
+  maxBulkImages: number;
+  planLabel: string;
+  singleListingOnly: boolean;
+  requiresAuth: boolean;
+}
+
+interface ListingAiAnalyzePanelProps {
+  analysisContext: AiAnalysisContext;
+  bulkMode?: boolean;
+  maxImages?: number;
   optional?: boolean;
-  /** Parent-in artıq yüklədiyi şəkillər (məs. avtomobil Media addımı) */
+  planType?: PlanType;
+  servicePlanGroup?: ServicePlanGroup;
+  servicePlanId?: string;
+  providerTypeHint?: string;
   externalImages?: ProcessedImage[];
   onApplyVehicle?: (suggestion: VehicleAiSuggestion) => void;
   onApplyPart?: (suggestion: PartAiSuggestion) => void;
   onApplyBulkParts?: (products: PartBulkProductSuggestion[]) => void;
+  onApplyService?: (suggestion: ServiceAiSuggestion) => void;
   onImagesChange?: (images: ProcessedImage[]) => void;
   className?: string;
 }
 
+function listingKindFromContext(context: AiAnalysisContext): "vehicle" | "part" | "service" {
+  if (context === "service") return "service";
+  if (context === "vehicle") return "vehicle";
+  return "part";
+}
+
 export function ListingAiAnalyzePanel({
-  listingKind,
+  analysisContext,
   bulkMode = false,
-  maxImages,
+  maxImages: maxImagesProp,
   optional = false,
+  planType,
+  servicePlanGroup,
+  servicePlanId,
+  providerTypeHint,
   externalImages,
   onApplyVehicle,
   onApplyPart,
   onApplyBulkParts,
+  onApplyService,
   onImagesChange,
   className = ""
 }: ListingAiAnalyzePanelProps) {
@@ -59,27 +89,38 @@ export function ListingAiAnalyzePanel({
   const [analyzing, setAnalyzing] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<ListingAiAnalyzeResult | null>(null);
-  const [remaining, setRemaining] = useState<number | null>(null);
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const [applied, setApplied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const images = externalImages ?? ownImages;
   const managesOwnUploads = externalImages === undefined;
+  const effectiveMaxImages = maxImagesProp ?? quota?.maxImages ?? (bulkMode ? quota?.maxBulkImages ?? 30 : 8);
+
+  const quotaQuery = useMemo(() => {
+    const params = new URLSearchParams({ context: analysisContext });
+    if (planType) params.set("planType", planType);
+    if (servicePlanGroup) params.set("servicePlanGroup", servicePlanGroup);
+    if (servicePlanId) params.set("servicePlanId", servicePlanId);
+    return params.toString();
+  }, [analysisContext, planType, servicePlanGroup, servicePlanId]);
 
   useEffect(() => {
-    fetch("/api/ai/analyze-listing")
+    fetch(`/api/ai/analyze-listing?${quotaQuery}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.ok && typeof d.remaining === "number") setRemaining(d.remaining);
+        if (d.ok && d.quota) setQuota(d.quota as QuotaInfo);
       })
       .catch(() => undefined);
-  }, [result]);
+  }, [quotaQuery, result]);
 
   const title = useMemo(() => {
-    if (bulkMode) return "AI toplu məhsul analizi";
-    if (listingKind === "vehicle") return "AI avtomobil analizi";
+    if (analysisContext === "service") return "AI servis profili analizi";
+    if (bulkMode || analysisContext === "part_bulk") return "AI toplu məhsul analizi";
+    if (analysisContext === "vehicle") return "AI avtomobil analizi";
     return "AI məhsul analizi";
-  }, [bulkMode, listingKind]);
+  }, [analysisContext, bulkMode]);
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {
@@ -90,8 +131,8 @@ export function ListingAiAnalyzePanel({
       const localErrors: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
-        if (ownImages.length + next.length >= maxImages) {
-          localErrors.push(`Maksimum ${maxImages} şəkil.`);
+        if (ownImages.length + next.length >= effectiveMaxImages) {
+          localErrors.push(`Plan limiti: maksimum ${effectiveMaxImages} şəkil.`);
           break;
         }
         const processed = await processImageForUpload(files[i]);
@@ -106,7 +147,7 @@ export function ListingAiAnalyzePanel({
       setProcessing(false);
       setSkipped(false);
     },
-    [managesOwnUploads, maxImages, onImagesChange, ownImages]
+    [effectiveMaxImages, managesOwnUploads, onImagesChange, ownImages]
   );
 
   async function runAnalysis() {
@@ -123,23 +164,39 @@ export function ListingAiAnalyzePanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          listingKind,
+          analysisContext,
+          listingKind: listingKindFromContext(analysisContext),
           imageUrls,
-          bulkMode
+          bulkMode: bulkMode || analysisContext === "part_bulk",
+          planType,
+          servicePlanGroup,
+          servicePlanId,
+          providerTypeHint
         })
       });
       const payload = (await response.json()) as {
         ok: boolean;
         error?: string;
+        requiresAuth?: boolean;
         result?: ListingAiAnalyzeResult;
-        remaining?: number;
+        quota?: QuotaInfo & { dailyLimit: number };
       };
       if (!response.ok || !payload.ok || !payload.result) {
         setErrors([payload.error ?? "Analiz uğursuz oldu."]);
         return;
       }
       setResult(payload.result);
-      if (typeof payload.remaining === "number") setRemaining(payload.remaining);
+      if (payload.quota) {
+        setQuota({
+          remaining: payload.quota.remaining,
+          dailyLimit: payload.quota.dailyLimit,
+          maxImages: payload.quota.maxImages,
+          maxBulkImages: payload.quota.maxBulkImages,
+          planLabel: payload.quota.planLabel,
+          singleListingOnly: payload.quota.singleListingOnly,
+          requiresAuth: false
+        });
+      }
     } catch {
       setErrors(["Şəbəkə xətası. Yenidən cəhd edin."]);
     } finally {
@@ -152,6 +209,8 @@ export function ListingAiAnalyzePanel({
     if (result.vehicle && onApplyVehicle) onApplyVehicle(result.vehicle);
     if (result.part && onApplyPart) onApplyPart(result.part);
     if (result.bulkProducts && onApplyBulkParts) onApplyBulkParts(result.bulkProducts);
+    if (result.service && onApplyService) onApplyService(result.service);
+    setApplied(true);
   }
 
   if (skipped && optional) return null;
@@ -162,18 +221,36 @@ export function ListingAiAnalyzePanel({
         <div>
           <p className="text-sm font-semibold text-violet-900">{title}</p>
           <p className="mt-1 text-xs text-violet-700/80">
-            {bulkMode
-              ? `${maxImages} şəkilə qədər yükləyin — AI eyni məhsulları qruplaşdırıb ayrı elanlar təklif edəcək.`
-              : "Şəkilləri yükləyin — AI marka, model, kateqoriya və digər sahələri avtomatik dolduracaq. Siz redaktə edə bilərsiniz."}
+            {bulkMode || analysisContext === "part_bulk"
+              ? `${effectiveMaxImages} şəkilə qədər — AI fərqli məhsulları qruplaşdıracaq.`
+              : analysisContext === "service"
+                ? "Emalatxana/servis şəkillərindən profil sahələrini təklif edir."
+                : "Bütün şəkillər eyni elana (tək avtomobil/məhsul) aiddir — AI sahələri avtomatik dolduracaq."}
             {optional ? " Bu addım istəyə bağlıdır." : ""}
           </p>
+          {quota?.planLabel && (
+            <p className="mt-1 text-[11px] font-medium text-violet-600">
+              Plan: {quota.planLabel} · gündə {quota.dailyLimit} analiz · elan başına {effectiveMaxImages} şəkil
+            </p>
+          )}
         </div>
-        {remaining !== null && (
+        {quota && (
           <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-medium text-violet-800">
-            Qalan: {remaining}
+            Qalan: {quota.remaining}/{quota.dailyLimit}
           </span>
         )}
       </div>
+
+      {quota?.singleListingOnly && analysisContext === "vehicle" && (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+          <strong>Salon / avtomobil qaydası:</strong> Yalnız <em>bir avtomobilin</em> şəkillərini yükləyin.
+          Bir neçə avtomobil üçün ayrı-ayrı elan yaradın və ya{" "}
+          <Link href="/dealer/import" className="font-semibold underline">
+            CSV import
+          </Link>{" "}
+          istifadə edin.
+        </div>
+      )}
 
       {managesOwnUploads && (
         <div className="mt-4">
@@ -200,7 +277,7 @@ export function ListingAiAnalyzePanel({
               <>
                 <p className="text-sm font-medium text-violet-800">Şəkil əlavə et</p>
                 <p className="text-xs text-violet-600/70">
-                  {images.length} / {maxImages} · JPEG, PNG, WebP, HEIC
+                  {images.length} / {effectiveMaxImages} · JPEG, PNG, WebP, HEIC
                 </p>
               </>
             )}
@@ -224,7 +301,7 @@ export function ListingAiAnalyzePanel({
 
       {!managesOwnUploads && images.length > 0 && (
         <p className="mt-3 text-xs text-violet-700">
-          {images.length} şəkil seçilib — AI analiz üçün hazırdır.
+          {images.length} şəkil seçilib — AI analiz üçün hazırdır (plan limiti: {effectiveMaxImages}).
         </p>
       )}
 
@@ -257,6 +334,12 @@ export function ListingAiAnalyzePanel({
         )}
       </div>
 
+      {applied && (
+        <p className="mt-3 text-xs font-medium text-emerald-700">
+          Təklif formaya tətbiq olundu — sahələri yoxlayın və lazım gələrsə redaktə edin.
+        </p>
+      )}
+
       {errors.length > 0 && (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
           {errors.map((err) => (
@@ -271,8 +354,10 @@ export function ListingAiAnalyzePanel({
         <div className="mt-4 rounded-xl border border-violet-100 bg-white p-4 text-sm">
           <p className="font-semibold text-slate-800">AI təklifi</p>
           <p className="mt-1 text-xs text-slate-500">{result.disclaimer}</p>
-          {(result.vehicle?.notes || result.part?.notes) && (
-            <p className="mt-2 text-xs text-amber-700">{result.vehicle?.notes ?? result.part?.notes}</p>
+          {(result.vehicle?.notes || result.part?.notes || result.service?.notes) && (
+            <p className="mt-2 text-xs text-amber-700">
+              {result.vehicle?.notes ?? result.part?.notes ?? result.service?.notes}
+            </p>
           )}
 
           {result.vehicle && (
@@ -283,18 +368,12 @@ export function ListingAiAnalyzePanel({
                 ["Model", result.vehicle.model],
                 ["İl", result.vehicle.year],
                 ["Rəng", result.vehicle.color],
-                ["Yanacaq", result.vehicle.fuelType],
                 ["Yürüş", result.vehicle.declaredMileageKm],
                 ["VIN", result.vehicle.vin]
               ].map(([label, value]) =>
                 value ? (
                   <li key={String(label)}>
                     <span className="text-slate-500">{label}:</span> {String(value)}
-                    {result.vehicle?.fieldConfidence?.[String(label).toLowerCase()] !== undefined && (
-                      <span className="ml-1 text-violet-600">
-                        ({confidenceLabel(result.vehicle.fieldConfidence[String(label).toLowerCase()])})
-                      </span>
-                    )}
                   </li>
                 ) : null
               )}
@@ -308,7 +387,26 @@ export function ListingAiAnalyzePanel({
                 ["Məhsul", result.part.partName],
                 ["Kateqoriya", result.part.partCategory],
                 ["Brend", result.part.partBrand],
-                ["OEM", result.part.partOemCode]
+                ["OEM", result.part.partOemCode],
+                ["Teqlər", result.part.searchKeywords?.join(", ")]
+              ].map(([label, value]) =>
+                value ? (
+                  <li key={String(label)}>
+                    <span className="text-slate-500">{label}:</span> {String(value)}
+                  </li>
+                ) : null
+              )}
+            </ul>
+          )}
+
+          {result.service && (
+            <ul className="mt-3 space-y-1 text-xs text-slate-700">
+              {[
+                ["Ad", result.service.providerName],
+                ["Tip", result.service.providerType],
+                ["Şəhər", result.service.city],
+                ["Ünvan", result.service.address],
+                ["Tag-lar", result.service.suggestedTags?.join(", ")]
               ].map(([label, value]) =>
                 value ? (
                   <li key={String(label)}>
@@ -321,9 +419,7 @@ export function ListingAiAnalyzePanel({
 
           {result.bulkProducts && result.bulkProducts.length > 0 && (
             <div className="mt-3 space-y-2">
-              <p className="text-xs font-medium text-slate-600">
-                {result.bulkProducts.length} ayrı məhsul tapıldı
-              </p>
+              <p className="text-xs font-medium text-slate-600">{result.bulkProducts.length} ayrı məhsul tapıldı</p>
               {result.bulkProducts.map((product, idx) => (
                 <div key={idx} className="rounded-lg border border-slate-100 bg-slate-50 p-2 text-xs">
                   <p className="font-medium text-slate-800">

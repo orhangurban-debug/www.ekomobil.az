@@ -1,4 +1,4 @@
-export type ListingKindForAi = "vehicle" | "part";
+export type ListingKindForAi = "vehicle" | "part" | "service";
 
 export interface AiFieldConfidence {
   value: unknown;
@@ -49,6 +49,8 @@ export interface PartAiSuggestion {
   description?: string;
   priceAzn?: number;
   partQuantity?: number;
+  /** Axtarış və filter üçün standart açar sözlər */
+  searchKeywords?: string[];
   fieldConfidence?: Record<string, number>;
   notes?: string;
 }
@@ -58,10 +60,25 @@ export interface PartBulkProductSuggestion extends PartAiSuggestion {
   suggestedTitle?: string;
 }
 
+export interface ServiceAiSuggestion {
+  providerName?: string;
+  providerType?: string;
+  city?: string;
+  address?: string;
+  description?: string;
+  experience?: string;
+  workingHours?: string;
+  suggestedTags?: string[];
+  suggestedCertifications?: string[];
+  fieldConfidence?: Record<string, number>;
+  notes?: string;
+}
+
 export interface ListingAiAnalyzeResult {
   listingKind: ListingKindForAi;
   vehicle?: VehicleAiSuggestion;
   part?: PartAiSuggestion;
+  service?: ServiceAiSuggestion;
   bulkProducts?: PartBulkProductSuggestion[];
   analyzedImageCount: number;
   optional?: boolean;

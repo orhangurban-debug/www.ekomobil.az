@@ -24,6 +24,7 @@ import {
   type ProcessedImage
 } from "@/lib/image-processor";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 
 const STEPS = ["Avtomobil", "Media", "Plan", "Yoxlama"] as const;
@@ -448,8 +449,12 @@ export default function PublishPage() {
       <div className="mx-auto max-w-2xl px-4">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-slate-900">Elan yerləşdir</h1>
-          <p className="mt-2 text-slate-500">Avtomobilinizi etibarlı alıcılara çatdırın</p>
+          <p className="mt-2 text-slate-500">
+            Şəkil yükləyin — AI sahələri doldurmağa kömək edəcək. Siz yalnız yoxlayıb redaktə edin.
+          </p>
         </div>
+
+        <ListingPublishEaseTip variant="vehicle" className="mb-6" />
 
         <div className="mb-6 rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
           Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
@@ -1129,8 +1134,8 @@ export default function PublishPage() {
                 </div>
 
                 <ListingAiAnalyzePanel
-                  listingKind="vehicle"
-                  maxImages={currentPlan.maxImages}
+                  analysisContext="vehicle"
+                  planType={planType}
                   externalImages={uploadedImages}
                   onApplyVehicle={applyVehicleAiSuggestion}
                 />

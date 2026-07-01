@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { PartAiSuggestion } from "@/lib/ai/listing-vision-types";
 import {
   PART_AUTHENTICITY_OPTIONS,
@@ -73,7 +74,13 @@ export default function PartsPublishPage() {
     if (suggestion.partOemCode) setPartOemCode(suggestion.partOemCode);
     if (suggestion.partSku) setPartSku(suggestion.partSku);
     if (suggestion.partCompatibility) setPartCompatibility(suggestion.partCompatibility);
-    if (suggestion.description) setDescription(suggestion.description);
+    if (suggestion.description || suggestion.searchKeywords?.length) {
+      const keywordsLine = suggestion.searchKeywords?.length
+        ? `\n\nAxtarış teqləri: ${suggestion.searchKeywords.join(", ")}`
+        : "";
+      const base = suggestion.description?.trim() ?? "";
+      setDescription(base ? `${base}${keywordsLine}` : keywordsLine.trim());
+    }
     if (suggestion.priceAzn) setPriceAzn(suggestion.priceAzn);
     if (suggestion.partQuantity) setPartQuantity(suggestion.partQuantity);
   }, []);
@@ -207,16 +214,28 @@ export default function PartsPublishPage() {
         <span className="text-slate-800">Yeni hissə elanı</span>
       </nav>
 
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
-          <p className="mt-2 text-slate-600">Təkər, aksesuar, yağ və digər məhsullar üçün strukturlaşdırılmış elan formu.</p>
+      <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
+      <p className="mt-2 text-slate-600">
+        Məhsul şəklini yükləyin — AI sahələri dolduracaq, siz yalnız yoxlayacaqsınız.
+      </p>
+
+      <ListingPublishEaseTip variant="part" className="mt-4" />
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border-2 border-[#0891B2] bg-[#0891B2]/5 p-4">
+          <p className="text-sm font-semibold text-slate-900">Tək məhsul rejimi</p>
+          <p className="mt-1 text-xs text-slate-600">
+            Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
+          </p>
         </div>
         <Link
           href="/parts/publish/bulk"
-          className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-100"
+          className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 transition hover:border-violet-300 hover:bg-violet-50"
         >
-          Toplu yükləmə (30 şəkil)
+          <p className="text-sm font-semibold text-violet-900">Toplu yükləmə rejimi</p>
+          <p className="mt-1 text-xs text-violet-700">
+            Plan limitinizə qədər fərqli məhsul şəkli — AI avtomatik qruplaşdırır.
+          </p>
         </Link>
       </div>
 
@@ -276,8 +295,7 @@ export default function PartsPublishPage() {
         </div>
 
         <ListingAiAnalyzePanel
-          listingKind="part"
-          maxImages={maxImages}
+          analysisContext="part"
           optional
           externalImages={uploadedImages}
           onApplyPart={applyPartAiSuggestion}

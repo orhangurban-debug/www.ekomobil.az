@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
+import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
+import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
+import type { ServiceAiSuggestion } from "@/lib/ai/listing-vision-types";
 
 // ─── Provider types (grouped) ─────────────────────────────────────────────────
 
@@ -372,6 +375,48 @@ export function InspectionPartnerApplicationForm() {
     }
     setCertificateFiles((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
   }
+
+  const applyServiceAiSuggestion = useCallback(
+    (suggestion: ServiceAiSuggestion) => {
+      if (suggestion.providerName) setProviderName(suggestion.providerName);
+      if (suggestion.city) setCity(suggestion.city);
+      if (suggestion.address) setAddress(suggestion.address);
+      if (suggestion.workingHours) setWorkingHours(suggestion.workingHours);
+      if (suggestion.experience) setExperience(suggestion.experience);
+      if (suggestion.description) {
+        setNotes((prev) => (prev.trim() ? `${prev.trim()}\n${suggestion.description}` : suggestion.description ?? ""));
+      }
+      if (
+        suggestion.providerType &&
+        providerOptions.some((option) => option.value === suggestion.providerType)
+      ) {
+        setProviderType(suggestion.providerType as ProviderTypeValue);
+      }
+      if (suggestion.suggestedTags?.length) {
+        setSelectedTags((prev) => {
+          const merged = [...prev];
+          for (const tag of suggestion.suggestedTags ?? []) {
+            if (!merged.includes(tag) && merged.length < selectedPlanMeta.tagLimit) {
+              merged.push(tag);
+            }
+          }
+          return merged;
+        });
+      }
+      if (suggestion.suggestedCertifications?.length) {
+        setCertifications((prev) => {
+          const merged = [...prev];
+          for (const cert of suggestion.suggestedCertifications ?? []) {
+            if (!merged.includes(cert) && merged.length < selectedPlanMeta.certLimit) {
+              merged.push(cert);
+            }
+          }
+          return merged;
+        });
+      }
+    },
+    [providerOptions, selectedPlanMeta.certLimit, selectedPlanMeta.tagLimit]
+  );
 
   async function uploadSelectedFiles(files: File[], kind: "image" | "certificate"): Promise<UploadedSupportFile[]> {
     const uploaded: UploadedSupportFile[] = [];
@@ -754,6 +799,18 @@ export function InspectionPartnerApplicationForm() {
           </div>
 
           {limitFeedback && <p className="mt-3 text-xs text-amber-700">{limitFeedback}</p>}
+
+          <ListingPublishEaseTip variant="service" className="mt-4" />
+
+          <ListingAiAnalyzePanel
+            analysisContext="service"
+            optional
+            servicePlanGroup={planGroup}
+            servicePlanId={selectedPlan || selectedPlanMeta.value}
+            providerTypeHint={providerType || undefined}
+            onApplyService={applyServiceAiSuggestion}
+            className="mt-4"
+          />
         </div>
       )}
 

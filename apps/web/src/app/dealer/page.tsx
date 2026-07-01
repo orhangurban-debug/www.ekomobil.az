@@ -105,6 +105,20 @@ export default async function DealerPortalPage() {
         </Link>
       </div>
 
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-violet-200 bg-violet-50/70 px-6 py-4">
+        <div>
+          <p className="text-sm font-semibold text-violet-900">AI ilə avtomobil elanı</p>
+          <p className="mt-1 text-xs text-violet-800/80">
+            Hər elan = <strong>1 avtomobil</strong>. Elan başına {dealerPlan.perListingMaxImages} şəkil, gündə{" "}
+            {Math.min(40, Math.max(8, Math.ceil(dealerPlan.maxActiveListings / 4)))} AI analiz ({dealerPlan.nameAz} planı).
+            Bir neçə avtomobil üçün ayrı elan və ya CSV import istifadə edin.
+          </p>
+        </div>
+        <Link href="/publish" className="shrink-0 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700">
+          Yeni elan + AI →
+        </Link>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
         {[
           { label: "Aktiv elan", value: totalActive, icon: "🚗" },
