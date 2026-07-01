@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
 import { canonicalizeAppBaseUrl, exchangeGoogleCode, isGoogleOAuthConfigured } from "@/lib/google-oauth";
 import { upsertUserFromGoogle } from "@/server/user-store";
+import { hasRequiredPlatformConsents } from "@/server/user-consent-store";
+import { recordUserActivity } from "@/server/user-activity-store";
+import { getClientIp } from "@/lib/rate-limit";
 
 const OAUTH_STATE_COOKIE = "ekomobil_oauth_state";
 const OAUTH_PKCE_COOKIE = "ekomobil_oauth_pkce";
@@ -95,8 +98,22 @@ export async function GET(req: Request) {
       fullName: googleUser.name,
       avatarUrl: googleUser.picture
     });
+
+    await recordUserActivity({
+      userId: user.id,
+      actionType: "user_login",
+      ipAddress: getClientIp(req),
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      metadata: { method: "google_oauth" }
+    });
+
+    const hasConsent = await hasRequiredPlatformConsents(user.id);
+    const redirectPath = hasConsent
+      ? nextPath
+      : `/register/consent?next=${encodeURIComponent(nextPath)}`;
+
     const token = createSessionToken({ id: user.id, email: user.email, role: user.role });
-    const success = NextResponse.redirect(new URL(nextPath, baseUrl));
+    const success = NextResponse.redirect(new URL(redirectPath, baseUrl));
     success.cookies.set(getSessionCookieName(), token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

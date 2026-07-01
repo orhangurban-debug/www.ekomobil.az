@@ -50,7 +50,54 @@ export const registerSchema = z.object({
   phoneOtpCode: z
     .string()
     .trim()
-    .regex(/^[0-9]{6}$/, "Telefon təsdiq kodu 6 rəqəm olmalıdır")
+    .regex(/^[0-9]{6}$/, "Telefon təsdiq kodu 6 rəqəm olmalıdır"),
+  acceptTerms: z.literal(true, "İstifadəçi Razılaşmasını qəbul etməlisiniz"),
+  acceptPrivacy: z.literal(true, "Məxfilik Siyasətini qəbul etməlisiniz")
+});
+
+export const platformConsentSchema = z.object({
+  source: z.enum(["register", "oauth", "reaccept", "manual"]).optional()
+});
+
+export const userReportSchema = z.object({
+  listingId: uuidSchema.optional(),
+  reportedUserId: z.string().trim().min(1).optional(),
+  reasonCode: z.enum(["fraud", "misleading", "stolen", "fake_listing", "harassment", "other"]),
+  description: z.string().trim().min(20, "Şikayət təsviri ən az 20 simvol olmalıdır").max(4000),
+  reporterEvidence: z
+    .string()
+    .trim()
+    .min(30, "Sübut təsviri ən az 30 simvol olmalıdır (foto, sənəd, yazışma və s.)")
+    .max(4000),
+  ackFalseReportLiability: z.literal(true, "Yalan şikayət məsuliyyətini qəbul etməlisiniz")
+}).refine((data) => Boolean(data.listingId || data.reportedUserId), {
+  message: "Elan və ya istifadəçi göstərilməlidir"
+});
+
+export const userReportDefenseSchema = z.object({
+  defense: z
+    .string()
+    .trim()
+    .min(30, "Müdafiə sübutu ən az 30 simvol olmalıdır")
+    .max(4000)
+});
+
+export const legalDataRequestSchema = z.object({
+  authorityName: z.string().trim().min(3).max(200),
+  requestType: z.enum(["subpoena", "court_order", "investigation", "emergency", "other"]),
+  requestSummary: z.string().trim().min(10).max(4000),
+  referenceNumber: z.string().trim().max(120).optional(),
+  dueAt: z.string().datetime().optional(),
+  subjectUserId: z.string().trim().optional(),
+  subjectListingId: z.string().trim().optional(),
+  legalHoldUntil: z.string().datetime().optional(),
+  internalNotes: z.string().trim().max(4000).optional()
+});
+
+export const legalDataRequestStatusSchema = z.object({
+  status: z.enum(["received", "verification", "approved", "partially_disclosed", "disclosed", "rejected", "closed"]),
+  internalNotes: z.string().trim().max(4000).optional(),
+  disclosureEntry: z.record(z.string(), z.unknown()).optional()
 });
 
 // ─── Auction Create ───────────────────────────────────────────────────────────

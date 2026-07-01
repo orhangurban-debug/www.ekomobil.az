@@ -224,6 +224,7 @@ export default function PrivacyPage() {
                     { type: "Elan tarixi (arxivlənmiş)", duration: "3 il (hüquqi uyğunluq üçün)" },
                     { type: "Ödəniş əməliyyat qeydləri", duration: "7 il (vergi qanunvericiliyi)" },
                     { type: "Texniki log faylları (IP, seans)", duration: "90 gün" },
+                    { type: "Fırıldaqçılıq / hüquqi araşdırma", duration: "Qanuni öhdəlik müddəti bitənə qədər (maks. 7 il)" },
                     { type: "Dəstək yazışmaları", duration: "2 il" },
                     { type: "Silinmiş hesab məlumatları", duration: "30 gün (sonra tamamilə silinir)" }
                   ].map((row) => (

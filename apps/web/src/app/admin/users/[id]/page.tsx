@@ -82,9 +82,19 @@ export default async function AdminUserMembershipPage({
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{profile.user.userAccountStatus}</span>
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
-          <p className="text-xs text-slate-400">İstifadəçi ID</p>
-          <p className="font-mono text-xs text-slate-700">{profile.user.id}</p>
+        <div className="space-y-2">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
+            <p className="text-xs text-slate-400">İstifadəçi ID</p>
+            <p className="font-mono text-xs text-slate-700">{profile.user.id}</p>
+          </div>
+          <a
+            href={`/api/admin/users/${profile.user.id}/investigation-export`}
+            className="btn-secondary inline-flex w-full justify-center text-xs"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Araşdırma exportu (JSON)
+          </a>
         </div>
       </div>
 

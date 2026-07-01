@@ -3,6 +3,8 @@ import { createSessionToken, getSessionCookieName } from "@/lib/auth";
 import { consumePhoneOtpChallenge, createUserAccount, normalizePhoneNumber } from "@/server/user-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { registerSchema, parseOrThrow, ValidationError } from "@/lib/validate";
+import { recordAllPlatformConsents } from "@/server/user-consent-store";
+import { recordUserActivity } from "@/server/user-activity-store";
 
 export async function POST(req: Request) {
   // Rate limit: 3 registrations per hour per IP
@@ -52,6 +54,21 @@ export async function POST(req: Request) {
       phone: parsed.phone,
       phoneNormalized: normalizedPhone,
       phoneVerified: true
+    });
+
+    const userAgent = req.headers.get("user-agent") ?? undefined;
+    await recordAllPlatformConsents({
+      userId: user.id,
+      ipAddress: ip,
+      userAgent,
+      source: "register"
+    });
+    await recordUserActivity({
+      userId: user.id,
+      actionType: "user_registered",
+      ipAddress: ip,
+      userAgent,
+      metadata: { method: "email_password" }
     });
 
     const token = createSessionToken({ id: user.id, email: user.email, role: user.role });

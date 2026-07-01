@@ -71,6 +71,7 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
                 { href: "/rules", label: "Qaydalar" },
                 { href: "/terms", label: "İstifadə şərtləri" },
                 { href: "/privacy", label: "Məxfilik siyasəti" },
+                { href: "/legal", label: "Hüquqi məlumat" },
                 { href: "/refund-policy", label: "Refund siyasəti" }
               ].map((item) => (
                 <li key={item.href}>

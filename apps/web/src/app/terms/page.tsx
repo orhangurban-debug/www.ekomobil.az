@@ -314,7 +314,11 @@ export default function TermsPage() {
             </div>
             <p className="text-sm">
               Ağır pozuntular (fırıldaqçılıq, oğurluq, saxta VIN) birbaşa daimi ban ilə nəticələnə bilər.
-              Hüquq-mühafizə orqanlarına müraciət etmək hüququmuz qorunur.
+              Bu hallarda platforma qeydiyyat məlumatları, elan tarixçəsi, texniki loglar və şikayət qeydlərini
+              qanuni əsasla hüquq-mühafizə orqanlarına təqdim edə bilər.{" "}
+              <Link href="/legal" className="text-[#0891B2] hover:underline">
+                Hüquqi məlumat
+              </Link>
             </p>
           </Section>
 

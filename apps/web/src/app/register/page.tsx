@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CONTACT_INTENTS } from "@/lib/support-contact";
@@ -64,9 +64,17 @@ export default function RegisterPage() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const consentComplete = acceptTerms && acceptPrivacy;
 
-  function onGoogleClick() {
+  function onGoogleClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (!consentComplete) {
+      event.preventDefault();
+      setError("Google ilə davam etmək üçün razılaşmaları qəbul edin.");
+      return;
+    }
     setGoogleLoading(true);
   }
 
@@ -76,13 +84,21 @@ export default function RegisterPage() {
       setError("Əvvəl telefon təsdiq kodunu göndərin.");
       return;
     }
+    if (!consentComplete) {
+      setError("Hesab yaratmaq üçün razılaşmaları qəbul edin.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          acceptTerms: true as const,
+          acceptPrivacy: true as const
+        })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
       if (!payload.ok) {
@@ -293,17 +309,47 @@ export default function RegisterPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
-        <button disabled={loading} className="btn-primary w-full justify-center py-3">
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            />
+            <span>
+              <Link href="/terms" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+                İstifadəçi Razılaşmasını
+              </Link>{" "}
+              oxudum və qəbul edirəm.
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={acceptPrivacy}
+              onChange={(e) => setAcceptPrivacy(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            />
+            <span>
+              <Link href="/privacy" className="font-medium text-[#0891B2] hover:underline" target="_blank">
+                Məxfilik Siyasətini
+              </Link>{" "}
+              oxudum və qəbul edirəm.
+            </span>
+          </label>
+          <p className="text-xs text-slate-500">
+            Qeydiyyat məlumatlarınız fırıldaqçılıq hallarının araşdırılması və qanuni tələblər çərçivəsində
+            saxlanıla bilər.{" "}
+            <Link href="/legal" className="text-[#0891B2] hover:underline">
+              Ətraflı
+            </Link>
+          </p>
+        </div>
+
+        <button disabled={loading || !consentComplete} className="btn-primary w-full justify-center py-3 disabled:opacity-50">
           {loading ? "Hesab yaradılır..." : "Hesab yarat"}
         </button>
-
-        <p className="text-center text-xs text-slate-400">
-          Hesab yaratmaqla{" "}
-          <Link href="/terms" className="hover:underline">
-            İstifadəçi Razılaşmasını
-          </Link>{" "}
-          qəbul etmiş olursunuz.
-        </p>
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-500">

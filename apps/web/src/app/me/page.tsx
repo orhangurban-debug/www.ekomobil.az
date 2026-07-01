@@ -8,6 +8,7 @@ import { listListingsForUser } from "@/server/listing-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
+import { listPendingDefenseReportsForUser } from "@/server/user-report-store";
 import { listInvoicesForUser } from "@/server/invoice-store";
 
 export default async function ProfilePage({
@@ -21,13 +22,17 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const profile = await getUserProfile(user.id);
-  const favorites = await listUserFavorites(user.id);
-  const savedSearches = await listSavedSearches(user.id);
-  const myListings = await listListingsForUser(user.id);
-  const deepKyc = await getUserKycProfile(user.id);
-  const auctionNotifications = await listAuctionNotificationsForUser(user.id, 8);
-  const invoices = await listInvoicesForUser(user.id, 5);
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, pendingReports] =
+    await Promise.all([
+    getUserProfile(user.id),
+    listUserFavorites(user.id),
+    listSavedSearches(user.id),
+    listListingsForUser(user.id),
+    getUserKycProfile(user.id),
+    listAuctionNotificationsForUser(user.id, 8),
+    listInvoicesForUser(user.id, 5),
+    listPendingDefenseReportsForUser(user.id)
+  ]);
   const hasNonActiveListings = myListings.some((item) => item.status !== "active");
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
@@ -84,6 +89,11 @@ export default async function ProfilePage({
         <div className="flex gap-2">
           <Link href="/me/payments" className="btn-secondary">Ödənişlər</Link>
           <Link href="/me/privacy" className="btn-secondary">Məxfilik hüquqları</Link>
+          {pendingReports.length > 0 && (
+            <Link href="/me/report-responses" className="btn-secondary">
+              Şikayət cavabları ({pendingReports.length})
+            </Link>
+          )}
           <Link href="/favorites" className="btn-secondary">Favorilər</Link>
           <Link href="/publish" className="btn-primary">Yeni elan</Link>
         </div>

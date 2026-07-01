@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/archive-support-requests",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/escalate-user-reports",
+      "schedule": "0 4 * * *"
     }
   ]
 }

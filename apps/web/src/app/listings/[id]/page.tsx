@@ -10,6 +10,7 @@ import { ListingStatsPanel } from "@/components/listings/listing-stats-panel";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingGallery } from "@/components/listings/listing-gallery";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
+import { ReportListingButton } from "@/components/listings/report-listing-button";
 import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
@@ -486,6 +487,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <LeadCaptureForm listingId={listing.id} />
           </div>
         </div>
+
+        {!isOwner && (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <h2 className="font-semibold text-slate-900">Təhlükəsizlik</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Saxta, aldadıcı və ya qanunsuz elan gördünüzsə, bildirin. Ciddi hallarda məlumatlar qanuni qaydada
+              hüquq-mühafizə orqanlarına təqdim oluna bilər.
+            </p>
+            <div className="mt-4">
+              <ReportListingButton
+                listingId={listing.id}
+                listingTitle={listing.title}
+                reportedUserId={listing.ownerUserId ?? listing.dealerOwnerUserId}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       {related.length > 0 && (

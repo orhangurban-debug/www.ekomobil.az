@@ -340,6 +340,11 @@ export default function RulesPage() {
                   desc: "Toplanan məlumatlar, istifadəsi, istifadəçi hüquqları"
                 },
                 {
+                  href: "/legal",
+                  title: "Hüquqi məlumat",
+                  desc: "Fırıldaqçılıqla mübarizə və hüquq-mühafizə əməkdaşlığı"
+                },
+                {
                   href: "/pricing",
                   title: "Qiymət cədvəli",
                   desc: "Elan, boost, salon, mağaza plan qiymətləri"
