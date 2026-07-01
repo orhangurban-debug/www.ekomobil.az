@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type UserRole = "admin" | "support" | "dealer" | "viewer";
@@ -151,9 +152,11 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
                 />
               </td>
               <td className="px-4 py-3">
-                <div className="font-medium text-slate-900">{user.fullName || user.email}</div>
-                <div className="text-xs text-slate-500">{user.email}</div>
-                <div className="font-mono text-[11px] text-slate-400">{user.id}</div>
+                <Link href={`/admin/users/${user.id}`} className="group block">
+                  <div className="font-medium text-slate-900 group-hover:text-[#0891B2]">{user.fullName || user.email}</div>
+                  <div className="text-xs text-slate-500">{user.email}</div>
+                  <div className="font-mono text-[11px] text-slate-400">{user.id}</div>
+                </Link>
               </td>
               <td className="px-4 py-3">
                 <select

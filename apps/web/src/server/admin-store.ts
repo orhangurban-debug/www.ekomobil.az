@@ -110,6 +110,7 @@ export interface AdminSupportRequestRow {
 }
 
 export interface SupportReporterContext {
+  matchedUserId?: string;
   accountEmail?: string;
   accountRole?: string;
   accountStatus?: string;
@@ -117,6 +118,65 @@ export interface SupportReporterContext {
   penaltyBalanceAzn?: number;
   otherRequestCount: number;
   openIncidentCount: number;
+}
+
+export interface AdminUserMembershipListing {
+  id: string;
+  title: string;
+  status: string;
+  listingKind: string;
+  sellerType: string;
+  planType?: string;
+  planExpiresAt?: string;
+  priceAzn: number;
+  city: string;
+  createdAt: string;
+}
+
+export interface AdminUserMembershipProfile {
+  user: AdminUserRow & {
+    phone?: string;
+    isIdentityVerified?: boolean;
+    penaltyBalanceAzn: number;
+  };
+  dealerProfile?: {
+    id: string;
+    name: string;
+    city: string;
+    verified: boolean;
+  };
+  subscriptions: Array<{
+    id: string;
+    businessType: string;
+    planId: string;
+    status: string;
+    startsAt?: string;
+    expiresAt?: string;
+  }>;
+  listings: AdminUserMembershipListing[];
+  invoices: Array<{
+    id: string;
+    invoiceNumber: string;
+    paymentType: string;
+    amountAzn: number;
+    description: string;
+    issuedAt: string;
+  }>;
+  supportRequests: Array<{
+    id: string;
+    subject: string;
+    requestType: string;
+    status: string;
+    listingId?: string;
+    createdAt: string;
+  }>;
+  stats: {
+    totalListings: number;
+    activeListings: number;
+    vehicleListings: number;
+    partListings: number;
+    supportRequestCount: number;
+  };
 }
 
 export interface AdminSupportSnapshot {
@@ -684,6 +744,7 @@ async function getSupportReporterContext(input: {
     );
     const user = userRes.rows[0];
     if (user) {
+      context.matchedUserId = input.reporterUserId!;
       context.accountEmail = user.email;
       context.accountRole = user.role;
       context.accountStatus = user.user_account_status;
@@ -710,6 +771,8 @@ async function getSupportReporterContext(input: {
     return context;
   }
 
+  await applyEmailUserMatch(input.reporterEmail, context);
+
   const identityFilters: string[] = [];
   const values: string[] = [input.requestId];
   if (input.reporterEmail?.trim()) {
@@ -720,7 +783,9 @@ async function getSupportReporterContext(input: {
     values.push(input.reporterPhone.trim());
     identityFilters.push(`COALESCE(reporter_phone, '') = $${values.length}`);
   }
-  if (identityFilters.length === 0) return context;
+  if (identityFilters.length === 0) {
+    return context;
+  }
 
   const otherReqRes = await pool.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count
@@ -730,6 +795,29 @@ async function getSupportReporterContext(input: {
   );
   context.otherRequestCount = n(otherReqRes.rows[0]?.count);
   return context;
+}
+
+async function applyEmailUserMatch(
+  reporterEmail: string | null | undefined,
+  context: SupportReporterContext
+): Promise<void> {
+  if (context.matchedUserId || !reporterEmail?.trim()) return;
+  const pool = getPgPool();
+  const match = await pool.query<{ id: string; email: string; role: string; user_account_status: string; penalty_balance_azn: number; created_at: Date }>(
+    `SELECT id, email, role, user_account_status, penalty_balance_azn, created_at
+     FROM users
+     WHERE LOWER(email) = LOWER($1)
+     LIMIT 1`,
+    [reporterEmail.trim()]
+  );
+  const user = match.rows[0];
+  if (!user) return;
+  context.matchedUserId = user.id;
+  context.accountEmail = user.email;
+  context.accountRole = user.role;
+  context.accountStatus = user.user_account_status;
+  context.penaltyBalanceAzn = user.penalty_balance_azn;
+  context.accountCreatedAt = user.created_at.toISOString();
 }
 
 function requestGroupTypes(groupId: string): string[] {
@@ -1650,5 +1738,174 @@ export async function getAuctionAdminControl(auctionId: string): Promise<{ freez
     freezeBidding: result.rows[0].freeze_bidding,
     forceManualReview: result.rows[0].force_manual_review,
     note: result.rows[0].note ?? undefined
+  };
+}
+
+export async function getAdminUserMembershipProfile(userId: string): Promise<AdminUserMembershipProfile | null> {
+  const pool = getPgPool();
+  const userRes = await pool.query<{
+    id: string;
+    email: string;
+    role: string;
+    user_account_status: string;
+    penalty_balance_azn: number;
+    email_verified: boolean;
+    phone: string | null;
+    is_identity_verified: boolean;
+    created_at: Date;
+    full_name: string | null;
+    city: string | null;
+  }>(
+    `SELECT
+       u.id, u.email, u.role, u.user_account_status, u.penalty_balance_azn, u.email_verified,
+       u.phone, u.is_identity_verified, u.created_at, up.full_name, up.city
+     FROM users u
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     WHERE u.id = $1
+     LIMIT 1`,
+    [userId]
+  );
+  const userRow = userRes.rows[0];
+  if (!userRow) return null;
+
+  const [dealerRes, subsRes, listingsRes, invoicesRes, supportRes] = await Promise.all([
+    pool.query<{ id: string; name: string; city: string; verified: boolean }>(
+      `SELECT id, name, city, verified FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
+      [userId]
+    ),
+    pool.query<{
+      id: string;
+      business_type: string;
+      plan_id: string;
+      status: string;
+      starts_at: Date | null;
+      expires_at: Date | null;
+    }>(
+      `SELECT id, business_type, plan_id, status, starts_at, expires_at
+       FROM business_plan_subscriptions
+       WHERE owner_user_id = $1
+       ORDER BY updated_at DESC`,
+      [userId]
+    ),
+    pool.query<{
+      id: string;
+      title: string;
+      status: string;
+      listing_kind: string | null;
+      seller_type: string;
+      plan_type: string | null;
+      plan_expires_at: Date | null;
+      price_azn: number;
+      city: string;
+      created_at: Date;
+    }>(
+      `SELECT l.id, l.title, l.status, l.listing_kind, l.seller_type, l.plan_type, l.plan_expires_at, l.price_azn, l.city, l.created_at
+       FROM listings l
+       WHERE l.owner_user_id = $1 OR l.dealer_profile_id IN (
+         SELECT id FROM dealer_profiles WHERE owner_user_id = $1
+       )
+       ORDER BY l.created_at DESC
+       LIMIT 100`,
+      [userId]
+    ),
+    pool.query<{
+      id: string;
+      invoice_number: string;
+      payment_type: string;
+      amount_azn: number;
+      description: string;
+      issued_at: Date;
+    }>(
+      `SELECT id, invoice_number, payment_type, amount_azn, description, issued_at
+       FROM invoices
+       WHERE user_id = $1
+       ORDER BY issued_at DESC
+       LIMIT 20`,
+      [userId]
+    ),
+    pool.query<{
+      id: string;
+      subject: string;
+      request_type: string;
+      status: string;
+      listing_id: string | null;
+      created_at: Date;
+    }>(
+      `SELECT id, subject, request_type, status, listing_id, created_at
+       FROM support_requests
+       WHERE reporter_user_id = $1 OR LOWER(COALESCE(reporter_email, '')) = LOWER($2)
+       ORDER BY created_at DESC
+       LIMIT 20`,
+      [userId, userRow.email]
+    )
+  ]);
+
+  const listings = listingsRes.rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    listingKind: row.listing_kind ?? "vehicle",
+    sellerType: row.seller_type,
+    planType: row.plan_type ?? undefined,
+    planExpiresAt: row.plan_expires_at ? row.plan_expires_at.toISOString() : undefined,
+    priceAzn: row.price_azn,
+    city: row.city,
+    createdAt: row.created_at.toISOString()
+  }));
+
+  return {
+    user: {
+      id: userRow.id,
+      email: userRow.email,
+      role: userRow.role as UserRole,
+      userAccountStatus: userRow.user_account_status,
+      penaltyBalanceAzn: userRow.penalty_balance_azn,
+      emailVerified: userRow.email_verified,
+      createdAt: userRow.created_at.toISOString(),
+      fullName: userRow.full_name ?? undefined,
+      city: userRow.city ?? undefined,
+      phone: userRow.phone ?? undefined,
+      isIdentityVerified: userRow.is_identity_verified
+    },
+    dealerProfile: dealerRes.rows[0]
+      ? {
+          id: dealerRes.rows[0].id,
+          name: dealerRes.rows[0].name,
+          city: dealerRes.rows[0].city,
+          verified: dealerRes.rows[0].verified
+        }
+      : undefined,
+    subscriptions: subsRes.rows.map((row) => ({
+      id: row.id,
+      businessType: row.business_type,
+      planId: row.plan_id,
+      status: row.status,
+      startsAt: row.starts_at?.toISOString(),
+      expiresAt: row.expires_at?.toISOString()
+    })),
+    listings,
+    invoices: invoicesRes.rows.map((row) => ({
+      id: row.id,
+      invoiceNumber: row.invoice_number,
+      paymentType: row.payment_type,
+      amountAzn: Number(row.amount_azn),
+      description: row.description,
+      issuedAt: row.issued_at.toISOString()
+    })),
+    supportRequests: supportRes.rows.map((row) => ({
+      id: row.id,
+      subject: row.subject,
+      requestType: row.request_type,
+      status: row.status,
+      listingId: row.listing_id ?? undefined,
+      createdAt: row.created_at.toISOString()
+    })),
+    stats: {
+      totalListings: listings.length,
+      activeListings: listings.filter((item) => item.status === "active").length,
+      vehicleListings: listings.filter((item) => item.listingKind === "vehicle").length,
+      partListings: listings.filter((item) => item.listingKind === "part").length,
+      supportRequestCount: supportRes.rows.length
+    }
   };
 }

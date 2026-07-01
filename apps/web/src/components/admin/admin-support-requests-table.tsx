@@ -81,6 +81,15 @@ function formatWhen(iso: string): string {
   });
 }
 
+function buildUserProfileHref(row: AdminSupportRequestRow): string | null {
+  const userId = row.reporterUserId ?? row.reporterContext?.matchedUserId;
+  if (!userId) return null;
+  const params = new URLSearchParams({ from: "support" });
+  params.set("requestId", row.id);
+  if (row.listingId) params.set("listingId", row.listingId);
+  return `/admin/users/${userId}?${params.toString()}`;
+}
+
 function staffLabel(staff: AssignableStaff): string {
   const name = staff.fullName?.trim();
   return name ? `${name} (${staff.email})` : staff.email;
@@ -331,28 +340,47 @@ export function AdminSupportRequestsTable({
                 <div className="mt-2 grid gap-2 sm:grid-cols-2 text-sm">
                   <div>
                     <p className="text-xs text-slate-400">Ad</p>
-                    <p className="font-medium text-slate-900">{selected.reporterName ?? "Anonim"}</p>
+                    {buildUserProfileHref(selected) ? (
+                      <Link href={buildUserProfileHref(selected)!} className="font-semibold text-[#0891B2] hover:underline">
+                        {selected.reporterName ?? "Anonim"} →
+                      </Link>
+                    ) : (
+                      <p className="font-medium text-slate-900">{selected.reporterName ?? "Anonim"}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">E-poçt</p>
-                    <p className="font-medium text-slate-900">{selected.reporterEmail ?? "—"}</p>
+                    {buildUserProfileHref(selected) ? (
+                      <Link href={buildUserProfileHref(selected)!} className="font-semibold text-[#0891B2] hover:underline">
+                        {selected.reporterEmail}
+                      </Link>
+                    ) : (
+                      <p className="font-medium text-slate-900">{selected.reporterEmail ?? "—"}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">Telefon</p>
                     <p className="font-medium text-slate-900">{selected.reporterPhone ?? "—"}</p>
                   </div>
-                  {selected.reporterUserId && (
-                    <div>
-                      <p className="text-xs text-slate-400">Hesab</p>
-                      <Link href={`/admin/users?q=${encodeURIComponent(selected.reporterUserId)}`} className="font-medium text-[#0891B2] hover:underline">
-                        İstifadəçi profilinə bax
+                  {buildUserProfileHref(selected) && (
+                    <div className="sm:col-span-2">
+                      <Link
+                        href={buildUserProfileHref(selected)!}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#0891B2] px-3 py-2 text-xs font-semibold text-white hover:bg-[#0e7490]"
+                      >
+                        Platforma üzvlüyünə bax — elanlar, planlar, ödənişlər
                       </Link>
                     </div>
                   )}
                   {selected.listingId && (
                     <div>
                       <p className="text-xs text-slate-400">Elan ID</p>
-                      <p className="font-mono text-xs text-slate-700">{selected.listingId}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-mono text-xs text-slate-700">{selected.listingId}</p>
+                        <Link href={`/admin/listings?q=${selected.listingId}`} className="text-xs font-medium text-[#0891B2] hover:underline">
+                          Elana bax
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 export interface SupportReporterContext {
+  matchedUserId?: string;
   accountEmail?: string;
   accountRole?: string;
   accountStatus?: string;
