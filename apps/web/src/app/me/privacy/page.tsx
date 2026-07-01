@@ -25,7 +25,8 @@ export default async function MePrivacyPage() {
       <div className="space-y-6">
         <PrivacyControls />
         <SupportRequestForm
-          initialRequestType="data_export"
+          variant="privacy"
+          initialRequestType="data_rectification"
           initialSubject="Məlumat hüquqları ilə bağlı əlavə sorğu"
         />
       </div>

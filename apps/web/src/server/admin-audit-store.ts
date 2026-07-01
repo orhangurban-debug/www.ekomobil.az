@@ -135,3 +135,19 @@ export async function listAdminAuditLogs(input: {
     totalPages: Math.max(1, Math.ceil(total / pageSize))
   };
 }
+
+export async function listAuditActionTypes(limit = 50): Promise<string[]> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ action_type: string }>(
+      `SELECT DISTINCT action_type
+       FROM admin_audit_logs
+       ORDER BY action_type ASC
+       LIMIT $1`,
+      [limit]
+    );
+    return result.rows.map((row) => row.action_type);
+  } catch {
+    return [];
+  }
+}

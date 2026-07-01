@@ -35,7 +35,7 @@ export default async function AdminIncidentsPage({
         <Link href="/ops/reviews" className="btn-secondary">Əməliyyat baxışları</Link>
       </div>
 
-      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
+      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-6">
         <input name="q" defaultValue={q} placeholder="Axtar: hal, obyekt, başlıq" className="input-field md:col-span-2" />
         <select name="sourceType" defaultValue={sourceType ?? "all"} className="input-field">
           <option value="all">Mənbə (hamısı)</option>
@@ -52,8 +52,14 @@ export default async function AdminIncidentsPage({
           <option value="resolved">Həll edilib</option>
           <option value="dismissed">Əsassız sayılıb</option>
         </select>
+        <select name="severity" defaultValue={severity ?? ""} className="input-field">
+          <option value="">Prioritet (hamısı)</option>
+          <option value="low">Aşağı</option>
+          <option value="medium">Orta</option>
+          <option value="high">Yüksək</option>
+          <option value="critical">Kritik</option>
+        </select>
         <div className="flex gap-2">
-          <input type="hidden" name="severity" value={severity ?? ""} />
           <input type="hidden" name="pageSize" value={pageSize} />
           <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>

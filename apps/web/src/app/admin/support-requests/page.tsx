@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminSupportRequestsTable } from "@/components/admin/admin-support-requests-table";
+import { requirePageRoles } from "@/lib/rbac";
 import {
   REQUEST_TYPE_LABELS,
   STATUS_LABELS,
@@ -15,6 +16,7 @@ import {
   listAdminSupportRequestsPaged,
   listSupportAssignableStaff
 } from "@/server/admin-store";
+import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 
 function statHref(params: Record<string, string | undefined>): string {
   const q = new URLSearchParams();
@@ -31,6 +33,8 @@ export default async function AdminSupportRequestsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canDelete = auth.ok && auth.user.role === "admin";
   const page = Number(params.page || 1);
   const pageSize = Number(params.pageSize || 25);
   const q = typeof params.q === "string" ? params.q : undefined;
@@ -71,6 +75,7 @@ export default async function AdminSupportRequestsPage({
     { label: "İcrada", value: snapshot.inProgressCount, href: statHref({ status: "in_progress" }) },
     { label: "Cavab gözlənilir", value: snapshot.waitingUserCount, href: statHref({ status: "waiting_user" }) },
     { label: "Həll edilib", value: snapshot.resolvedCount, href: statHref({ status: "resolved" }) },
+    { label: "Arxiv", value: snapshot.archivedCount, href: statHref({ status: "archived" }) },
     { label: "Risk / nəzarət", value: snapshot.riskCount, href: statHref({ riskFlag: "watch" }), urgent: snapshot.riskCount > 0 },
     { label: "Şikayət", value: snapshot.complaintCount, href: statHref({ requestType: "complaint" }) },
     {
@@ -88,6 +93,7 @@ export default async function AdminSupportRequestsPage({
           <h2 className="text-2xl font-bold text-slate-900">Müraciət inbox</h2>
           <p className="mt-1 text-sm text-slate-500">
             Kateqoriyalaşdırılmış sorğular, müştəri konteksti və hüquqi arxiv üçün export.
+            Həll edilmiş müraciətlər {SUPPORT_ARCHIVE_AFTER_DAYS} gündən sonra avtomatik arxivlənir.
           </p>
         </div>
         {assignees.length > 0 && (
@@ -179,7 +185,7 @@ export default async function AdminSupportRequestsPage({
         </div>
       </form>
 
-      <AdminSupportRequestsTable items={data.items} assignees={assignees} />
+      <AdminSupportRequestsTable items={data.items} assignees={assignees} canDelete={canDelete} />
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">

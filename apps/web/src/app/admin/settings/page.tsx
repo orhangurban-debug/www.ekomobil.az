@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { SystemSettingsForm } from "@/components/admin/system-settings-form";
 import { PricingPlanConfigManager } from "@/components/admin/pricing-plan-config-manager";
+import { requirePageRoles } from "@/lib/rbac";
 import { getPricingPlanAdminConfig, getSystemSettings } from "@/server/system-settings-store";
 
 export default async function AdminSettingsPage() {
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canEdit = auth.ok && auth.user.role === "admin";
   const [settings, pricingConfig] = await Promise.all([getSystemSettings(), getPricingPlanAdminConfig()]);
   return (
     <div className="space-y-4">
@@ -16,8 +20,9 @@ export default async function AdminSettingsPage() {
         auctionMode={settings.auctionMode}
         vehiclePenalty={settings.penaltyAmounts.vehicle}
         partPenalty={settings.penaltyAmounts.part}
+        readOnly={!canEdit}
       />
-      <PricingPlanConfigManager initialConfig={pricingConfig} />
+      <PricingPlanConfigManager initialConfig={pricingConfig} readOnly={!canEdit} />
     </div>
   );
 }

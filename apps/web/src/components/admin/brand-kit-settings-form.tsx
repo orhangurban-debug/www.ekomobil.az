@@ -3,12 +3,14 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { BrandImageAsset, BrandSettings } from "@/lib/brand-settings";
+import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 
 interface Props {
   initial: BrandSettings;
+  readOnly?: boolean;
 }
 
-export function BrandKitSettingsForm({ initial }: Props) {
+export function BrandKitSettingsForm({ initial, readOnly = false }: Props) {
   const [form, setForm] = useState<BrandSettings>(initial);
   const [busy, setBusy] = useState(false);
 
@@ -64,6 +66,8 @@ export function BrandKitSettingsForm({ initial }: Props) {
 
   return (
     <div className="space-y-5">
+      {readOnly && <AdminReadOnlyBanner />}
+      <fieldset disabled={readOnly} className="space-y-5 border-0 p-0">
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="text-base font-semibold text-slate-900">Brend ayarlarını redaktə et</h3>
         <p className="mt-1 text-sm text-slate-500">
@@ -192,11 +196,14 @@ export function BrandKitSettingsForm({ initial }: Props) {
         </div>
       </div>
 
+      {!readOnly && (
       <div>
         <button type="button" className="btn-primary" onClick={save} disabled={busy}>
           {busy ? "Saxlanılır..." : "Brend ayarlarını yadda saxla"}
         </button>
       </div>
+      )}
+      </fieldset>
     </div>
   );
 }

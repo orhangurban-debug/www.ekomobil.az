@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 
 interface Props {
   auctionMode: "BETA_FIN_ONLY" | "STRICT_PRE_AUTH";
   vehiclePenalty: number;
   partPenalty: number;
+  readOnly?: boolean;
 }
 
-export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }: Props) {
+export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty, readOnly = false }: Props) {
   const [mode, setMode] = useState(auctionMode);
   const [vehicle, setVehicle] = useState(vehiclePenalty);
   const [part, setPart] = useState(partPenalty);
@@ -37,12 +39,14 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }:
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      {readOnly && <div className="mb-4"><AdminReadOnlyBanner /></div>}
       <h2 className="text-lg font-bold text-slate-900">Auksion risk ayarları</h2>
       <p className="mt-1 text-sm text-slate-500">
         Öhdəlik haqları və pre-auth rejimi üzrə mərkəzi parametrlər.
       </p>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
+      <fieldset disabled={readOnly} className="mt-5 border-0 p-0">
+      <div className="grid gap-4 md:grid-cols-3">
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Auksion rejimi</span>
           <select
@@ -78,11 +82,14 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty }:
         </label>
       </div>
 
+      {!readOnly && (
       <div className="mt-5">
         <button type="button" onClick={save} disabled={busy} className="btn-primary disabled:opacity-60">
           {busy ? "Saxlanılır..." : "Yadda saxla"}
         </button>
       </div>
+      )}
+      </fieldset>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminLeadsTable } from "@/components/admin/admin-leads-table";
+import { LEAD_STAGE_OPTIONS } from "@/lib/admin-leads";
 import { getCrmSnapshot, listAdminLeadsPaged } from "@/server/admin-store";
 
 export default async function AdminCrmPage({
@@ -42,12 +43,9 @@ export default async function AdminCrmPage({
         <input name="q" defaultValue={q} placeholder="Axtar: müştəri/telefon/email/elan" className="input-field md:col-span-2" />
         <select name="stage" defaultValue={stage ?? ""} className="input-field">
           <option value="">Mərhələ (hamısı)</option>
-          <option value="new">Yeni</option>
-          <option value="in_progress">İcrada</option>
-          <option value="test_drive">Test sürüşü</option>
-          <option value="offer">Təklif verildi</option>
-          <option value="won">Uğurlu satış</option>
-          <option value="closed">Bağlanıb</option>
+          {LEAD_STAGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
         <input name="source" defaultValue={source} placeholder="Mənbə" className="input-field" />
         <div className="flex gap-2">

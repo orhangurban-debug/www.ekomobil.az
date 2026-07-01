@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { ContactActionButton } from "@/components/support/contact-action-button";
+import { PrivacyControls } from "@/components/user/privacy-controls";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
@@ -248,6 +249,10 @@ export default async function ProfilePage({
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="card p-6">
+            <PrivacyControls variant="compact" />
           </div>
 
           {user.role === "viewer" && (

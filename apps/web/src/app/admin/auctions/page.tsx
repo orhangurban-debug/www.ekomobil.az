@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminAuctionsTable } from "@/components/admin/admin-auctions-table";
+import { AUCTION_MODE_FILTER_OPTIONS, AUCTION_STATUS_FILTER_OPTIONS } from "@/lib/admin-auction-filters";
 import { listAdminAuctionsPaged } from "@/server/admin-store";
 
 export default async function AdminAuctionsPage({
@@ -37,8 +38,18 @@ export default async function AdminAuctionsPage({
 
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-6">
         <input name="q" defaultValue={q} placeholder="Axtar: lot ID/ad/satıcı" className="input-field md:col-span-2" />
-        <input name="status" defaultValue={status} placeholder="Status filtri" className="input-field" />
-        <input name="mode" defaultValue={mode} placeholder="Rejim filtri" className="input-field" />
+        <select name="status" defaultValue={status ?? ""} className="input-field">
+          <option value="">Status (hamısı)</option>
+          {AUCTION_STATUS_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <select name="mode" defaultValue={mode ?? ""} className="input-field">
+          <option value="">Rejim (hamısı)</option>
+          {AUCTION_MODE_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
         <select name="freezeBidding" defaultValue={freezeBidding ?? ""} className="input-field">
           <option value="">Dondurma (hamısı)</option>
           <option value="true">Dondurulub</option>

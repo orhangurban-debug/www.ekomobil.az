@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-export function PrivacyControls() {
+export function PrivacyControls({ variant = "full" }: { variant?: "full" | "compact" }) {
   const [exporting, setExporting] = useState(false);
   const [requesting, setRequesting] = useState<null | "deletion" | "rectification" | "objection">(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -83,15 +84,23 @@ export function PrivacyControls() {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 className="text-base font-semibold text-slate-900">Məlumat hüquqları alətləri</h2>
-      <p className="text-sm text-slate-500">
-        Buradan məlumat ixracı edə və məxfilik hüquqları üzrə rəsmi sorğu yarada bilərsiniz.
-      </p>
+    <div className={`space-y-4 rounded-2xl border border-slate-200 bg-white ${variant === "compact" ? "p-0 border-0 bg-transparent" : "p-5"}`}>
+      <div>
+        <h2 className={`font-semibold text-slate-900 ${variant === "compact" ? "text-sm" : "text-base"}`}>
+          {variant === "compact" ? "Məlumat ixracı" : "Məlumat hüquqları alətləri"}
+        </h2>
+        <p className={`mt-1 text-slate-500 ${variant === "compact" ? "text-xs" : "text-sm"}`}>
+          {variant === "compact"
+            ? "Hesab məlumatlarınızı JSON formatında yükləyin."
+            : "Buradan məlumat ixracı edə və məxfilik hüquqları üzrə rəsmi sorğu yarada bilərsiniz."}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={downloadExport} disabled={exporting} className="btn-primary text-sm">
           {exporting ? "Yüklənir..." : "Məlumatlarımı JSON yüklə"}
         </button>
+        {variant === "full" && (
+          <>
         <button
           type="button"
           onClick={() => void createPrivacyRequest("deletion")}
@@ -116,7 +125,14 @@ export function PrivacyControls() {
         >
           {requesting === "objection" ? "Göndərilir..." : "Emala etiraz sorğusu"}
         </button>
+          </>
+        )}
       </div>
+      {variant === "compact" && (
+        <Link href="/me/privacy" className="inline-block text-xs font-medium text-[#0891B2] hover:underline">
+          Düzəliş, silinmə və digər məxfilik sorğuları →
+        </Link>
+      )}
       {feedback && (
         <p className={`text-sm ${isError ? "text-rose-600" : "text-emerald-700"}`}>
           {feedback}

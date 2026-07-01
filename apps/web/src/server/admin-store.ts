@@ -1,10 +1,30 @@
 import { getPgPool } from "@/lib/postgres";
 import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
+import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 
 let supportEnrichColumnsReadyCache: boolean | null = null;
+let supportArchiveColumnsReadyCache: boolean | null = null;
+
+async function supportArchiveColumnsReady(): Promise<boolean> {
+  if (supportArchiveColumnsReadyCache !== null) return supportArchiveColumnsReadyCache;
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'support_requests'
+         AND column_name = 'archived_at'`
+    );
+    supportArchiveColumnsReadyCache = n(result.rows[0]?.count) >= 1;
+  } catch {
+    supportArchiveColumnsReadyCache = false;
+  }
+  return supportArchiveColumnsReadyCache;
+}
 
 async function supportEnrichColumnsReady(): Promise<boolean> {
   if (supportEnrichColumnsReadyCache !== null) return supportEnrichColumnsReadyCache;
@@ -38,6 +58,8 @@ export interface AdminOverview {
   activeListings: number;
   liveAuctions: number;
   unresolvedCases: number;
+  newSupportRequests: number;
+  openIncidents: number;
   monthlyRevenueAzn: number;
 }
 
@@ -132,6 +154,7 @@ export interface AdminSupportRequestRow {
   riskFlag: string;
   responseAt?: string;
   resolvedAt?: string;
+  archivedAt?: string;
   lastActivityAt: string;
   createdAt: string;
   reporterContext?: SupportReporterContext;
@@ -213,6 +236,7 @@ export interface AdminSupportSnapshot {
   inProgressCount: number;
   waitingUserCount: number;
   resolvedCount: number;
+  archivedCount: number;
   urgentCount: number;
   riskCount: number;
   complaintCount: number;
@@ -269,7 +293,7 @@ function n(v: string | number | null | undefined): number {
 export async function getAdminOverview(): Promise<AdminOverview> {
   try {
     const pool = getPgPool();
-    const [users, listings, auctions, cases, revenue] = await Promise.all([
+    const [users, listings, auctions, cases, supportNew, openIncidents, revenue] = await Promise.all([
       pool.query<{ total: string; active: string }>(
         `SELECT COUNT(*)::text AS total,
                 SUM(CASE WHEN user_account_status = 'active' THEN 1 ELSE 0 END)::text AS active
@@ -289,6 +313,16 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         `SELECT COUNT(*)::text AS unresolved_cases
          FROM auction_listings
          WHERE status IN ('ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'no_show', 'seller_breach', 'disputed')`
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count
+         FROM support_requests
+         WHERE status = 'new'`
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count
+         FROM incident_cases
+         WHERE status NOT IN ('resolved', 'dismissed')`
       ),
       pool.query<{ monthly_revenue: string }>(
         `SELECT
@@ -312,6 +346,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       activeListings: n(listings.rows[0]?.active_listings),
       liveAuctions: n(auctions.rows[0]?.live_auctions),
       unresolvedCases: n(cases.rows[0]?.unresolved_cases),
+      newSupportRequests: n(supportNew.rows[0]?.count),
+      openIncidents: n(openIncidents.rows[0]?.count),
       monthlyRevenueAzn: n(revenue.rows[0]?.monthly_revenue)
     };
   } catch {
@@ -321,6 +357,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       activeListings: 0,
       liveAuctions: 0,
       unresolvedCases: 0,
+      newSupportRequests: 0,
+      openIncidents: 0,
       monthlyRevenueAzn: 0
     };
   }
@@ -691,6 +729,7 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
         c_progress: string;
         c_waiting: string;
         c_resolved: string;
+        c_archived: string;
         c_urgent: string;
         c_risk: string;
         c_complaint: string;
@@ -700,6 +739,7 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END)::text AS c_progress,
            SUM(CASE WHEN status = 'waiting_user' THEN 1 ELSE 0 END)::text AS c_waiting,
            SUM(CASE WHEN status IN ('resolved', 'closed') THEN 1 ELSE 0 END)::text AS c_resolved,
+           SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END)::text AS c_archived,
            SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END)::text AS c_urgent,
            ${riskCountSql},
            SUM(CASE WHEN request_type = 'complaint' THEN 1 ELSE 0 END)::text AS c_complaint
@@ -716,7 +756,9 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
          GROUP BY request_type
          ORDER BY COUNT(*) DESC`
       ),
-      pool.query<{ total: string }>(`SELECT COUNT(*)::text AS total FROM support_requests`)
+      pool.query<{ total: string }>(
+        `SELECT COUNT(*)::text AS total FROM support_requests WHERE status <> 'archived'`
+      )
     ]);
     const row = summary.rows[0];
     return {
@@ -725,6 +767,7 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
       inProgressCount: n(row?.c_progress),
       waitingUserCount: n(row?.c_waiting),
       resolvedCount: n(row?.c_resolved),
+      archivedCount: n(row?.c_archived),
       urgentCount: n(row?.c_urgent),
       riskCount: n(row?.c_risk),
       complaintCount: n(row?.c_complaint),
@@ -741,6 +784,7 @@ export async function getAdminSupportSnapshot(): Promise<AdminSupportSnapshot> {
       inProgressCount: 0,
       waitingUserCount: 0,
       resolvedCount: 0,
+      archivedCount: 0,
       urgentCount: 0,
       riskCount: 0,
       complaintCount: 0,
@@ -878,6 +922,7 @@ function mapSupportRow(row: {
   risk_flag?: string | null;
   response_at: Date | null;
   resolved_at: Date | null;
+  archived_at?: Date | null;
   last_activity_at: Date;
   created_at: Date;
 }): AdminSupportRequestRow {
@@ -903,6 +948,7 @@ function mapSupportRow(row: {
     riskFlag: row.risk_flag ?? "none",
     responseAt: row.response_at ? row.response_at.toISOString() : undefined,
     resolvedAt: row.resolved_at ? row.resolved_at.toISOString() : undefined,
+    archivedAt: row.archived_at ? row.archived_at.toISOString() : undefined,
     lastActivityAt: row.last_activity_at.toISOString(),
     createdAt: row.created_at.toISOString()
   };
@@ -911,6 +957,7 @@ function mapSupportRow(row: {
 export async function getAdminSupportRequestById(id: string): Promise<AdminSupportRequestRow | null> {
   const pool = getPgPool();
   const enrichSelect = await supportEnrichSelectSql("sr");
+  const archiveSelect = (await supportArchiveColumnsReady()) ? "sr.archived_at" : "NULL::timestamptz AS archived_at";
   const result = await pool.query<{
     id: string;
     request_type: string;
@@ -942,7 +989,7 @@ export async function getAdminSupportRequestById(id: string): Promise<AdminSuppo
        ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
        sr.admin_response,
-       sr.response_at, sr.resolved_at, sr.last_activity_at, sr.created_at
+       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at
      FROM support_requests sr
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
      WHERE sr.id = $1
@@ -1014,6 +1061,8 @@ async function listAdminSupportRequestsPagedInternal(input: {
   if (input.status?.trim()) {
     values.push(input.status.trim());
     where.push(`sr.status = $${values.length}`);
+  } else {
+    where.push(`sr.status <> 'archived'`);
   }
   if (input.priority?.trim()) {
     values.push(input.priority.trim());
@@ -1043,6 +1092,7 @@ async function listAdminSupportRequestsPagedInternal(input: {
   const sortDir = input.sortDir === "asc" ? "ASC" : "DESC";
   const pool = getPgPool();
   const enrichSelect = await supportEnrichSelectSql("sr");
+  const archiveSelect = (await supportArchiveColumnsReady()) ? "sr.archived_at" : "NULL::timestamptz AS archived_at";
   const countResult = await pool.query<{ total: string }>(
     `SELECT COUNT(*)::text AS total
      FROM support_requests sr
@@ -1073,6 +1123,7 @@ async function listAdminSupportRequestsPagedInternal(input: {
     risk_flag: string | null;
     response_at: Date | null;
     resolved_at: Date | null;
+    archived_at: Date | null;
     last_activity_at: Date;
     created_at: Date;
   }>(
@@ -1082,7 +1133,7 @@ async function listAdminSupportRequestsPagedInternal(input: {
        ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
        sr.admin_response,
-       sr.response_at, sr.resolved_at, sr.last_activity_at, sr.created_at
+       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at
      FROM support_requests sr
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
      ${whereSql}
@@ -1125,6 +1176,10 @@ export async function updateAdminSupportRequest(input: {
 }): Promise<void> {
   const pool = getPgPool();
   const enrich = await supportEnrichColumnsReady();
+  const archive = await supportArchiveColumnsReady();
+  const archivedAtSql = archive
+    ? "archived_at = CASE WHEN $2 = 'archived' THEN NOW() WHEN $2 IS NOT NULL AND $2 <> 'archived' THEN NULL ELSE archived_at END,"
+    : "";
   if (enrich) {
     await pool.query(
       `UPDATE support_requests
@@ -1136,7 +1191,8 @@ export async function updateAdminSupportRequest(input: {
          internal_notes = CASE WHEN $8 THEN $7 ELSE internal_notes END,
          risk_flag = COALESCE($9, risk_flag),
          response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
-         resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
+         resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() WHEN $2 = 'archived' THEN resolved_at ELSE resolved_at END,
+         ${archivedAtSql}
          last_activity_at = NOW(),
          updated_at = NOW()
        WHERE id = $1`,
@@ -1163,7 +1219,8 @@ export async function updateAdminSupportRequest(input: {
        assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
        admin_response = COALESCE($5, admin_response),
        response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
-       resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() ELSE resolved_at END,
+       resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() WHEN $2 = 'archived' THEN resolved_at ELSE resolved_at END,
+       ${archivedAtSql}
        last_activity_at = NOW(),
        updated_at = NOW()
      WHERE id = $1`,
@@ -1176,6 +1233,30 @@ export async function updateAdminSupportRequest(input: {
       input.assigneeProvided ?? false
     ]
   );
+}
+
+export async function autoArchiveStaleSupportRequests(): Promise<number> {
+  if (!(await supportArchiveColumnsReady())) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `UPDATE support_requests
+     SET status = 'archived', archived_at = NOW(), updated_at = NOW()
+     WHERE status IN ('resolved', 'closed')
+       AND archived_at IS NULL
+       AND COALESCE(resolved_at, last_activity_at) < NOW() - ($1::text || ' days')::INTERVAL`,
+    [SUPPORT_ARCHIVE_AFTER_DAYS]
+  );
+  return result.rowCount ?? 0;
+}
+
+export async function deleteArchivedSupportRequests(ids: string[]): Promise<number> {
+  if (ids.length === 0) return 0;
+  const pool = getPgPool();
+  const result = await pool.query(
+    `DELETE FROM support_requests WHERE id = ANY($1::text[]) AND status = 'archived'`,
+    [ids]
+  );
+  return result.rowCount ?? 0;
 }
 
 export async function listAdminLeads(limit = 100): Promise<AdminLeadRow[]> {

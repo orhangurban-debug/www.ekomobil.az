@@ -6,25 +6,37 @@ interface SupportRequestFormProps {
   listingId?: string;
   initialRequestType?: string;
   initialSubject?: string;
+  /** public: trust/ümumi dəstək; privacy: yalnız /me/privacy əlavə sorğuları */
+  variant?: "public" | "privacy";
 }
 
-const REQUEST_TYPES: Array<{ value: string; label: string }> = [
+const PUBLIC_REQUEST_TYPES: Array<{ value: string; label: string }> = [
   { value: "question", label: "Sual" },
   { value: "problem", label: "Problem" },
   { value: "complaint", label: "Şikayət" },
   { value: "partnership", label: "Tərəfdaşlıq" },
   { value: "inspection_partner", label: "Ekspertiza/Rəsmi servis tərəfdaşlığı" },
-  { value: "data_export", label: "Məlumat ixrac sorğusu (JSON/CSV)" },
-  { value: "data_rectification", label: "Məlumat düzəliş sorğusu" },
-  { value: "data_deletion", label: "Məlumat silinmə sorğusu" },
-  { value: "data_processing_objection", label: "Emala etiraz sorğusu" },
   { value: "other", label: "Digər" }
 ];
 
-export function SupportRequestForm({ listingId, initialRequestType = "question", initialSubject = "" }: SupportRequestFormProps) {
-  const safeInitialRequestType = REQUEST_TYPES.some((item) => item.value === initialRequestType)
+const PRIVACY_REQUEST_TYPES: Array<{ value: string; label: string }> = [
+  { value: "data_rectification", label: "Məlumat düzəliş sorğusu" },
+  { value: "data_deletion", label: "Məlumat silinmə sorğusu" },
+  { value: "data_processing_objection", label: "Emala etiraz sorğusu" },
+  { value: "other", label: "Digər (məxfilik)" }
+];
+
+export function SupportRequestForm({
+  listingId,
+  initialRequestType = "question",
+  initialSubject = "",
+  variant = "public"
+}: SupportRequestFormProps) {
+  const requestTypes = variant === "privacy" ? PRIVACY_REQUEST_TYPES : PUBLIC_REQUEST_TYPES;
+  const defaultType = variant === "privacy" ? "data_rectification" : "question";
+  const safeInitialRequestType = requestTypes.some((item) => item.value === initialRequestType)
     ? initialRequestType
-    : "question";
+    : defaultType;
   const [requestType, setRequestType] = useState(safeInitialRequestType);
   const [subject, setSubject] = useState(initialSubject);
   const [message, setMessage] = useState("");
@@ -83,15 +95,19 @@ export function SupportRequestForm({ listingId, initialRequestType = "question",
 
   return (
     <form onSubmit={onSubmit} className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="text-base font-semibold text-slate-900">Müraciət göndər</h3>
+      <h3 className="text-base font-semibold text-slate-900">
+        {variant === "privacy" ? "Əlavə məxfilik sorğusu" : "Müraciət göndər"}
+      </h3>
       <p className="mt-1 text-sm text-slate-500">
-        Sualınız, probleminiz və ya şikayətiniz varsa formu doldurun. Dəstək komandası qısa zamanda cavab verəcək.
+        {variant === "privacy"
+          ? "Standart düymələrlə örtülməyən hallar üçün əlavə mətnli sorğu göndərin."
+          : "Sualınız, probleminiz və ya şikayətiniz varsa formu doldurun. Dəstək komandası qısa zamanda cavab verəcək."}
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <label className="space-y-1">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət tipi</span>
           <select className="input-field" value={requestType} onChange={(e) => setRequestType(e.target.value)}>
-            {REQUEST_TYPES.map((item) => (
+            {requestTypes.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>

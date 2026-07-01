@@ -42,7 +42,7 @@ export async function PATCH(req: Request) {
   if (listingIds.length === 0 || !body.status) {
     return NextResponse.json({ ok: false, error: "Elan ID-ləri və status mütləqdir." }, { status: 400 });
   }
-  const allowed = new Set(["active", "inactive", "archived", "rejected", "pending_review"]);
+  const allowed = new Set(["active", "inactive", "archived", "rejected", "pending_review", "draft"]);
   if (!allowed.has(body.status)) {
     return NextResponse.json({ ok: false, error: "Elan statusu yanlışdır." }, { status: 400 });
   }

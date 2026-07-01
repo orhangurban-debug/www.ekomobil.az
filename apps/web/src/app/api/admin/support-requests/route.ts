@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { listAdminSupportRequestsPaged, updateAdminSupportRequest } from "@/server/admin-store";
+import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteArchivedSupportRequests } from "@/server/admin-store";
 import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
 
-const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed"]);
+const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
 const ALLOWED_PRIORITY = new Set(["low", "normal", "high", "urgent"]);
 
 export async function GET(req: Request) {
@@ -170,4 +170,35 @@ export async function PATCH(req: Request) {
     emailError,
     status: effectiveStatus
   });
+}
+
+export async function DELETE(req: Request) {
+  const auth = requireApiRoles(req, ["admin"]);
+  if (!auth.ok) return auth.response;
+
+  const body = (await req.json()) as { ids?: string[]; reason?: string };
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id.trim()) : [];
+  if (ids.length === 0) {
+    return NextResponse.json({ ok: false, error: "Silinəcək müraciət ID-ləri mütləqdir." }, { status: 400 });
+  }
+
+  const deleted = await deleteArchivedSupportRequests(ids);
+  if (deleted === 0) {
+    return NextResponse.json(
+      { ok: false, error: "Yalnız arxivlənmiş müraciətlər silinə bilər." },
+      { status: 400 }
+    );
+  }
+
+  await createAdminAuditLog({
+    actorUserId: auth.user.id,
+    actorRole: auth.user.role,
+    actionType: "support_requests_deleted",
+    entityType: "support_request",
+    entityId: ids.join(","),
+    reason: body.reason,
+    metadata: { deleted, requested: ids.length }
+  });
+
+  return NextResponse.json({ ok: true, deleted });
 }

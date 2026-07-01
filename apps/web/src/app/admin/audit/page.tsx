@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listAdminAuditLogs } from "@/server/admin-audit-store";
+import { listAdminAuditLogs, listAuditActionTypes } from "@/server/admin-audit-store";
 
 export default async function AdminAuditPage({
   searchParams
@@ -12,7 +12,10 @@ export default async function AdminAuditPage({
   const q = typeof params.q === "string" ? params.q : undefined;
   const entityType = typeof params.entityType === "string" ? params.entityType : undefined;
   const actionType = typeof params.actionType === "string" ? params.actionType : undefined;
-  const data = await listAdminAuditLogs({ page, pageSize, q, entityType, actionType });
+  const [data, actionTypes] = await Promise.all([
+    listAdminAuditLogs({ page, pageSize, q, entityType, actionType }),
+    listAuditActionTypes()
+  ]);
   const qParams = new URLSearchParams();
   if (q) qParams.set("q", q);
   if (entityType) qParams.set("entityType", entityType);
@@ -25,17 +28,28 @@ export default async function AdminAuditPage({
         <p className="mt-1 text-sm text-slate-500">Bütün admin dəyişiklikləri üçün izləmə jurnalı.</p>
       </div>
 
-      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-4">
-        <input name="q" defaultValue={q} placeholder="Axtar" className="input-field md:col-span-2" />
-        <input name="entityType" defaultValue={entityType} placeholder="Obyekt tipi" className="input-field" />
+      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
+        <input name="q" defaultValue={q} placeholder="Axtar: əməliyyat, obyekt, səbəb" className="input-field md:col-span-2" />
+        <input name="entityType" defaultValue={entityType} placeholder="Obyekt tipi (listing, user...)" className="input-field" />
+        <select name="actionType" defaultValue={actionType ?? ""} className="input-field">
+          <option value="">Əməliyyat (hamısı)</option>
+          {actionTypes.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
         <div className="flex gap-2">
-          <input type="hidden" name="actionType" value={actionType ?? ""} />
           <input type="hidden" name="pageSize" value={pageSize} />
           <button type="submit" className="btn-primary w-full justify-center">Filtrlə</button>
         </div>
       </form>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        {data.items.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-sm font-medium text-slate-700">Audit qeydi tapılmadı</p>
+            <p className="mt-1 text-xs text-slate-400">Filteri dəyişin və ya daha geniş axtarış edin.</p>
+          </div>
+        ) : (
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
@@ -58,6 +72,7 @@ export default async function AdminAuditPage({
             ))}
           </tbody>
         </table>
+        )}
       </div>
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">

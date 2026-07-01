@@ -16,6 +16,7 @@ import {
   riskFlagBadgeClass,
   type SupportRiskFlag
 } from "@/lib/support-admin";
+import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 
 export type { AdminSupportRequestRow, AssignableStaff };
 
@@ -24,7 +25,8 @@ const STATUS_OPTIONS = [
   { value: "in_progress", label: "İcrada" },
   { value: "waiting_user", label: "Cavab gözlənilir" },
   { value: "resolved", label: "Həll edilib" },
-  { value: "closed", label: "Bağlanıb" }
+  { value: "closed", label: "Bağlanıb" },
+  { value: "archived", label: "Arxivdə" }
 ];
 
 const PRIORITY_OPTIONS = [
@@ -53,6 +55,8 @@ function statusBadgeClass(status: string): string {
       return "bg-emerald-50 text-emerald-700 ring-emerald-200";
     case "closed":
       return "bg-slate-100 text-slate-600 ring-slate-200";
+    case "archived":
+      return "bg-slate-50 text-slate-400 ring-slate-100";
     default:
       return "bg-slate-100 text-slate-600 ring-slate-200";
   }
@@ -97,10 +101,12 @@ function staffLabel(staff: AssignableStaff): string {
 
 export function AdminSupportRequestsTable({
   items,
-  assignees
+  assignees,
+  canDelete = false
 }: {
   items: AdminSupportRequestRow[];
   assignees: AssignableStaff[];
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(items);
@@ -251,6 +257,57 @@ export function AdminSupportRequestsTable({
     }
     window.open(`/api/admin/support-requests/${selected.id}/export?format=json`, "_blank", "noopener,noreferrer");
   }
+
+  async function archiveSelected() {
+    if (!selected || selected.status === "archived") return;
+    setBusy(true);
+    setError(null);
+    try {
+      setDraft((d) => ({ ...d, status: "archived" }));
+      const response = await fetch("/api/admin/support-requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selected.id, status: "archived" })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        setError(payload.error ?? "Arxivləmə uğursuz oldu.");
+        setDraft((d) => ({ ...d, status: selected.status }));
+        return;
+      }
+      setRows((prev) => prev.filter((row) => row.id !== selected.id));
+      setSelectedId(null);
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteSelected() {
+    if (!selected || selected.status !== "archived") return;
+    if (!window.confirm("Bu arxiv müraciəti həmişəlik silinsin? Geri qaytarmaq mümkün deyil.")) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/support-requests", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [selected.id], reason: "Admin arxiv silməsi" })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        setError(payload.error ?? "Silmə uğursuz oldu.");
+        return;
+      }
+      setRows((prev) => prev.filter((row) => row.id !== selected.id));
+      setSelectedId(null);
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const isArchived = selected?.status === "archived";
 
   if (rows.length === 0) {
     return (
@@ -436,9 +493,11 @@ export function AdminSupportRequestsTable({
                 </div>
                 <p className="mt-2 text-xs text-slate-400">
                   Yaradılıb: {formatWhen(selected.createdAt)} · Son aktivlik: {formatWhen(selected.lastActivityAt)}
+                  {selected.archivedAt && <> · Arxiv: {formatWhen(selected.archivedAt)}</>}
                 </p>
               </section>
 
+              {!isArchived && (
               <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <label className="space-y-1.5">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</span>
@@ -474,7 +533,10 @@ export function AdminSupportRequestsTable({
                   </select>
                 </label>
               </section>
+              )}
 
+              {!isArchived && (
+              <>
               <section>
                 <label className="space-y-1.5">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Cavab (istifadəçiyə e-poçt)</span>
@@ -503,16 +565,32 @@ export function AdminSupportRequestsTable({
                   />
                 </label>
               </section>
+              </>
+              )}
+
+              {isArchived && (
+                <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                  Bu müraciət arxivdədir. Həll edilmiş/bağlanmış müraciətlər {SUPPORT_ARCHIVE_AFTER_DAYS} gündən sonra avtomatik arxivlənir.
+                  Yalnız admin arxiv müraciətlərini silə bilər.
+                </section>
+              )}
             </div>
 
             <div className="border-t border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center gap-2">
+                {!isArchived && (
+                <>
                 <button type="button" onClick={() => void saveSelected()} disabled={busy} className="btn-primary px-5 py-2.5 text-sm disabled:opacity-60">
                   {busy ? "Saxlanılır..." : "Saxla və cavab göndər"}
                 </button>
                 {draft.adminResponse.trim() && selected.reporterEmail && (
                   <button type="button" onClick={() => void saveSelected({ resendEmail: true })} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
                     E-poçtu yenidən göndər
+                  </button>
+                )}
+                {(selected.status === "resolved" || selected.status === "closed") && (
+                  <button type="button" onClick={() => void archiveSelected()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
+                    Arxivlə
                   </button>
                 )}
                 <button type="button" onClick={() => openPrintExport("html")} className="btn-secondary px-4 py-2.5 text-sm">
@@ -524,6 +602,21 @@ export function AdminSupportRequestsTable({
                 <button type="button" onClick={() => void createIncidentFromRequest()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
                   Incident yarat
                 </button>
+                </>
+                )}
+                {isArchived && canDelete && (
+                <>
+                <button type="button" onClick={() => openPrintExport("html")} className="btn-secondary px-4 py-2.5 text-sm">
+                  Çap / PDF
+                </button>
+                <button type="button" onClick={() => openPrintExport("json")} className="btn-secondary px-4 py-2.5 text-sm">
+                  JSON export
+                </button>
+                <button type="button" onClick={() => void deleteSelected()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
+                  {busy ? "Silinir..." : "Arxivi sil"}
+                </button>
+                </>
+                )}
                 {emailSent && <span className="text-sm font-medium text-emerald-600">E-poçt göndərildi</span>}
                 {emailError && <span className="text-sm text-amber-700">E-poçt xətası: {emailError}</span>}
                 {incidentMsg && <span className="text-sm text-emerald-700">{incidentMsg}</span>}

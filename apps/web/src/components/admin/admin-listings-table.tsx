@@ -57,7 +57,7 @@ interface EditModalState {
   city: string;
 }
 
-export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
+export function AdminListingsTable({ items, canDelete = false }: { items: AdminListingRow[]; canDelete?: boolean }) {
   const [rows, setRows] = useState(items);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -290,6 +290,14 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
               type="button"
               disabled={busy}
               className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60"
+              onClick={() => void bulkUpdate("draft")}
+            >
+              Toplu qaralama
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60"
               onClick={() => void bulkUpdate("archived")}
             >
               Toplu arxivlə
@@ -387,6 +395,7 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
                     >
                       Redaktə
                     </button>
+                    {canDelete && (
                     <button
                       type="button"
                       title="Sil"
@@ -395,6 +404,7 @@ export function AdminListingsTable({ items }: { items: AdminListingRow[] }) {
                     >
                       Sil
                     </button>
+                    )}
                   </div>
                 </td>
               </tr>

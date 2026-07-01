@@ -1,6 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { SupportRequestForm } from "@/components/support/support-request-form";
+import { getServerSessionUser } from "@/lib/auth";
+
+const PRIVACY_REQUEST_TYPES = new Set([
+  "data_export",
+  "data_rectification",
+  "data_deletion",
+  "data_processing_objection"
+]);
 
 export const metadata: Metadata = {
   title: "Etibar mexanizmləri",
@@ -36,8 +45,15 @@ export default async function TrustPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const initialRequestType = typeof params.type === "string" ? params.type : "question";
+  const rawType = typeof params.type === "string" ? params.type : "question";
   const initialSubject = typeof params.subject === "string" ? params.subject : "";
+
+  if (PRIVACY_REQUEST_TYPES.has(rawType)) {
+    const user = await getServerSessionUser();
+    redirect(user ? "/me/privacy" : `/login?next=${encodeURIComponent("/me/privacy")}`);
+  }
+
+  const initialRequestType = rawType;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">

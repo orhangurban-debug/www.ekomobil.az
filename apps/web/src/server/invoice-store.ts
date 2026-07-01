@@ -214,13 +214,27 @@ export async function listInvoicesForUser(userId: string, limit = 50): Promise<I
   }
 }
 
-export async function listAllInvoices(limit = 100, offset = 0): Promise<InvoiceRecord[]> {
+export async function listAllInvoices(limit = 100, offset = 0, q?: string): Promise<InvoiceRecord[]> {
   await ensureInvoicesTable();
   try {
     const pool = getPgPool();
+    const where: string[] = [];
+    const values: Array<string | number> = [];
+    if (q?.trim()) {
+      values.push(`%${q.trim().toLowerCase()}%`);
+      where.push(`(
+        LOWER(invoice_number) LIKE $${values.length}
+        OR LOWER(user_email) LIKE $${values.length}
+        OR LOWER(user_name) LIKE $${values.length}
+        OR LOWER(COALESCE(payment_reference, '')) LIKE $${values.length}
+        OR LOWER(user_id::text) LIKE $${values.length}
+      )`);
+    }
+    values.push(limit, offset);
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
     const result = await pool.query<InvoiceRow>(
-      `SELECT * FROM invoices ORDER BY issued_at DESC LIMIT $1 OFFSET $2`,
-      [limit, offset]
+      `SELECT * FROM invoices ${whereSql} ORDER BY issued_at DESC LIMIT $${values.length - 1} OFFSET $${values.length}`,
+      values
     );
     return result.rows.map(mapRow);
   } catch {
@@ -228,11 +242,27 @@ export async function listAllInvoices(limit = 100, offset = 0): Promise<InvoiceR
   }
 }
 
-export async function countAllInvoices(): Promise<number> {
+export async function countAllInvoices(q?: string): Promise<number> {
   await ensureInvoicesTable();
   try {
     const pool = getPgPool();
-    const result = await pool.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM invoices`);
+    const where: string[] = [];
+    const values: string[] = [];
+    if (q?.trim()) {
+      values.push(`%${q.trim().toLowerCase()}%`);
+      where.push(`(
+        LOWER(invoice_number) LIKE $1
+        OR LOWER(user_email) LIKE $1
+        OR LOWER(user_name) LIKE $1
+        OR LOWER(COALESCE(payment_reference, '')) LIKE $1
+        OR LOWER(user_id::text) LIKE $1
+      )`);
+    }
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const result = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM invoices ${whereSql}`,
+      values
+    );
     return Number(result.rows[0]?.count ?? 0);
   } catch {
     return 0;

@@ -1,7 +1,10 @@
 import { BusinessPlanSubscriptionsManager } from "@/components/admin/business-plan-subscriptions-manager";
+import { requirePageRoles } from "@/lib/rbac";
 import { listBusinessPlanSubscriptions } from "@/server/business-plan-store";
 
 export default async function AdminBusinessPlansPage() {
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canEdit = auth.ok && auth.user.role === "admin";
   const items = await listBusinessPlanSubscriptions(300);
   return (
     <div className="space-y-4">
@@ -11,7 +14,7 @@ export default async function AdminBusinessPlansPage() {
           Salon və mağaza planlarının aktivliyi, bitmə tarixi və status idarəsi.
         </p>
       </div>
-      <BusinessPlanSubscriptionsManager initialItems={items} />
+      <BusinessPlanSubscriptionsManager initialItems={items} readOnly={!canEdit} />
     </div>
   );
 }

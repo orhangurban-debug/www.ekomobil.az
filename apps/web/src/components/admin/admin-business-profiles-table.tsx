@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 
 interface BusinessProfileItem {
   dealerId: string;
@@ -17,7 +18,13 @@ interface BusinessProfileItem {
   partsPlanId?: string;
 }
 
-export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileItem[] }) {
+export function AdminBusinessProfilesTable({
+  items,
+  readOnly = false
+}: {
+  items: BusinessProfileItem[];
+  readOnly?: boolean;
+}) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -96,7 +103,10 @@ export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileIt
   }
 
   return (
+    <div className="space-y-3">
+      {readOnly && <AdminReadOnlyBanner />}
     <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+      {!readOnly && (
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div className="text-sm text-slate-600">
           Seçilən profil: <span className="font-semibold text-slate-900">{selectedIds.length}</span>
@@ -136,6 +146,7 @@ export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileIt
           </button>
         </div>
       </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -186,6 +197,11 @@ export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileIt
                     <div className="text-xs text-slate-600 truncate max-w-[220px]">{item.websiteUrl ?? "Website yoxdur"}</div>
                   </td>
                   <td className="px-4 py-3">
+                    {readOnly ? (
+                      <div className="text-xs text-slate-500">
+                        {item.verified ? "Təsdiqlənib" : "Təsdiq gözləyir"} · WA {item.showWhatsapp ? "açıq" : "gizli"} · Web {item.showWebsite ? "açıq" : "gizli"}
+                      </div>
+                    ) : (
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -212,6 +228,7 @@ export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileIt
                         {item.showWebsite ? "Website gizlət" : "Website göstər"}
                       </button>
                     </div>
+                    )}
                   </td>
                 </tr>
               );
@@ -226,6 +243,7 @@ export function AdminBusinessProfilesTable({ items }: { items: BusinessProfileIt
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

@@ -187,15 +187,6 @@ export async function listIncidentInbox(input: {
   );
   const items = baseRows.rows.map(mapIncidentRow);
 
-  if (input.sourceType && input.sourceType !== "all" && input.sourceType !== "incident") {
-    return { items: [], total: 0, page, pageSize, totalPages: 1 };
-  }
-  if (input.sourceType === "incident") {
-    const total = Number(countResult.rows[0]?.total ?? 0);
-    return { items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
-  }
-
-  // Derived cases for unified inbox (manual reviews + auction ops)
   const [manualReviews, auctionCases] = await Promise.all([
     listManualReviews(),
     listAuctionOpsCases()
@@ -231,9 +222,11 @@ export async function listIncidentInbox(input: {
       metadata: { auctionId: row.auctionId, reasonCode: row.reasonCode, slaDueAt: row.slaDueAt }
     }))
   ];
-  const sourceFilter = input.sourceType;
+
   const filteredDerived = derived.filter((item) => {
-    if (sourceFilter && sourceFilter !== "all" && item.sourceType !== sourceFilter) return false;
+    if (input.sourceType && input.sourceType !== "all" && input.sourceType !== "incident" && item.sourceType !== input.sourceType) {
+      return false;
+    }
     if (input.status && item.status !== input.status) return false;
     if (input.severity && item.severity !== input.severity) return false;
     if (input.q?.trim()) {
@@ -242,6 +235,24 @@ export async function listIncidentInbox(input: {
     }
     return true;
   });
+
+  if (input.sourceType === "incident") {
+    const total = Number(countResult.rows[0]?.total ?? 0);
+    return { items, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
+  }
+
+  if (input.sourceType === "manual_review" || input.sourceType === "auction_case") {
+    const total = filteredDerived.length;
+    const start = (page - 1) * pageSize;
+    const paged = filteredDerived.slice(start, start + pageSize);
+    return {
+      items: paged,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize))
+    };
+  }
 
   const merged = [...items, ...filteredDerived].sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1));
   const mergedTotal = Number(countResult.rows[0]?.total ?? 0) + filteredDerived.length;

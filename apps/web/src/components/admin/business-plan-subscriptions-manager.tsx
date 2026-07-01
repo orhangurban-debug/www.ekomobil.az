@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { DEALER_PLANS } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
+import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 
 interface SubscriptionItem {
   id: string;
@@ -24,7 +25,13 @@ function planOptionsForType(type: SubscriptionItem["businessType"]) {
     : PARTS_STORE_PLANS.map((plan) => ({ value: plan.id, label: plan.nameAz }));
 }
 
-export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItems: SubscriptionItem[] }) {
+export function BusinessPlanSubscriptionsManager({
+  initialItems,
+  readOnly = false
+}: {
+  initialItems: SubscriptionItem[];
+  readOnly?: boolean;
+}) {
   const [items, setItems] = useState(initialItems);
   const [ownerUserId, setOwnerUserId] = useState("");
   const [ownerSearch, setOwnerSearch] = useState("");
@@ -110,6 +117,8 @@ export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItem
 
   return (
     <div className="space-y-5">
+      {readOnly && <AdminReadOnlyBanner />}
+      {!readOnly && (
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="text-base font-semibold text-slate-900">Yeni / yenilə abunə</h3>
         <div className="mt-3 grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-[1fr_auto]">
@@ -196,6 +205,7 @@ export function BusinessPlanSubscriptionsManager({ initialItems }: { initialItem
           {feedback && <span className="text-sm text-slate-600">{feedback}</span>}
         </div>
       </div>
+      )}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="text-base font-semibold text-slate-900">Aktiv və tarixi yazılar</h3>

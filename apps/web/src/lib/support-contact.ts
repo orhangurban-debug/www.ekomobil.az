@@ -16,7 +16,8 @@ export const STATUS_LABELS: Record<string, string> = {
   in_progress: "İcrada",
   waiting_user: "Cavab gözlənilir",
   resolved: "Həll edilib",
-  closed: "Bağlanıb"
+  closed: "Bağlanıb",
+  archived: "Arxivdə"
 };
 
 export const PRIORITY_LABELS: Record<string, string> = {

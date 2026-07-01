@@ -1,7 +1,10 @@
 import { BrandKitSettingsForm } from "@/components/admin/brand-kit-settings-form";
+import { requirePageRoles } from "@/lib/rbac";
 import { getBrandSettings } from "@/server/system-settings-store";
 
 export default async function AdminBrandKitPage() {
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canEdit = auth.ok && auth.user.role === "admin";
   const brand = await getBrandSettings();
   return (
     <div className="space-y-6">
@@ -11,7 +14,7 @@ export default async function AdminBrandKitPage() {
           Buradan loqoları, rəngləri və əlavə brand şəkillərini redaktə edə bilərsiniz. Dəyişikliklər avtomatik olaraq saytda tətbiq olunur.
         </p>
       </div>
-      <BrandKitSettingsForm initial={brand} />
+      <BrandKitSettingsForm initial={brand} readOnly={!canEdit} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminBusinessProfilesTable } from "@/components/admin/admin-business-profiles-table";
+import { requirePageRoles } from "@/lib/rbac";
 import { listAdminBusinessProfilesPaged } from "@/server/admin-store";
 
 export default async function AdminBusinessProfilesPage({
@@ -8,6 +9,8 @@ export default async function AdminBusinessProfilesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canEdit = auth.ok && auth.user.role === "admin";
   const page = Number(params.page || 1);
   const pageSize = Number(params.pageSize || 25);
   const q = typeof params.q === "string" ? params.q : undefined;
@@ -40,7 +43,7 @@ export default async function AdminBusinessProfilesPage({
         </div>
       </form>
 
-      <AdminBusinessProfilesTable items={data.items} />
+      <AdminBusinessProfilesTable items={data.items} readOnly={!canEdit} />
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">

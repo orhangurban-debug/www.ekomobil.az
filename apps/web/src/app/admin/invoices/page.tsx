@@ -8,15 +8,30 @@ const PAYMENT_TYPE_LABELS = {
   listing_boost: "Elan boost paketi"
 } as const;
 
-export default async function AdminInvoicesPage() {
+const PAGE_SIZE = 25;
+
+export default async function AdminInvoicesPage({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page || 1));
+  const q = typeof params.q === "string" ? params.q.trim() : undefined;
+  const offset = (page - 1) * PAGE_SIZE;
+
   const [invoices, total] = await Promise.all([
-    listAllInvoices(100, 0),
-    countAllInvoices()
+    listAllInvoices(PAGE_SIZE, offset, q),
+    countAllInvoices(q)
   ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const totalRevenueAzn = invoices.reduce((sum, inv) => sum + inv.amountAzn, 0);
   const sentCount = invoices.filter((inv) => inv.emailSentAt).length;
   const failedCount = invoices.filter((inv) => inv.emailError && !inv.emailSentAt).length;
+
+  const qParams = new URLSearchParams();
+  if (q) qParams.set("q", q);
 
   return (
     <div className="space-y-6">
@@ -25,14 +40,25 @@ export default async function AdminInvoicesPage() {
         <p className="mt-1 text-sm text-slate-500">Bütün ödəniş invoysları və e-poçt göndərmə statusu</p>
       </div>
 
-      {/* Summary cards */}
+      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_auto]">
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Axtar: invoys №, email, ad, ödəniş ref..."
+          className="input-field"
+        />
+        <button type="submit" className="btn-primary justify-center">
+          Filtrlə
+        </button>
+      </form>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ümumi invoys</p>
           <p className="mt-2 text-2xl font-bold text-slate-900">{total}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ümumi məbləğ</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Səhifə məbləği</p>
           <p className="mt-2 text-2xl font-bold text-slate-900">{totalRevenueAzn.toFixed(2)} ₼</p>
         </div>
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
@@ -45,11 +71,18 @@ export default async function AdminInvoicesPage() {
         </div>
       </div>
 
-      {/* Invoices table */}
       <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
         {invoices.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-sm text-slate-500">Hələ heç bir invoys yoxdur</p>
+            <p className="text-sm font-medium text-slate-700">İnvoys tapılmadı</p>
+            <p className="mt-1 text-xs text-slate-400">
+              {q ? "Filteri dəyişin və ya axtarışı təmizləyin." : "Hələ heç bir invoys yoxdur."}
+            </p>
+            {q && (
+              <Link href="/admin/invoices" className="mt-3 inline-block text-sm font-medium text-[#0891B2] hover:underline">
+                Filteri təmizlə
+              </Link>
+            )}
           </div>
         ) : (
           <table className="w-full border-collapse text-sm">
@@ -110,6 +143,26 @@ export default async function AdminInvoicesPage() {
             </tbody>
           </table>
         )}
+      </div>
+
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+        <p className="text-slate-500">
+          Cəmi <span className="font-semibold text-slate-900">{total}</span> · Səhifə {page}/{totalPages}
+        </p>
+        <div className="flex gap-2">
+          <Link
+            href={page > 1 ? `/admin/invoices?${new URLSearchParams([...qParams.entries(), ["page", String(page - 1)]])}` : "#"}
+            className={`btn-secondary px-3 py-1.5 text-xs ${page <= 1 ? "pointer-events-none opacity-50" : ""}`}
+          >
+            Geri
+          </Link>
+          <Link
+            href={page < totalPages ? `/admin/invoices?${new URLSearchParams([...qParams.entries(), ["page", String(page + 1)]])}` : "#"}
+            className={`btn-secondary px-3 py-1.5 text-xs ${page >= totalPages ? "pointer-events-none opacity-50" : ""}`}
+          >
+            İrəli
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -31,6 +31,7 @@ export interface AdminSupportRequestRow {
   riskFlag: string;
   responseAt?: string;
   resolvedAt?: string;
+  archivedAt?: string;
   lastActivityAt: string;
   createdAt: string;
   reporterContext?: SupportReporterContext;

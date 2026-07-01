@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminListingsTable } from "@/components/admin/admin-listings-table";
+import { requirePageRoles } from "@/lib/rbac";
 import { listAdminListingsPaged } from "@/server/admin-store";
 
 export default async function AdminListingsPage({
@@ -8,6 +9,8 @@ export default async function AdminListingsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const auth = await requirePageRoles(["admin", "support"]);
+  const canDelete = auth.ok && auth.user.role === "admin";
   const page = Number(params.page || 1);
   const pageSize = Number(params.pageSize || 25);
   const q = typeof params.q === "string" ? params.q : undefined;
@@ -66,7 +69,7 @@ export default async function AdminListingsPage({
         </div>
       </form>
 
-      <AdminListingsTable items={data.items} />
+      <AdminListingsTable items={data.items} canDelete={canDelete} />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
           Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}

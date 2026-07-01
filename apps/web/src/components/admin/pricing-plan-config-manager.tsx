@@ -10,9 +10,11 @@ import {
   type PricingCostModel
 } from "@/lib/pricing-plan-config";
 import { SERVICE_PLAN_CATEGORIES } from "@/lib/service-plans";
+import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 
 interface Props {
   initialConfig: PricingPlanAdminConfig;
+  readOnly?: boolean;
 }
 
 const SERVICE_PLANS = SERVICE_PLAN_CATEGORIES.flatMap((category) => category.plans);
@@ -32,7 +34,7 @@ function mergeEconomics(model: PricingCostModel): PricingCostModel {
   return { ...DEFAULT_PRICING_COST_MODEL, ...model };
 }
 
-export function PricingPlanConfigManager({ initialConfig }: Props) {
+export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Props) {
   const [config, setConfig] = useState<PricingPlanAdminConfig>({
     ...initialConfig,
     economics: mergeEconomics(initialConfig.economics)
@@ -150,6 +152,8 @@ export function PricingPlanConfigManager({ initialConfig }: Props) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      {readOnly && <div className="mb-4"><AdminReadOnlyBanner /></div>}
+      <fieldset disabled={readOnly} className="border-0 p-0">
       <h3 className="text-lg font-bold text-slate-900">Plan iqtisadiyyatı və limit idarəetməsi</h3>
       <p className="mt-1 text-sm text-slate-500">
         Qiymət, aktiv elan limiti, media limiti və plan mətnlərini mərkəzdən idarə edin.
@@ -325,11 +329,14 @@ export function PricingPlanConfigManager({ initialConfig }: Props) {
         })}
       </div>
 
+      {!readOnly && (
       <div className="mt-5">
         <button type="button" onClick={save} disabled={busy} className="btn-primary disabled:opacity-60">
           {busy ? "Saxlanılır..." : "Plan ayarlarını yadda saxla"}
         </button>
       </div>
+      )}
+      </fieldset>
     </div>
   );
 }
