@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { ServiceAiSuggestion } from "@/lib/ai/listing-vision-types";
+import {
+  buildPartnerApplicationPlanOptions,
+  getPartnerPlanGroupForProviderType
+} from "@/lib/service-plans";
 
 // ─── Provider types (grouped) ─────────────────────────────────────────────────
 
@@ -74,16 +78,6 @@ type UploadedSupportFile = {
   size: number;
 };
 
-type PlanOption = {
-  value: string;
-  label: string;
-  desc: string;
-  tagLimit: number;
-  certLimit: number;
-  imageLimit: number;
-  certFileLimit: number;
-  promo: boolean;
-};
 
 // ─── Service tags by provider type ───────────────────────────────────────────
 
@@ -251,34 +245,6 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
   ]
 };
 
-// ─── Plan options by group ────────────────────────────────────────────────────
-
-const PLAN_OPTIONS = {
-  official: [
-    { value: "starter", label: "Filial — 79 ₼/ay", desc: "1 profil, ilk 30 gün pulsuz", tagLimit: 20, certLimit: 3, imageLimit: 6, certFileLimit: 3, promo: true },
-    { value: "pro", label: "Mərkəz — 149 ₼/ay", desc: "geniş onboarding, ilk 30 gün pulsuz", tagLimit: 40, certLimit: 6, imageLimit: 12, certFileLimit: 6, promo: true },
-    { value: "premium", label: "Şəbəkə — 279 ₼/ay", desc: "korporativ paket, ilk 30 gün pulsuz", tagLimit: 80, certLimit: 12, imageLimit: 20, certFileLimit: 10, promo: true }
-  ],
-  inspection: [
-    { value: "starter", label: "Solo — 39 ₼/ay", desc: "ekspert üçün start, ilk 30 gün pulsuz", tagLimit: 12, certLimit: 3, imageLimit: 5, certFileLimit: 4, promo: true },
-    { value: "pro", label: "Mərkəz — 79 ₼/ay", desc: "aktiv mərkəz, ilk 30 gün pulsuz", tagLimit: 24, certLimit: 6, imageLimit: 10, certFileLimit: 8, promo: true },
-    { value: "premium", label: "Şəbəkə — 149 ₼/ay", desc: "şəbəkə paket, ilk 30 gün pulsuz", tagLimit: 48, certLimit: 12, imageLimit: 16, certFileLimit: 12, promo: true }
-  ],
-  mechanic: [
-    { value: "free", label: "Pulsuz", desc: "1 profil, 5 tag", tagLimit: 5, certLimit: 1, imageLimit: 3, certFileLimit: 1, promo: false },
-    { value: "pro", label: "Usta Pro — 19 ₼/ay", desc: "15 tag, ilk 30 gün pulsuz", tagLimit: 15, certLimit: 3, imageLimit: 8, certFileLimit: 3, promo: true },
-    { value: "team", label: "Emalatxana — 49 ₼/ay", desc: "30 tag, komanda onboarding", tagLimit: 30, certLimit: 6, imageLimit: 15, certFileLimit: 6, promo: true }
-  ]
-};
-
-type PlanGroupKey = keyof typeof PLAN_OPTIONS;
-
-function getPlanGroupForType(type: ProviderTypeValue): PlanGroupKey {
-  if (type === "official_service") return "official";
-  if (type === "inspection_company") return "inspection";
-  return "mechanic";
-}
-
 // ─── Cities ──────────────────────────────────────────────────────────────────
 
 const AZ_CITIES = [
@@ -316,8 +282,8 @@ export function InspectionPartnerApplicationForm() {
   const [limitFeedback, setLimitFeedback] = useState<string | null>(null);
 
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
-  const planGroup = providerType ? getPlanGroupForType(providerType) : "mechanic";
-  const planOptions = PLAN_OPTIONS[planGroup] as PlanOption[];
+  const planGroup = providerType ? getPartnerPlanGroupForProviderType(providerType) : "mechanic";
+  const planOptions = useMemo(() => buildPartnerApplicationPlanOptions(planGroup), [planGroup]);
   const selectedPlanMeta = planOptions.find((plan) => plan.value === selectedPlan) ?? planOptions[0];
 
   const providerOptions: ProviderOption[] = [];
@@ -548,14 +514,14 @@ export function InspectionPartnerApplicationForm() {
                     key={t.value}
                     type="button"
                     onClick={() => {
-                      const nextPlanGroup = getPlanGroupForType(t.value);
+                      const nextPlanGroup = getPartnerPlanGroupForProviderType(t.value);
                       setProviderType(t.value);
                       setSelectedTags([]);
                       setCertifications([]);
                       setServiceImages([]);
                       setCertificateFiles([]);
                       setLimitFeedback(null);
-                      setSelectedPlan(PLAN_OPTIONS[nextPlanGroup][0].value);
+                      setSelectedPlan(buildPartnerApplicationPlanOptions(nextPlanGroup)[0]?.value ?? "");
                     }}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
                       providerType === t.value

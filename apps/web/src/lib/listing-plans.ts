@@ -335,3 +335,23 @@ export function listingPlanMinFee(planType: PlanType): number {
   const plan = getPlanById(planType);
   return plan?.priceAzn ?? 0;
 }
+
+export function listingPlanMaxFee(planType: PlanType): number {
+  if (planType === "free") return 0;
+  const lastTier = PRICING_TIERS[PRICING_TIERS.length - 1];
+  return planType === "standard" ? lastTier.standardPriceAzn : lastTier.vipPriceAzn;
+}
+
+/** Qiymət aralığı (pricing səhifəsi və plan kartları üçün). */
+export function formatListingPlanPriceRange(planType: PlanType): string {
+  if (planType === "free") return "Pulsuz";
+  return `${listingPlanMinFee(planType)}–${listingPlanMaxFee(planType)} ₼`;
+}
+
+export function getListingPlanDurationDays(planType: PlanType): number {
+  return getPlanById(planType)?.durationDays ?? 30;
+}
+
+export function formatListingPlanDuration(planType: PlanType): string {
+  return `${getListingPlanDurationDays(planType)} gün aktiv`;
+}

@@ -1,6 +1,11 @@
 // ─── Service Provider Pricing Plans ─────────────────────────────────────────
 // Rəsmi servis, Ekspertiza şirkəti və Usta planları
 import type { ServicePlanOverride } from "@/lib/pricing-plan-config";
+import {
+  getServicePartnerPlanLimits,
+  getServicePlanGroupForProvider,
+  type ServicePlanGroup
+} from "@/lib/ai/service-plan-limits";
 
 export interface ServicePlan {
   id: string;
@@ -274,4 +279,44 @@ export function getServicePlanCategoriesWithOverrides(
       };
     })
   }));
+}
+
+export interface PartnerApplicationPlanOption {
+  value: string;
+  label: string;
+  desc: string;
+  tagLimit: number;
+  certLimit: number;
+  imageLimit: number;
+  certFileLimit: number;
+  promo: boolean;
+}
+
+function partnerPlanShortId(planId: string): string {
+  return planId.split("-").slice(-1)[0] ?? planId;
+}
+
+export function buildPartnerApplicationPlanOptions(group: ServicePlanGroup): PartnerApplicationPlanOption[] {
+  const category = SERVICE_PLAN_CATEGORIES.find((item) => item.id === group);
+  const plans = category?.plans ?? MECHANIC_PLANS;
+  return plans.map((plan) => {
+    const shortId = partnerPlanShortId(plan.id);
+    const limits = getServicePartnerPlanLimits(group, shortId);
+    const priceLabel =
+      plan.priceAzn === 0 ? plan.nameAz : `${plan.nameAz} — ${plan.priceAzn} ₼${plan.billingAz}`;
+    return {
+      value: shortId,
+      label: priceLabel,
+      desc: plan.launchOfferAz ?? plan.descriptionAz,
+      tagLimit: limits.tagLimit,
+      certLimit: limits.certLimit,
+      imageLimit: limits.imageLimit,
+      certFileLimit: limits.certFileLimit,
+      promo: Boolean(plan.launchOfferAz)
+    };
+  });
+}
+
+export function getPartnerPlanGroupForProviderType(providerType: string): ServicePlanGroup {
+  return getServicePlanGroupForProvider(providerType);
 }

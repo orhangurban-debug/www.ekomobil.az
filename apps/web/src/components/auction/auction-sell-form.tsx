@@ -101,9 +101,12 @@ export function AuctionSellForm({
   const suggestedSellerBond = effectiveFloorAzn > 0 ? calcSellerPerformanceBond(effectiveFloorAzn) : 0;
   const listingFeeAzn = getLotListingFeeAzn(selected?.listingKind);
   const successFeePreviewAzn = effectiveFloorAzn > 0 ? calcSellerCommission(effectiveFloorAzn, selected?.listingKind) : 0;
-  const successFeeRateLabel = selected?.listingKind === "part" ? "3%" : "1.2%";
-  const successFeeMinLabel = selected?.listingKind === "part" ? "2 ₼" : "25 ₼";
-  const successFeeCapLabel = selected?.listingKind === "part" ? "40 ₼" : "700 ₼";
+  const isPartLot = selected?.listingKind === "part";
+  const successFeeRateLabel = isPartLot
+    ? `${AUCTION_FEES.SELLER_COMMISSION_PART_RATE * 100}%`
+    : `${AUCTION_FEES.SELLER_COMMISSION_VEHICLE_RATE * 100}%`;
+  const successFeeMinLabel = `${isPartLot ? AUCTION_FEES.SELLER_COMMISSION_PART_MIN_AZN : AUCTION_FEES.SELLER_COMMISSION_VEHICLE_MIN_AZN} ₼`;
+  const successFeeCapLabel = `${isPartLot ? AUCTION_FEES.SELLER_COMMISSION_PART_CAP_AZN : AUCTION_FEES.SELLER_COMMISSION_VEHICLE_CAP_AZN} ₼`;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

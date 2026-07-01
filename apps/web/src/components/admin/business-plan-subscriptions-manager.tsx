@@ -1,9 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+
+interface PlanCatalogItem {
+  id: string;
+  nameAz: string;
+  priceAzn: number;
+}
 
 interface SubscriptionItem {
   id: string;
@@ -19,17 +23,23 @@ interface SubscriptionItem {
 
 const statusOptions: Array<SubscriptionItem["status"]> = ["active", "expired", "cancelled"];
 
-function planOptionsForType(type: SubscriptionItem["businessType"]) {
-  return type === "dealer"
-    ? DEALER_PLANS.map((plan) => ({ value: plan.id, label: plan.nameAz }))
-    : PARTS_STORE_PLANS.map((plan) => ({ value: plan.id, label: plan.nameAz }));
+function planOptionsForType(type: SubscriptionItem["businessType"], dealerPlans: PlanCatalogItem[], partsPlans: PlanCatalogItem[]) {
+  const plans = type === "dealer" ? dealerPlans : partsPlans;
+  return plans.map((plan) => ({
+    value: plan.id,
+    label: `${plan.nameAz} (${plan.priceAzn} ₼/ay)`
+  }));
 }
 
 export function BusinessPlanSubscriptionsManager({
   initialItems,
+  dealerPlans,
+  partsPlans,
   readOnly = false
 }: {
   initialItems: SubscriptionItem[];
+  dealerPlans: PlanCatalogItem[];
+  partsPlans: PlanCatalogItem[];
   readOnly?: boolean;
 }) {
   const [items, setItems] = useState(initialItems);
@@ -38,14 +48,17 @@ export function BusinessPlanSubscriptionsManager({
   const [ownerCandidates, setOwnerCandidates] = useState<Array<{ id: string; email: string; role: string }>>([]);
   const [searchingOwner, setSearchingOwner] = useState(false);
   const [businessType, setBusinessType] = useState<"dealer" | "parts_store">("dealer");
-  const [planId, setPlanId] = useState<string>(DEALER_PLANS[0]?.id ?? "baza");
+  const [planId, setPlanId] = useState<string>(dealerPlans[0]?.id ?? "baza");
   const [status, setStatus] = useState<SubscriptionItem["status"]>("active");
   const [startsAt, setStartsAt] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const currentPlanOptions = useMemo(() => planOptionsForType(businessType), [businessType]);
+  const currentPlanOptions = useMemo(
+    () => planOptionsForType(businessType, dealerPlans, partsPlans),
+    [businessType, dealerPlans, partsPlans]
+  );
 
   async function lookupOwnerByEmail() {
     const q = ownerSearch.trim();
@@ -165,7 +178,7 @@ export function BusinessPlanSubscriptionsManager({
               onChange={(e) => {
                 const nextType = e.target.value as "dealer" | "parts_store";
                 setBusinessType(nextType);
-                const fallbackPlan = planOptionsForType(nextType)[0]?.value ?? "";
+                const fallbackPlan = planOptionsForType(nextType, dealerPlans, partsPlans)[0]?.value ?? "";
                 setPlanId(fallbackPlan);
               }}
             >

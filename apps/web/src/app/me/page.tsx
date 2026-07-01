@@ -247,7 +247,7 @@ export default async function ProfilePage({
                         <div className="mt-1 text-xs text-slate-500">{item.city} • {item.year}</div>
                       </div>
                       <div className="flex shrink-0 items-center gap-4">
-                        <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} variant="compact" />
+                        <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />
                         <div className="text-right">
                           <div className="text-sm font-semibold text-brand-700">{item.priceAzn.toLocaleString()} ₼</div>
                           <div className="mt-1 text-xs text-slate-500">Trust {item.trustScore}/100</div>

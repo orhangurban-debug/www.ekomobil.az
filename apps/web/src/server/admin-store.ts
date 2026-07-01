@@ -2,8 +2,7 @@ import { getPgPool } from "@/lib/postgres";
 import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
 import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
+import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
 
 let supportEnrichColumnsReadyCache: boolean | null = null;
 let supportArchiveColumnsReadyCache: boolean | null = null;
@@ -454,8 +453,9 @@ export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
     const activeDealerSubscriptions = n(subs.rows[0]?.active_dealer);
     const activePartsSubscriptions = n(subs.rows[0]?.active_parts);
     const expiringSubscriptions7d = n(subs.rows[0]?.expiring_7d);
-    const dealerMrr = activeDealerSubscriptions * (DEALER_PLANS.find((p) => p.id === "baza")?.priceAzn ?? 0);
-    const partsMrr = activePartsSubscriptions * (PARTS_STORE_PLANS.find((p) => p.id === "baza")?.priceAzn ?? 0);
+    const [dealerCatalog, partsCatalog] = await Promise.all([getDealerPlanCatalog(), getPartsPlanCatalog()]);
+    const dealerMrr = activeDealerSubscriptions * (dealerCatalog.find((p) => p.id === "baza")?.priceAzn ?? 0);
+    const partsMrr = activePartsSubscriptions * (partsCatalog.find((p) => p.id === "baza")?.priceAzn ?? 0);
     const businessSubscriptionsRevenueAzn = dealerMrr + partsMrr;
     return {
       listingPlanRevenueAzn,

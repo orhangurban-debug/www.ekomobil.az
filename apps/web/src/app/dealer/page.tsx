@@ -189,7 +189,7 @@ export default async function DealerPortalPage() {
                     </td>
                     <td className="px-6 py-4 text-center"><StatusBadge status={item.status} /></td>
                     <td className="px-6 py-4 text-center">
-                      <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} variant="compact" />
+                      <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />
                     </td>
                   </tr>
                 ))

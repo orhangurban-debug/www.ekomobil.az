@@ -241,6 +241,34 @@ export default async function PricingPage() {
   const partsPro = partsPlans.find((plan) => plan.id === "peşəkar") ?? partsPlans[1] ?? partsBaza;
   const partsNet = partsPlans.find((plan) => plan.id === "şəbəkə") ?? partsPlans[2] ?? partsPro;
   const economics = pricingPlanConfig.economics;
+  const freeDurationDays = FREE_LISTING_PLAN?.durationDays ?? 30;
+  const freeGraceDays = FREE_LISTING_PLAN?.renewGracePeriodDays ?? 7;
+  const faqItems = [
+    {
+      q: "Mağazada 1000 məhsul varsa hamısı üçün ayrıca elan yarada bilərəm?",
+      a: `Bəli, ${partsNet.nameAz} planında ${partsNet.maxActiveListings} aktiv SKU limiti var və hər məhsul üçün ayrıca elan yarada bilərsiniz. Limit dolduqda yeni elan üçün mövcud SKU-lardan birini deaktiv etməli və ya planı yüksəltməlisiniz.`
+    },
+    {
+      q: "Elan haqqım nə qədər olacaq?",
+      a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə müəyyənləşir — yuxarıdakı cədvələ baxın. Elan yerləşdirərkən son addımda dəqiq məbləği görəcəksiniz."
+    },
+    {
+      q: "İrəlilətmə xidmətini nə vaxt əldə etmək lazımdır?",
+      a: "İstənilən vaxt — elan aktiv olduqdan sonra idarə panelindən irəlilətmə əlavə edə bilərsiniz. Elan yerləşdirərkən eyni zamanda irəlilətmə seçmək də mümkündür."
+    },
+    {
+      q: "Salon üçün minimum plan hansıdır?",
+      a: `Salonlar üçün giriş planı (${dealerBaza.nameAz}) aylıq ${dealerBaza.priceAzn} ₼-dır. Bu planla əsas salon paneli, inventar və lead idarəetməsi açılır. CSV import və analitika üçün ${dealerPro.nameAz} planına keçmək lazımdır.`
+    },
+    {
+      q: "Auksion lotunda satış olmasa lot haqqı geri qaytarılırmı?",
+      a: "Xeyr. Lot yerləşdirmə haqqı geri qaytarılmır — platforma yoxlama və aktivasiya xərclərini əhatə edir. Satış komisyonu isə yalnız uğurlu satış baş verdikdə tutulur."
+    },
+    {
+      q: "Avtomobilin satış məbləğini EkoMobil vasitəsilə ödəmək olarmı?",
+      a: "Xeyr. Avtomobilin əsas ödənişi alıcıdan satıcıya birbaşa həyata keçirilir. Platforma yalnız elan haqqı, irəlilətmə xidmətləri və auksion komisyonunu qəbul edir."
+    }
+  ];
   return (
     <div className="bg-slate-50">
       {/* ─── Page hero ─────────────────────────────────────────────── */}
@@ -309,7 +337,7 @@ export default async function PricingPage() {
               <p className="text-sm font-semibold text-amber-900">Pulsuz plan → 1 aktiv elan limiti</p>
               <p className="mt-1 text-xs text-amber-700 leading-relaxed">
                 Bir istifadəçi eyni anda yalnız <strong>1 aktiv pulsuz elan</strong> yerləşdirə bilər.
-                İkinci pulsuz elan üçün birinci elanın müddəti bitməlidir (30 gün + 7 gün lütf müddəti).
+                İkinci pulsuz elan üçün birinci elanın müddəti bitməlidir ({freeDurationDays} gün + {freeGraceDays} gün lütf müddəti).
                 Eyni anda birdən çox elan istəyirsinizsə, Standart yaxud VIP plan seçin.
               </p>
             </div>
@@ -1129,32 +1157,7 @@ export default async function PricingPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
           <h2 className="mb-6 text-xl font-bold text-slate-900">Tez-tez soruşulan suallar</h2>
           <div className="space-y-5 divide-y divide-slate-100">
-            {[
-              {
-                q: "Mağazada 1000 məhsul varsa hamısı üçün ayrıca elan yarada bilərəm?",
-                a: "Bəli, Mağaza Şəbəkə planında 1000 aktiv SKU limiti var və hər məhsul üçün ayrıca elan yarada bilərsiniz. Limit dolduqda yeni elan üçün mövcud SKU-lardan birini deaktiv etməli və ya planı yüksəltməlisiniz."
-              },
-              {
-                q: "Elan haqqım nə qədər olacaq?",
-                a: "Pulsuz elan həmişə 0 ₼-dır. Standart və VIP planların qiyməti avtomobilin satış qiymətinə görə müəyyənləşir — yuxarıdakı cədvələ baxın. Elan yerləşdirərkən son addımda dəqiq məbləği görəcəksiniz."
-              },
-              {
-                q: "İrəlilətmə xidmətini nə vaxt əldə etmək lazımdır?",
-                a: "İstənilən vaxt — elan aktiv olduqdan sonra idarə panelindən irəlilətmə əlavə edə bilərsiniz. Elan yerləşdirərkən eyni zamanda irəlilətmə seçmək də mümkündür."
-              },
-              {
-                q: "Salon üçün minimum plan hansıdır?",
-                a: "Salonlar üçün giriş planı aylıq 29 ₼-dır. Bu planla əsas salon paneli, inventar və lead idarəetməsi açılır. CSV import və analitika üçün Salon Peşəkar planına keçmək lazımdır."
-              },
-              {
-                q: "Auksion lotunda satış olmasa lot haqqı geri qaytarılırmı?",
-                a: "Xeyr. Lot yerləşdirmə haqqı geri qaytarılmır — platforma yoxlama və aktivasiya xərclərini əhatə edir. Satış komisyonu isə yalnız uğurlu satış baş verdikdə tutulur."
-              },
-              {
-                q: "Avtomobilin satış məbləğini EkoMobil vasitəsilə ödəmək olarmı?",
-                a: "Xeyr. Avtomobilin əsas ödənişi alıcıdan satıcıya birbaşa həyata keçirilir. Platforma yalnız elan haqqı, irəlilətmə xidmətləri və auksion komisyonunu qəbul edir."
-              }
-            ].map((item) => (
+            {faqItems.map((item) => (
               <div key={item.q} className="pt-5 first:pt-0">
                 <p className="font-medium text-slate-900">{item.q}</p>
                 <p className="mt-1.5 text-sm text-slate-500 leading-relaxed">{item.a}</p>

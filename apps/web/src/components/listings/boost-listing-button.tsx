@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
+import { LISTING_PLANS, formatListingPlanPrice, formatListingPlanDuration, type PlanType } from "@/lib/listing-plans";
 import {
   BUMP_PACKAGES,
   PREMIUM_PACKAGES,
@@ -13,6 +13,8 @@ import {
 interface BoostListingButtonProps {
   listingId: string;
   currentPlan?: PlanType;
+  /** Elan/hissə satış qiyməti — dinamik plan haqqı üçün */
+  listingPriceAzn?: number;
   /** Only show for paid plans when already max */
   variant?: "full" | "compact";
 }
@@ -27,6 +29,7 @@ const PLAN_RANK: Record<PlanType, number> = {
 export function BoostListingButton({
   listingId,
   currentPlan = "free",
+  listingPriceAzn,
   variant = "full"
 }: BoostListingButtonProps) {
   const router = useRouter();
@@ -35,6 +38,11 @@ export function BoostListingButton({
   const [error, setError] = useState<string | null>(null);
 
   const availablePlans = PAID_PLANS.filter((planId) => PLAN_RANK[planId] >= PLAN_RANK[currentPlan]);
+
+  function planPriceLabel(planId: PlanType): string {
+    const fee = formatListingPlanPrice(planId, listingPriceAzn);
+    return `${fee} · ${formatListingPlanDuration(planId)}`;
+  }
 
   if (availablePlans.length === 0) return null;
 
@@ -129,7 +137,7 @@ export function BoostListingButton({
                       {plan.nameAz}
                       {isCurrent ? " (müddəti uzat)" : ""}
                     </span>
-                    <span className="font-semibold text-slate-700">{plan.priceAzn} ₼</span>
+                    <span className="font-semibold text-slate-700">{planPriceLabel(planId)}</span>
                   </button>
                 );
               })}
@@ -176,7 +184,7 @@ export function BoostListingButton({
                     {plan.nameAz}
                     {isCurrent ? " (müddəti uzat)" : ""}
                   </span>
-                  <span className="font-bold text-brand-700">{plan.priceAzn} ₼ / {plan.durationDays} gün</span>
+                  <span className="font-bold text-brand-700">{planPriceLabel(planId)}</span>
                 </button>
               );
             })}

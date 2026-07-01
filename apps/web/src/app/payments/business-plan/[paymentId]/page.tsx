@@ -2,14 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getKapitalBankConfig, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getBusinessPlanPayment } from "@/server/business-plan-payment-store";
-import { DEALER_PLANS } from "@/lib/dealer-plans";
-import { PARTS_STORE_PLANS } from "@/lib/parts-store-plans";
+import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
 
-function getPlanLabel(businessType: "dealer" | "parts_store", planId: string): string {
-  if (businessType === "dealer") {
-    return DEALER_PLANS.find((item) => item.id === planId)?.nameAz ?? planId;
-  }
-  return PARTS_STORE_PLANS.find((item) => item.id === planId)?.nameAz ?? planId;
+async function getPlanLabel(businessType: "dealer" | "parts_store", planId: string): Promise<string> {
+  const catalog = businessType === "dealer" ? await getDealerPlanCatalog() : await getPartsPlanCatalog();
+  return catalog.find((item) => item.id === planId)?.nameAz ?? planId;
 }
 
 export default async function BusinessPlanPaymentPage({
@@ -23,6 +20,8 @@ export default async function BusinessPlanPaymentPage({
   const query = await searchParams;
   const payment = await getBusinessPlanPayment(paymentId);
   if (!payment) notFound();
+
+  const planLabel = await getPlanLabel(payment.businessType, payment.planId);
 
   const config = getKapitalBankConfig();
   const isLiveReady = isKapitalBankLiveReady(config);
@@ -53,7 +52,7 @@ export default async function BusinessPlanPaymentPage({
           </div>
           <div>
             <dt className="text-slate-500">Plan</dt>
-            <dd className="mt-1 font-medium text-slate-900">{getPlanLabel(payment.businessType, payment.planId)}</dd>
+            <dd className="mt-1 font-medium text-slate-900">{planLabel}</dd>
           </div>
           <div>
             <dt className="text-slate-500">Məbləğ</dt>

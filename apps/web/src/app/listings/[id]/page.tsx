@@ -449,6 +449,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   <BoostListingButton
                     listingId={listing.id}
                     currentPlan={listing.planType ?? "free"}
+                    listingPriceAzn={listing.priceAzn}
                   />
                 </div>
               )}
