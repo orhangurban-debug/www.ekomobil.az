@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS user_reports (
   description         TEXT        NOT NULL,
   status              TEXT        NOT NULL DEFAULT 'new'
                         CHECK (status IN ('new', 'triaged', 'linked_incident', 'dismissed', 'resolved')),
-  incident_id         UUID        REFERENCES incident_cases(id) ON DELETE SET NULL,
+  incident_id         TEXT        REFERENCES incident_cases(id) ON DELETE SET NULL,
   reporter_ip         TEXT,
   reporter_user_agent TEXT,
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
