@@ -18,6 +18,8 @@ export async function GET(req: Request) {
   const status = url.searchParams.get("status") || undefined;
   const priority = url.searchParams.get("priority") || undefined;
   const requestType = url.searchParams.get("requestType") || undefined;
+  const requestGroup = url.searchParams.get("requestGroup") || undefined;
+  const riskFlag = url.searchParams.get("riskFlag") || undefined;
   const assigned = (url.searchParams.get("assigned") as "yes" | "no" | null) ?? undefined;
   const sortDir = (url.searchParams.get("sortDir") as "asc" | "desc" | null) ?? undefined;
   const data = await listAdminSupportRequestsPaged({
@@ -27,6 +29,8 @@ export async function GET(req: Request) {
     status,
     priority,
     requestType,
+    requestGroup,
+    riskFlag,
     assigned,
     sortDir
   });
@@ -42,6 +46,8 @@ export async function PATCH(req: Request) {
     priority?: string;
     assignedToUserId?: string | null;
     adminResponse?: string;
+    internalNotes?: string;
+    riskFlag?: string;
     reason?: string;
     resendEmail?: boolean;
   };
@@ -53,6 +59,10 @@ export async function PATCH(req: Request) {
   }
   if (body.priority && !ALLOWED_PRIORITY.has(body.priority)) {
     return NextResponse.json({ ok: false, error: "Prioritet yanlışdır." }, { status: 400 });
+  }
+
+  if (body.riskFlag && !["none", "watch", "abuse", "legal"].includes(body.riskFlag)) {
+    return NextResponse.json({ ok: false, error: "Risk flag yanlışdır." }, { status: 400 });
   }
 
   // Fetch reporter contact info before updating (needed for email notification)
@@ -108,7 +118,10 @@ export async function PATCH(req: Request) {
         ? body.assignedToUserId
         : undefined,
     assigneeProvided: "assignedToUserId" in body,
-    adminResponse: body.adminResponse
+    adminResponse: body.adminResponse,
+    internalNotes: body.internalNotes,
+    internalNotesProvided: "internalNotes" in body,
+    riskFlag: body.riskFlag
   });
 
   await createAdminAuditLog({
@@ -122,7 +135,8 @@ export async function PATCH(req: Request) {
       status: effectiveStatus,
       priority: body.priority,
       assignedToUserId: body.assignedToUserId,
-      responded: hasNewResponse
+      responded: hasNewResponse,
+      riskFlag: body.riskFlag
     }
   });
 
