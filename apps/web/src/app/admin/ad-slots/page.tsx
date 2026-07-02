@@ -11,7 +11,7 @@ export default async function AdminAdSlotsPage() {
       <div className="rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-5">
         <h2 className="text-xl font-bold text-slate-900">Reklam yerləri və qiymətlər</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Saytdakı reklam slotlarını aktiv/deaktiv edin, məzmunu redaktə edin və aylıq qiymət cədvəlini idarə edin.
+          Reklam slotlarını idarə edin: &quot;Ödənişli reklam&quot; rejimində şəkil yükləyin, büdcə və gündəlik tarif təyin edin — müddət avtomatik hesablanır və bitəndə reklam öz-özünə sönür.
         </p>
       </div>
       <AdSlotsManager initial={config} readOnly={!canEdit} />

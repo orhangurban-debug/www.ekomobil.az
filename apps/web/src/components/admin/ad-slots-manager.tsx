@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AdSlotItem, AdSlotsConfig } from "@/lib/ad-slots-config";
+import type { AdCampaign, AdSlotItem, AdSlotsConfig } from "@/lib/ad-slots-config";
+import { computeAdCampaignStatus } from "@/lib/ad-slots-config";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { AdminImageUpload } from "@/components/admin/admin-image-upload";
 
 interface Props {
   initial: AdSlotsConfig;
@@ -26,6 +28,26 @@ function emptyCustom(): NonNullable<AdSlotItem["customContent"]> {
     accent: "#0057FF"
   };
 }
+
+function emptyCampaign(): AdCampaign {
+  return {
+    advertiserName: "",
+    imageUrl: "",
+    linkUrl: "",
+    budgetAzn: 0,
+    dailyRateAzn: 0,
+    startDate: new Date().toISOString().slice(0, 10),
+    active: false
+  };
+}
+
+const CAMPAIGN_STATE_META: Record<string, { label: string; cls: string }> = {
+  live: { label: "Efirdə", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  scheduled: { label: "Planlanıb", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  expired: { label: "Müddəti bitib", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  paused: { label: "Dayandırılıb", cls: "bg-slate-100 text-slate-600 border-slate-200" },
+  not_configured: { label: "Tamamlanmayıb", cls: "bg-slate-100 text-slate-500 border-slate-200" }
+};
 
 export function AdSlotsManager({ initial, readOnly = false }: Props) {
   const [config, setConfig] = useState<AdSlotsConfig>(initial);
@@ -67,6 +89,17 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
               ...slot,
               customContent: { ...(slot.customContent ?? emptyCustom()), ...patch }
             }
+          : slot
+      )
+    }));
+  }
+
+  function updateCampaign(id: string, patch: Partial<AdCampaign>) {
+    setConfig((prev) => ({
+      ...prev,
+      slots: prev.slots.map((slot) =>
+        slot.id === id
+          ? { ...slot, campaign: { ...(slot.campaign ?? emptyCampaign()), ...patch } }
           : slot
       )
     }));
@@ -156,9 +189,22 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
                       <p className="font-medium text-slate-900">{slot.label}</p>
                       <p className="text-xs text-slate-400">
                         {slot.size} · {slot.priceAznPerMonth} ₼/ay
+                        {slot.mode === "campaign" && slot.campaign?.advertiserName
+                          ? ` · ${slot.campaign.advertiserName}`
+                          : ""}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
+                      {slot.mode === "campaign" && (() => {
+                        const meta =
+                          CAMPAIGN_STATE_META[computeAdCampaignStatus(slot.campaign).state] ??
+                          CAMPAIGN_STATE_META.not_configured;
+                        return (
+                          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${meta.cls}`}>
+                            {meta.label}
+                          </span>
+                        );
+                      })()}
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           slot.enabled ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
@@ -192,12 +238,15 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
                               updateSlot(slot.id, {
                                 mode: e.target.value as AdSlotItem["mode"],
                                 customContent:
-                                  e.target.value === "custom" ? slot.customContent ?? emptyCustom() : slot.customContent
+                                  e.target.value === "custom" ? slot.customContent ?? emptyCustom() : slot.customContent,
+                                campaign:
+                                  e.target.value === "campaign" ? slot.campaign ?? emptyCampaign() : slot.campaign
                               })
                             }
                             className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 disabled:bg-slate-50"
                           >
                             <option value="placeholder">Boş yer (placeholder)</option>
+                            <option value="campaign">Ödənişli reklam (şəkil + büdcə)</option>
                             <option value="demo">Demo reklam</option>
                             <option value="custom">Fərdi məzmun</option>
                           </select>
@@ -297,6 +346,111 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
                           </label>
                         </div>
                       )}
+
+                      {slot.mode === "campaign" && (() => {
+                        const campaign = slot.campaign ?? emptyCampaign();
+                        const status = computeAdCampaignStatus(campaign);
+                        const meta = CAMPAIGN_STATE_META[status.state] ?? CAMPAIGN_STATE_META.not_configured;
+                        return (
+                          <div className="space-y-4 rounded-xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${meta.cls}`}>
+                                {meta.label}
+                              </span>
+                              <div className="text-xs text-slate-500">
+                                Müddət: <span className="font-semibold text-slate-800">{status.durationDays} gün</span>
+                                {status.endDate && (
+                                  <>
+                                    {" "}· bitir: <span className="font-semibold text-slate-800">{status.endDate}</span>
+                                  </>
+                                )}
+                                {status.state === "live" && (
+                                  <>
+                                    {" "}· qalıb: <span className="font-semibold text-emerald-700">{status.daysRemaining} gün</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <AdminImageUpload
+                              value={campaign.imageUrl}
+                              folder="ad-creatives"
+                              disabled={readOnly}
+                              label={`Reklam şəkli (${slot.size})`}
+                              onChange={(url) => updateCampaign(slot.id, { imageUrl: url })}
+                            />
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <label className="block text-sm">
+                                <span className="text-slate-500">Reklamverən</span>
+                                <input
+                                  disabled={readOnly}
+                                  value={campaign.advertiserName}
+                                  onChange={(e) => updateCampaign(slot.id, { advertiserName: e.target.value })}
+                                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                  placeholder="Şirkət adı"
+                                />
+                              </label>
+                              <label className="block text-sm">
+                                <span className="text-slate-500">Keçid linki (href)</span>
+                                <input
+                                  disabled={readOnly}
+                                  value={campaign.linkUrl}
+                                  onChange={(e) => updateCampaign(slot.id, { linkUrl: e.target.value })}
+                                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                  placeholder="https://..."
+                                />
+                              </label>
+                              <label className="block text-sm">
+                                <span className="text-slate-500">Büdcə (₼)</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  disabled={readOnly}
+                                  value={campaign.budgetAzn}
+                                  onChange={(e) => updateCampaign(slot.id, { budgetAzn: Math.max(0, Number(e.target.value) || 0) })}
+                                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                />
+                              </label>
+                              <label className="block text-sm">
+                                <span className="text-slate-500">Gündəlik tarif (₼/gün)</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  disabled={readOnly}
+                                  value={campaign.dailyRateAzn}
+                                  onChange={(e) => updateCampaign(slot.id, { dailyRateAzn: Math.max(0, Number(e.target.value) || 0) })}
+                                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                />
+                              </label>
+                              <label className="block text-sm">
+                                <span className="text-slate-500">Başlama tarixi</span>
+                                <input
+                                  type="date"
+                                  disabled={readOnly}
+                                  value={campaign.startDate}
+                                  onChange={(e) => updateCampaign(slot.id, { startDate: e.target.value })}
+                                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
+                                />
+                              </label>
+                              <label className="flex items-end gap-2 text-sm">
+                                <input
+                                  type="checkbox"
+                                  disabled={readOnly}
+                                  checked={campaign.active}
+                                  onChange={(e) => updateCampaign(slot.id, { active: e.target.checked })}
+                                  className="mb-2.5 rounded border-slate-300"
+                                />
+                                <span className="mb-2 text-slate-700">Kampaniya aktiv (efirə buraxılsın)</span>
+                              </label>
+                            </div>
+
+                            <p className="text-xs text-slate-500">
+                              Müddət avtomatik hesablanır: büdcə ÷ gündəlik tarif. Bitəndə reklam avtomatik sönür və slot yenidən boş yerə (placeholder) qayıdır.
+                            </p>
+                          </div>
+                        );
+                      })()}
 
                       <p className="text-xs text-slate-400">Slot ID: {slot.id}</p>
                     </div>

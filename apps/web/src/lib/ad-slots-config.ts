@@ -9,18 +9,51 @@ export interface AdSlotCustomContent {
   accent: string;
 }
 
+/**
+ * Ödənişli reklam kampaniyası — admin paneldən şəkil yüklənir, büdcə və gündəlik
+ * tarif əsasında müddət avtomatik hesablanır. Müddət bitəndə reklam avtomatik sönür.
+ */
+export interface AdCampaign {
+  advertiserName: string;
+  /** Yüklənmiş reklam şəkli (banner kreativi) */
+  imageUrl: string;
+  /** Kliklə keçid ünvanı */
+  linkUrl: string;
+  /** Ümumi büdcə (AZN) */
+  budgetAzn: number;
+  /** Gündəlik tarif (AZN/gün) — müddət = büdcə / gündəlik tarif */
+  dailyRateAzn: number;
+  /** Başlama tarixi (YYYY-MM-DD) */
+  startDate: string;
+  /** Kampaniya master açarı — admin əl ilə dayandıra/başlada bilər */
+  active: boolean;
+}
+
+export type AdCampaignState = "not_configured" | "scheduled" | "live" | "expired" | "paused";
+
+export interface AdCampaignStatus {
+  configured: boolean;
+  durationDays: number;
+  startDate: string;
+  endDate: string | null;
+  daysRemaining: number;
+  isLive: boolean;
+  state: AdCampaignState;
+}
+
 export interface AdSlotItem {
   id: string;
   label: string;
   page: "home" | "listings" | "parts" | "global";
   size: AdSize;
   enabled: boolean;
-  mode: AdMode | "custom";
+  mode: AdMode | "custom" | "campaign";
   placeholderText: string;
   /** Aylıq qiymət (AZN) — admin paneldə göstərilir */
   priceAznPerMonth: number;
   priceNote: string;
   customContent?: AdSlotCustomContent;
+  campaign?: AdCampaign;
 }
 
 export interface AdSlotsConfig {
@@ -140,10 +173,45 @@ export const DEFAULT_AD_SLOTS_CONFIG: AdSlotsConfig = {
   contactEmail: "reklam@ekomobil.az"
 };
 
+function isIsoDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function parseCampaign(raw: unknown): AdCampaign | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const o = raw as Record<string, unknown>;
+  const imageUrl = normalizeAssetUrl(String(o.imageUrl ?? ""));
+  const linkUrl = normalizeAssetUrl(String(o.linkUrl ?? ""));
+  const startDate = isIsoDate(String(o.startDate ?? "")) ? String(o.startDate) : todayIso();
+  return {
+    advertiserName: String(o.advertiserName ?? "").slice(0, 120),
+    imageUrl,
+    linkUrl,
+    budgetAzn: typeof o.budgetAzn === "number" && o.budgetAzn >= 0 ? o.budgetAzn : 0,
+    dailyRateAzn: typeof o.dailyRateAzn === "number" && o.dailyRateAzn >= 0 ? o.dailyRateAzn : 0,
+    startDate,
+    active: o.active === true
+  };
+}
+
+/** Xarici URL və ya daxili yol — digəri boş qaytarılır (təhlükəsiz normallaşdırma). */
+function normalizeAssetUrl(value: string): string {
+  const v = value.trim();
+  if (!v) return "";
+  if (v.startsWith("/")) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  return "";
+}
+
 function parseSlotItem(raw: unknown, fallback: AdSlotItem): AdSlotItem {
   if (!raw || typeof raw !== "object") return fallback;
   const o = raw as Record<string, unknown>;
-  const mode = o.mode === "demo" || o.mode === "custom" ? o.mode : "placeholder";
+  const mode =
+    o.mode === "demo" || o.mode === "custom" || o.mode === "campaign" ? o.mode : "placeholder";
   const size =
     o.size === "leaderboard" || o.size === "rectangle" || o.size === "wide" || o.size === "mobile"
       ? o.size
@@ -179,8 +247,62 @@ function parseSlotItem(raw: unknown, fallback: AdSlotItem): AdSlotItem {
         ? o.priceAznPerMonth
         : fallback.priceAznPerMonth,
     priceNote: String(o.priceNote ?? fallback.priceNote),
-    customContent
+    customContent,
+    campaign: parseCampaign(o.campaign)
   };
+}
+
+/**
+ * Kampaniyanın hazırkı statusunu hesablayır — müddət büdcə/gündəlik tarifə görə
+ * avtomatik təyin olunur. `isLive` yalnız pəncərə daxilində, aktiv və şəkilli olduqda true-dur.
+ */
+export function computeAdCampaignStatus(
+  campaign: AdCampaign | undefined,
+  now: Date = new Date()
+): AdCampaignStatus {
+  if (!campaign) {
+    return {
+      configured: false,
+      durationDays: 0,
+      startDate: todayIso(),
+      endDate: null,
+      daysRemaining: 0,
+      isLive: false,
+      state: "not_configured"
+    };
+  }
+
+  const durationDays =
+    campaign.dailyRateAzn > 0 ? Math.floor(campaign.budgetAzn / campaign.dailyRateAzn) : 0;
+  const configured =
+    Boolean(campaign.imageUrl) && campaign.budgetAzn > 0 && campaign.dailyRateAzn > 0 && durationDays > 0;
+
+  const start = new Date(`${campaign.startDate}T00:00:00`);
+  const end = new Date(start);
+  end.setDate(end.getDate() + durationDays);
+  const endIso = durationDays > 0 ? end.toISOString().slice(0, 10) : null;
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysRemaining = configured
+    ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / msPerDay))
+    : 0;
+
+  let state: AdCampaignState;
+  let isLive = false;
+  if (!campaign.active) {
+    state = "paused";
+  } else if (!configured) {
+    state = "not_configured";
+  } else if (now.getTime() < start.getTime()) {
+    state = "scheduled";
+  } else if (now.getTime() >= end.getTime()) {
+    state = "expired";
+  } else {
+    state = "live";
+    isLive = true;
+  }
+
+  return { configured, durationDays, startDate: campaign.startDate, endDate: endIso, daysRemaining, isLive, state };
 }
 
 export function parseAdSlotsConfig(raw: unknown): AdSlotsConfig {

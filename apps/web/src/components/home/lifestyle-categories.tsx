@@ -6,60 +6,30 @@ import {
   CircleDollarSign,
   ShieldCheck,
   Gavel,
+  Wrench,
+  Truck,
+  Star,
   type LucideIcon
 } from "lucide-react";
+import type { HomeCategory, HomeCategoryIcon } from "@/lib/home-content";
+import { DEFAULT_HOME_CONTENT } from "@/lib/home-content";
 
-type CategoryTone = "sky" | "emerald" | "violet" | "amber" | "teal" | "rose";
+const ICON_MAP: Record<HomeCategoryIcon, LucideIcon> = {
+  suv: CarFront,
+  electric: Zap,
+  sedan: Car,
+  budget: CircleDollarSign,
+  vin: ShieldCheck,
+  auction: Gavel,
+  parts: Wrench,
+  truck: Truck,
+  star: Star
+};
 
-interface LifestyleCategory {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  tone: CategoryTone;
-  badge?: string;
-}
+export function LifestyleCategories({ categories: categoriesProp }: { categories?: HomeCategory[] }) {
+  const categories =
+    categoriesProp && categoriesProp.length > 0 ? categoriesProp : DEFAULT_HOME_CONTENT.categories;
 
-const categories: LifestyleCategory[] = [
-  {
-    label: "SUV və krossover",
-    href: "/listings?bodyType=SUV",
-    icon: CarFront,
-    tone: "sky"
-  },
-  {
-    label: "Elektrik",
-    href: "/listings?fuelType=Elektrik",
-    icon: Zap,
-    tone: "emerald"
-  },
-  {
-    label: "Sedan",
-    href: "/listings?bodyType=Sedan",
-    icon: Car,
-    tone: "violet"
-  },
-  {
-    label: "10 000 ₼ altı",
-    href: "/listings?maxPrice=10000",
-    icon: CircleDollarSign,
-    tone: "amber"
-  },
-  {
-    label: "VIN Məlumatı",
-    href: "/listings?vinProvided=1",
-    icon: ShieldCheck,
-    tone: "teal"
-  },
-  {
-    label: "Auksion",
-    href: "/auction",
-    icon: Gavel,
-    tone: "rose",
-    badge: "Yeni"
-  }
-];
-
-export function LifestyleCategories() {
   return (
     <section className="surface-muted py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -72,9 +42,9 @@ export function LifestyleCategories() {
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((cat) => {
-            const Icon = cat.icon;
+            const Icon = ICON_MAP[cat.icon] ?? Star;
             return (
-              <Link key={cat.label} href={cat.href} className="category-card group">
+              <Link key={cat.id} href={cat.href} className="category-card group">
                 {cat.badge && <span className="category-badge">{cat.badge}</span>}
                 <div className={`icon-tile icon-tile-${cat.tone}`}>
                   <Icon className="h-6 w-6" strokeWidth={2.25} aria-hidden="true" />

@@ -15,7 +15,7 @@ import {
   HomeBottomAdSlot
 } from "@/components/home/home-ad-slots";
 import { getActiveListingCount, listListings } from "@/server/listing-store";
-import { getAdSlotsConfig } from "@/server/system-settings-store";
+import { getAdSlotsConfig, getHomeContentConfig } from "@/server/system-settings-store";
 
 function toCardData(item: {
   id: string; title: string; priceAzn: number; city: string; year: number;
@@ -42,30 +42,31 @@ function toCardData(item: {
 }
 
 export default async function HomePage() {
-  const [listingsResult, activeCount, adSlotsConfig] = await Promise.all([
+  const [listingsResult, activeCount, adSlotsConfig, homeContent] = await Promise.all([
     listListings({ page: 1, pageSize: 6, sort: "recent" }),
     getActiveListingCount(),
-    getAdSlotsConfig()
+    getAdSlotsConfig(),
+    getHomeContentConfig()
   ]);
   const featuredCards = listingsResult.items.map(toCardData);
 
   return (
     <div>
-      <HeroCarousel activeCount={activeCount} />
+      <HeroCarousel activeCount={activeCount} slides={homeContent.slides} />
       <PlatformStatsBar activeCount={activeCount} />
       <HomeTopAdSlot config={adSlotsConfig} />
       <PlatformAudiences />
       <HowItWorks />
       <HomeMidAdSlot config={adSlotsConfig} />
       <TrustFeaturesSection />
-      <LifestyleCategories />
+      <LifestyleCategories categories={homeContent.categories} />
 
       <section id="featured" className="py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h2 className="section-title">Son elanlar</h2>
-              <p className="section-subtitle">Premium seçilmiş avtomobillər</p>
+              <h2 className="section-title">{homeContent.featuredTitle}</h2>
+              <p className="section-subtitle">{homeContent.featuredSubtitle}</p>
             </div>
             <Link href="/listings" className="hidden text-sm font-medium text-[#0057FF] hover:underline sm:block">
               Hamısı →
@@ -106,10 +107,8 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="publish-strip items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Avtomobilinizi satmaq istəyirsiniz?</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Pulsuz elan, VIN yoxlama, etibar xalı və premium planlarla daha tez alıcı tapın.
-              </p>
+              <h2 className="text-xl font-bold text-slate-900">{homeContent.sellCtaTitle}</h2>
+              <p className="mt-1 text-sm text-slate-500">{homeContent.sellCtaText}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
               <Link href="/publish" className="btn-primary">Elan yerləşdir</Link>

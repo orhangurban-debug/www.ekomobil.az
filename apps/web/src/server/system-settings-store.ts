@@ -12,6 +12,11 @@ import {
   parseAdSlotsConfig,
   type AdSlotsConfig
 } from "@/lib/ad-slots-config";
+import {
+  DEFAULT_HOME_CONTENT,
+  parseHomeContentConfig,
+  type HomeContentConfig
+} from "@/lib/home-content";
 import { getPgPool } from "@/lib/postgres";
 
 interface SystemSettingsDbRow {
@@ -174,4 +179,35 @@ export async function updateAdSlotsConfig(input: AdSlotsConfig): Promise<AdSlots
     [JSON.stringify(payload)]
   );
   return parseAdSlotsConfig(result.rows[0]?.ad_slots_config ?? payload);
+}
+
+export async function getHomeContentConfig(): Promise<HomeContentConfig> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ home_content_config: unknown }>(
+      `SELECT home_content_config FROM system_settings WHERE id = 1 LIMIT 1`
+    );
+    return parseHomeContentConfig(result.rows[0]?.home_content_config ?? DEFAULT_HOME_CONTENT);
+  } catch {
+    return {
+      ...DEFAULT_HOME_CONTENT,
+      slides: [...DEFAULT_HOME_CONTENT.slides],
+      categories: [...DEFAULT_HOME_CONTENT.categories]
+    };
+  }
+}
+
+export async function updateHomeContentConfig(input: HomeContentConfig): Promise<HomeContentConfig> {
+  const pool = getPgPool();
+  const payload = parseHomeContentConfig({ ...input, updatedAt: new Date().toISOString() });
+  const result = await pool.query<{ home_content_config: unknown }>(
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, home_content_config, updated_at)
+     VALUES (1, 'BETA_FIN_ONLY', '{"vehicle":80,"part":15}'::jsonb, $1::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       home_content_config = EXCLUDED.home_content_config,
+       updated_at = NOW()
+     RETURNING home_content_config`,
+    [JSON.stringify(payload)]
+  );
+  return parseHomeContentConfig(result.rows[0]?.home_content_config ?? payload);
 }

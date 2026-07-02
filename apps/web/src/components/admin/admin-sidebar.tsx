@@ -18,6 +18,7 @@ const sections: Array<{
       { href: "/admin/support-requests", label: "Müraciət inbox" },
       { href: "/admin/legal-requests", label: "Hüquqi sorğular" },
       { href: "/admin/brand-kit", label: "Brend Kit (Rəng və Loqo)" },
+      { href: "/admin/home-content", label: "Ana səhifə məzmunu" },
       { href: "/admin/ad-slots", label: "Reklam yerləri" },
     ]
   },

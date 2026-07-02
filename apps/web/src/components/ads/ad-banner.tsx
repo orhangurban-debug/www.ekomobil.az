@@ -19,6 +19,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Megaphone } from "lucide-react";
 import type { AdSlotItem } from "@/lib/ad-slots-config";
+import { computeAdCampaignStatus } from "@/lib/ad-slots-config";
 
 export type AdSize = "leaderboard" | "rectangle" | "wide" | "mobile";
 export type AdMode = "placeholder" | "demo";
@@ -174,6 +175,43 @@ function PlaceholderBanner({
   );
 }
 
+/** Yüklənmiş reklam şəkli (banner kreativi) — kliklə keçid ilə */
+function ImageAdBanner({
+  imageUrl,
+  linkUrl,
+  advertiserName,
+  rounded = "rounded-xl"
+}: {
+  imageUrl: string;
+  linkUrl: string;
+  advertiserName: string;
+  rounded?: string;
+}) {
+  const inner = (
+    <div className={`relative h-full w-full overflow-hidden ${rounded} border border-slate-900/10 bg-white shadow-sm`}>
+      <div className="absolute right-2 top-2 z-10">
+        <AdLabel />
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl} alt={advertiserName || "Reklam"} className="h-full w-full object-cover" loading="lazy" />
+    </div>
+  );
+  if (linkUrl) {
+    const external = /^https?:\/\//i.test(linkUrl);
+    return (
+      <Link
+        href={linkUrl}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer sponsored" : "sponsored"}
+        className="block h-full w-full"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
+}
+
 function LeaderboardDemo({
   content,
   onClose
@@ -269,8 +307,13 @@ export function AdBanner({
 
   const resolvedSize = slotConfig?.size ?? size;
   const resolvedLabel = slotConfig?.id ?? slotLabel;
+
+  // Ödənişli kampaniya rejimi — canlıdırsa yüklənmiş şəkil göstərilir, əks halda placeholder-a düşür.
+  const campaign = slotConfig?.mode === "campaign" ? slotConfig.campaign : undefined;
+  const campaignLive = campaign ? computeAdCampaignStatus(campaign).isLive : false;
+
   const resolvedMode: AdMode =
-    slotConfig?.mode === "custom" ? "demo" : (slotConfig?.mode ?? mode);
+    slotConfig?.mode === "custom" ? "demo" : slotConfig?.mode === "campaign" ? "placeholder" : (slotConfig?.mode ?? mode);
   const resolvedPlaceholder = slotConfig?.placeholderText ?? placeholderText;
   const resolvedDemo =
     slotConfig?.mode === "custom" && slotConfig.customContent
@@ -280,6 +323,22 @@ export function AdBanner({
   const meta = SIZE_META[resolvedSize];
 
   if (resolvedMode === "demo" && dismissed) return null;
+
+  if (campaignLive && campaign) {
+    return (
+      <div
+        className={`mx-auto flex justify-center ${meta.wrapper} ${meta.heightClass} ${className}`}
+        role="complementary"
+        aria-label="Reklam yeri"
+      >
+        <ImageAdBanner
+          imageUrl={campaign.imageUrl}
+          linkUrl={campaign.linkUrl}
+          advertiserName={campaign.advertiserName}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -342,8 +401,12 @@ export function NativeAdCard({
   if (slotConfig && !slotConfig.enabled) return null;
 
   const resolvedLabel = slotConfig?.id ?? slotLabel;
+
+  const campaign = slotConfig?.mode === "campaign" ? slotConfig.campaign : undefined;
+  const campaignLive = campaign ? computeAdCampaignStatus(campaign).isLive : false;
+
   const resolvedMode: AdMode =
-    slotConfig?.mode === "custom" ? "demo" : (slotConfig?.mode ?? mode);
+    slotConfig?.mode === "custom" ? "demo" : slotConfig?.mode === "campaign" ? "placeholder" : (slotConfig?.mode ?? mode);
   const resolvedPlaceholder = slotConfig?.placeholderText ?? placeholderText;
   const content =
     slotConfig?.mode === "custom" && slotConfig.customContent
@@ -351,6 +414,23 @@ export function NativeAdCard({
       : getDemoAd(resolvedLabel);
 
   if (resolvedMode === "demo" && dismissed) return null;
+
+  if (campaignLive && campaign) {
+    return (
+      <div
+        className="relative min-h-[320px] overflow-hidden rounded-2xl"
+        role="complementary"
+        aria-label="Reklam yeri"
+      >
+        <ImageAdBanner
+          imageUrl={campaign.imageUrl}
+          linkUrl={campaign.linkUrl}
+          advertiserName={campaign.advertiserName}
+          rounded="rounded-2xl"
+        />
+      </div>
+    );
+  }
 
   if (resolvedMode === "placeholder") {
     return (

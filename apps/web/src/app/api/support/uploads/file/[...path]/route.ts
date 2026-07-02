@@ -24,17 +24,26 @@ function inferContentType(filePath: string): string {
   return "image/jpeg";
 }
 
-export async function GET(_req: Request, context: { params: Promise<{ path: string[] }> }) {
-  // Dəstək/hüquqi/partnyor sənədləri həssasdır — yalnız daxil olmuş istifadəçilərə verilir.
-  const sessionUser = await getServerSessionUser();
-  if (!sessionUser) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+// Publik marketinq media qovluqları — reklam kreativləri və ana səhifə şəkilləri
+// ziyarətçilərə açıqdır (auth tələb olunmur). Digər qovluqlar həssasdır.
+const PUBLIC_FOLDERS = new Set(["ad-creatives", "home-content"]);
 
+export async function GET(_req: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path: parts } = await context.params;
   if (!parts?.length) {
     return new Response("Not found", { status: 404 });
   }
+
+  const isPublic = PUBLIC_FOLDERS.has(parts[0]);
+
+  if (!isPublic) {
+    // Dəstək/hüquqi/partnyor sənədləri həssasdır — yalnız daxil olmuş istifadəçilərə verilir.
+    const sessionUser = await getServerSessionUser();
+    if (!sessionUser) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
+
   const root = localRoot();
   const relative = parts.join("/");
   const full = path.resolve(root, relative);
@@ -50,8 +59,10 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
   return new Response(stream as unknown as ReadableStream, {
     headers: {
       "Content-Type": inferContentType(full),
-      // Həssas məzmun — private cache, uzunmüddətli immutable saxlama yoxdur.
-      "Cache-Control": "private, no-store"
+      "Cache-Control": isPublic
+        ? "public, max-age=3600"
+        : // Həssas məzmun — private cache, uzunmüddətli immutable saxlama yoxdur.
+          "private, no-store"
     }
   });
 }
