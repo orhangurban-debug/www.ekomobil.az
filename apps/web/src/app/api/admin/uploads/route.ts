@@ -10,7 +10,7 @@ import {
 } from "@/lib/validate";
 import {
   getUploadStorageReadiness,
-  persistSupportUploadFile,
+  persistPublicMarketingFile,
   UploadStorageError
 } from "@/server/support-upload-storage";
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const stored = await persistSupportUploadFile({
+    const stored = await persistPublicMarketingFile({
       folder,
       fileId: randomUUID(),
       originalFilename: file.name || "ad.jpg",
