@@ -62,6 +62,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
               <a key={imageUrl} href={imageUrl} target="_blank" rel="noreferrer" className="overflow-hidden rounded-2xl border border-slate-900/10 bg-white/60">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imageUrl} alt={`${item.name} şəkil ${index + 1}`} className="h-48 w-full object-cover" />
               </a>
             ))}

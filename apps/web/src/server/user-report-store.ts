@@ -158,14 +158,13 @@ export async function submitReportDefense(input: {
     return { ok: false, error: "Bu şikayət artıq cavablandırılıb və ya bağlanıb." };
   }
 
-  const result = await pool.query(
+  await pool.query(
     `UPDATE user_reports
      SET reported_defense = $2,
          defense_submitted_at = NOW(),
          status = 'defense_received',
          updated_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
+     WHERE id = $1`,
     [input.reportId, input.defense.trim()]
   );
 

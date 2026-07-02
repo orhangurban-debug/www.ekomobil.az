@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { ContactActionButton } from "@/components/support/contact-action-button";
-import { getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
+import { getEffectiveNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
+import { getSystemSettings } from "@/server/system-settings-store";
 
 export const metadata = {
   title: "Auksion çərçivəsi | EkoMobil",
   description: "EkoMobil auksionunda satıcı və alıcı öhdəlikləri, mərhələli quruluş və platforma rolu"
 };
 
-export default function AuctionFrameworkPage() {
+export default async function AuctionFrameworkPage() {
+  const { penaltyAmounts } = await getSystemSettings();
+  const noShowPart = getEffectiveNoShowPenaltyAzn("part", penaltyAmounts);
+  const noShowVehicle = getEffectiveNoShowPenaltyAzn("vehicle", penaltyAmounts);
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <nav className="mb-8 text-sm text-slate-500">
@@ -112,8 +116,8 @@ export default function AuctionFrameworkPage() {
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>
               <strong>Alıcı öhdəliyinin pozulması:</strong> qalib alıcı öhdəliyini yerinə yetirmədikdə satıcı
-              bunu qeydə ala bilər; platforma alıcı öhdəlik haqqı (hissə üçün {getNoShowPenaltyAzn("part")} ₼,
-              avtomobil üçün {getNoShowPenaltyAzn("vehicle")} ₼) üzrə checkout axını təsdiq ekranından başladılır.
+              bunu qeydə ala bilər; platforma alıcı öhdəlik haqqı (hissə üçün {noShowPart} ₼,
+              avtomobil üçün {noShowVehicle} ₼) üzrə checkout axını təsdiq ekranından başladılır.
               EkoMobil öhdəlik pozuntularına qarşı sıfır tolerans mövqeyini saxlayır.
             </li>
             <li>

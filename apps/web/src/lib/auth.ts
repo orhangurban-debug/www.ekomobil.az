@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { authenticateUserFromStore } from "@/server/user-store";
+import { authenticateUserFromStore, isActiveAccountStatus } from "@/server/user-store";
 
 export type UserRole = "admin" | "support" | "dealer" | "viewer";
 
@@ -9,6 +9,10 @@ export interface SessionUser {
   email: string;
   role: UserRole;
 }
+
+export type AuthOutcome =
+  | { ok: true; user: SessionUser }
+  | { ok: false; reason: "invalid" | "blocked" };
 
 const SESSION_COOKIE_NAME = "ekomobil_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
@@ -33,10 +37,13 @@ function fromBase64Url(input: string): string {
   return Buffer.from(input, "base64url").toString("utf8");
 }
 
-export async function authenticateUser(email: string, password: string): Promise<SessionUser | null> {
+export async function authenticateUser(email: string, password: string): Promise<AuthOutcome> {
   const user = await authenticateUserFromStore(email, password);
-  if (!user) return null;
-  return { id: user.id, email: user.email, role: user.role };
+  if (!user) return { ok: false, reason: "invalid" };
+  if (!isActiveAccountStatus(user.accountStatus)) {
+    return { ok: false, reason: "blocked" };
+  }
+  return { ok: true, user: { id: user.id, email: user.email, role: user.role } };
 }
 
 export function createSessionToken(user: SessionUser): string {
@@ -81,4 +88,49 @@ export async function getServerSessionUser(): Promise<SessionUser | null> {
 
 export function getSessionCookieName(): string {
   return SESSION_COOKIE_NAME;
+}
+
+export function getSessionMaxAgeSeconds(): number {
+  return SESSION_TTL_SECONDS;
+}
+
+/**
+ * Production-da sessiya cookie-si üçün ümumi domen (`.ekomobil.az`) qaytarır ki,
+ * apex və www subdomenləri arasında sessiya tutarlı olsun. Bütün cookie set/clear
+ * əməliyyatları (email login, Google OAuth, logout) eyni domendən istifadə etməlidir —
+ * əks halda Google ilə daxil olan istifadəçinin logout-u işləmir.
+ */
+export function getSessionCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) return undefined;
+  try {
+    const hostname = new URL(appUrl).hostname.replace(/^www\./, "");
+    if (!hostname || hostname === "localhost") return undefined;
+    return `.${hostname}`;
+  } catch {
+    return undefined;
+  }
+}
+
+interface SessionCookieMutationOptions {
+  httpOnly: true;
+  secure: boolean;
+  sameSite: "lax";
+  path: "/";
+  maxAge: number;
+  domain?: string;
+}
+
+/** Sessiya cookie-si üçün standart set/clear parametrləri (domenlə birlikdə). */
+export function getSessionCookieOptions(maxAgeSeconds: number): SessionCookieMutationOptions {
+  const domain = getSessionCookieDomain();
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: maxAgeSeconds,
+    ...(domain ? { domain } : {})
+  };
 }

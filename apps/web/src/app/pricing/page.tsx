@@ -10,11 +10,14 @@ import {
   calcSellerCommission,
   calcTotalSellerCost,
   getLotListingFeeAzn,
-  getNoShowPenaltyAzn,
+  getEffectiveNoShowPenaltyAzn,
   getSellerBreachPenaltyAzn
 } from "@/lib/auction-fees";
 import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
 import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
+import { getServerSessionUser } from "@/lib/auth";
+import { getSystemSettings } from "@/server/system-settings-store";
+import { BusinessPlanCheckoutButton } from "@/components/business/business-plan-checkout-button";
 
 const AUCTION_SELLER_STEPS_AZ = [
   "Etibar tələblərini tamamla: satıcı doğrulaması, media; avtomobil lotları üçün VIN axını.",
@@ -143,9 +146,11 @@ function AuctionCategoryPanel({
   title,
   subtitle,
   exampleSaleAzn,
-  exampleLabel
+  exampleLabel,
+  noShowPenaltyAzn
 }: {
   kind: ListingKind;
+  noShowPenaltyAzn: number;
   title: string;
   subtitle: string;
   exampleSaleAzn: number;
@@ -193,7 +198,7 @@ function AuctionCategoryPanel({
         />
         <AuctionFeeRow
           title="Alıcı öhdəlik haqqı"
-          value={`${getNoShowPenaltyAzn(kind)} ₼`}
+          value={`${noShowPenaltyAzn} ₼`}
           who="Qalib alıcı"
           desc="Alıcı öhdəliyini yerinə yetirmədikdə bank ödənişi ilə tətbiq edilir."
         />
@@ -228,11 +233,20 @@ function AuctionCategoryPanel({
 }
 
 export default async function PricingPage() {
-  const [dealerPlans, partsPlans, pricingPlanConfig] = await Promise.all([
+  const [dealerPlans, partsPlans, pricingPlanConfig, sessionUser, systemSettings] = await Promise.all([
     getDealerPlanCatalog(),
     getPartsPlanCatalog(),
-    getPricingPlanAdminConfig()
+    getPricingPlanAdminConfig(),
+    getServerSessionUser(),
+    getSystemSettings()
   ]);
+  const penaltyAmounts = systemSettings.penaltyAmounts;
+  const noShowPenaltyVehicleAzn = getEffectiveNoShowPenaltyAzn("vehicle", penaltyAmounts);
+  const noShowPenaltyPartAzn = getEffectiveNoShowPenaltyAzn("part", penaltyAmounts);
+  const isLoggedIn = Boolean(sessionUser);
+  const isDealerAccount = sessionUser?.role === "dealer" || sessionUser?.role === "admin";
+  const bizCtaClass =
+    "mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]";
   const serviceCategories = getServicePlanCategoriesWithOverrides(pricingPlanConfig.service);
   const dealerBaza = dealerPlans.find((plan) => plan.id === "baza") ?? dealerPlans[0];
   const dealerPro = dealerPlans.find((plan) => plan.id === "peşəkar") ?? dealerPlans[1] ?? dealerBaza;
@@ -766,12 +780,21 @@ export default async function PricingPage() {
                   </div>
                 )}
 
-                <Link
-                  href="/dealer"
-                  className="mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]"
-                >
-                  Abunə ol
-                </Link>
+                {isDealerAccount ? (
+                  <BusinessPlanCheckoutButton
+                    businessType="dealer"
+                    planId={plan.id}
+                    label={`Abunə ol — ${plan.priceAzn} ₼/ay`}
+                    className={bizCtaClass}
+                  />
+                ) : (
+                  <Link
+                    href={isLoggedIn ? "/dealer/apply" : "/login?next=/dealer/apply"}
+                    className={bizCtaClass}
+                  >
+                    {isLoggedIn ? "Salon hesabı üçün müraciət et" : "Daxil ol və müraciət et"}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
@@ -886,12 +909,18 @@ export default async function PricingPage() {
                   </div>
                 )}
 
-                <Link
-                  href="/publish"
-                  className="mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]"
-                >
-                  Paketi seç
-                </Link>
+                {isLoggedIn ? (
+                  <BusinessPlanCheckoutButton
+                    businessType="parts_store"
+                    planId={plan.id}
+                    label={`Paketi seç — ${plan.priceAzn} ₼/ay`}
+                    className={bizCtaClass}
+                  />
+                ) : (
+                  <Link href="/login?next=/pricing#parts-store" className={bizCtaClass}>
+                    Daxil ol və seç
+                  </Link>
+                )}
               </div>
             ))}
           </div>
@@ -1104,6 +1133,7 @@ export default async function PricingPage() {
               subtitle="Tam nəqliyyat vasitəsi lotları — VIN və ekspertiza axını"
               exampleSaleAzn={70_000}
               exampleLabel="Satış qiyməti 70 000 ₼ olduqda satıcının lot + komisyon xərci"
+              noShowPenaltyAzn={noShowPenaltyVehicleAzn}
             />
             <AuctionCategoryPanel
               kind="part"
@@ -1111,6 +1141,7 @@ export default async function PricingPage() {
               subtitle="Ehtiyat hissə və aksesuar lotları"
               exampleSaleAzn={300}
               exampleLabel="Satış qiyməti 300 ₼ olduqda satıcının lot + komisyon xərci"
+              noShowPenaltyAzn={noShowPenaltyPartAzn}
             />
           </div>
 

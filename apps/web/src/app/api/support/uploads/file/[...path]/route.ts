@@ -2,9 +2,16 @@ import path from "node:path";
 import { createReadStream } from "node:fs";
 import { access } from "node:fs/promises";
 import { Readable } from "node:stream";
+import { getServerSessionUser } from "@/lib/auth";
 
 function localRoot(): string {
   return process.env.SUPPORT_UPLOADS_DIR || path.join(process.cwd(), ".support-uploads");
+}
+
+/** `full` yolunun həqiqətən `root` qovluğunun içində olduğunu təsdiqləyir (traversal qoruması). */
+function isInsideRoot(root: string, full: string): boolean {
+  const relative = path.relative(root, full);
+  return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
 function inferContentType(filePath: string): string {
@@ -18,13 +25,20 @@ function inferContentType(filePath: string): string {
 }
 
 export async function GET(_req: Request, context: { params: Promise<{ path: string[] }> }) {
+  // Dəstək/hüquqi/partnyor sənədləri həssasdır — yalnız daxil olmuş istifadəçilərə verilir.
+  const sessionUser = await getServerSessionUser();
+  if (!sessionUser) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { path: parts } = await context.params;
   if (!parts?.length) {
     return new Response("Not found", { status: 404 });
   }
+  const root = localRoot();
   const relative = parts.join("/");
-  const full = path.join(localRoot(), relative);
-  if (!full.startsWith(localRoot())) {
+  const full = path.resolve(root, relative);
+  if (!isInsideRoot(root, full)) {
     return new Response("Forbidden", { status: 403 });
   }
   try {
@@ -36,7 +50,8 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
   return new Response(stream as unknown as ReadableStream, {
     headers: {
       "Content-Type": inferContentType(full),
-      "Cache-Control": "public, max-age=31536000, immutable"
+      // Həssas məzmun — private cache, uzunmüddətli immutable saxlama yoxdur.
+      "Cache-Control": "private, no-store"
     }
   });
 }

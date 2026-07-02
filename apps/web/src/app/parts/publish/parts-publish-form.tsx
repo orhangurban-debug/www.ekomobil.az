@@ -107,15 +107,18 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
     setUploadProcessing(false);
   }
 
+  const MIN_PART_IMAGES = 4;
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (uploadedImages.length < MIN_PART_IMAGES) {
+      setError(`Hissə elanı üçün ən azı ${MIN_PART_IMAGES} şəkil yükləyin.`);
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      const imageUrls =
-        uploadedImages.length > 0
-          ? await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)))
-          : undefined;
+      const imageUrls = await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)));
 
       const response = await fetch("/api/listings", {
         method: "POST",
@@ -141,7 +144,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           sellerVerified: false,
           imageUrls,
           mediaProtocol: {
-            imageCount: uploadedImages.length || 4,
+            imageCount: uploadedImages.length,
             engineVideoDurationSec: 0,
             hasFrontAngle: false,
             hasRearAngle: false,
@@ -275,7 +278,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
               <>
                 <p className="text-sm font-medium text-slate-700">Şəkil əlavə et</p>
                 <p className="text-xs text-slate-500">
-                  {uploadedImages.length} / {maxImages} · minimum 4 tövsiyə olunur
+                  {uploadedImages.length} / {maxImages} · minimum {MIN_PART_IMAGES} tələb olunur
                 </p>
               </>
             )}

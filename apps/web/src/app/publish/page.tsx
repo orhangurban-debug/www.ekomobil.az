@@ -116,6 +116,7 @@ export default function PublishPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("Avtomobil");
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [priceAzn, setPriceAzn] = useState(0);
   const [city, setCity] = useState("Bakı");
   const [vin, setVin] = useState("");
@@ -257,6 +258,7 @@ export default function PublishPage() {
     if (suggestion.vin) setVin(suggestion.vin);
     if (suggestion.declaredMileageKm !== undefined) setDeclaredMileageKm(suggestion.declaredMileageKm);
     if (suggestion.priceAzn) setPriceAzn(suggestion.priceAzn);
+    if (suggestion.description?.trim()) setDescription(suggestion.description.trim());
     if (suggestion.mediaAngles) {
       setMedia((prev) => ({
         ...prev,
@@ -360,7 +362,10 @@ export default function PublishPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: `${make} ${model} üçün yaradılan elan.${referenceNote ? ` Məlumat istinadları: ${referenceNote}` : ""}`,
+          description: (() => {
+            const base = description.trim() || `${make} ${model} üçün yaradılan elan.`;
+            return referenceNote ? `${base}\n\nMəlumat istinadları: ${referenceNote}` : base;
+          })(),
           priceAzn,
           city,
           fuelType,
@@ -479,6 +484,19 @@ export default function PublishPage() {
                 <div>
                   <label className="label">Elan başlığı</label>
                   <input value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="məs: Toyota Corolla 2019" required />
+                </div>
+
+                <div>
+                  <label className="label">Təsvir</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="input-field min-h-[120px]"
+                    placeholder="Avtomobilin vəziyyəti, komplektasiya, servis tarixçəsi və digər detallar. AI analizi işə salınıbsa, təsvir avtomatik doldurulur — redaktə edə bilərsiniz."
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Xarici link, telefon və ya mesajlaşma tətbiqi əlaqələri əlavə etməyin — belə elanlar avtomatik rədd edilir.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

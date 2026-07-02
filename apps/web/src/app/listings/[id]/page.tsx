@@ -331,7 +331,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   label: "Servis Tarixçəsi",
                   ok: Boolean(listing.serviceHistorySummary),
                   okText: listing.serviceHistorySummary || "Mövcuddur",
-                  failText: "Gözləyir"
+                  failText: "Satıcıdan soruşun"
                 }
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">

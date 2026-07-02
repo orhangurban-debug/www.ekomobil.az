@@ -8,8 +8,12 @@ import { useCompare } from "@/components/compare/compare-context";
 import { resolvePrimaryHeaderCta } from "@/lib/page-cta";
 import type { UserRole } from "@/lib/auth";
 
-const GLOBAL_NOTICE_VERSION = "v2";
+const GLOBAL_NOTICE_VERSION = "v3";
 const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE_VERSION}`;
+
+// Beta bildirişi yalnız NEXT_PUBLIC_PLATFORM_BETA=true olduqda göstərilir.
+// Real istifadəyə keçiddə (default) bildiriş bağlıdır.
+const BETA_NOTICE_ENABLED = process.env.NEXT_PUBLIC_PLATFORM_BETA === "true";
 
 const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/listings", label: "Elanlar" },
@@ -20,7 +24,6 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
   { href: "/pricing", label: "Qiymətlər" },
 ];
 
-const accent = "text-[#0057FF]";
 const accentBg = "bg-[#0057FF]/12 text-[#0057FF]";
 const navIdle = "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900";
 
@@ -51,7 +54,9 @@ export function Header({
 
   useEffect(() => {
     setMounted(true);
-    setNoticeVisible(window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1");
+    setNoticeVisible(
+      BETA_NOTICE_ENABLED && window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1"
+    );
   }, []);
 
   async function onLogout() {
@@ -68,15 +73,14 @@ export function Header({
 
   return (
     <header className="glass-nav sticky top-0 z-50">
-      {noticeVisible && (
+      {BETA_NOTICE_ENABLED && noticeVisible && (
         <div className="border-b border-amber-500/25 bg-amber-50/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-800 sm:px-6 lg:px-8">
             <p className="leading-5">
-              <span className="font-semibold">Diqqət:</span> Platforma hələ tam aktiv deyil. Yanlış əməliyyatların
-              qarşısını almaq üçün qeydiyyat, ödəniş və auksion funksiyaları mərhələli şəkildə açılır. Zəhmət olmasa
-              hələ ödəniş etməyin —{" "}
-              <span className="font-semibold">EkoMobil tezliklə tam istifadəyə veriləcək.</span>{" "}
-              Yeniliklər üçün{" "}
+              <span className="font-semibold">Qeyd:</span> Platforma yeni istifadəyə verilib. Bəzi funksiyalar
+              mərhələli şəkildə təkmilləşdirilir.{" "}
+              <span className="font-semibold">Suallarınız üçün dəstək ilə əlaqə saxlayın.</span>{" "}
+              Ətraflı üçün{" "}
               <Link href="/pricing" className="font-semibold underline decoration-dotted underline-offset-2">
                 Qiymətlər
               </Link>{" "}

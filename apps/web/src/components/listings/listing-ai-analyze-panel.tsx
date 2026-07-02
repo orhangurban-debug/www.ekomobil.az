@@ -26,13 +26,6 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-function confidenceLabel(value?: number): string {
-  if (value === undefined) return "";
-  if (value >= 0.75) return "yüksək";
-  if (value >= 0.45) return "orta";
-  return "aşağı";
-}
-
 interface QuotaInfo {
   remaining: number;
   dailyLimit: number;

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
-import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   ALLOWED_DOCUMENT_MIME_TYPES,
   MAX_DOCUMENT_SIZE_BYTES,
@@ -12,8 +12,13 @@ import { persistSupportUploadFile } from "@/server/support-upload-storage";
 
 export async function POST(req: Request) {
   const sessionUser = await getServerSessionUser();
-  const ip = getClientIp(req);
-  const limit = await checkRateLimit(`listing-image-upload:${sessionUser?.id ?? ip}`, 40, 60);
+  if (!sessionUser) {
+    return NextResponse.json(
+      { ok: false, error: "Şəkil yükləmək üçün hesabınıza daxil olun." },
+      { status: 401 }
+    );
+  }
+  const limit = await checkRateLimit(`listing-image-upload:${sessionUser.id}`, 40, 60);
   if (!limit.ok) {
     return rateLimitResponse(limit.retryAfterSeconds ?? 60);
   }

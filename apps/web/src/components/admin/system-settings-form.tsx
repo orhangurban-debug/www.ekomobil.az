@@ -42,7 +42,8 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty, r
       {readOnly && <div className="mb-4"><AdminReadOnlyBanner /></div>}
       <h2 className="text-lg font-bold text-slate-900">Auksion risk ayarları</h2>
       <p className="mt-1 text-sm text-slate-500">
-        Öhdəlik haqları və pre-auth rejimi üzrə mərkəzi parametrlər.
+        Alıcı öhdəlik (no-show) haqqı və pre-auth rejimi üzrə mərkəzi parametrlər. Bu məbləğlər
+        həm bid ön-bloklamasında, həm də faktiki no-show ödənişində və qiymət səhifəsində istifadə olunur.
       </p>
 
       <fieldset disabled={readOnly} className="mt-5 border-0 p-0">

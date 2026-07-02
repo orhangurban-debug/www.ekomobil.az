@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LEAD_STAGE_LABELS, LEAD_STAGE_OPTIONS } from "@/lib/admin-leads";
+import { LEAD_STAGE_OPTIONS } from "@/lib/admin-leads";
 
 interface AdminLeadRow {
   id: string;

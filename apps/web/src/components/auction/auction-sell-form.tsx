@@ -92,7 +92,7 @@ export function AuctionSellForm({
     if (selected) {
       setMinimumSalePriceAzn(String(selected.priceAzn));
     }
-  }, [selected?.id, selected?.priceAzn]);
+  }, [selected]);
 
   const minimumSalePrice = Number(minimumSalePriceAzn);
   const effectiveFloorAzn =

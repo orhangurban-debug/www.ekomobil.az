@@ -7,7 +7,11 @@ import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { PartBulkProductSuggestion } from "@/lib/ai/listing-vision-types";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
+import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import type { ProcessedImage } from "@/lib/image-processor";
+
+type PartCondition = "new" | "used" | "refurbished";
+type PartAuthenticity = "original" | "oem" | "aftermarket";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -27,10 +31,22 @@ interface DraftProduct {
   partName: string;
   partCategory: string;
   partBrand: string;
+  partCondition: PartCondition;
+  partAuthenticity: PartAuthenticity;
+  partOemCode: string;
+  partSku: string;
   priceAzn: number | "";
   partQuantity: number;
   description: string;
   imageIndices: number[];
+}
+
+function normalizeCondition(value: unknown): PartCondition {
+  return value === "used" || value === "refurbished" ? value : "new";
+}
+
+function normalizeAuthenticity(value: unknown): PartAuthenticity {
+  return value === "original" || value === "aftermarket" ? value : "oem";
 }
 
 function toDraft(product: PartBulkProductSuggestion, index: number): DraftProduct {
@@ -40,6 +56,10 @@ function toDraft(product: PartBulkProductSuggestion, index: number): DraftProduc
     partName: product.partName ?? "",
     partCategory: product.partCategory ?? "Universal məhsullar",
     partBrand: product.partBrand ?? "",
+    partCondition: normalizeCondition(product.partCondition),
+    partAuthenticity: normalizeAuthenticity(product.partAuthenticity),
+    partOemCode: product.partOemCode ?? "",
+    partSku: product.partSku ?? "",
     priceAzn: product.priceAzn ?? "",
     partQuantity: product.partQuantity ?? 1,
     description: product.description ?? "",
@@ -62,7 +82,26 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
     setDrafts(products.map((product, index) => toDraft(product, index)));
   }, []);
 
-  const canPublish = drafts.length > 0 && drafts.every((d) => d.title.trim() && d.partName.trim() && d.priceAzn);
+  const canPublish =
+    drafts.length > 0 &&
+    drafts.every(
+      (d) =>
+        d.title.trim() &&
+        d.partName.trim() &&
+        d.partBrand.trim() &&
+        (d.partOemCode.trim() || d.partSku.trim()) &&
+        typeof d.priceAzn === "number" &&
+        d.priceAzn > 0
+    );
+
+  const incompleteCount = drafts.filter(
+    (d) =>
+      !d.title.trim() ||
+      !d.partName.trim() ||
+      !d.partBrand.trim() ||
+      (!d.partOemCode.trim() && !d.partSku.trim()) ||
+      !(typeof d.priceAzn === "number" && d.priceAzn > 0)
+  ).length;
 
   const previewMap = useMemo(() => {
     return images.map((img) => URL.createObjectURL(img.file));
@@ -99,9 +138,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
             city,
             partCategory: draft.partCategory,
             partName: draft.partName.trim(),
-            partBrand: draft.partBrand || undefined,
-            partCondition: "new",
-            partAuthenticity: "oem",
+            partBrand: draft.partBrand.trim() || undefined,
+            partCondition: draft.partCondition,
+            partAuthenticity: draft.partAuthenticity,
+            partOemCode: draft.partOemCode.trim() || undefined,
+            partSku: draft.partSku.trim() || undefined,
             partQuantity: draft.partQuantity,
             sellerType: storeAccessEnabled ? "dealer" : sellerType,
             planType: storeAccessEnabled ? "free" : planType,
@@ -244,6 +285,40 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
                 />
                 <input
                   className="input-field"
+                  value={draft.partOemCode}
+                  onChange={(e) => updateDraft(draft.id, { partOemCode: e.target.value })}
+                  placeholder="OEM kodu"
+                />
+                <input
+                  className="input-field"
+                  value={draft.partSku}
+                  onChange={(e) => updateDraft(draft.id, { partSku: e.target.value })}
+                  placeholder="SKU"
+                />
+                <select
+                  className="input-field"
+                  value={draft.partCondition}
+                  onChange={(e) => updateDraft(draft.id, { partCondition: e.target.value as PartCondition })}
+                >
+                  {PART_CONDITIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-field"
+                  value={draft.partAuthenticity}
+                  onChange={(e) => updateDraft(draft.id, { partAuthenticity: e.target.value as PartAuthenticity })}
+                >
+                  {PART_AUTHENTICITY_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="input-field"
                   type="number"
                   value={draft.priceAzn}
                   onChange={(e) => updateDraft(draft.id, { priceAzn: e.target.value ? Number(e.target.value) : "" })}
@@ -258,6 +333,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
                   placeholder="Stok"
                 />
               </div>
+              {(!draft.partBrand.trim() || (!draft.partOemCode.trim() && !draft.partSku.trim())) && (
+                <p className="text-xs text-amber-600">
+                  Brend və ən azı OEM kodu və ya SKU daxil edilməlidir.
+                </p>
+              )}
               <textarea
                 className="input-field min-h-[72px]"
                 value={draft.description}
@@ -268,6 +348,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
           ))}
 
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {!canPublish && incompleteCount > 0 && (
+            <p className="text-sm text-amber-600">
+              {incompleteCount} elanda çatışmayan məlumat var (başlıq, məhsul adı, brend, OEM/SKU, qiymət).
+            </p>
+          )}
           {successCount > 0 && submitting && (
             <p className="text-sm text-emerald-700">{successCount} / {drafts.length} elan yaradılır…</p>
           )}

@@ -185,7 +185,7 @@ export default async function PartsPage({
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {result.items.map((listing, idx) => (
+              {result.items.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
               {result.items.map((_listing, idx) =>

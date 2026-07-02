@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import {
   calcSellerCommission,
   getLotListingFeeAzn,
-  getNoShowPenaltyAzn,
+  getEffectiveNoShowPenaltyAzn,
   getSellerBreachPenaltyAzn
 } from "@/lib/auction-fees";
+import type { PenaltyAmountsJson } from "@/lib/auction-system-settings";
+import { getSystemSettings } from "@/server/system-settings-store";
 import {
   type AuctionDepositRecord,
   type AuctionFinancialEventRecord,
@@ -104,13 +106,14 @@ function mapDepositRow(row: AuctionDepositRow): AuctionDepositRecord {
 function getServicePaymentAmount(
   eventType: AuctionFinancialEventRecord["eventType"],
   feeProfile: ListingKind,
-  hammerPriceAzn?: number
+  hammerPriceAzn?: number,
+  penaltyAmounts?: PenaltyAmountsJson
 ): number {
   switch (eventType) {
     case "lot_fee":
       return getLotListingFeeAzn(feeProfile);
     case "no_show_penalty":
-      return getNoShowPenaltyAzn(feeProfile);
+      return getEffectiveNoShowPenaltyAzn(feeProfile, penaltyAmounts);
     case "seller_breach_penalty":
       return getSellerBreachPenaltyAzn(feeProfile);
     case "seller_success_fee":
@@ -174,10 +177,20 @@ export async function createAuctionServicePayment(input: {
     return { ok: false, error: "Naməlum ödəniş növü" };
   }
 
+  let penaltyAmounts: PenaltyAmountsJson | undefined;
+  if (input.eventType === "no_show_penalty") {
+    try {
+      penaltyAmounts = (await getSystemSettings()).penaltyAmounts;
+    } catch {
+      // Admin tənzimləməsi əlçatmazdırsa default AUCTION_FEES istifadə olunur.
+    }
+  }
+
   const amountAzn = getServicePaymentAmount(
     input.eventType,
     feeProfile,
-    auction.currentBidAzn ?? auction.startingBidAzn
+    auction.currentBidAzn ?? auction.startingBidAzn,
+    penaltyAmounts
   );
   const resolvedAmountAzn =
     input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;

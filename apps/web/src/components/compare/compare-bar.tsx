@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useCompare } from "@/components/compare/compare-context";
+
+const noopSubscribe = () => () => {};
 
 export function CompareBar() {
   const pathname = usePathname();
   const { ids, clear } = useCompare();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  // Hydration-safe mount yoxlaması: serverdə false, client-də true (effektsiz).
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   if (!mounted || ids.length === 0 || pathname === "/") return null;
 

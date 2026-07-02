@@ -20,7 +20,8 @@ export async function checkListingAiLimit(userId: string | null, ip: string, dai
     const remaining = Math.max(0, dailyLimit - count);
     return { allowed: count < dailyLimit, remaining, limit: dailyLimit, identifier };
   } catch {
-    return { allowed: true, remaining: dailyLimit, limit: dailyLimit, identifier };
+    // Fail-closed: baza əlçatmaz olduqda pullu AI kvotasının bypass edilməsinin qarşısını alırıq.
+    return { allowed: false, remaining: 0, limit: dailyLimit, identifier };
   }
 }
 

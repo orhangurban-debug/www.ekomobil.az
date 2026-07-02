@@ -3,12 +3,15 @@ import { getPgPool } from "@/lib/postgres";
 import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
 
+export type UserAccountStatus = "active" | "suspended" | "banned" | string;
+
 export interface UserRecord {
   id: string;
   email: string;
   role: "admin" | "support" | "dealer" | "viewer";
   emailVerified: boolean;
   phone?: string;
+  accountStatus: UserAccountStatus;
 }
 
 export interface UserProfileRecord {
@@ -41,14 +44,39 @@ function mapUser(row: {
   role: string;
   email_verified: boolean;
   phone: string | null;
+  user_account_status?: string | null;
 }): UserRecord {
   return {
     id: row.id,
     email: row.email,
     role: row.role as UserRecord["role"],
     emailVerified: row.email_verified,
-    phone: row.phone ?? undefined
+    phone: row.phone ?? undefined,
+    accountStatus: (row.user_account_status ?? "active") as UserAccountStatus
   };
+}
+
+/** Aktiv olmayan hesab statusları — giriş və həssas əməliyyatlar bloklanır. */
+export function isActiveAccountStatus(status: string | null | undefined): boolean {
+  return (status ?? "active") === "active";
+}
+
+/**
+ * İstifadəçinin cari hesab statusunu birbaşa bazadan oxuyur.
+ * Ban/suspend-in dərhal tətbiqi üçün həssas əməliyyatlarda (elan, OAuth) istifadə olunur.
+ * Baza əlçatmaz olarsa fail-closed davranır (`banned` qaytarır).
+ */
+export async function getUserAccountStatus(userId: string): Promise<UserAccountStatus> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ user_account_status: string }>(
+      `SELECT user_account_status FROM users WHERE id = $1 LIMIT 1`,
+      [userId]
+    );
+    return (result.rows[0]?.user_account_status ?? "banned") as UserAccountStatus;
+  } catch {
+    return "banned";
+  }
 }
 
 export function hashPassword(password: string): string {
@@ -74,9 +102,10 @@ export async function authenticateUserFromStore(email: string, password: string)
       email_verified: boolean;
       phone: string | null;
       password_hash: string;
+      user_account_status: string;
     }>(
       `
-        SELECT id, email, role, email_verified, phone, password_hash
+        SELECT id, email, role, email_verified, phone, password_hash, user_account_status
         FROM users
         WHERE email = $1
         LIMIT 1

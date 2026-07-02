@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createSessionToken, getSessionCookieName } from "@/lib/auth";
+import { createSessionToken, getSessionCookieName, getSessionCookieOptions, getSessionMaxAgeSeconds } from "@/lib/auth";
 import { canonicalizeAppBaseUrl, exchangeGoogleCode, isGoogleOAuthConfigured } from "@/lib/google-oauth";
-import { upsertUserFromGoogle } from "@/server/user-store";
+import { upsertUserFromGoogle, isActiveAccountStatus, getUserAccountStatus } from "@/server/user-store";
 import { hasRequiredPlatformConsents } from "@/server/user-consent-store";
 import { recordUserActivity } from "@/server/user-activity-store";
 import { getClientIp } from "@/lib/rate-limit";
@@ -99,6 +99,13 @@ export async function GET(req: Request) {
       avatarUrl: googleUser.picture
     });
 
+    const accountStatus = await getUserAccountStatus(user.id);
+    if (!isActiveAccountStatus(accountStatus)) {
+      const blocked = NextResponse.redirect(new URL("/login?error=account_blocked", baseUrl));
+      clearOAuthCookies(blocked);
+      return blocked;
+    }
+
     await recordUserActivity({
       userId: user.id,
       actionType: "user_login",
@@ -114,14 +121,7 @@ export async function GET(req: Request) {
 
     const token = createSessionToken({ id: user.id, email: user.email, role: user.role });
     const success = NextResponse.redirect(new URL(redirectPath, baseUrl));
-    success.cookies.set(getSessionCookieName(), token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 12,
-      ...(getSharedCookieDomain() ? { domain: getSharedCookieDomain() } : {})
-    });
+    success.cookies.set(getSessionCookieName(), token, getSessionCookieOptions(getSessionMaxAgeSeconds()));
     clearOAuthCookies(success);
     return success;
   } catch {

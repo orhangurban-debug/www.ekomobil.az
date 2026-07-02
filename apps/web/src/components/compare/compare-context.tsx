@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 
 interface CompareContextValue {
   ids: string[];
@@ -10,30 +10,72 @@ interface CompareContextValue {
 
 const CompareContext = createContext<CompareContextValue | null>(null);
 
-export function CompareProvider({ children }: { children: React.ReactNode }) {
-  const [ids, setIds] = useState<string[]>([]);
+const STORAGE_KEY = "ekomobil_compare_ids";
+const MAX_COMPARE = 4;
 
-  useEffect(() => {
-    const raw = window.localStorage.getItem("ekomobil_compare_ids");
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as string[];
-      if (Array.isArray(parsed)) setIds(parsed.slice(0, 4));
-    } catch {
-      // ignore corrupt storage
+// Modul səviyyəli xarici store — localStorage ilə sinxron saxlanılır və
+// useSyncExternalStore üçün stabil snapshot təqdim edir (effektdə setState problemi yoxdur).
+let snapshot: string[] = [];
+const serverSnapshot: string[] = [];
+const listeners = new Set<() => void>();
+let hydrated = false;
+
+function emit() {
+  for (const listener of listeners) listener();
+}
+
+function hydrateOnce() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        snapshot = (parsed as string[]).filter((item) => typeof item === "string").slice(0, MAX_COMPARE);
+      }
     }
-  }, []);
+  } catch {
+    // korlanmış storage — default boş siyahı
+  }
+}
 
-  useEffect(() => {
-    window.localStorage.setItem("ekomobil_compare_ids", JSON.stringify(ids.slice(0, 4)));
-  }, [ids]);
+function persist(next: string[]) {
+  snapshot = next.slice(0, MAX_COMPARE);
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // storage yazıla bilmədi — yalnız yaddaşda saxlanılır
+  }
+  emit();
+}
 
-  const value = useMemo<CompareContextValue>(() => ({
-    ids,
-    toggle: (id: string) =>
-      setIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id].slice(0, 4))),
-    clear: () => setIds([])
-  }), [ids]);
+function subscribe(listener: () => void) {
+  hydrateOnce();
+  listeners.add(listener);
+  // Hidrasiyadan sonra dəyər dəyişmiş ola bilər — dərhal bildir.
+  listener();
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function CompareProvider({ children }: { children: React.ReactNode }) {
+  const ids = useSyncExternalStore(subscribe, () => snapshot, () => serverSnapshot);
+
+  const value = useMemo<CompareContextValue>(
+    () => ({
+      ids,
+      toggle: (id: string) => {
+        const next = snapshot.includes(id)
+          ? snapshot.filter((item) => item !== id)
+          : [...snapshot, id];
+        persist(next);
+      },
+      clear: () => persist([])
+    }),
+    [ids]
+  );
 
   return <CompareContext.Provider value={value}>{children}</CompareContext.Provider>;
 }

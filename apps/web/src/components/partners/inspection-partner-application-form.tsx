@@ -286,12 +286,15 @@ export function InspectionPartnerApplicationForm() {
   const planOptions = useMemo(() => buildPartnerApplicationPlanOptions(planGroup), [planGroup]);
   const selectedPlanMeta = planOptions.find((plan) => plan.value === selectedPlan) ?? planOptions[0];
 
-  const providerOptions: ProviderOption[] = [];
-  for (const group of PROVIDER_GROUPS) {
-    for (const option of group.types) {
-      providerOptions.push(option);
+  const providerOptions = useMemo<ProviderOption[]>(() => {
+    const options: ProviderOption[] = [];
+    for (const group of PROVIDER_GROUPS) {
+      for (const option of group.types) {
+        options.push(option);
+      }
     }
-  }
+    return options;
+  }, []);
   const providerLabel = providerOptions.find((option) => option.value === providerType)?.label ?? "";
 
   function toggleTag(tag: string) {

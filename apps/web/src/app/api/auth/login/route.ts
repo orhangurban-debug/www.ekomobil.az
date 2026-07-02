@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticateUser, createSessionToken, getSessionCookieName } from "@/lib/auth";
+import { authenticateUser, createSessionToken, getSessionCookieName, getSessionCookieOptions, getSessionMaxAgeSeconds } from "@/lib/auth";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { loginSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 import { recordUserActivity } from "@/server/user-activity-store";
@@ -32,11 +32,21 @@ export async function POST(req: Request) {
     );
   }
 
-  const user = await authenticateUser(parsed.email, parsed.password);
-  if (!user) {
+  const outcome = await authenticateUser(parsed.email, parsed.password);
+  if (!outcome.ok) {
+    if (outcome.reason === "blocked") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Hesabınız dayandırılıb və ya bloklanıb. Dəstək ilə əlaqə saxlayın: support@ekomobil.az"
+        },
+        { status: 403 }
+      );
+    }
     // Intentionally vague to prevent user enumeration
     return NextResponse.json({ ok: false, error: "Email və ya şifrə yanlışdır." }, { status: 401 });
   }
+  const user = outcome.user;
 
   const token = createSessionToken(user);
   await recordUserActivity({
@@ -47,13 +57,7 @@ export async function POST(req: Request) {
     metadata: { method: "email_password" }
   });
   const res = NextResponse.json({ ok: true, user });
-  res.cookies.set(getSessionCookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 12,
-  });
+  res.cookies.set(getSessionCookieName(), token, getSessionCookieOptions(getSessionMaxAgeSeconds()));
 
   return res;
 }

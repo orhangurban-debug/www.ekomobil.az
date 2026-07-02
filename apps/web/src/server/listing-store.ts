@@ -942,6 +942,17 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
   }
 }
 
+/**
+ * Elan yaratmadan əvvəlki limit/dublikat yoxlamaları baza əlçatmaz olduqda bu xəta atılır.
+ * API bunu 503 kimi qaytarır — belə hallarda limitlərin səssizcə bypass edilməsinin qarşısı alınır (fail-closed).
+ */
+export class ListingGuardUnavailableError extends Error {
+  constructor(message = "Elan yoxlamaları müvəqqəti əlçatmazdır.") {
+    super(message);
+    this.name = "ListingGuardUnavailableError";
+  }
+}
+
 export async function countConcurrentFreePartListingsForUser(userId: string): Promise<number> {
   try {
     await ensureSeedData();
@@ -960,7 +971,7 @@ export async function countConcurrentFreePartListingsForUser(userId: string): Pr
     );
     return Number(result.rows[0]?.count ?? "0");
   } catch {
-    return 0;
+    throw new ListingGuardUnavailableError();
   }
 }
 
@@ -985,7 +996,7 @@ export async function countConcurrentFreeVehicleListingsForUser(userId: string):
     );
     return Number(result.rows[0]?.count ?? "0");
   } catch {
-    return 0;
+    throw new ListingGuardUnavailableError();
   }
 }
 
@@ -1013,7 +1024,7 @@ export async function countDealerListingsForUserByKind(
     );
     return Number(result.rows[0]?.count ?? "0");
   } catch {
-    return 0;
+    throw new ListingGuardUnavailableError();
   }
 }
 
@@ -1064,7 +1075,7 @@ export async function hasRecentVehicleDuplicate(input: {
     );
     return Number(r.rows[0]?.count ?? "0") > 0;
   } catch {
-    return false;
+    throw new ListingGuardUnavailableError();
   }
 }
 
@@ -1120,7 +1131,7 @@ export async function hasRecentPartDuplicate(input: {
     );
     return Number(r.rows[0]?.count ?? "0") > 0;
   } catch {
-    return false;
+    throw new ListingGuardUnavailableError();
   }
 }
 
@@ -1151,7 +1162,7 @@ export async function hasRecentImageHashDuplicate(input: {
     );
     return Number(result.rows[0]?.count ?? "0") > 0;
   } catch {
-    return false;
+    throw new ListingGuardUnavailableError();
   }
 }
 

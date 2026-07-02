@@ -9,7 +9,6 @@ export const metadata = {
 
 const EFFECTIVE_DATE = "4 iyun 2026";
 const COMPANY_NAME = "EkoMobil MMC";
-const COMPANY_EMAIL = "info@ekomobil.az";
 const COMPANY_ADDRESS = "Bakı, Azərbaycan";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {

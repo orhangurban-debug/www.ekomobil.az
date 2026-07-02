@@ -81,6 +81,24 @@ export function getNoShowPenaltyAzn(kind?: ListingKind): number {
     : AUCTION_FEES.NO_SHOW_PENALTY_VEHICLE_AZN;
 }
 
+/**
+ * Alıcı öhdəlik (no-show) haqqı — admin paneldəki `penaltyAmounts` dəyəri
+ * varsa ona üstünlük verilir, əks halda default AUCTION_FEES istifadə olunur.
+ * Bu funksiya həm faktiki ödəniş məbləğinin hesablanmasında, həm də qiymət
+ * göstərilməsində istifadə olunur ki, göstərilən və tutulan məbləğ eyni olsun.
+ */
+export function getEffectiveNoShowPenaltyAzn(
+  kind: ListingKind | undefined,
+  penaltyAmounts?: Partial<Record<ListingKind, number>>
+): number {
+  const normalized = normalizeKind(kind);
+  const configured = penaltyAmounts?.[normalized];
+  if (typeof configured === "number" && Number.isFinite(configured) && configured > 0) {
+    return Math.round(configured);
+  }
+  return getNoShowPenaltyAzn(normalized);
+}
+
 export function getSellerBreachPenaltyAzn(kind?: ListingKind): number {
   return normalizeKind(kind) === "part"
     ? AUCTION_FEES.SELLER_BREACH_PENALTY_PART_AZN

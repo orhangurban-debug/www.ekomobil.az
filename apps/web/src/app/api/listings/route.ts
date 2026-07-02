@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
+import { getUserAccountStatus, isActiveAccountStatus } from "@/server/user-store";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
@@ -14,7 +15,8 @@ import {
   hasRecentPartDuplicate,
   hasRecentImageHashDuplicate,
   hasRecentVehicleDuplicate,
-  listListings
+  listListings,
+  ListingGuardUnavailableError
 } from "@/server/listing-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
@@ -32,6 +34,40 @@ const SUSPICIOUS_TEXT_PATTERNS: RegExp[] = [
 function containsSuspiciousText(value: string | undefined): boolean {
   if (!value) return false;
   return SUSPICIOUS_TEXT_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+const EMPTY_MEDIA_PROTOCOL = {
+  imageCount: 0,
+  engineVideoDurationSec: 0,
+  hasFrontAngle: false,
+  hasRearAngle: false,
+  hasLeftSide: false,
+  hasRightSide: false,
+  hasDashboard: false,
+  hasInterior: false,
+  hasOdometer: false,
+  hasTrunk: false
+} as const;
+
+/**
+ * Şəkil sayı serverdə həqiqi `imageUrls` sayından götürülür — client tərəfindən
+ * göndərilən `imageCount` heç vaxt etibar edilmir (media protokol saxtalaşdırmanın qarşısı).
+ */
+function withServerAuthoritativeImageCount<T extends { mediaProtocol?: unknown; imageUrls?: string[] }>(
+  payload: T
+): void {
+  const realImageCount = Array.isArray(payload.imageUrls)
+    ? payload.imageUrls.filter((url) => typeof url === "string" && url.trim().length > 0).length
+    : 0;
+  const provided =
+    payload.mediaProtocol && typeof payload.mediaProtocol === "object"
+      ? (payload.mediaProtocol as Record<string, unknown>)
+      : {};
+  payload.mediaProtocol = {
+    ...EMPTY_MEDIA_PROTOCOL,
+    ...provided,
+    imageCount: realImageCount
+  };
 }
 
 export async function GET(req: Request) {
@@ -97,6 +133,24 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  try {
+    return await handleCreateListing(req);
+  } catch (error) {
+    if (error instanceof ListingGuardUnavailableError) {
+      return NextResponse.json(
+        { ok: false, error: "Elan yoxlamaları müvəqqəti əlçatmazdır. Zəhmət olmasa bir az sonra yenidən cəhd edin." },
+        { status: 503 }
+      );
+    }
+    console.error("Unexpected error in POST /api/listings", error);
+    return NextResponse.json(
+      { ok: false, error: "Gözlənilməz xəta baş verdi. Bir az sonra yenidən cəhd edin." },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleCreateListing(req: Request): Promise<Response> {
   const payload = (await req.json()) as
     | (ListingInput & {
         description?: string;
@@ -145,6 +199,17 @@ export async function POST(req: Request) {
     );
   }
 
+  // Ban/suspend dərhal tətbiq olunur (session token 12 saat stateless olduğu üçün DB-dən yoxlanır).
+  if (sessionUser.role !== "admin") {
+    const accountStatus = await getUserAccountStatus(sessionUser.id);
+    if (!isActiveAccountStatus(accountStatus)) {
+      return NextResponse.json(
+        { ok: false, error: "Hesabınız dayandırılıb və ya bloklanıb. Elan yerləşdirə bilməzsiniz." },
+        { status: 403 }
+      );
+    }
+  }
+
   const limiterKey = `listing-create:${sessionUser.id}:${clientIp}`;
   const limitCheck = await checkRateLimit(
     limiterKey,
@@ -176,6 +241,8 @@ export async function POST(req: Request) {
         }
       }
     }
+
+    withServerAuthoritativeImageCount(partPayload);
 
     const isDealerPartSeller = (partPayload.sellerType ?? "private") === "dealer";
     const effectivePartsPlan = isDealerPartSeller ? await getEffectivePartsPlan(sessionUser.id) : null;
@@ -353,6 +420,8 @@ export async function POST(req: Request) {
     planType?: "free" | "standard" | "vip";
   };
 
+  withServerAuthoritativeImageCount(vehiclePayload);
+
   const validation = validateListingInput(vehiclePayload);
   if (!validation.isValid) {
     return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
@@ -517,8 +586,8 @@ export async function POST(req: Request) {
       mediaComplete: trustSignals.mediaComplete,
       mileageFlagSeverity: trustSignals.mileageFlag?.severity,
       mileageFlagMessage: trustSignals.mileageFlag?.message,
-      serviceHistorySummary: trustSignals.vinVerification.status === "verified" ? "Rəsmi yoxlama tamamlandı" : "Gözləyir",
-      riskSummary: trustSignals.mileageFlag?.severity === "high_risk" ? "Yüksək risk" : "İlkin yoxlama tamamlandı"
+      serviceHistorySummary: trustSignals.vinVerification.status === "verified" ? "Rəsmi yoxlama tamamlandı" : "",
+      riskSummary: trustSignals.mileageFlag?.severity === "high_risk" ? "Yüksək risk" : "İlkin media və satıcı siqnalları yoxlanıb"
     }
   };
 
