@@ -26,6 +26,9 @@ export interface InvoiceEmailData {
     totalAzn: number;
   }>;
   totalAzn: number;
+  netAmountAzn?: number;
+  vatAmountAzn?: number;
+  vatRatePercent?: number;
   paymentReference?: string;
   invoiceUrl: string;
 }
@@ -124,6 +127,20 @@ function buildInvoiceHtml(data: InvoiceEmailData): string {
                 <tr>
                   <td></td>
                   <td style="width:240px;">
+                    ${
+                      data.vatAmountAzn !== undefined && data.vatAmountAzn > 0
+                        ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+                      <tr>
+                        <td style="padding:6px 16px;font-size:13px;color:#64748b;">Net məbləğ</td>
+                        <td style="padding:6px 16px;font-size:13px;color:#64748b;text-align:right;">${(data.netAmountAzn ?? 0).toFixed(2)} ₼</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 16px;font-size:13px;color:#64748b;">ƏDV (${data.vatRatePercent ?? 18}%)</td>
+                        <td style="padding:6px 16px;font-size:13px;color:#64748b;text-align:right;">${data.vatAmountAzn.toFixed(2)} ₼</td>
+                      </tr>
+                    </table>`
+                        : ""
+                    }
                     <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #0f172a;margin-top:8px;">
                       <tr>
                         <td style="padding:14px 16px;font-size:15px;font-weight:700;color:#0f172a;">Ümumi məbləğ</td>

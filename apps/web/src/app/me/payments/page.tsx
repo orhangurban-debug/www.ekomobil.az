@@ -2,13 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSessionUser } from "@/lib/auth";
 import { listInvoicesForUser } from "@/server/invoice-store";
+import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 
-const PAYMENT_TYPE_LABELS = {
-  listing_plan: "Elan planı",
-  business_plan: "Biznes planı",
-  auction_deposit: "Auksion depoziti",
-  listing_boost: "Elan irəlilətmə paketi"
-} as const;
+const PAYMENT_TYPE_LABELS = INVOICE_PAYMENT_TYPE_LABELS;
 
 const STATUS_BADGE = {
   sent: { label: "E-poçta göndərildi", cls: "bg-emerald-500/15 text-emerald-700 border-emerald-500/25" },
@@ -20,7 +16,7 @@ export default async function PaymentsPage() {
   const user = await getServerSessionUser();
   if (!user) redirect("/login?next=/me/payments");
 
-  const invoices = await listInvoicesForUser(user.id);
+  const invoices = await listInvoicesForUser(user.id, 200);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -64,6 +60,9 @@ export default async function PaymentsPage() {
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-3">
                     <span className="text-lg font-bold text-slate-900">{inv.amountAzn.toFixed(2)} ₼</span>
+                    {inv.vatAmountAzn > 0 && (
+                      <span className="text-[10px] text-slate-400">ƏDV daxil ({inv.vatRate}%)</span>
+                    )}
                     <Link
                       href={`/me/invoices/${inv.id}`}
                       className="btn-secondary text-xs"

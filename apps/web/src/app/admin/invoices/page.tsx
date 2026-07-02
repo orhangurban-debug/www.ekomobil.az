@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { listAllInvoices, countAllInvoices } from "@/server/invoice-store";
+import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 
-const PAYMENT_TYPE_LABELS = {
-  listing_plan: "Elan planı",
-  business_plan: "Biznes planı",
-  auction_deposit: "Auksion depoziti",
-  listing_boost: "Elan irəlilətmə paketi"
-} as const;
+const PAYMENT_TYPE_LABELS = INVOICE_PAYMENT_TYPE_LABELS;
 
 const PAGE_SIZE = 25;
 
@@ -37,7 +33,15 @@ export default async function AdminInvoicesPage({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-slate-900">İnvoys idarəsi</h2>
-        <p className="mt-1 text-sm text-slate-500">Bütün ödəniş invoysları və e-poçt göndərmə statusu</p>
+        <p className="mt-1 text-sm text-slate-500">Bütün ödəniş invoysları, ƏDV sətirləri və e-poçt göndərmə statusu</p>
+      </div>
+
+      <div className="rounded-2xl border border-[#0891B2]/20 bg-[#0891B2]/5 p-4 text-sm text-slate-700">
+        Vergi hesabatı export üçün{" "}
+        <Link href="/admin/tax-reports" className="font-semibold text-[#0891B2] hover:underline">
+          Vergi hesabatları
+        </Link>{" "}
+        bölməsinə keçin (CSV: ödəniş reyestri, ƏDV satış reyestri, invoys siyahısı).
       </div>
 
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_auto]">
@@ -91,7 +95,8 @@ export default async function AdminInvoicesPage({
                 <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">İnvoys №</th>
                 <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">İstifadəçi</th>
                 <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Növ</th>
-                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Məbləğ</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Brüt</th>
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">ƏDV</th>
                 <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-500">E-poçt</th>
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Tarix</th>
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500"></th>
@@ -114,6 +119,7 @@ export default async function AdminInvoicesPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-900">{inv.amountAzn.toFixed(2)} ₼</td>
+                    <td className="px-4 py-3 text-right text-xs text-slate-500">{inv.vatAmountAzn.toFixed(2)} ₼</td>
                     <td className="px-4 py-3 text-center">
                       {emailOk ? (
                         <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Göndərildi</span>

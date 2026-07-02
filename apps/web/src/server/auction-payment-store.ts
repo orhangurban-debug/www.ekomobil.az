@@ -16,6 +16,7 @@ import type { ListingKind } from "@/lib/marketplace-types";
 import { getPgPool } from "@/lib/postgres";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
 import { issueAndSendInvoice } from "@/server/invoice-store";
+import { AUCTION_SERVICE_EVENT_LABELS } from "@/lib/invoice-labels";
 import { getUserProfile } from "@/server/user-store";
 import {
   getAuctionDepositsMemory,
@@ -498,6 +499,29 @@ export async function finalizeAuctionServicePayment(input: {
       );
     } catch {
       // Memory fallback rejimindədir — ops paneldən manual tənzimləmə lazım ola bilər.
+    }
+  }
+
+  // Uğurlu auksion xidmət ödənişləri üçün invoys (depozit istisna — ayrıca idarə olunur)
+  if (input.status === "succeeded" && updated.userId) {
+    try {
+      const userProfile = await getUserProfile(updated.userId);
+      if (userProfile?.email) {
+        const eventLabel = AUCTION_SERVICE_EVENT_LABELS[updated.eventType] ?? updated.eventType;
+        await issueAndSendInvoice({
+          userId: updated.userId,
+          userEmail: userProfile.email,
+          userName: userProfile.fullName ?? userProfile.email,
+          paymentType: "auction_service",
+          paymentId: updated.id,
+          amountAzn: updated.amountAzn,
+          description: `${eventLabel} – Auksion #${updated.auctionId.slice(0, 8)}`,
+          paymentReference: updated.paymentReference,
+          appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://ekomobil.az"
+        });
+      }
+    } catch {
+      // invoys xətaları ödənişi bloklamır
     }
   }
 

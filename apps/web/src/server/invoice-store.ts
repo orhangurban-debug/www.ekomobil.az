@@ -1,8 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { sendInvoiceEmail } from "@/lib/email";
+import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
+import type { InvoicePaymentType } from "@/lib/invoice-labels";
+import { DEFAULT_VAT_RATE_PERCENT, splitGrossWithVat } from "@/lib/tax-reporting";
 
-export type InvoicePaymentType = "listing_plan" | "business_plan" | "auction_deposit" | "listing_boost";
+export type { InvoicePaymentType };
 
 export interface InvoiceRecord {
   id: string;
@@ -13,6 +16,9 @@ export interface InvoiceRecord {
   paymentType: InvoicePaymentType;
   paymentId: string;
   amountAzn: number;
+  vatRate: number;
+  netAmountAzn: number;
+  vatAmountAzn: number;
   description: string;
   paymentReference?: string;
   emailSentAt?: string;
@@ -30,6 +36,9 @@ interface InvoiceRow {
   payment_type: string;
   payment_id: string;
   amount_azn: number;
+  vat_rate: number;
+  net_amount_azn: number;
+  vat_amount_azn: number;
   description: string;
   payment_reference: string | null;
   email_sent_at: Date | null;
@@ -48,6 +57,9 @@ function mapRow(row: InvoiceRow): InvoiceRecord {
     paymentType: row.payment_type as InvoicePaymentType,
     paymentId: row.payment_id,
     amountAzn: Number(row.amount_azn),
+    vatRate: Number(row.vat_rate ?? DEFAULT_VAT_RATE_PERCENT),
+    netAmountAzn: Number(row.net_amount_azn ?? 0),
+    vatAmountAzn: Number(row.vat_amount_azn ?? 0),
     description: row.description,
     paymentReference: row.payment_reference ?? undefined,
     emailSentAt: row.email_sent_at?.toISOString(),
@@ -70,6 +82,9 @@ export async function ensureInvoicesTable(): Promise<void> {
         payment_type       TEXT NOT NULL,
         payment_id         TEXT NOT NULL,
         amount_azn         NUMERIC(10,2) NOT NULL,
+        vat_rate           NUMERIC(5,2) NOT NULL DEFAULT 18,
+        net_amount_azn     NUMERIC(10,2) NOT NULL DEFAULT 0,
+        vat_amount_azn     NUMERIC(10,2) NOT NULL DEFAULT 0,
         description        TEXT NOT NULL DEFAULT '',
         payment_reference  TEXT,
         email_sent_at      TIMESTAMPTZ,
@@ -81,6 +96,11 @@ export async function ensureInvoicesTable(): Promise<void> {
       CREATE INDEX IF NOT EXISTS invoices_payment_id_idx ON invoices(payment_id);
       CREATE UNIQUE INDEX IF NOT EXISTS invoices_payment_unique_idx ON invoices(payment_type, payment_id);
       CREATE INDEX IF NOT EXISTS invoices_issued_at_idx ON invoices(issued_at DESC);
+    `);
+    await pool.query(`
+      ALTER TABLE invoices ADD COLUMN IF NOT EXISTS vat_rate NUMERIC(5,2) NOT NULL DEFAULT 18;
+      ALTER TABLE invoices ADD COLUMN IF NOT EXISTS net_amount_azn NUMERIC(10,2) NOT NULL DEFAULT 0;
+      ALTER TABLE invoices ADD COLUMN IF NOT EXISTS vat_amount_azn NUMERIC(10,2) NOT NULL DEFAULT 0;
     `);
   } catch {
     // table may already exist in slightly different form; continue
@@ -116,20 +136,24 @@ export async function createInvoice(input: {
   const id = randomUUID();
   const invoiceNumber = await generateInvoiceNumber();
   const issuedAt = new Date().toISOString();
+  const vat = splitGrossWithVat(input.amountAzn, DEFAULT_VAT_RATE_PERCENT);
 
   try {
     const pool = getPgPool();
     const result = await pool.query<InvoiceRow>(
       `INSERT INTO invoices (
          id, invoice_number, user_id, user_email, user_name,
-         payment_type, payment_id, amount_azn, description,
-         payment_reference, issued_at
+         payment_type, payment_id, amount_azn, vat_rate, net_amount_azn, vat_amount_azn,
+         description, payment_reference, issued_at
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        ON CONFLICT (payment_type, payment_id) DO UPDATE
        SET user_email = EXCLUDED.user_email,
            user_name = EXCLUDED.user_name,
            amount_azn = EXCLUDED.amount_azn,
+           vat_rate = EXCLUDED.vat_rate,
+           net_amount_azn = EXCLUDED.net_amount_azn,
+           vat_amount_azn = EXCLUDED.vat_amount_azn,
            description = EXCLUDED.description,
            payment_reference = COALESCE(EXCLUDED.payment_reference, invoices.payment_reference),
            issued_at = LEAST(invoices.issued_at, EXCLUDED.issued_at)
@@ -142,7 +166,10 @@ export async function createInvoice(input: {
         input.userName,
         input.paymentType,
         input.paymentId,
-        input.amountAzn,
+        vat.grossAzn,
+        vat.vatRatePercent,
+        vat.netAzn,
+        vat.vatAzn,
         input.description,
         input.paymentReference ?? null,
         issuedAt
@@ -214,6 +241,42 @@ export async function listInvoicesForUser(userId: string, limit = 50): Promise<I
   }
 }
 
+export async function countInvoicesForUser(userId: string): Promise<number> {
+  await ensureInvoicesTable();
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM invoices WHERE user_id = $1`,
+      [userId]
+    );
+    return Number(result.rows[0]?.count ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
+export async function listInvoicesForPeriod(input: {
+  from: string;
+  to: string;
+  limit?: number;
+}): Promise<InvoiceRecord[]> {
+  await ensureInvoicesTable();
+  const limit = input.limit ?? 10_000;
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<InvoiceRow>(
+      `SELECT * FROM invoices
+       WHERE issued_at >= $1::timestamptz AND issued_at < ($2::date + INTERVAL '1 day')
+       ORDER BY issued_at ASC
+       LIMIT $3`,
+      [input.from, input.to, limit]
+    );
+    return result.rows.map(mapRow);
+  } catch {
+    return [];
+  }
+}
+
 export async function listAllInvoices(limit = 100, offset = 0, q?: string): Promise<InvoiceRecord[]> {
   await ensureInvoicesTable();
   try {
@@ -269,12 +332,7 @@ export async function countAllInvoices(q?: string): Promise<number> {
   }
 }
 
-const PAYMENT_TYPE_LABELS: Record<InvoicePaymentType, string> = {
-  listing_plan: "Elan planı",
-  business_plan: "Biznes planı",
-  auction_deposit: "Auksion depoziti",
-  listing_boost: "Elan irəlilətmə paketi"
-};
+const PAYMENT_TYPE_LABELS = INVOICE_PAYMENT_TYPE_LABELS;
 
 export async function issueAndSendInvoice(input: {
   userId: string;
@@ -317,11 +375,14 @@ export async function issueAndSendInvoice(input: {
       {
         description: `${PAYMENT_TYPE_LABELS[input.paymentType]} – ${input.description}`,
         quantity: 1,
-        unitPriceAzn: input.amountAzn,
-        totalAzn: input.amountAzn
+        unitPriceAzn: invoice.netAmountAzn,
+        totalAzn: invoice.amountAzn
       }
     ],
-    totalAzn: input.amountAzn,
+    totalAzn: invoice.amountAzn,
+    vatAmountAzn: invoice.vatAmountAzn,
+    netAmountAzn: invoice.netAmountAzn,
+    vatRatePercent: invoice.vatRate,
     paymentReference: input.paymentReference,
     invoiceUrl
   });

@@ -9,7 +9,8 @@ import { listAuctionNotificationsForUser } from "@/server/auction-notification-s
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
 import { listPendingDefenseReportsForUser } from "@/server/user-report-store";
-import { listInvoicesForUser } from "@/server/invoice-store";
+import { listInvoicesForUser, countInvoicesForUser } from "@/server/invoice-store";
+import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 import { loadBusinessAccountSnapshot } from "@/server/business-access";
 import { formatAccountTypeLabel } from "@/lib/business-account";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
@@ -25,7 +26,7 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, pendingReports, businessSnapshot] =
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot] =
     await Promise.all([
     getUserProfile(user.id),
     listUserFavorites(user.id),
@@ -33,7 +34,8 @@ export default async function ProfilePage({
     listListingsForUser(user.id),
     getUserKycProfile(user.id),
     listAuctionNotificationsForUser(user.id, 8),
-    listInvoicesForUser(user.id, 5),
+    listInvoicesForUser(user.id, 10),
+    countInvoicesForUser(user.id),
     listPendingDefenseReportsForUser(user.id),
     loadBusinessAccountSnapshot(user)
   ]);
@@ -183,6 +185,65 @@ export default async function ProfilePage({
 
           <section className="card p-6">
             <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-slate-900">Ödənişlər və invoyslar</h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  {invoiceCount > 0
+                    ? `${invoiceCount} ödəniş qeydi — hər uğurlu ödəniş üçün invoys avtomatik yaradılır`
+                    : "Ödəniş etdikdən sonra invoyslarınız burada görünəcək"}
+                </p>
+              </div>
+              {invoiceCount > 0 && (
+                <Link href="/me/payments" className="btn-secondary text-sm shrink-0">
+                  Hamısı ({invoiceCount})
+                </Link>
+              )}
+            </div>
+            {invoices.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center">
+                <p className="text-sm text-slate-500">Hələ ödəniş invoysu yoxdur</p>
+                <Link href="/pricing" className="mt-3 inline-block text-sm font-medium text-[#0057FF] hover:underline">
+                  Planları kəşf et →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {invoices.map((inv) => (
+                  <Link
+                    key={inv.id}
+                    href={`/me/invoices/${inv.id}`}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-900/10 p-4 transition hover:border-[#0057FF]/25 hover:bg-[#0057FF]/5"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-semibold text-slate-800">{inv.invoiceNumber}</span>
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                          {INVOICE_PAYMENT_TYPE_LABELS[inv.paymentType] ?? inv.paymentType}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-sm text-slate-600">{inv.description}</p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {new Date(inv.issuedAt).toLocaleDateString("az-AZ", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric"
+                        })}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-base font-bold text-slate-900">{inv.amountAzn.toFixed(2)} ₼</p>
+                      {inv.vatAmountAzn > 0 && (
+                        <p className="text-[10px] text-slate-400">ƏDV daxil</p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="card p-6">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="font-semibold text-slate-900">Auksion yenilikləri</h2>
               <Link href="/auction" className="btn-secondary text-sm">Auksiona keç</Link>
             </div>
@@ -281,8 +342,8 @@ export default async function ProfilePage({
               <div className="rounded-2xl bg-white/60 p-4 col-span-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-[#0057FF]">{invoices.length}</div>
-                    <div className="text-xs text-slate-500">Son ödənişlər</div>
+                    <div className="text-2xl font-bold text-[#0057FF]">{invoiceCount}</div>
+                    <div className="text-xs text-slate-500">Ödəniş invoysu</div>
                   </div>
                   <Link href="/me/payments" className="text-xs font-medium text-[#0057FF] hover:underline">
                     Hamısına bax →
