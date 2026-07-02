@@ -15,12 +15,12 @@ const ROLE_LABELS = {
 
 const ROLE_COLORS = {
   buyer: "bg-blue-50 border-blue-200 text-blue-900",
-  seller: "bg-amber-500/10 border-amber-200 text-amber-200",
+  seller: "bg-amber-500/10 border-amber-200 text-amber-700",
 };
 
 const ROLE_BADGE = {
   buyer: "bg-blue-100 text-blue-800",
-  seller: "bg-amber-100 text-amber-200",
+  seller: "bg-amber-100 text-amber-700",
 };
 
 export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
@@ -100,7 +100,7 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             required
-            className="block flex-1 rounded-xl border border-white/10 bg-[#141419] px-3 py-2 text-sm text-white/80 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1 file:text-sm file:font-medium"
+            className="block flex-1 rounded-xl border border-slate-900/10 bg-white px-3 py-2 text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-white/65 file:px-3 file:py-1 file:text-sm file:font-medium"
           />
           <button
             type="submit"
@@ -111,32 +111,32 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
           </button>
         </form>
         {error && (
-          <p className="mt-2 text-xs font-medium text-red-200">{error}</p>
+          <p className="mt-2 text-xs font-medium text-red-700">{error}</p>
         )}
         {success && (
-          <p className="mt-2 text-xs font-medium text-emerald-300">{success}</p>
+          <p className="mt-2 text-xs font-medium text-emerald-700">{success}</p>
         )}
       </div>
 
       {/* My uploaded evidence */}
-      <div className="rounded-2xl border border-white/10 bg-[#141419] shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-white">
+      <div className="rounded-2xl border border-slate-900/10 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">
           Sizin sübutlarınız ({mine.length})
         </div>
         {loading ? (
-          <div className="px-5 py-8 text-center text-sm text-white/50">Yüklənir...</div>
+          <div className="px-5 py-8 text-center text-sm text-slate-500">Yüklənir...</div>
         ) : mine.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-white/50">
+          <div className="px-5 py-8 text-center text-sm text-slate-500">
             Hələ sübut yükləməmisiniz.
           </div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-slate-900/10">
             {mine.map((doc) => (
               <li key={doc.id} className="flex items-center gap-3 px-5 py-3">
                 <FileIcon mime={doc.mimeType} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">{doc.originalFilename}</p>
-                  <p className="text-xs text-white/45">{(doc.byteSize / 1024).toFixed(1)} KB · {new Date(doc.createdAt).toLocaleString("az-AZ")}</p>
+                  <p className="truncate text-sm font-medium text-slate-900">{doc.originalFilename}</p>
+                  <p className="text-xs text-slate-500">{(doc.byteSize / 1024).toFixed(1)} KB · {new Date(doc.createdAt).toLocaleString("az-AZ")}</p>
                 </div>
               </li>
             ))}
@@ -145,24 +145,24 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
       </div>
 
       {/* Other side's evidence */}
-      <div className="rounded-2xl border border-white/10 bg-[#141419] shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-white">
+      <div className="rounded-2xl border border-slate-900/10 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">
           {ROLE_LABELS[otherRole]} tərəfinin sübutları ({theirs.length})
         </div>
         {loading ? (
-          <div className="px-5 py-8 text-center text-sm text-white/50">Yüklənir...</div>
+          <div className="px-5 py-8 text-center text-sm text-slate-500">Yüklənir...</div>
         ) : theirs.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-white/50">
+          <div className="px-5 py-8 text-center text-sm text-slate-500">
             Qarşı tərəf hələ sübut yükləməyib.
           </div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-slate-900/10">
             {theirs.map((doc) => (
               <li key={doc.id} className="flex items-center gap-3 px-5 py-3">
                 <FileIcon mime={doc.mimeType} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">{doc.originalFilename}</p>
-                  <p className="text-xs text-white/45">{(doc.byteSize / 1024).toFixed(1)} KB · {new Date(doc.createdAt).toLocaleString("az-AZ")}</p>
+                  <p className="truncate text-sm font-medium text-slate-900">{doc.originalFilename}</p>
+                  <p className="text-xs text-slate-500">{(doc.byteSize / 1024).toFixed(1)} KB · {new Date(doc.createdAt).toLocaleString("az-AZ")}</p>
                 </div>
               </li>
             ))}
@@ -170,7 +170,7 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
         )}
       </div>
 
-      <p className="text-xs text-white/45">
+      <p className="text-xs text-slate-500">
         Yüklənmiş fayllar yalnız ops komandası tərəfindən baxılır. Saytda ictimai olaraq göstərilmir.
       </p>
     </div>
@@ -180,7 +180,7 @@ export function DisputeEvidenceManager({ auctionId, uploaderRole }: Props) {
 function FileIcon({ mime }: { mime: string }) {
   const isPdf = mime === "application/pdf";
   return (
-    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${isPdf ? "bg-red-500/15 text-red-200" : "bg-white/10 text-white/65"}`}>
+    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${isPdf ? "bg-red-500/15 text-red-700" : "bg-white/65 text-slate-600"}`}>
       {isPdf ? "PDF" : "IMG"}
     </div>
   );

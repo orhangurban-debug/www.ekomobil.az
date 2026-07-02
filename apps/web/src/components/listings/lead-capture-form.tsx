@@ -34,9 +34,9 @@ export function LeadCaptureForm({ listingId }: { listingId: string }) {
         <svg className="mx-auto mb-2 h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        <p className="font-medium text-emerald-300">Sorğunuz göndərildi</p>
+        <p className="font-medium text-emerald-700">Sorğunuz göndərildi</p>
         <p className="mt-1 text-xs text-emerald-600">Satıcı sizinlə ən qısa zamanda əlaqə saxlayacaq.</p>
-        <button onClick={() => setState("idle")} className="mt-3 text-xs text-emerald-300 underline">
+        <button onClick={() => setState("idle")} className="mt-3 text-xs text-emerald-700 underline">
           Yeni sorğu göndər
         </button>
       </div>
@@ -80,7 +80,7 @@ export function LeadCaptureForm({ listingId }: { listingId: string }) {
         {isLoading ? "Göndərilir..." : "Sorğu göndər"}
       </button>
       {state === "error" && (
-        <p className="text-xs text-red-200">Sorğu göndərilmədi. Yenidən cəhd edin.</p>
+        <p className="text-xs text-red-700">Sorğu göndərilmədi. Yenidən cəhd edin.</p>
       )}
     </form>
   );

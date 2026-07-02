@@ -23,11 +23,11 @@ export function ListingFloatingCta({
 }: ListingFloatingCtaProps) {
   return (
     <div className="floating-cta">
-      <p className="line-clamp-1 text-xs font-medium uppercase tracking-wide text-white/50">{title}</p>
+      <p className="line-clamp-1 text-xs font-medium uppercase tracking-wide text-slate-500">{title}</p>
       <p className="mt-1 text-2xl font-bold text-[#0057FF]">
         {priceAzn.toLocaleString("az-AZ")} ₼
       </p>
-      <p className="mt-0.5 text-xs text-white/40">{city} • {year}</p>
+      <p className="mt-0.5 text-xs text-slate-400">{city} • {year}</p>
       <div className="mt-4 space-y-2">
         {telPhone ? (
           <a href={`tel:${telPhone}`} className="btn-primary w-full justify-center py-2.5 flex text-sm">

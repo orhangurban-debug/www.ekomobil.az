@@ -131,12 +131,12 @@ export default async function PartsPage({
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
       {currentPartsPlan && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
           <div>
-            <p className="text-sm font-medium text-white/90">
+            <p className="text-sm font-medium text-slate-900">
               Aktiv plan: <span className="font-semibold text-[#0057FF]">{currentPartsPlan.nameAz}</span>
             </p>
-            <p className="mt-0.5 text-xs text-white/50">
+            <p className="mt-0.5 text-xs text-slate-500">
               Plan yüksəltmə, aylıq yeniləmə və tam qiymət cədvəli üçün Qiymətlər səhifəsinə keçin.
             </p>
           </div>
@@ -161,18 +161,18 @@ export default async function PartsPage({
                   </Link>
                 ))
               ) : (
-                <span className="text-sm text-white/40">Aktiv filter yoxdur</span>
+                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
               )}
             </div>
-            <div className="hidden lg:block text-sm text-white/50">{result.total} elan</div>
+            <div className="hidden lg:block text-sm text-slate-500">{result.total} elan</div>
           </div>
 
           {result.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/10 py-20 text-center">
-              <p className="font-medium text-white/80">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-900/10 py-20 text-center">
+              <p className="font-medium text-slate-700">
                 {activeChips.length > 0 ? "Bu filterə uyğun elan tapılmadı" : "Hələ mağaza elanı yoxdur"}
               </p>
-              <p className="text-sm text-white/40">
+              <p className="text-sm text-slate-400">
                 {activeChips.length > 0 ? "Filterləri dəyişin və ya sıfırlayın." : "İlk hissə elanınızı yerləşdirin."}
               </p>
               {activeChips.length > 0 && (

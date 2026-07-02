@@ -54,8 +54,8 @@ export default function PartsApplyPage() {
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-white">Müraciətiniz qəbul edildi</h1>
-        <p className="mt-3 text-white/50">
+        <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
+        <p className="mt-3 text-slate-500">
           Komandamız 1–2 iş günü ərzində əlaqə saxlayacaq. Təsdiqdən sonra mağaza planını aktivləşdirə bilərsiniz.
         </p>
         <div className="mt-8 flex justify-center gap-3">
@@ -68,22 +68,22 @@ export default function PartsApplyPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
-      <nav className="mb-6 text-sm text-white/50">
-        <Link href="/" className="hover:text-white">Ana səhifə</Link>
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-900">Ana səhifə</Link>
         <span className="mx-2">/</span>
-        <Link href="/pricing#parts-store" className="hover:text-white">Mağaza planları</Link>
+        <Link href="/pricing#parts-store" className="hover:text-slate-900">Mağaza planları</Link>
         <span className="mx-2">/</span>
-        <span className="text-white">Mağaza müraciəti</span>
+        <span className="text-slate-900">Mağaza müraciəti</span>
       </nav>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Ehtiyat hissə mağazası</h1>
-        <p className="mt-2 text-white/50">
+        <h1 className="text-3xl font-bold text-slate-900">Ehtiyat hissə mağazası</h1>
+        <p className="mt-2 text-slate-500">
           SKU kataloqu, toplu elan və mağaza analitikası üçün müraciət göndərin. Salon hesabından asılı deyil.
         </p>
       </div>
 
-      <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+      <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
         <strong>Qeyd:</strong> Avtomobil salonu açmaq istəyirsinizsə{" "}
         <Link href="/dealer/apply" className="font-medium text-[#0057FF] hover:underline">
           salon müraciəti
@@ -161,7 +161,7 @@ export default function PartsApplyPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
+          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">

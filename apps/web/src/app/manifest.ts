@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Azərbaycanda VIN yoxlamalı, şəffaf avtomobil alqı-satqı platforması.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0a0a0f",
+    background_color: "#EEF1F8",
     theme_color: "#0057FF",
     lang: "az"
   };

@@ -47,12 +47,12 @@ export function PlatformConsentForm({
 
   return (
     <form onSubmit={onSubmit} className="card space-y-5 p-8">
-      <div className="rounded-xl alert-warning border p-4 text-sm text-amber-200">
+      <div className="rounded-xl alert-warning border p-4 text-sm text-amber-700">
         Platformadan istifadə etmək üçün İstifadəçi Razılaşması və Məxfilik Siyasətini qəbul etməlisiniz.
         Bu, fırıldaqçılıq hallarında hüquqi qorunma və məlumatların qanuni paylaşımı üçün vacibdir.
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
         <input
           type="checkbox"
           checked={acceptTerms}
@@ -67,7 +67,7 @@ export function PlatformConsentForm({
         </span>
       </label>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/80">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-700">
         <input
           type="checkbox"
           checked={acceptPrivacy}
@@ -83,7 +83,7 @@ export function PlatformConsentForm({
       </label>
 
       {error && (
-        <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
+        <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
       <button type="submit" disabled={loading} className="btn-primary w-full justify-center disabled:opacity-50">

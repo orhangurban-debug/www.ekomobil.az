@@ -39,14 +39,14 @@ export function DealerImportForm() {
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">CSV idxalı</h1>
-          <p className="mt-1 text-sm text-white/50">Toplu inventar yükləmə</p>
+          <h1 className="text-2xl font-bold text-slate-900">CSV idxalı</h1>
+          <p className="mt-1 text-sm text-slate-500">Toplu inventar yükləmə</p>
         </div>
         <Link href="/dealer" className="btn-secondary text-sm">Salon paneli</Link>
       </div>
 
       <form onSubmit={onSubmit} className="card space-y-5 p-6">
-        <div className="rounded-xl bg-white/5 p-4 text-xs text-white/50">
+        <div className="rounded-xl bg-white/60 p-4 text-xs text-slate-500">
           Başlıq: <code>title,description,make,model,year,city,priceAzn,mileageKm,fuelType,transmission,vin</code>
         </div>
         <textarea
@@ -59,11 +59,11 @@ export function DealerImportForm() {
         </button>
 
         {result && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="text-sm font-medium text-white">Yaradılan elan sayı: {result.created ?? 0}</div>
-            {result.error && <div className="mt-2 text-sm text-red-200">{result.error}</div>}
+          <div className="rounded-xl border border-slate-900/10 bg-white/60 p-4">
+            <div className="text-sm font-medium text-slate-900">Yaradılan elan sayı: {result.created ?? 0}</div>
+            {result.error && <div className="mt-2 text-sm text-red-700">{result.error}</div>}
             {result.errors && result.errors.length > 0 && (
-              <ul className="mt-3 space-y-1 text-sm text-red-200">
+              <ul className="mt-3 space-y-1 text-sm text-red-700">
                 {result.errors.map((error) => (
                   <li key={error}>• {error}</li>
                 ))}

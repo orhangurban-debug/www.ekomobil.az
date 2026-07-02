@@ -169,20 +169,20 @@ export default async function ListingsPage({
                   </Link>
                 ))
               ) : (
-                <span className="text-sm text-white/40">Aktiv filter yoxdur</span>
+                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
               )}
             </div>
-            <div className="hidden text-sm text-white/50 lg:block">{result.total} elan</div>
+            <div className="hidden text-sm text-slate-500 lg:block">{result.total} elan</div>
           </div>
 
           {result.items.length === 0 ? (
             <div className="glass-panel flex flex-col items-center justify-center gap-4 py-20 text-center">
-              <svg className="h-12 w-12 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <div>
-                <p className="font-medium text-white/80">Heç bir elan tapılmadı</p>
-                <p className="mt-1 text-sm text-white/40">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
+                <p className="font-medium text-slate-700">Heç bir elan tapılmadı</p>
+                <p className="mt-1 text-sm text-slate-400">Filterləri dəyişdirin və ya axtarışı genişləndirin.</p>
               </div>
               <Link href="/listings" className="btn-secondary text-sm">Bütün elanlara bax</Link>
             </div>

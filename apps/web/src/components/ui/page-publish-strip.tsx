@@ -32,8 +32,8 @@ export function PagePublishStrip({
         <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-white">{title}</p>
-        <p className="mt-0.5 text-sm text-white/50">{description}</p>
+        <p className="font-semibold text-slate-900">{title}</p>
+        <p className="mt-0.5 text-sm text-slate-500">{description}</p>
       </div>
       {showActions && (
         <div className="flex shrink-0 flex-wrap gap-2">

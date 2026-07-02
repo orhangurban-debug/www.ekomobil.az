@@ -37,8 +37,8 @@ export function BusinessAccountStatus({
     <section className="card p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-white">Biznes hesabları</h2>
-          <p className="mt-1 text-sm text-white/50">
+          <h2 className="font-semibold text-slate-900">Biznes hesabları</h2>
+          <p className="mt-1 text-sm text-slate-500">
             Eyni hesabda salon və mağaza ayrıca aktivləşir — biri olmaq digərini tələb etmir.
           </p>
         </div>
@@ -88,9 +88,9 @@ function StatusTile({
   actionLabel: string;
 }) {
   return (
-    <div className={`rounded-xl border p-4 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-white/10"}`}>
-      <div className="text-sm font-medium text-white">{title}</div>
-      <div className={`mt-1 text-xs ${active ? "text-emerald-300" : "text-white/50"}`}>{status}</div>
+    <div className={`rounded-xl border p-4 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
+      <div className="text-sm font-medium text-slate-900">{title}</div>
+      <div className={`mt-1 text-xs ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</div>
       <Link href={href} className="mt-2 inline-block text-xs font-medium text-[#0057FF] hover:underline">
         {actionLabel} →
       </Link>
@@ -120,13 +120,13 @@ function VerticalCard({
   secondaryLabel: string;
 }) {
   return (
-    <div className={`rounded-2xl border p-5 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-white/10"}`}>
+    <div className={`rounded-2xl border p-5 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
       <div className="flex items-start gap-3">
         <span className="text-2xl" aria-hidden="true">{emoji}</span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-white">{title}</h3>
-          <p className="mt-1 text-xs text-white/50">{description}</p>
-          <p className={`mt-2 text-xs font-medium ${active ? "text-emerald-300" : "text-white/50"}`}>{status}</p>
+          <h3 className="font-semibold text-slate-900">{title}</h3>
+          <p className="mt-1 text-xs text-slate-500">{description}</p>
+          <p className={`mt-2 text-xs font-medium ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</p>
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">

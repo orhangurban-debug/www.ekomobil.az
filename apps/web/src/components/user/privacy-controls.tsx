@@ -84,12 +84,12 @@ export function PrivacyControls({ variant = "full" }: { variant?: "full" | "comp
   }
 
   return (
-    <div className={`space-y-4 rounded-2xl border border-white/10 bg-[#141419] ${variant === "compact" ? "p-0 border-0 bg-transparent" : "p-5"}`}>
+    <div className={`space-y-4 rounded-2xl border border-slate-900/10 bg-white ${variant === "compact" ? "p-0 border-0 bg-transparent" : "p-5"}`}>
       <div>
-        <h2 className={`font-semibold text-white ${variant === "compact" ? "text-sm" : "text-base"}`}>
+        <h2 className={`font-semibold text-slate-900 ${variant === "compact" ? "text-sm" : "text-base"}`}>
           {variant === "compact" ? "Məlumat ixracı" : "Məlumat hüquqları alətləri"}
         </h2>
-        <p className={`mt-1 text-white/50 ${variant === "compact" ? "text-xs" : "text-sm"}`}>
+        <p className={`mt-1 text-slate-500 ${variant === "compact" ? "text-xs" : "text-sm"}`}>
           {variant === "compact"
             ? "Hesab məlumatlarınızı JSON formatında yükləyin."
             : "Buradan məlumat ixracı edə və məxfilik hüquqları üzrə rəsmi sorğu yarada bilərsiniz."}
@@ -134,7 +134,7 @@ export function PrivacyControls({ variant = "full" }: { variant?: "full" | "comp
         </Link>
       )}
       {feedback && (
-        <p className={`text-sm ${isError ? "text-rose-600" : "text-emerald-300"}`}>
+        <p className={`text-sm ${isError ? "text-rose-600" : "text-emerald-700"}`}>
           {feedback}
         </p>
       )}

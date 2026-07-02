@@ -99,10 +99,10 @@ export function BoostListingButton({
         type="button"
         onClick={() => handleBoost(pkg.id)}
         disabled={loading}
-        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-white/5 disabled:opacity-50"
+        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-900/5 disabled:opacity-50"
       >
         <span>{pkg.nameAz}</span>
-        <span className="font-semibold text-white/80">{pkg.priceAzn} ₼</span>
+        <span className="font-semibold text-slate-700">{pkg.priceAzn} ₼</span>
       </button>
     );
   }
@@ -120,8 +120,8 @@ export function BoostListingButton({
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-white/10 bg-[#141419] py-1 shadow-lg">
-              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">Plan yüksəlt</div>
+            <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-slate-900/10 bg-white py-1 shadow-lg">
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Plan yüksəlt</div>
               {availablePlans.map((planId) => {
                 const plan = LISTING_PLANS.find((p) => p.id === planId)!;
                 const isCurrent = planId === currentPlan;
@@ -131,18 +131,18 @@ export function BoostListingButton({
                     type="button"
                     onClick={() => handleUpgrade(planId)}
                     disabled={loading}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-white/5 disabled:opacity-50"
+                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-900/5 disabled:opacity-50"
                   >
                     <span>
                       {plan.nameAz}
                       {isCurrent ? " (müddəti uzat)" : ""}
                     </span>
-                    <span className="font-semibold text-white/80">{planPriceLabel(planId)}</span>
+                    <span className="font-semibold text-slate-700">{planPriceLabel(planId)}</span>
                   </button>
                 );
               })}
               <div className="my-1 border-t border-slate-100" />
-              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/45">İrəlilətmə paketləri</div>
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">İrəlilətmə paketləri</div>
               {BUMP_PACKAGES.slice(0, 2).map(renderCompactBoostButton)}
               {VIP_PACKAGES.slice(0, 1).map(renderCompactBoostButton)}
               {PREMIUM_PACKAGES.slice(0, 1).map(renderCompactBoostButton)}
@@ -166,8 +166,8 @@ export function BoostListingButton({
         Elanı irəli çək
       </button>
       {open && (
-        <div className="rounded-xl border border-white/10 bg-[#141419] p-4 space-y-3">
-          <p className="text-sm font-medium text-white/80">Plan seçin və ya müddəti uzadın</p>
+        <div className="rounded-xl border border-slate-900/10 bg-white p-4 space-y-3">
+          <p className="text-sm font-medium text-slate-700">Plan seçin və ya müddəti uzadın</p>
           <div className="grid gap-2">
             {availablePlans.map((planId) => {
               const plan = LISTING_PLANS.find((p) => p.id === planId)!;
@@ -178,9 +178,9 @@ export function BoostListingButton({
                   type="button"
                   onClick={() => handleUpgrade(planId)}
                   disabled={loading}
-                  className="flex items-center justify-between rounded-lg border border-white/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
+                  className="flex items-center justify-between rounded-lg border border-slate-900/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
                 >
-                  <span className="font-medium text-white">
+                  <span className="font-medium text-slate-900">
                     {plan.nameAz}
                     {isCurrent ? " (müddəti uzat)" : ""}
                   </span>
@@ -191,8 +191,8 @@ export function BoostListingButton({
           </div>
 
           <div className="pt-2">
-            <p className="text-sm font-medium text-white/80">İrəlilətmə paketləri</p>
-            <p className="mt-1 text-xs text-white/50">
+            <p className="text-sm font-medium text-slate-700">İrəlilətmə paketləri</p>
+            <p className="mt-1 text-xs text-slate-500">
               İrəli çək / VIP / Premium paketləri ilə elanın görünürlüğünü artırın.
             </p>
             <div className="mt-2 grid gap-2">
@@ -202,9 +202,9 @@ export function BoostListingButton({
                   type="button"
                   onClick={() => handleBoost(pkg.id)}
                   disabled={loading}
-                  className="flex items-center justify-between rounded-lg border border-white/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
+                  className="flex items-center justify-between rounded-lg border border-slate-900/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
                 >
-                  <span className="font-medium text-white">{pkg.nameAz}</span>
+                  <span className="font-medium text-slate-900">{pkg.nameAz}</span>
                   <span className="font-bold text-[#0057FF]">
                     {pkg.priceAzn} ₼
                     {pkg.durationDays ? ` / ${pkg.durationDays} gün` : ""}

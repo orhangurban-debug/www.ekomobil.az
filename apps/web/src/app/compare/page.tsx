@@ -11,23 +11,23 @@ function RatingBar({ value, max = 10, color = "#0057FF" }: { value: number; max?
   const pct = Math.round((value / max) * 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 overflow-hidden rounded-full bg-white/8" style={{ height: 6 }}>
+      <div className="flex-1 overflow-hidden rounded-full bg-white/63" style={{ height: 6 }}>
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>
-      <span className="w-6 text-right text-xs font-bold tabular-nums text-white/80">{value}</span>
+      <span className="w-6 text-right text-xs font-bold tabular-nums text-slate-700">{value}</span>
     </div>
   );
 }
 
 function MaintenanceBadge({ cost }: { cost: CarModelInsights["maintenanceCost"] }) {
   const map: Record<CarModelInsights["maintenanceCost"], { label: string; cls: string }> = {
-    "aşağı": { label: "Aşağı", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25" },
-    "orta": { label: "Orta", cls: "bg-amber-500/15 text-amber-200 border-amber-500/25" },
-    "yüksək": { label: "Yüksək", cls: "bg-orange-500/15 text-orange-200 border-orange-500/25" },
-    "çox yüksək": { label: "Çox yüksək", cls: "bg-red-500/15 text-red-200 border-red-500/25" }
+    "aşağı": { label: "Aşağı", cls: "bg-emerald-500/15 text-emerald-700 border-emerald-500/25" },
+    "orta": { label: "Orta", cls: "bg-amber-500/15 text-amber-700 border-amber-500/25" },
+    "yüksək": { label: "Yüksək", cls: "bg-orange-500/15 text-orange-700 border-orange-500/25" },
+    "çox yüksək": { label: "Çox yüksək", cls: "bg-red-500/15 text-red-700 border-red-500/25" }
   };
   const { label, cls } = map[cost];
   return (
@@ -53,7 +53,7 @@ function SatisfactionArc({ pct }: { pct: number }) {
         </svg>
         <span className="text-sm font-bold" style={{ color }}>{pct}%</span>
       </div>
-      <span className="text-[10px] text-white/40">Sahibkar məmnuniyyəti</span>
+      <span className="text-[10px] text-slate-400">Sahibkar məmnuniyyəti</span>
     </div>
   );
 }
@@ -76,10 +76,10 @@ function compareNumericLow(values: number[]): ("better" | "worse" | "equal")[] {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border glass-panel border-white/10 shadow-sm">
-      <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/5 px-5 py-3.5">
+    <section className="overflow-hidden rounded-2xl border glass-panel border-slate-900/10 shadow-sm">
+      <div className="flex items-center gap-2.5 border-b border-slate-900/10 bg-white/60 px-5 py-3.5">
         <span className="text-[#0057FF]">{icon}</span>
-        <h2 className="text-sm font-semibold text-white">{title}</h2>
+        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
       </div>
       {children}
     </section>
@@ -94,24 +94,24 @@ function CarHeader({ item }: { item: ListingSummary }) {
     <div className="flex flex-col gap-2 px-4 py-4">
       <Link
         href={`/listings/${item.id}`}
-        className="text-sm font-semibold leading-tight text-white hover:text-[#0057FF] transition-colors"
+        className="text-sm font-semibold leading-tight text-slate-900 hover:text-[#0057FF] transition-colors"
       >
         {item.title}
       </Link>
       <div className="flex flex-wrap gap-1.5">
-        <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">{item.city}</span>
+        <span className="rounded-md bg-white/63 px-2 py-0.5 text-xs text-slate-600">{item.city}</span>
         {item.vinVerified && (
-          <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">VIN ✓</span>
+          <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700">VIN ✓</span>
         )}
         {item.planType === "vip" && (
-          <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-200">VIP</span>
+          <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700">VIP</span>
         )}
       </div>
       <div className="flex items-baseline gap-1.5">
         <span className="text-xl font-bold text-[#0057FF]">{item.priceAzn.toLocaleString()} ₼</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/8">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/63">
           <div
             className={`h-full rounded-full ${item.trustScore >= 80 ? "bg-emerald-500" : item.trustScore >= 60 ? "bg-amber-500/100" : "bg-red-400"}`}
             style={{ width: `${item.trustScore}%` }}
@@ -136,14 +136,14 @@ function SpecRow({
 }) {
   return (
     <tr className="border-b border-slate-50 last:border-0">
-      <td className="py-3 pl-5 pr-4 text-xs font-medium text-white/40 w-28">{label}</td>
+      <td className="py-3 pl-5 pr-4 text-xs font-medium text-slate-400 w-28">{label}</td>
       {values.map((val, i) => {
         const h = highlight?.[i];
         return (
           <td
             key={i}
             className={`py-3 px-4 text-sm font-semibold ${
-              h === "better" ? "text-emerald-300" : h === "worse" ? "text-red-500" : "text-white"
+              h === "better" ? "text-emerald-700" : h === "worse" ? "text-red-500" : "text-slate-900"
             }`}
           >
             {h === "better" && <span className="mr-1 text-emerald-500">▲</span>}
@@ -168,12 +168,12 @@ function ListColumn({
   variant: "strength" | "weakness" | "problem";
 }) {
   const styles = {
-    strength: { dot: "bg-emerald-500", text: "text-white/80" },
-    weakness: { dot: "bg-amber-500/100", text: "text-white/80" },
-    problem: { dot: "bg-red-400", text: "text-white/80" }
+    strength: { dot: "bg-emerald-500", text: "text-slate-700" },
+    weakness: { dot: "bg-amber-500/100", text: "text-slate-700" },
+    problem: { dot: "bg-red-400", text: "text-slate-700" }
   }[variant];
 
-  if (!items.length) return <p className="text-xs text-white/30 px-4 py-2">Məlumat yoxdur</p>;
+  if (!items.length) return <p className="text-xs text-slate-400 px-4 py-2">Məlumat yoxdur</p>;
 
   return (
     <ul className="space-y-2 px-4 py-3">
@@ -190,10 +190,10 @@ function ListColumn({
 // ── Verdict card ──────────────────────────────────────────────────────────
 
 const TIER_LABELS: Record<BrandContext["reliabilityTier"], { label: string; cls: string }> = {
-  top: { label: "Ən yüksək", cls: "bg-emerald-500/10 text-emerald-300 border-emerald-500/25" },
+  top: { label: "Ən yüksək", cls: "bg-emerald-500/10 text-emerald-700 border-emerald-500/25" },
   above_avg: { label: "Ortanın üstü", cls: "bg-sky-50 text-sky-700 border-sky-200" },
-  average: { label: "Orta", cls: "bg-amber-500/15 text-amber-200 border-amber-500/25" },
-  below_avg: { label: "Ortanın altı", cls: "bg-red-500/15 text-red-200 border-red-500/25" }
+  average: { label: "Orta", cls: "bg-amber-500/15 text-amber-700 border-amber-500/25" },
+  below_avg: { label: "Ortanın altı", cls: "bg-red-500/15 text-red-700 border-red-500/25" }
 };
 
 function VerdictCard({
@@ -211,7 +211,7 @@ function VerdictCard({
   return (
     <div
       className={`flex-1 rounded-2xl border p-5 ${
-        isFirst ? "border-[#0057FF] bg-[#0057FF]/5" : "glass-panel border-white/10"
+        isFirst ? "border-[#0057FF] bg-[#0057FF]/5" : "glass-panel border-slate-900/10"
       }`}
     >
       {isFirst && (
@@ -222,28 +222,28 @@ function VerdictCard({
           Tövsiyə edilən seçim
         </div>
       )}
-      <p className="text-sm font-semibold text-white">{item.title}</p>
+      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
       {insight ? (
-        <p className="mt-2 text-xs leading-relaxed text-white/50">{insight.verdict}</p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-500">{insight.verdict}</p>
       ) : brandCtx ? (
         <div className="mt-2 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/40">Marka etibarlılığı:</span>
+            <span className="text-xs text-slate-400">Marka etibarlılığı:</span>
             <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${TIER_LABELS[brandCtx.reliabilityTier].cls}`}>
               {TIER_LABELS[brandCtx.reliabilityTier].label}
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-white/50">{brandCtx.note}</p>
+          <p className="text-xs leading-relaxed text-slate-500">{brandCtx.note}</p>
         </div>
       ) : (
-        <p className="mt-2 text-xs leading-relaxed text-white/40 italic">Bu model üçün beynəlxalq analiz məlumatı hələ əlavə edilməyib.</p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-400 italic">Bu model üçün beynəlxalq analiz məlumatı hələ əlavə edilməyib.</p>
       )}
       <Link
         href={`/listings/${item.id}`}
         className={`mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition ${
           isFirst
             ? "bg-[#0057FF] text-white hover:bg-[#0046CC]"
-            : "bg-white/8 text-white/80 hover:bg-white/10"
+            : "bg-white/63 text-slate-700 hover:bg-slate-900/10"
         }`}
       >
         Elana bax →
@@ -267,15 +267,15 @@ export default async function ComparePage({
   if (items.length === 0) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center px-4 py-16 text-center">
-        <div className="w-full rounded-2xl border border-dashed border-white/10 p-12">
-          <svg className="mx-auto mb-4 h-12 w-12 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-full rounded-2xl border border-dashed border-slate-900/10 p-12">
+          <svg className="mx-auto mb-4 h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
-          <h1 className="text-xl font-bold text-white">Müqayisə üçün elan seçilməyib</h1>
-          <p className="mt-2 text-sm text-white/50">
+          <h1 className="text-xl font-bold text-slate-900">Müqayisə üçün elan seçilməyib</h1>
+          <p className="mt-2 text-sm text-slate-500">
             Elan kartındakı <strong>&quot;Müqayisə et&quot;</strong> düyməsi ilə 2–4 avtomobil seçin.
           </p>
-          <p className="mt-1 text-xs text-white/40">
+          <p className="mt-1 text-xs text-slate-400">
             Seçilmiş modellər üçün texniki məlumat, etibarlılıq analizi, zəif nöqtələr və beynəlxalq sahibkar statistikası göstəriləcək.
           </p>
           <Link href="/listings" className="btn-primary mt-6 inline-flex">
@@ -330,14 +330,14 @@ export default async function ComparePage({
   ];
 
   return (
-    <div className="min-h-screen bg-white/5">
+    <div className="min-h-screen bg-white/60">
       {/* ── Page header ─────────────────────────────────────────────────── */}
-      <div className="border-b glass-panel border-white/10 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="border-b glass-panel border-slate-900/10 px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white sm:text-3xl">Dərin müqayisə analizi</h1>
-              <p className="mt-1.5 text-sm text-white/50">
+              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Dərin müqayisə analizi</h1>
+              <p className="mt-1.5 text-sm text-slate-500">
                 {items.length} avtomobil · Texniki məlumat, beynəlxalq etibarlılıq statistikası, zəif nöqtələr
               </p>
               {insightsData.some((d, i) => d !== null && !getCarInsights(items[i]?.make ?? "", items[i]?.model ?? "", items[i]?.year ?? 0)) && (
@@ -359,11 +359,11 @@ export default async function ComparePage({
             {items.map((item, i) => (
               <div
                 key={item.id}
-                className="rounded-2xl glass-panel border-white/10 shadow-sm"
+                className="rounded-2xl glass-panel border-slate-900/10 shadow-sm"
                 style={{ borderColor: `${COLORS[i]}40` }}
               >
                 <div
-                  className="rounded-t-2xl px-4 py-2 text-xs font-bold uppercase tracking-wider text-white"
+                  className="rounded-t-2xl px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-900"
                   style={{ backgroundColor: COLORS[i] }}
                 >
                   Avtomobil {i + 1}
@@ -400,8 +400,8 @@ export default async function ComparePage({
               <SpecRow label="Satıcı" values={items.map((i) => (i.sellerVerified ? "Doğrulanmış" : "Doğrulanmamış"))} />
             </tbody>
           </table>
-          <div className="border-t border-white/10 bg-white/5/50 px-5 py-3">
-            <p className="text-xs text-white/40">
+          <div className="border-t border-slate-900/10 bg-white/60/50 px-5 py-3">
+            <p className="text-xs text-slate-400">
               <span className="mr-3 font-semibold text-emerald-600">▲ Daha yaxşı</span>
               <span className="font-semibold text-red-500">▼ Daha zəif</span>
               <span className="ml-3">Qiymət və yürüş üçün aşağı dəyər üstünlük hesab olunur.</span>
@@ -428,17 +428,17 @@ export default async function ComparePage({
               }
             >
               {/* Powertrain type badges */}
-              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                <span className="pl-5 py-3 text-xs font-medium text-white/40 flex items-center">Güc sistemi</span>
+              <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-3 text-xs font-medium text-slate-400 flex items-center">Güc sistemi</span>
                 {items.map((_, i) => {
                   const pt = insightsData[i]?.powertrain;
-                  if (!pt) return <div key={i} className="px-4 py-3 text-xs text-white/30 italic">—</div>;
+                  if (!pt) return <div key={i} className="px-4 py-3 text-xs text-slate-400 italic">—</div>;
                   const info = getPowertrainInfo(pt.category);
                   return (
                     <div key={i} className="px-4 py-3 flex items-center gap-2">
                       <span className="text-base">{info.icon}</span>
                       <span
-                        className="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+                        className="rounded-full px-2.5 py-0.5 text-xs font-bold text-slate-900"
                         style={{ backgroundColor: info.color }}
                       >
                         {info.label}
@@ -449,12 +449,12 @@ export default async function ComparePage({
               </div>
 
               {/* System power */}
-              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Sistem gücü</span>
+              <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Sistem gücü</span>
                 {items.map((_, i) => {
                   const hp = insightsData[i]?.powertrain?.systemPowerHp;
                   return (
-                    <div key={i} className="px-4 py-2.5 text-sm font-medium text-white/80">
+                    <div key={i} className="px-4 py-2.5 text-sm font-medium text-slate-700">
                       {hp ? `${hp} hp` : "—"}
                     </div>
                   );
@@ -463,12 +463,12 @@ export default async function ComparePage({
 
               {/* Engine displacement (for ICE) */}
               {insightsData.some((d) => d?.powertrain?.engineCc) && (
-                <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                  <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Mühərrik həcmi</span>
+                <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                  <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Mühərrik həcmi</span>
                   {items.map((_, i) => {
                     const cc = insightsData[i]?.powertrain?.engineCc;
                     return (
-                      <div key={i} className="px-4 py-2.5 text-sm text-white/80">
+                      <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
                         {cc ? `${(cc / 1000).toFixed(1)} L (${cc} cc)` : "—"}
                       </div>
                     );
@@ -477,15 +477,15 @@ export default async function ComparePage({
               )}
 
               {/* Fuel consumption */}
-              <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Kombinədir</span>
+              <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Kombinədir</span>
                 {items.map((_, i) => {
                   const fc = insightsData[i]?.powertrain?.fuelConsumption;
-                  if (!fc) return <div key={i} className="px-4 py-2.5 text-xs text-white/30 italic">—</div>;
+                  if (!fc) return <div key={i} className="px-4 py-2.5 text-xs text-slate-400 italic">—</div>;
                   const isEV = fc.unit === "kWh/100km";
                   return (
                     <div key={i} className="px-4 py-2.5">
-                      <span className="text-sm font-semibold text-white/90">
+                      <span className="text-sm font-semibold text-slate-900">
                         {fc.combined} {fc.unit}
                       </span>
                       {fc.evOnlyCombined && (
@@ -494,12 +494,12 @@ export default async function ComparePage({
                         </div>
                       )}
                       {!isEV && fc.city && fc.highway && (
-                        <div className="mt-0.5 text-[10px] text-white/40">
+                        <div className="mt-0.5 text-[10px] text-slate-400">
                           Ş: {fc.city} · M: {fc.highway}
                         </div>
                       )}
                       {fc.testCycle && (
-                        <div className="text-[10px] text-white/30">{fc.testCycle}</div>
+                        <div className="text-[10px] text-slate-400">{fc.testCycle}</div>
                       )}
                     </div>
                   );
@@ -509,8 +509,8 @@ export default async function ComparePage({
               {/* Electric range & charging for PHEV/BEV */}
               {hasCharging && (
                 <>
-                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                    <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Elektrik diapazonu</span>
+                  <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Elektrik diapazonu</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       return (
@@ -520,41 +520,41 @@ export default async function ComparePage({
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                    <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Batareya</span>
+                  <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Batareya</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       return (
-                        <div key={i} className="px-4 py-2.5 text-sm text-white/80">
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
                           {ch?.batteryKwh ? `${ch.batteryKwh} kWh` : "—"}
                         </div>
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                    <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">DC şarj (peak)</span>
+                  <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">DC şarj (peak)</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       return (
-                        <div key={i} className="px-4 py-2.5 text-sm text-white/80">
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
                           {ch?.fastChargeKw ? `${ch.fastChargeKw} kW` : "—"}
                         </div>
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-white/10 border-b border-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                    <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">10→80% şarj</span>
+                  <div className="grid divide-x divide-slate-900/10 border-b border-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">10→80% şarj</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       return (
-                        <div key={i} className="px-4 py-2.5 text-sm text-white/80">
+                        <div key={i} className="px-4 py-2.5 text-sm text-slate-700">
                           {ch?.charge10to80Min ? `~${ch.charge10to80Min} dəq` : "—"}
                         </div>
                       );
                     })}
                   </div>
-                  <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
-                    <span className="pl-5 py-2.5 text-xs font-medium text-white/40 flex items-center">Konnektoru</span>
+                  <div className="grid divide-x divide-slate-900/10" style={{ gridTemplateColumns: `7rem repeat(${colCount}, 1fr)` }}>
+                    <span className="pl-5 py-2.5 text-xs font-medium text-slate-400 flex items-center">Konnektoru</span>
                     {items.map((_, i) => {
                       const ch = insightsData[i]?.powertrain?.charging;
                       const connLabel: Record<string, string> = {
@@ -562,7 +562,7 @@ export default async function ComparePage({
                         "Tesla-NACS": "Tesla NACS", "Type1": "AC Type1", "GB/T": "GB/T (Çin)"
                       };
                       return (
-                        <div key={i} className="px-4 py-2.5 text-xs text-white/65">
+                        <div key={i} className="px-4 py-2.5 text-xs text-slate-600">
                           {ch?.connectorType ? (connLabel[ch.connectorType] ?? ch.connectorType) : "—"}
                         </div>
                       );
@@ -573,35 +573,35 @@ export default async function ComparePage({
 
               {/* Technology education panel */}
               {hasElectric && presentCategories.length > 0 && (
-                <div className="border-t border-white/10 bg-white/5/60 px-5 py-4 space-y-3">
-                  <p className="text-xs font-semibold text-white/65">Güc sistemi texnologiyaları haqqında:</p>
+                <div className="border-t border-slate-900/10 bg-white/60/60 px-5 py-4 space-y-3">
+                  <p className="text-xs font-semibold text-slate-600">Güc sistemi texnologiyaları haqqında:</p>
                   {presentCategories.map((cat) => {
                     const info = getPowertrainInfo(cat);
                     return (
-                      <div key={cat} className="rounded-xl border glass-panel border-white/10 p-3">
+                      <div key={cat} className="rounded-xl border glass-panel border-slate-900/10 p-3">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-sm">{info.icon}</span>
                           <span
-                            className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+                            className="rounded-full px-2 py-0.5 text-[11px] font-bold text-slate-900"
                             style={{ backgroundColor: info.color }}
                           >
                             {info.label}
                           </span>
-                          <span className="text-xs font-medium text-white/65">{info.fullName}</span>
+                          <span className="text-xs font-medium text-slate-600">{info.fullName}</span>
                         </div>
-                        <p className="text-xs text-white/50 leading-relaxed">{info.howItWorks}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">{info.howItWorks}</p>
                         <div className="mt-2 flex flex-wrap gap-1">
                           {info.pros.slice(0, 2).map((p) => (
-                            <span key={p} className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">✓ {p}</span>
+                            <span key={p} className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-700">✓ {p}</span>
                           ))}
                           {info.cons.slice(0, 1).map((c) => (
-                            <span key={c} className="rounded-md bg-red-500/15 px-2 py-0.5 text-[11px] text-red-300">✗ {c}</span>
+                            <span key={c} className="rounded-md bg-red-500/15 px-2 py-0.5 text-[11px] text-red-700">✗ {c}</span>
                           ))}
                         </div>
                       </div>
                     );
                   })}
-                  <p className="text-[10px] text-white/40">
+                  <p className="text-[10px] text-slate-400">
                     Yanacaq sərfiyyatı WLTP/EPA sınaq şəraitinə əsaslanır. Real həyat sərfiyyatı sürüş tərzindən 10–25% yüksək ola bilər.
                   </p>
                 </div>
@@ -619,10 +619,10 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="divide-y divide-white/10 px-2 py-2">
+          <div className="divide-y divide-slate-900/10 px-2 py-2">
             {ratingKeys.map(({ key, label }) => (
               <div key={key} className="grid items-center py-2.5" style={{ gridTemplateColumns: gridTemplate }}>
-                <span className="pl-3 text-xs font-medium text-white/40">{label}</span>
+                <span className="pl-3 text-xs font-medium text-slate-400">{label}</span>
                 {items.map((_, i) => {
                   const val = insightsData[i]?.ratings[key];
                   return val !== undefined ? (
@@ -630,7 +630,7 @@ export default async function ComparePage({
                       <RatingBar value={val} color={COLORS[i]} />
                     </div>
                   ) : (
-                    <div key={i} className="px-3 text-xs text-white/30 italic">Məlumat yoxdur</div>
+                    <div key={i} className="px-3 text-xs text-slate-400 italic">Məlumat yoxdur</div>
                   );
                 })}
               </div>
@@ -638,10 +638,10 @@ export default async function ComparePage({
           </div>
 
           {/* Satisfaction arcs */}
-          <div className="border-t border-white/10 bg-white/5/50">
+          <div className="border-t border-slate-900/10 bg-white/60/50">
             <div className="grid py-4" style={{ gridTemplateColumns: gridTemplate }}>
               <div className="pl-5 flex items-center">
-                <span className="text-xs font-medium text-white/40 leading-tight">Sahibkar<br />məmnuniyyəti</span>
+                <span className="text-xs font-medium text-slate-400 leading-tight">Sahibkar<br />məmnuniyyəti</span>
               </div>
               {items.map((_, i) => {
                 const pct = insightsData[i]?.ownerSatisfaction;
@@ -650,7 +650,7 @@ export default async function ComparePage({
                     {pct !== undefined ? (
                       <SatisfactionArc pct={pct} />
                     ) : (
-                      <span className="text-xs text-white/30 italic">—</span>
+                      <span className="text-xs text-slate-400 italic">—</span>
                     )}
                   </div>
                 );
@@ -659,14 +659,14 @@ export default async function ComparePage({
           </div>
 
           {/* Qulluq xərci */}
-          <div className="border-t border-white/10">
+          <div className="border-t border-slate-900/10">
             <div className="grid items-center py-3" style={{ gridTemplateColumns: gridTemplate }}>
-              <span className="pl-5 text-xs font-medium text-white/40">Qulluq xərci</span>
+              <span className="pl-5 text-xs font-medium text-slate-400">Qulluq xərci</span>
               {items.map((_, i) => {
                 const cost = insightsData[i]?.maintenanceCost;
                 return (
                   <div key={i} className="px-4">
-                    {cost ? <MaintenanceBadge cost={cost} /> : <span className="text-xs text-white/30">—</span>}
+                    {cost ? <MaintenanceBadge cost={cost} /> : <span className="text-xs text-slate-400">—</span>}
                   </div>
                 );
               })}
@@ -675,12 +675,12 @@ export default async function ComparePage({
 
           {/* Brand context for unmatched models */}
           {brandContexts.some((b) => b !== null) && (
-            <div className="border-t border-white/10 bg-amber-500/10 px-5 py-3">
-              <p className="mb-2 text-xs font-semibold text-amber-200">Marka konteksti — model məlumatı olmadan:</p>
+            <div className="border-t border-slate-900/10 bg-amber-500/10 px-5 py-3">
+              <p className="mb-2 text-xs font-semibold text-amber-700">Marka konteksti — model məlumatı olmadan:</p>
               <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
                 {items.map((item, i) => {
                   const bc = brandContexts[i];
-                  if (!bc) return <div key={i} className="text-xs text-white/30 italic px-1">Model üçün ətraflı məlumat var ↑</div>;
+                  if (!bc) return <div key={i} className="text-xs text-slate-400 italic px-1">Model üçün ətraflı məlumat var ↑</div>;
                   return (
                     <div key={i} className="space-y-1 px-1">
                       <div className="flex items-center gap-1.5">
@@ -696,8 +696,8 @@ export default async function ComparePage({
               </div>
             </div>
           )}
-          <div className="border-t border-white/10 bg-white/5/50 px-5 py-3">
-            <p className="text-xs text-white/40">
+          <div className="border-t border-slate-900/10 bg-white/60/50 px-5 py-3">
+            <p className="text-xs text-slate-400">
               Mənbə: J.D. Power VDS/IQS · Consumer Reports · TÜV Report · Euro NCAP · ADAC Pannenstatistik.
               Reytinqlər beynəlxalq ortalama göstəricilərdir.
             </p>
@@ -713,7 +713,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-slate-900/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -736,7 +736,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-slate-900/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -760,7 +760,7 @@ export default async function ComparePage({
             </svg>
           }
         >
-          <div className="grid divide-x divide-white/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+          <div className="grid divide-x divide-slate-900/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
             {items.map((item, i) => (
               <div key={item.id}>
                 <div className="px-4 pt-3 pb-1">
@@ -772,7 +772,7 @@ export default async function ComparePage({
               </div>
             ))}
           </div>
-          <div className="border-t border-white/10 bg-amber-500/10 px-5 py-3">
+          <div className="border-t border-slate-900/10 bg-amber-500/10 px-5 py-3">
             <p className="text-xs text-amber-700">
               ⚠ Bu problemlər statistik olaraq həmin model üçün daha tez rast gəlinir. Fərdi avtomobil ideal vəziyyətdə ola bilər. Alışdan əvvəl servis yoxlaması tövsiyə olunur.
             </p>
@@ -799,9 +799,9 @@ export default async function ComparePage({
               />
             ))}
           </div>
-          <div className="border-t border-white/10 bg-white/5/50 px-5 py-4">
-            <p className="text-xs text-white/40 leading-relaxed">
-              <strong className="text-white/65">Qeyd:</strong> Tövsiyə etibar xalı və beynəlxalq etibarlılıq reytinqi əsasında hesablanır. Yekun qərar fərdi istifadə şərtlərini, büdcəni və üstünlükləri nəzərə almalıdır. Servis yoxlaması hər zaman tövsiyə olunur.
+          <div className="border-t border-slate-900/10 bg-white/60/50 px-5 py-4">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              <strong className="text-slate-600">Qeyd:</strong> Tövsiyə etibar xalı və beynəlxalq etibarlılıq reytinqi əsasında hesablanır. Yekun qərar fərdi istifadə şərtlərini, büdcəni və üstünlükləri nəzərə almalıdır. Servis yoxlaması hər zaman tövsiyə olunur.
             </p>
           </div>
         </Section>

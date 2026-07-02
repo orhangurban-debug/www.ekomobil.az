@@ -127,12 +127,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 pb-32 sm:px-6 lg:px-8 lg:pb-10">
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-2 text-sm text-white/50">
-        <Link href="/" className="transition hover:text-white">Ana səhifə</Link>
+      <nav className="mb-6 flex items-center gap-2 text-sm text-slate-500">
+        <Link href="/" className="transition hover:text-slate-900">Ana səhifə</Link>
         <span>/</span>
-        <Link href={isPart ? "/parts" : "/listings"} className="transition hover:text-white">{isPart ? "Mağaza elanları" : "Elanlar"}</Link>
+        <Link href={isPart ? "/parts" : "/listings"} className="transition hover:text-slate-900">{isPart ? "Mağaza elanları" : "Elanlar"}</Link>
         <span>/</span>
-        <span className="text-white/90">{listing.title}</span>
+        <span className="text-slate-900">{listing.title}</span>
       </nav>
 
       {/* Admin moderation bar */}
@@ -153,23 +153,23 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
           {/* Description */}
           <div className="card p-6">
-            <h2 className="mb-3 font-semibold text-white">Elan haqqında</h2>
-            <p className="text-sm leading-relaxed text-white/65">{listing.description}</p>
+            <h2 className="mb-3 font-semibold text-slate-900">Elan haqqında</h2>
+            <p className="text-sm leading-relaxed text-slate-600">{listing.description}</p>
           </div>
 
           {listing.serviceRecords.length > 0 && (
             <div className="card overflow-hidden">
-              <div className="border-b border-white/10 px-6 py-4">
-                <h2 className="font-semibold text-white">Servis timeline</h2>
+              <div className="border-b border-slate-900/10 px-6 py-4">
+                <h2 className="font-semibold text-slate-900">Servis timeline</h2>
               </div>
-              <div className="divide-y divide-white/10">
+              <div className="divide-y divide-slate-900/10">
                 {listing.serviceRecords.map((record) => (
                   <div key={record.id} className="px-6 py-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white/90">{record.summary}</span>
+                      <span className="text-sm font-medium text-slate-900">{record.summary}</span>
                       <span className="badge-neutral">{record.mileageKm.toLocaleString()} km</span>
                     </div>
-                    <p className="mt-1 text-xs text-white/45">
+                    <p className="mt-1 text-xs text-slate-500">
                       {new Date(record.serviceDate).toLocaleDateString("az-AZ")} • {record.sourceType}
                     </p>
                   </div>
@@ -180,10 +180,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
           {/* Specs table */}
           <div className="card overflow-hidden">
-            <div className="border-b border-white/10 px-6 py-4">
-              <h2 className="font-semibold text-white">Texniki göstəricilər</h2>
+            <div className="border-b border-slate-900/10 px-6 py-4">
+              <h2 className="font-semibold text-slate-900">Texniki göstəricilər</h2>
             </div>
-            <div className="divide-y divide-white/10">
+            <div className="divide-y divide-slate-900/10">
               {[
                 ...(isPart
                   ? [
@@ -241,8 +241,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     ])
               ].map(([label, value]) => (
                 <div key={String(label)} className="flex justify-between px-6 py-3 text-sm">
-                  <span className="text-white/50">{label}</span>
-                  <span className="font-medium text-white/90 font-mono text-xs sm:text-sm sm:font-sans">{value}</span>
+                  <span className="text-slate-500">{label}</span>
+                  <span className="font-medium text-slate-900 font-mono text-xs sm:text-sm sm:font-sans">{value}</span>
                 </div>
               ))}
             </div>
@@ -253,7 +253,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         <div className="hidden space-y-4 lg:block">
           {/* Price card */}
           <div className="card p-6">
-            <h1 className="text-xl font-bold leading-snug text-white">{listing.title}</h1>
+            <h1 className="text-xl font-bold leading-snug text-slate-900">{listing.title}</h1>
             <p className="mt-3 text-3xl font-bold text-[#0057FF]">
               {listing.priceAzn.toLocaleString("az-AZ")} ₼
             </p>
@@ -264,7 +264,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </span>
               </div>
             )}
-            <p className="mt-1 text-sm text-white/50">{listing.city} • {listing.year}</p>
+            <p className="mt-1 text-sm text-slate-500">{listing.city} • {listing.year}</p>
 
             <div className="mt-5 space-y-2">
               {telPhone ? (
@@ -298,9 +298,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           {/* Trust card */}
           <div className="card space-y-4 p-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-white">{isPart ? "Məhsul etibar siqnalları" : "Avto-Bioqrafiya"}</h2>
+              <h2 className="font-semibold text-slate-900">{isPart ? "Məhsul etibar siqnalları" : "Avto-Bioqrafiya"}</h2>
               <div
-                className="flex h-12 w-12 flex-col items-center justify-center rounded-full text-white font-bold text-sm shadow"
+                className="flex h-12 w-12 flex-col items-center justify-center rounded-full text-slate-900 font-bold text-sm shadow"
                 style={{ background: scoreColor }}
               >
                 {listing.trustScore}
@@ -335,7 +335,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 }
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">
-                  <span className="text-white/60">{item.label}</span>
+                  <span className="text-slate-600">{item.label}</span>
                   {item.ok ? (
                     <span className="badge-verified">{item.okText}</span>
                   ) : (
@@ -345,22 +345,22 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               ))}
 
               {listing.mileageFlagSeverity === "warning" && (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-200">
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
                   {listing.mileageFlagMessage || "Yürüşdə kiçik uyğunsuzluq aşkar edilib. Almazdan əvvəl servis tarixçəsini yoxlayın."}
                 </div>
               )}
               {listing.mileageFlagSeverity === "high_risk" && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-200">
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-700">
                   {listing.mileageFlagMessage || "Yürüşdə yüksək uyğunsuzluq aşkar edilib. Diqqətli olun."}
                 </div>
               )}
               {listing.riskSummary && (
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 p-3 text-xs text-slate-600">
                   <strong>Risk xülasəsi:</strong> {listing.riskSummary}
                 </div>
               )}
               {listing.lastVerifiedAt && (
-                <p className="text-xs text-white/35">
+                <p className="text-xs text-slate-400">
                   Son yoxlama: {new Date(listing.lastVerifiedAt).toLocaleString("az-AZ")}
                 </p>
               )}
@@ -374,18 +374,18 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <div className="card space-y-4 p-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <svg className="h-4 w-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  <h3 className="text-sm font-semibold text-white">VIN Tarixçəsini Özünüz Yoxlayın</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">VIN Tarixçəsini Özünüz Yoxlayın</h3>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-white/50">
-                  Bu avtomobil <span className="font-medium text-white/75">{vinCheck.regionLabelAz}</span> mənşəlidir.
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Bu avtomobil <span className="font-medium text-slate-700">{vinCheck.regionLabelAz}</span> mənşəlidir.
                   Aşağıdakı rəsmi xarici resurslara daxil olaraq tarixçəni müstəqil yoxlaya bilərsiniz.
                 </p>
-                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-2">
-                  <span className="select-all font-mono text-xs font-bold tracking-widest text-white/80">{vinCheck.vin}</span>
-                  <span className="ml-auto text-[10px] text-white/35">VIN nömrəsini kopyalayın →</span>
+                <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-white/60 px-3 py-2">
+                  <span className="select-all font-mono text-xs font-bold tracking-widest text-slate-700">{vinCheck.vin}</span>
+                  <span className="ml-auto text-[10px] text-slate-400">VIN nömrəsini kopyalayın →</span>
                 </div>
               </div>
 
@@ -397,21 +397,21 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-[#0057FF] hover:shadow-sm"
+                      className="group flex items-start gap-3 rounded-xl border border-slate-900/10 bg-white/60 p-3 transition hover:border-[#0057FF] hover:shadow-sm"
                     >
-                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-white/30 group-hover:text-[#0057FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-slate-400 group-hover:text-[#0057FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white/85 group-hover:text-[#0057FF]">{link.nameAz}</span>
+                          <span className="text-sm font-medium text-slate-900 group-hover:text-[#0057FF]">{link.nameAz}</span>
                           {link.free ? (
-                            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">Pulsuz</span>
+                            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Pulsuz</span>
                           ) : (
-                            <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/50">Ödənişli</span>
+                            <span className="rounded-full bg-white/65 px-1.5 py-0.5 text-[10px] text-slate-500">Ödənişli</span>
                           )}
                         </div>
-                        <p className="mt-0.5 text-xs leading-snug text-white/45">{link.descriptionAz}</p>
+                        <p className="mt-0.5 text-xs leading-snug text-slate-500">{link.descriptionAz}</p>
                       </div>
                     </a>
                   </li>
@@ -419,7 +419,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </ul>
 
               {/* Disclaimer */}
-              <p className="border-t border-white/10 pt-3 text-[10px] leading-relaxed text-white/35">
+              <p className="border-t border-slate-900/10 pt-3 text-[10px] leading-relaxed text-slate-400">
                 EkoMobil bu xidmətlərlə heç bir şəriklik münasibətinə malik deyil və linklər yalnız məlumat məqsədi ilə verilir.
                 Satınalmadan əvvəl müstəqil ekspert yoxlaması tövsiyə olunur.
               </p>
@@ -432,7 +432,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
 
           <div className="card sticky bottom-4 p-4 shadow-card">
-            <div className="mb-2 text-sm font-semibold text-white">Sürətli əməliyyat</div>
+            <div className="mb-2 text-sm font-semibold text-slate-900">Sürətli əməliyyat</div>
             <div className="grid gap-2">
               {isOwner && (
                 <div className="space-y-2">
@@ -483,30 +483,30 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <div className="card p-6">
-          <h2 className="font-semibold text-white">Qərar dəstəyi</h2>
+          <h2 className="font-semibold text-slate-900">Qərar dəstəyi</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-white/5 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/40">Likvidlik</div>
-              <div className="mt-2 text-sm font-semibold text-white">
+            <div className="rounded-2xl bg-white/60 p-4">
+              <div className="text-xs uppercase tracking-wider text-slate-400">Likvidlik</div>
+              <div className="mt-2 text-sm font-semibold text-slate-900">
                 {listing.trustScore >= 85 ? "Yüksək" : listing.trustScore >= 70 ? "Orta" : "Aşağı"}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/5 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/40">Bazara uyğunluq</div>
-              <div className="mt-2 text-sm font-semibold text-white">
+            <div className="rounded-2xl bg-white/60 p-4">
+              <div className="text-xs uppercase tracking-wider text-slate-400">Bazara uyğunluq</div>
+              <div className="mt-2 text-sm font-semibold text-slate-900">
                 {priceInsightMap[listing.priceInsight ?? "market_rate"].label}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/5 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/40">Etibar xalı</div>
-              <div className="mt-2 text-sm font-semibold text-white">{listing.trustScore}/100</div>
+            <div className="rounded-2xl bg-white/60 p-4">
+              <div className="text-xs uppercase tracking-wider text-slate-400">Etibar xalı</div>
+              <div className="mt-2 text-sm font-semibold text-slate-900">{listing.trustScore}/100</div>
             </div>
           </div>
         </div>
 
         <div id="seller-contact" className="card scroll-mt-24 p-6">
-          <h2 className="font-semibold text-white">Satıcıya sorğu göndər</h2>
-          <p className="mt-2 text-sm text-white/50">
+          <h2 className="font-semibold text-slate-900">Satıcıya sorğu göndər</h2>
+          <p className="mt-2 text-sm text-slate-500">
             Telefon/WhatsApp vasitəsilə birbaşa əlaqə mümkün olmadıqda bu formdan istifadə edin.
           </p>
           <div className="mt-4">
@@ -516,8 +516,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
         {!isOwner && (
           <div className="glass-panel p-6">
-            <h2 className="font-semibold text-white">Təhlükəsizlik</h2>
-            <p className="mt-2 text-sm text-white/60">
+            <h2 className="font-semibold text-slate-900">Təhlükəsizlik</h2>
+            <p className="mt-2 text-sm text-slate-600">
               Saxta, aldadıcı və ya qanunsuz elan gördünüzsə, bildirin. Ciddi hallarda məlumatlar qanuni qaydada
               hüquq-mühafizə orqanlarına təqdim oluna bilər.
             </p>

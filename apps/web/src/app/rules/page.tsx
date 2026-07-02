@@ -12,8 +12,8 @@ const EFFECTIVE_DATE = "28 aprel 2026";
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-20">
-      <h2 className="text-xl font-bold text-white">{title}</h2>
-      <div className="mt-4 space-y-3 text-white/65 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+      <div className="mt-4 space-y-3 text-slate-600 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -32,18 +32,18 @@ export default function RulesPage() {
   return (
     <div className="card">
       {/* Hero */}
-      <div className="border-b border-white/10 bg-white/5 px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold text-white">Platforma Qaydaları</h1>
-        <p className="mt-2 text-white/50">Son yenilənmə: {EFFECTIVE_DATE}</p>
-        <p className="mt-1 text-sm text-white/40">
+      <div className="border-b border-slate-900/10 bg-white/60 px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold text-slate-900">Platforma Qaydaları</h1>
+        <p className="mt-2 text-slate-500">Son yenilənmə: {EFFECTIVE_DATE}</p>
+        <p className="mt-1 text-sm text-slate-400">
           EkoMobil-dən istifadə hər istifadəçinin bu qaydaları qəbul etdiyini bildirir.
         </p>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Quick nav */}
-        <nav className="mb-12 rounded-2xl border border-white/10 bg-white/5 px-5 py-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">Mündəricat</p>
+        <nav className="mb-12 rounded-2xl border border-slate-900/10 bg-white/60 px-5 py-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Mündəricat</p>
           <ol className="grid grid-cols-1 gap-1 text-sm text-[#0057FF] sm:grid-cols-2">
             {[
               { href: "#platform-status", label: "1. Platformanın statusu" },
@@ -73,9 +73,9 @@ export default function RulesPage() {
               EkoMobil <strong>elan platformasıdır</strong> — alıcı, satıcı, broker və ya komissiya agenti deyil.
               Platforma avtomobil sahiblərini potensial alıcılarla texniki mühit vasitəsilə birləşdirir.
             </p>
-            <div className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm">
-              <p className="font-semibold text-white/90">Əsas prinsip</p>
-              <p className="mt-2 text-white/65">
+            <div className="rounded-xl border border-slate-900/10 bg-white/60 px-5 py-4 text-sm">
+              <p className="font-semibold text-slate-900">Əsas prinsip</p>
+              <p className="mt-2 text-slate-600">
                 Hər elanda təqdim olunan məlumatların doğruluğu, avtomobilin texniki vəziyyəti, sənədlərinin
                 tamlığı, qiymətinin ədalətliliyi <strong>yalnız satıcının məsuliyyətindədir</strong>.
                 EkoMobil bu məsələlərə görə heç bir hüquqi məsuliyyət daşımır.
@@ -120,8 +120,8 @@ export default function RulesPage() {
 
           <Section id="duplicate-rule" title="5. Dublikat elan qaydası (90 gün)">
             <div className="rounded-xl alert-warning border px-5 py-4">
-              <p className="font-semibold text-amber-200">90 günlük dublikat qaydası</p>
-              <p className="mt-2 text-sm text-amber-200 leading-relaxed">
+              <p className="font-semibold text-amber-700">90 günlük dublikat qaydası</p>
+              <p className="mt-2 text-sm text-amber-700 leading-relaxed">
                 Eyni VIN nömrəsinə məxsus avtomobil üçün son 90 gün ərzində artıq elan
                 yerləşdirilmişsə, yeni elan avtomatik bloklanır. 90 gün dolduqdan sonra həmin
                 avtomobil üçün yeni elan açmaq mümkündür.
@@ -141,8 +141,8 @@ export default function RulesPage() {
 
           <Section id="paid-services-rules" title="6. Ödənişli xidmətlər qaydası">
             <div className="space-y-4">
-              <div className="rounded-lg border border-white/10 px-4 py-3">
-                <p className="text-sm font-semibold text-white/90">Elan planları (Standart / VIP)</p>
+              <div className="rounded-lg border border-slate-900/10 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-900">Elan planları (Standart / VIP)</p>
                 <RuleList items={[
                   "Hər elan üçün ayrıca bir dəfəlik ödəniş — qiymət avtomobilin elan qiymətinə görə dəyişir",
                   "Pulsuz plan: 30 gün aktiv, eyni anda yalnız 1 aktiv pulsuz elan (fərdi istifadəçi üçün)",
@@ -151,8 +151,8 @@ export default function RulesPage() {
                   "Plan aktivləşdikdən sonra geri qaytarılmır (texniki nasazlıq istisna)"
                 ]} />
               </div>
-              <div className="rounded-lg border border-white/10 px-4 py-3">
-                <p className="text-sm font-semibold text-white/90">İrəlilətmə xidmətləri (İrəli çək / VIP / Premium)</p>
+              <div className="rounded-lg border border-slate-900/10 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-900">İrəlilətmə xidmətləri (İrəli çək / VIP / Premium)</p>
                 <RuleList items={[
                   "Elan planından ayrıca satın alınır — istənilən plana əlavə edilə bilər",
                   "Xidmət aktivləşdikdən sonra ləğv edilə bilməz, geri qaytarılmır",
@@ -160,8 +160,8 @@ export default function RulesPage() {
                   "Salon / mağaza abunəsindəki irəlilətmə kreditləri aylıq yenilənir, keçmir"
                 ]} />
               </div>
-              <div className="rounded-lg border border-white/10 px-4 py-3">
-                <p className="text-sm font-semibold text-white/90">Biznes abunəliyi (Salon / Mağaza)</p>
+              <div className="rounded-lg border border-slate-900/10 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-900">Biznes abunəliyi (Salon / Mağaza)</p>
                 <RuleList items={[
                   "Abunəlik aktiv olmadan biznes hesabı elan yerləşdirə bilməz",
                   "Aylıq abunəlik hər ay eyni tarixdə yenilənir",
@@ -221,8 +221,8 @@ export default function RulesPage() {
                   ]
                 }
               ].map((group) => (
-                <div key={group.title} className="rounded-lg border border-white/10 px-4 py-3">
-                  <p className="text-sm font-semibold text-white/90">{group.title}</p>
+                <div key={group.title} className="rounded-lg border border-slate-900/10 px-4 py-3">
+                  <p className="text-sm font-semibold text-slate-900">{group.title}</p>
                   <RuleList items={group.items} />
                 </div>
               ))}
@@ -249,16 +249,16 @@ export default function RulesPage() {
             <p>
               Qaydaların pozulması aşağıdakı tədbirləri tətbiq etdirə bilər (pozuntunun ağırlığına görə):
             </p>
-            <div className="overflow-hidden rounded-xl border border-white/10">
+            <div className="overflow-hidden rounded-xl border border-slate-900/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-left text-xs text-white/50">
+                  <tr className="border-b border-slate-900/10 bg-white/60 text-left text-xs text-slate-500">
                     <th className="px-4 py-3 font-semibold">Sanksiya</th>
                     <th className="px-4 py-3 font-semibold">Tətbiq şərtləri</th>
                     <th className="px-4 py-3 font-semibold hidden sm:table-cell">Geri qaytarma</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y divide-slate-900/10">
                   {[
                     {
                       sanction: "Xəbərdarlıq",
@@ -292,9 +292,9 @@ export default function RulesPage() {
                     }
                   ].map((row) => (
                     <tr key={row.sanction} className="align-top">
-                      <td className="px-4 py-3 font-medium text-white/90">{row.sanction}</td>
-                      <td className="px-4 py-3 text-white/65 text-xs">{row.condition}</td>
-                      <td className="px-4 py-3 text-white/50 text-xs hidden sm:table-cell">{row.refund}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900">{row.sanction}</td>
+                      <td className="px-4 py-3 text-slate-600 text-xs">{row.condition}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs hidden sm:table-cell">{row.refund}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -327,7 +327,7 @@ export default function RulesPage() {
           </Section>
 
           <Section id="legal-links" title="12. Hüquqi sənədlər">
-            <p className="text-sm text-white/50">Bu qaydalar aşağıdakı sənədlərlə tamamlanır:</p>
+            <p className="text-sm text-slate-500">Bu qaydalar aşağıdakı sənədlərlə tamamlanır:</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
                 {
@@ -364,10 +364,10 @@ export default function RulesPage() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex flex-col rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-[#0057FF]/40 hover:card"
+                  className="flex flex-col rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 transition hover:border-[#0057FF]/40 hover:card"
                 >
                   <span className="text-sm font-semibold text-[#0057FF]">{item.title}</span>
-                  <span className="mt-0.5 text-xs text-white/50">{item.desc}</span>
+                  <span className="mt-0.5 text-xs text-slate-500">{item.desc}</span>
                 </Link>
               ))}
             </div>

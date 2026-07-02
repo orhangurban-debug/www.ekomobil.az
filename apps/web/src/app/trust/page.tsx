@@ -57,14 +57,14 @@ export default async function TrustPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-8 text-sm text-white/50">
+      <nav className="mb-8 text-sm text-slate-500">
         <Link href="/" className="hover:text-[#0057FF]">Ana səhifə</Link>
         <span className="mx-2">/</span>
         <span className="text-[#3E2F28]">Etibar mexanizmləri</span>
       </nav>
 
       <h1 className="text-3xl font-bold text-[#3E2F28]">Etibar mexanizmləri</h1>
-      <p className="mt-2 text-white/65">
+      <p className="mt-2 text-slate-600">
         EkoMobil elan məlumatlarının dolğunluğunu və risk siqnallarını avtomatik qiymətləndirir; yekun texniki/hüquqi yoxlama alıcı və satıcıya məxsusdur.
       </p>
 
@@ -72,7 +72,7 @@ export default async function TrustPage({
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="scroll-mt-24">
             <h2 className="text-xl font-semibold text-[#3E2F28]">{section.title}</h2>
-            <p className="mt-3 text-white/65 leading-relaxed">{section.content}</p>
+            <p className="mt-3 text-slate-600 leading-relaxed">{section.content}</p>
           </section>
         ))}
       </div>

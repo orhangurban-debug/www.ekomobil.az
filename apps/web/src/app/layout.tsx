@@ -101,8 +101,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     "--color-brand-700": brand.primaryHoverColor,
     "--color-deep-base": brand.deepBaseColor,
     "--color-soft-brown": brand.softBrownColor,
-    /* Public shell always dark — DB canvasColor is for admin brand-kit preview only */
-    "--color-page-canvas": "#0A0A0F",
+    /* Public shell always light/glass — DB canvasColor is for admin brand-kit preview only */
+    "--color-page-canvas": "#EEF1F8",
     "--color-accent": "#0057FF",
     "--color-accent-hover": "#0046CC"
   } as CSSProperties;
@@ -112,7 +112,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         <link rel="icon" href={faviconPath} />
       </head>
-      <body className="min-h-screen flex flex-col bg-[var(--color-page-canvas)] text-white/90" style={dynamicThemeVars}>
+      <body
+        className="min-h-screen flex flex-col text-slate-900"
+        style={{
+          ...dynamicThemeVars,
+          backgroundColor: "var(--color-page-canvas)",
+          backgroundImage:
+            "radial-gradient(ellipse 70% 50% at 15% -10%, rgba(0,87,255,0.10), transparent 60%), radial-gradient(ellipse 60% 40% at 100% 0%, rgba(0,87,255,0.06), transparent 60%)",
+          backgroundAttachment: "fixed"
+        }}
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

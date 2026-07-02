@@ -206,23 +206,23 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 text-sm text-white/50">
+      <nav className="mb-6 text-sm text-slate-500">
         <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-white/90">Yeni hissə elanı</span>
+        <span className="text-slate-900">Yeni hissə elanı</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-white">Yeni hissə elanı</h1>
-      <p className="mt-2 text-white/65">
+      <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
+      <p className="mt-2 text-slate-600">
         Məhsul şəklini yükləyin — AI sahələri dolduracaq, siz yalnız yoxlayacaqsınız.
       </p>
 
       <ListingPublishEaseTip variant="part" className="mt-4" />
 
       {!storeAccessEnabled && (
-        <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+        <div className="mt-4 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
           Fərdi satıcı kimi elan verə bilərsiniz. Mağaza rejimi üçün{" "}
           <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
             mağaza planını
@@ -233,8 +233,8 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border-2 border-[#0057FF] bg-[#0057FF]/5 p-4">
-          <p className="text-sm font-semibold text-white">Tək məhsul rejimi</p>
-          <p className="mt-1 text-xs text-white/65">
+          <p className="text-sm font-semibold text-slate-900">Tək məhsul rejimi</p>
+          <p className="mt-1 text-xs text-slate-600">
             Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
           </p>
         </div>
@@ -253,7 +253,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         <div>
           <label className="label">Şəkillər</label>
           <div
-            className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-white/10 bg-white/5 p-4 text-center"
+            className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-900/10 bg-white/60 p-4 text-center"
             onClick={() => document.getElementById("part-image-input")?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
@@ -270,11 +270,11 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
               onChange={(e) => void handleImageFiles(e.target.files)}
             />
             {uploadProcessing ? (
-              <p className="text-sm text-white/65">Şəkillər hazırlanır…</p>
+              <p className="text-sm text-slate-600">Şəkillər hazırlanır…</p>
             ) : (
               <>
-                <p className="text-sm font-medium text-white/80">Şəkil əlavə et</p>
-                <p className="text-xs text-white/50">
+                <p className="text-sm font-medium text-slate-700">Şəkil əlavə et</p>
+                <p className="text-xs text-slate-500">
                   {uploadedImages.length} / {maxImages} · minimum 4 tövsiyə olunur
                 </p>
               </>
@@ -292,10 +292,10 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           {uploadedImages.length > 0 && (
             <div className="mt-2 grid grid-cols-4 gap-2">
               {uploadedImages.map((img, i) => (
-                <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-white/10">
+                <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-slate-900/10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={URL.createObjectURL(img.file)} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-center text-[9px] text-white">
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-center text-[9px] text-slate-900">
                     {formatFileSize(img.compressedSizeBytes)}
                   </span>
                 </div>
@@ -420,23 +420,23 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
                     className={`rounded-lg border p-3 text-left ${
                       planType === plan.id
                         ? "border-[#0057FF] bg-[#0057FF]/5"
-                        : "border-white/10 hover:border-white/15"
+                        : "border-slate-900/10 hover:border-slate-900/15"
                     }`}
                   >
-                    <p className="text-sm font-semibold text-white">{plan.nameAz}</p>
-                    <p className="text-xs text-white/50">
+                    <p className="text-sm font-semibold text-slate-900">{plan.nameAz}</p>
+                    <p className="text-xs text-slate-500">
                       {formatListingPlanPrice(plan.id, typeof priceAzn === "number" ? priceAzn : undefined)}
                       {plan.id !== "free" ? ` · ${plan.durationDays} gün` : ""}
                     </p>
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-white/40">
+              <p className="mt-1 text-xs text-slate-400">
                 Ödənişli plan seçiləndə elan əvvəl draft olaraq yaranır və ödənişdən sonra aktivləşir.
               </p>
             </>
           ) : (
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
               Mağaza planınız aktivdir — SKU elanları aylıq abunə limitinizdən sayılır, əlavə elan haqqı tutulmur.
             </div>
           )}
@@ -456,8 +456,8 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
               </select>
             ) : (
               <>
-                <input className="input-field bg-white/5" value="Fərdi" readOnly />
-                <p className="mt-1 text-xs text-white/50">
+                <input className="input-field bg-white/60" value="Fərdi" readOnly />
+                <p className="mt-1 text-xs text-slate-500">
                   Mağaza rejimi üçün <Link href="/pricing#parts-store" className="text-[#0057FF] hover:underline">plan aktivləşdirin</Link>.
                 </p>
               </>

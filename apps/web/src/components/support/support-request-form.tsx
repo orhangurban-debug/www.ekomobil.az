@@ -94,18 +94,18 @@ export function SupportRequestForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 bg-[#141419] p-5">
-      <h3 className="text-base font-semibold text-white">
+    <form onSubmit={onSubmit} className="rounded-2xl border border-slate-900/10 bg-white p-5">
+      <h3 className="text-base font-semibold text-slate-900">
         {variant === "privacy" ? "Əlavə məxfilik sorğusu" : "Müraciət göndər"}
       </h3>
-      <p className="mt-1 text-sm text-white/50">
+      <p className="mt-1 text-sm text-slate-500">
         {variant === "privacy"
           ? "Standart düymələrlə örtülməyən hallar üçün əlavə mətnli sorğu göndərin."
           : "Sualınız, probleminiz və ya şikayətiniz varsa formu doldurun. Dəstək komandası qısa zamanda cavab verəcək."}
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Müraciət növü</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət növü</span>
           <select className="input-field" value={requestType} onChange={(e) => setRequestType(e.target.value)}>
             {requestTypes.map((item) => (
               <option key={item.value} value={item.value}>
@@ -115,15 +115,15 @@ export function SupportRequestForm({
           </select>
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Adınız</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Adınız</span>
           <input className="input-field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ad Soyad" />
         </label>
         <label className="space-y-1 md:col-span-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Mövzu</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mövzu</span>
           <input className="input-field" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Mövzunu qısa yazın" />
         </label>
         <label className="space-y-1 md:col-span-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Mesaj</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mesaj</span>
           <textarea
             className="input-field min-h-32"
             value={message}
@@ -132,11 +132,11 @@ export function SupportRequestForm({
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Email</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</span>
           <input className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sizin@email.com" />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/50">Telefon</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Telefon</span>
           <input className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+994..." />
         </label>
       </div>
@@ -145,7 +145,7 @@ export function SupportRequestForm({
           {submitting ? "Göndərilir..." : "Müraciəti göndər"}
         </button>
         {feedback && (
-          <span className={`text-sm ${isError ? "text-rose-600" : "text-emerald-300"}`}>
+          <span className={`text-sm ${isError ? "text-rose-600" : "text-emerald-700"}`}>
             {feedback}
           </span>
         )}

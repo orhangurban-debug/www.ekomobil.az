@@ -53,7 +53,7 @@ export function PricingNav() {
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
               isActive
                 ? "border-[#0057FF] bg-[#0057FF] text-white shadow-[0_4px_14px_rgba(0,87,255,0.35)]"
-                : "border-white/10 bg-white/5 text-white/65 hover:-translate-y-0.5 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
+                : "border-slate-900/10 bg-white/60 text-slate-600 hover:-translate-y-0.5 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
             }`}
           >
             {item.label}

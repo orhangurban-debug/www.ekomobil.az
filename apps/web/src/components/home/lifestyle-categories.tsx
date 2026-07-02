@@ -79,7 +79,7 @@ export function LifestyleCategories() {
                 <div className={`icon-tile icon-tile-${cat.tone}`}>
                   <Icon className="h-6 w-6" strokeWidth={2.25} aria-hidden="true" />
                 </div>
-                <div className="text-sm font-semibold text-white/90">{cat.label}</div>
+                <div className="text-sm font-semibold text-slate-900">{cat.label}</div>
               </Link>
             );
           })}

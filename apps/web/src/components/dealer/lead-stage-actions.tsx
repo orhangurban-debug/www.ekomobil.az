@@ -49,8 +49,8 @@ export function LeadStageActions({
           disabled={loading || s.value === currentStage}
           className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
             s.value === currentStage
-              ? "bg-brand-600 text-white"
-              : "bg-white/10 text-white/65 hover:bg-white/10"
+              ? "bg-brand-600 text-slate-900"
+              : "bg-white/65 text-slate-600 hover:bg-slate-900/10"
           }`}
         >
           {s.label}

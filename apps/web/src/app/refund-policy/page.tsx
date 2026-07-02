@@ -12,8 +12,8 @@ const EFFECTIVE_DATE = "28 aprel 2026";
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-20">
-      <h2 className="text-xl font-bold text-white">{title}</h2>
-      <div className="mt-4 space-y-3 text-white/65 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+      <div className="mt-4 space-y-3 text-slate-600 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -21,10 +21,10 @@ function Section({ id, title, children }: { id: string; title: string; children:
 export default function RefundPolicyPage() {
   return (
     <div className="card">
-      <div className="border-b border-white/10 bg-white/5 px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold text-white">Geri qaytarma və cərimə siyasəti</h1>
-        <p className="mt-2 text-white/50">Son yenilənmə: {EFFECTIVE_DATE}</p>
-        <p className="mt-1 text-sm text-white/40">
+      <div className="border-b border-slate-900/10 bg-white/60 px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold text-slate-900">Geri qaytarma və cərimə siyasəti</h1>
+        <p className="mt-2 text-slate-500">Son yenilənmə: {EFFECTIVE_DATE}</p>
+        <p className="mt-1 text-sm text-slate-400">
           Bu sənəd ödənişlərin geri qaytarılması, kompensasiya və intizam ödənişləri üzrə vahid qaydanı müəyyən edir.
         </p>
       </div>
@@ -90,7 +90,7 @@ export default function RefundPolicyPage() {
           </Section>
         </div>
 
-        <div className="mt-16 flex flex-wrap gap-4 border-t border-white/10 pt-8 text-sm">
+        <div className="mt-16 flex flex-wrap gap-4 border-t border-slate-900/10 pt-8 text-sm">
           <Link href="/terms" className="text-[#0057FF] hover:underline">İstifadəçi Razılaşması</Link>
           <Link href="/rules" className="text-[#0057FF] hover:underline">Platforma Qaydaları</Link>
           <Link href="/pricing" className="text-[#0057FF] hover:underline">Qiymətlər</Link>

@@ -11,8 +11,8 @@ export default async function AuctionSellPage() {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-sm items-center justify-center px-4">
         <div className="card p-10 text-center">
-          <h1 className="text-xl font-bold text-white">Giriş tələb olunur</h1>
-          <p className="mt-2 text-sm text-white/50">Lot yaratmaq üçün hesabınıza daxil olun.</p>
+          <h1 className="text-xl font-bold text-slate-900">Giriş tələb olunur</h1>
+          <p className="mt-2 text-sm text-slate-500">Lot yaratmaq üçün hesabınıza daxil olun.</p>
           <div className="mt-6 flex flex-col gap-2">
             <Link href="/login?next=/auction/sell" className="btn-primary w-full justify-center">
               Daxil ol
@@ -39,13 +39,13 @@ export default async function AuctionSellPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Lot yarat</h1>
-        <p className="mt-2 text-sm text-white/50">
+        <h1 className="text-3xl font-bold text-slate-900">Lot yarat</h1>
+        <p className="mt-2 text-sm text-slate-500">
           Lot məlumatlarının düzgünlüyü satıcının məsuliyyətindədir. Qalib alıcı ödənişi birbaşa satıcıya edir.
         </p>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/65">
+      <div className="mb-6 rounded-2xl border border-slate-900/10 bg-white/60 p-4 text-sm text-slate-600">
         <div className="flex flex-wrap gap-x-6 gap-y-1.5">
           {checklistVehicle && (
             <>

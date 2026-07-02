@@ -5,7 +5,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 
 function VerifiedBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 border border-emerald-500/25">
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-500/25">
       <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
       </svg>
@@ -16,10 +16,10 @@ function VerifiedBadge() {
 
 function SlaLabel({ minutes }: { minutes: number }) {
   if (minutes <= 15)
-    return <span className="rounded-full bg-emerald-500/10 text-emerald-300 px-2 py-0.5 text-xs font-medium border border-emerald-500/25">Cavab: ≤{minutes} dəq</span>;
+    return <span className="rounded-full bg-emerald-500/10 text-emerald-700 px-2 py-0.5 text-xs font-medium border border-emerald-500/25">Cavab: ≤{minutes} dəq</span>;
   if (minutes <= 60)
-    return <span className="rounded-full bg-amber-500/15 text-amber-200 px-2 py-0.5 text-xs font-medium border border-amber-200">Cavab: ≤{minutes} dəq</span>;
-  return <span className="rounded-full bg-white/8 text-white/65 px-2 py-0.5 text-xs font-medium">Cavab: ≤{minutes} dəq</span>;
+    return <span className="rounded-full bg-amber-500/15 text-amber-700 px-2 py-0.5 text-xs font-medium border border-amber-200">Cavab: ≤{minutes} dəq</span>;
+  return <span className="rounded-full bg-white/63 text-slate-600 px-2 py-0.5 text-xs font-medium">Cavab: ≤{minutes} dəq</span>;
 }
 
 function formatYear(iso: string | null): string {
@@ -37,11 +37,11 @@ export default async function PublicDealerPage({
   if (!profile) notFound();
 
   return (
-    <div className="min-h-screen bg-white/5">
+    <div className="min-h-screen bg-white/60">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="border-b glass-panel border-white/10">
+      <div className="border-b glass-panel border-slate-900/10">
         {profile.coverUrl && (
-          <div className="h-40 w-full overflow-hidden bg-white/8 sm:h-52">
+          <div className="h-40 w-full overflow-hidden bg-white/63 sm:h-52">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={profile.coverUrl} alt={`${profile.name} cover`} className="h-full w-full object-cover" />
           </div>
@@ -51,7 +51,7 @@ export default async function PublicDealerPage({
             <div className="flex items-center gap-5">
               {/* Avatar — brand initials */}
               {profile.logoUrl ? (
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border glass-panel border-white/10 shadow-sm">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border glass-panel border-slate-900/10 shadow-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={profile.logoUrl} alt={`${profile.name} logo`} className="h-full w-full object-cover" />
                 </div>
@@ -61,13 +61,13 @@ export default async function PublicDealerPage({
                 </div>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-white sm:text-3xl">
+                <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
                   {profile.name}
                 </h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {profile.verified && <VerifiedBadge />}
-                  <span className="flex items-center gap-1 text-sm text-white/50">
-                    <svg className="h-4 w-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <span className="flex items-center gap-1 text-sm text-slate-500">
+                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                     </svg>
@@ -76,7 +76,7 @@ export default async function PublicDealerPage({
                   <SlaLabel minutes={profile.responseSlaMinutes} />
                 </div>
                 {profile.description && (
-                  <p className="mt-3 max-w-2xl text-sm text-white/65">{profile.description}</p>
+                  <p className="mt-3 max-w-2xl text-sm text-slate-600">{profile.description}</p>
                 )}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {profile.showWhatsapp && profile.whatsappPhone && (
@@ -84,7 +84,7 @@ export default async function PublicDealerPage({
                       href={`https://wa.me/${profile.whatsappPhone.replace(/[^\d]/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20"
+                      className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/20"
                     >
                       WhatsApp ilə yaz
                     </a>
@@ -94,36 +94,36 @@ export default async function PublicDealerPage({
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/10"
+                      className="rounded-full border border-slate-900/10 bg-white/63 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-900/10"
                     >
                       Website
                     </a>
                   )}
                   {profile.address && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">{profile.address}</span>
+                    <span className="rounded-full border border-slate-900/10 bg-white/60 px-3 py-1 text-xs text-slate-600">{profile.address}</span>
                   )}
                   {profile.workingHours && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">{profile.workingHours}</span>
+                    <span className="rounded-full border border-slate-900/10 bg-white/60 px-3 py-1 text-xs text-slate-600">{profile.workingHours}</span>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Stats strip */}
-            <div className="flex gap-6 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
+            <div className="flex gap-6 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{profile.activeListingCount}</p>
-                <p className="text-xs text-white/40">Aktiv elan</p>
+                <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
+                <p className="text-xs text-slate-400">Aktiv elan</p>
               </div>
-              <div className="border-l border-white/10" />
+              <div className="border-l border-slate-900/10" />
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{formatYear(profile.memberSince)}</p>
-                <p className="text-xs text-white/40">Üzv oldu</p>
+                <p className="text-2xl font-bold text-slate-900">{formatYear(profile.memberSince)}</p>
+                <p className="text-xs text-slate-400">Üzv oldu</p>
               </div>
-              <div className="border-l border-white/10" />
+              <div className="border-l border-slate-900/10" />
               <div className="text-center">
                 <p className="text-2xl font-bold text-[#0057FF]">≤{profile.responseSlaMinutes}</p>
-                <p className="text-xs text-white/40">Cavab (dəq)</p>
+                <p className="text-xs text-slate-400">Cavab (dəq)</p>
               </div>
             </div>
           </div>
@@ -133,9 +133,9 @@ export default async function PublicDealerPage({
       {/* ── Inventory ────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-slate-900">
             Aktiv elanlar
-            <span className="ml-2 rounded-full bg-white/8 px-2.5 py-0.5 text-sm font-medium text-white/50">
+            <span className="ml-2 rounded-full bg-white/63 px-2.5 py-0.5 text-sm font-medium text-slate-500">
               {profile.activeListingCount}
             </span>
           </h2>
@@ -145,8 +145,8 @@ export default async function PublicDealerPage({
         </div>
 
         {profile.inventory.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 py-16 text-center">
-            <p className="text-white/40">Aktiv elan yoxdur</p>
+          <div className="rounded-2xl border border-dashed border-slate-900/10 py-16 text-center">
+            <p className="text-slate-400">Aktiv elan yoxdur</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

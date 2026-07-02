@@ -105,8 +105,8 @@ export function RoleAccessGate({
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h2 className="font-bold text-white">{copy.title}</h2>
-        <p className="mt-2 text-sm text-white/50">{copy.description}</p>
+        <h2 className="font-bold text-slate-900">{copy.title}</h2>
+        <p className="mt-2 text-sm text-slate-500">{copy.description}</p>
         <div className="mt-6 flex flex-col gap-2">
           {copy.actions.map((action) => (
             <Link

@@ -66,7 +66,7 @@ export default async function HomePage() {
               <div className="icon-tile icon-tile-teal h-14 w-14 rounded-2xl">
                 <Car className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
               </div>
-              <p className="text-sm text-white/50">Hələ elan yoxdur</p>
+              <p className="text-sm text-slate-500">Hələ elan yoxdur</p>
               <Link href="/publish" className="btn-primary text-sm">Elan yerləşdir</Link>
             </div>
           )}
@@ -77,7 +77,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="border-y border-white/10 py-4">
+      <div className="border-y border-slate-900/10 py-4">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <AdBanner size="leaderboard" slotLabel="home-after-listings" />
         </div>

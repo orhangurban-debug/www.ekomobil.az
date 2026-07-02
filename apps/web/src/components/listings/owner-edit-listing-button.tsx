@@ -183,9 +183,9 @@ export function OwnerEditListingButton(props: {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-[#141419] p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-white">Elanı redaktə et</h3>
-            <p className="mt-1 text-sm text-white/50">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-900/10 bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900">Elanı redaktə et</h3>
+            <p className="mt-1 text-sm text-slate-500">
               Saxlandıqdan sonra elan avtomatik yenidən yoxlamaya göndəriləcək.
             </p>
 
@@ -371,9 +371,9 @@ export function OwnerEditListingButton(props: {
                   placeholder="Mühərrik həcmi (cc)"
                 />
               </div>
-              <div className="grid gap-2 sm:grid-cols-3 text-sm text-white/80">
+              <div className="grid gap-2 sm:grid-cols-3 text-sm text-slate-700">
                 {BOOLEAN_TOGGLES.map(({ key, label }) => (
-                  <label key={String(key)} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-2">
+                  <label key={String(key)} className="inline-flex items-center gap-2 rounded-lg border border-slate-900/10 px-2.5 py-2">
                     <input
                       type="checkbox"
                       checked={Boolean(form[key])}
@@ -385,7 +385,7 @@ export function OwnerEditListingButton(props: {
                   </label>
                 ))}
               </div>
-              {error && <p className="text-xs text-red-200">{error}</p>}
+              {error && <p className="text-xs text-red-700">{error}</p>}
               <div className="mt-2 flex justify-end gap-2">
                 <button
                   type="button"

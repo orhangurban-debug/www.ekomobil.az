@@ -14,7 +14,7 @@ export function AddToCompareButton({ listingId }: { listingId: string }) {
         toggle(listingId);
       }}
       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-        active ? "bg-[#0057FF] text-white" : "bg-white/10 text-white/75 border border-white/10"
+        active ? "bg-[#0057FF] text-white" : "bg-white/65 text-slate-700 border border-slate-900/10"
       }`}
     >
       {active ? "Müqayisədədir" : "Müqayisə et"}

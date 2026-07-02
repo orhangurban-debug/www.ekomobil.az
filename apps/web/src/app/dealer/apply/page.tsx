@@ -54,8 +54,8 @@ export default function DealerApplyPage() {
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-white">Müraciətiniz qəbul edildi</h1>
-        <p className="mt-3 text-white/50">
+        <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
+        <p className="mt-3 text-slate-500">
           Komandamız 1–2 iş günü ərzində e-poçt vasitəsilə əlaqə saxlayacaq. 
           VÖEN arayışı tələb oluna bilər.
         </p>
@@ -69,22 +69,22 @@ export default function DealerApplyPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
-      <nav className="mb-6 text-sm text-white/50">
-        <Link href="/" className="hover:text-white">Ana səhifə</Link>
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-900">Ana səhifə</Link>
         <span className="mx-2">/</span>
-        <Link href="/pricing#business" className="hover:text-white">Biznes planları</Link>
+        <Link href="/pricing#business" className="hover:text-slate-900">Biznes planları</Link>
         <span className="mx-2">/</span>
-        <span className="text-white">Salon müraciəti</span>
+        <span className="text-slate-900">Salon müraciəti</span>
       </nav>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Avtomobil salonu</h1>
-        <p className="mt-2 text-white/50">
+        <h1 className="text-3xl font-bold text-slate-900">Avtomobil salonu</h1>
+        <p className="mt-2 text-slate-500">
           Salon müraciətini göndərin — admin təsdiqindən sonra salon planını aktivləşdirin.
         </p>
       </div>
 
-      <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+      <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
         Ehtiyat hissə mağazası açmaq istəyirsinizsə{" "}
         <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
           mağaza müraciəti
@@ -92,7 +92,7 @@ export default function DealerApplyPage() {
         formundan istifadə edin — salon hesabından asılı deyil.
       </div>
 
-      <div className="mb-6 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+      <div className="mb-6 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
         <strong>Tələb olunan:</strong> VÖEN — müraciətin yoxlanması üçün lazımdır.
       </div>
 
@@ -166,7 +166,7 @@ export default function DealerApplyPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">{error}</div>
+          <div className="rounded-xl alert-danger border px-4 py-3 text-sm text-red-700">{error}</div>
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">
@@ -174,7 +174,7 @@ export default function DealerApplyPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-white/40">
+      <p className="mt-6 text-center text-xs text-slate-400">
         Suallarınız varsa{" "}
         <Link href="/trust#support-request" className="text-[#0057FF] hover:underline">
           dəstək sorğusu göndərin

@@ -29,11 +29,11 @@ export default async function RegisterConsentPage({
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-white">Son addım: razılaşmalar</h1>
-        <p className="mt-2 text-white/50">Davam etmək üçün platforma qaydalarını qəbul edin</p>
+        <h1 className="text-3xl font-bold text-slate-900">Son addım: razılaşmalar</h1>
+        <p className="mt-2 text-slate-500">Davam etmək üçün platforma qaydalarını qəbul edin</p>
       </div>
       <PlatformConsentForm nextPath={nextPath} source="oauth" />
-      <p className="mt-6 text-center text-sm text-white/50">
+      <p className="mt-6 text-center text-sm text-slate-500">
         <Link href="/legal" className="text-[#0057FF] hover:underline">
           Hüquqi məlumat və fırıldaqçılıqla mübarizə siyasəti
         </Link>

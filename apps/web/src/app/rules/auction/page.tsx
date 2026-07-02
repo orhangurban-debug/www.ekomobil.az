@@ -10,26 +10,26 @@ export const metadata = {
 export default function AuctionFrameworkPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-8 text-sm text-white/50">
-        <Link href="/" className="hover:text-white">
+      <nav className="mb-8 text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-900">
           Ana səhifə
         </Link>
         <span className="mx-2">/</span>
-        <Link href="/rules" className="hover:text-white">
+        <Link href="/rules" className="hover:text-slate-900">
           Qaydalar
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-white">Auksion çərçivəsi</span>
+        <span className="text-slate-900">Auksion çərçivəsi</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-white">Auksion çərçivəsi</h1>
-      <p className="mt-2 text-white/50">
+      <h1 className="text-3xl font-bold text-slate-900">Auksion çərçivəsi</h1>
+      <p className="mt-2 text-slate-500">
         Auksion üçün əsas qaydalar.
       </p>
 
-      <div className="mt-8 space-y-10 text-white/80 leading-relaxed">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-xl font-semibold text-white">Platformanın rolu və məsuliyyətin həddi</h2>
+      <div className="mt-8 space-y-10 text-slate-700 leading-relaxed">
+        <section className="rounded-2xl border border-slate-900/10 bg-white/60 p-6">
+          <h2 className="text-xl font-semibold text-slate-900">Platformanın rolu və məsuliyyətin həddi</h2>
           <p className="mt-3">
             EkoMobil auksion üçün texniki sistemi verir: lot, təkliflər, bildirişlər və platforma haqqı ödəniş linkləri.
             Avtomobilin və ya hissənin əsas satış pulu platformadan keçmir.
@@ -47,7 +47,7 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Avtomobil və avtomobil hissələri</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Avtomobil və avtomobil hissələri</h2>
           <p className="mt-3">
             Eyni auksion modulu həm tam avtomobil, həm də <strong>avtomobil hissəsi</strong> elanları üçün istifadə
             oluna bilər. Avtomobil üçün VIN doğrulaması tələb olunur; hissə elanları üçün satıcı doğrulaması
@@ -56,21 +56,21 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Lot yaratma axını (satıcı)</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Lot yaratma axını (satıcı)</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
             <li>Elan hazır olur: avtomobildə VIN + satıcı + media, hissədə satıcı + media.</li>
             <li>Lot parametrləri seçilir (açıq minimum satış qiyməti, vaxt, istəyə görə buy-now/deposit).</li>
             <li>Lot haqqı ödənir və lot canlıya çıxır.</li>
             <li>Auksion bitəndən sonra nəticə təsdiq edilir.</li>
           </ol>
-          <p className="mt-3 text-sm text-white/65">
+          <p className="mt-3 text-sm text-slate-600">
             Qeyd: ayrıca &quot;sorğu topla sonra auksionu başlat&quot; mərhələsi məcburi deyil. Satıcı birbaşa lot yarada bilər; alıcı
             iştirak etməzsə lot satışsız bağlanır və yalnız lot haqqı tətbiq olunur.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Minimum satış qiyməti (şəffaf qayda)</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Minimum satış qiyməti (şəffaf qayda)</h2>
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>
               Hər lot üçün <strong>açıq minimum satış qiyməti</strong> göstərilir. Hərrac bu qiymətdən başlayır və
@@ -91,7 +91,7 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Təklif vermə (alıcı)</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Təklif vermə (alıcı)</h2>
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>Tələb olunan doğrulamalar tamamlanır (məsələn telefon/deposit).</li>
             <li>Təklif verilir və qaydalar qəbul edilir.</li>
@@ -101,7 +101,7 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Əsas satışdan imtina və intizam ödənişləri</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Əsas satışdan imtina və intizam ödənişləri</h2>
           <p className="mt-3">
             Aşağıdakı məbləğlər <strong>platforma xidmət/intizam haqlarıdır</strong>, avtomobilin qiyməti deyil. Dəqiq rəqəmlər{" "}
             <Link href="/pricing#auction" className="text-[#0057FF] hover:underline">
@@ -127,9 +127,9 @@ export default function AuctionFrameworkPage() {
               məhkəmə və ya arbitraj əvəzi deyil.
             </li>
           </ul>
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
-            <p className="font-semibold text-white/90">Mübahisə proseduru (ödənişə təsir edən hallar)</p>
-            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-white/65">
+          <div className="mt-4 rounded-xl border border-slate-900/10 bg-white/60 p-4 text-sm">
+            <p className="font-semibold text-slate-900">Mübahisə proseduru (ödənişə təsir edən hallar)</p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-600">
               <li>Hadisədən sonra 72 saat ərzində mübahisə qeydi açılmalıdır.</li>
               <li>Minimum sübut paketi: lot ID, hadisə vaxtı, yazışma/sistem logu və varsa media sübutu.</li>
               <li>İlkin cavab: 2 iş günü, yekun qərar: 10 iş günü.</li>
@@ -146,7 +146,7 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Sənədlər</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Sənədlər</h2>
           <p className="mt-3">
             Tələb olunan sənədləri satıcı yükləyir və təqdim edir. Platforma sənədlərin paylaşılması və yayımlanması üçün
             texniki imkan verir.
@@ -154,7 +154,7 @@ export default function AuctionFrameworkPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Ekspertiza və rəsmi servis tərəfdaşları</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Ekspertiza və rəsmi servis tərəfdaşları</h2>
           <p className="mt-3">
             Platformada ekspertiza şirkətləri və rəsmi servis mərkəzləri qeydiyyatdan keçib öz yoxlama xidmətlərini
             təqdim edə bilər. Bu tərəfdaşlıq etibarlılığı artırmaq üçündür; konkret diaqnostika nəticəsinin hüquqi

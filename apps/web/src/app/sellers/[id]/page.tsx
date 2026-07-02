@@ -40,21 +40,21 @@ export default async function PublicSellerPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-white/5">
+    <div className="min-h-screen bg-white/60">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="border-b glass-panel border-white/10">
+      <div className="border-b glass-panel border-slate-900/10">
         <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <SellerAvatar name={profile.displayName} />
               <div>
-                <h1 className="text-xl font-bold text-white sm:text-2xl">
+                <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
                   {profile.displayName}
                 </h1>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-white/50">
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
                   {profile.city && (
                     <span className="flex items-center gap-1">
-                      <svg className="h-3.5 w-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                       </svg>
@@ -63,7 +63,7 @@ export default async function PublicSellerPage({
                   )}
                   <span>Üzv: {formatMemberSince(profile.memberSince)}</span>
                   {profile.sellerVerified && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/25">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-500/25">
                       <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
@@ -74,10 +74,10 @@ export default async function PublicSellerPage({
               </div>
             </div>
 
-            <div className="flex gap-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <div className="flex gap-5 rounded-2xl border border-slate-900/10 bg-white/60 px-5 py-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{profile.activeListingCount}</p>
-                <p className="text-xs text-white/40">Aktiv elan</p>
+                <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
+                <p className="text-xs text-slate-400">Aktiv elan</p>
               </div>
             </div>
           </div>
@@ -87,23 +87,23 @@ export default async function PublicSellerPage({
       {/* ── Listings ─────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Seller disclaimer */}
-        <div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/50">
+        <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-xs text-slate-500">
           EkoMobil platforması satıcı haqqında yalnız sistemdə mövcud olan məlumatları göstərir.
           Elan məzmununun düzgünlüyü satıcının məsuliyyətindədir.
         </div>
 
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-slate-900">
             Aktiv elanlar
-            <span className="ml-2 rounded-full bg-white/8 px-2.5 py-0.5 text-sm font-medium text-white/50">
+            <span className="ml-2 rounded-full bg-white/63 px-2.5 py-0.5 text-sm font-medium text-slate-500">
               {activeListings.length}
             </span>
           </h2>
         </div>
 
         {activeListings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 py-16 text-center">
-            <p className="text-white/40">Bu satıcının aktiv elanı yoxdur</p>
+          <div className="rounded-2xl border border-dashed border-slate-900/10 py-16 text-center">
+            <p className="text-slate-400">Bu satıcının aktiv elanı yoxdur</p>
             <Link href="/listings" className="mt-4 inline-flex btn-secondary text-sm">
               Bütün elanlara bax
             </Link>

@@ -27,7 +27,7 @@ export const DEFAULT_BRAND_SETTINGS: BrandSettings = {
   deepBaseColor: "#3E2F28",
   softBrownColor: "#E5D3B3",
   softBrownBorderColor: "#D4C4A8",
-  canvasColor: "#0A0A0F",
+  canvasColor: "#EEF1F8",
   gallery: [
     {
       id: "default-main-logo",

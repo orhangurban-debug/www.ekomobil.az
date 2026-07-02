@@ -240,8 +240,8 @@ export function PartsFiltersPanel({
         </select>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-white/10 p-3">
-        <label className="flex items-center gap-2 text-sm text-white/75">
+      <div className="space-y-2 rounded-xl border border-slate-900/10 p-3">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={query.inStock ?? false}
@@ -250,7 +250,7 @@ export function PartsFiltersPanel({
           />
           Stokda olanlar
         </label>
-        <label className="flex items-center gap-2 text-sm text-white/75">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={query.sellerVerified ?? false}
@@ -298,9 +298,9 @@ export function PartsFiltersPanel({
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
-          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#0a0a0f] p-5">
-            <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-white/10 bg-[#0a0a0f] pb-2">
-              <h2 className="font-semibold text-white">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-slate-900/10 bg-white p-5">
+            <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-slate-900/10 bg-white pb-2">
+              <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
               <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
             </div>
             {panel}

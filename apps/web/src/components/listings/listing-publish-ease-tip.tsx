@@ -42,10 +42,10 @@ export function ListingPublishEaseTip({ variant, className = "" }: ListingPublis
   const content = COPY[variant];
   return (
     <div className={`rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3.5 ${className}`}>
-      <p className="text-sm font-semibold text-emerald-300">{content.title}</p>
+      <p className="text-sm font-semibold text-emerald-700">{content.title}</p>
       <ol className="mt-2 space-y-1">
         {content.steps.map((step, index) => (
-          <li key={step} className="flex items-start gap-2 text-xs text-emerald-300/90">
+          <li key={step} className="flex items-start gap-2 text-xs text-emerald-700/90">
             <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
               {index + 1}
             </span>
@@ -53,7 +53,7 @@ export function ListingPublishEaseTip({ variant, className = "" }: ListingPublis
           </li>
         ))}
       </ol>
-      <p className="mt-2 text-[11px] text-emerald-300/70">
+      <p className="mt-2 text-[11px] text-emerald-700/70">
         AI yalnız köməkçidir — son qərar və dəqiqlik sizdədir.
       </p>
     </div>

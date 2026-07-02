@@ -90,9 +90,9 @@ function StepIndicator({ current }: { current: Step }) {
       {STEPS.map((step, i) => (
         <div key={step} className="flex items-center">
           <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition ${
-            i < idx ? "bg-brand-600 text-white" :
-            i === idx ? "bg-brand-600 text-white ring-4 ring-brand-100" :
-            "bg-white/8 text-white/40"
+            i < idx ? "bg-brand-600 text-slate-900" :
+            i === idx ? "bg-brand-600 text-slate-900 ring-4 ring-brand-100" :
+            "bg-white/63 text-slate-400"
           }`}>
             {i < idx ? (
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -100,7 +100,7 @@ function StepIndicator({ current }: { current: Step }) {
               </svg>
             ) : i + 1}
           </div>
-          <span className={`ml-2 text-sm font-medium mr-6 ${i === idx ? "text-[#0057FF]" : "text-white/40"}`}>
+          <span className={`ml-2 text-sm font-medium mr-6 ${i === idx ? "text-[#0057FF]" : "text-slate-400"}`}>
             {step}
           </span>
           {i < STEPS.length - 1 && (
@@ -445,23 +445,23 @@ export default function PublishPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white/5 py-10">
+    <div className="min-h-screen bg-white/60 py-10">
       <div className="mx-auto max-w-2xl px-4">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white">Elan yerləşdir</h1>
-          <p className="mt-2 text-white/50">
+          <h1 className="text-3xl font-bold text-slate-900">Elan yerləşdir</h1>
+          <p className="mt-2 text-slate-500">
             Şəkil yükləyin — AI sahələri doldurmağa kömək edəcək. Siz yalnız yoxlayıb redaktə edin.
           </p>
         </div>
 
         <ListingPublishEaseTip variant="vehicle" className="mb-6" />
 
-        <div className="mb-6 rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4 text-sm text-white/80">
+        <div className="mb-6 rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4 text-sm text-slate-700">
           Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
           <Link href="/auction/sell" className="font-semibold text-[#0057FF] hover:underline">Auksion lotu yarat</Link>{" "}
           axınından istifadə edin. Auksionda əsas satış ödənişi platformadan keçmir.
         </div>
-        <div className="mb-6 rounded-2xl border glass-panel border-white/10 p-4 text-sm text-white/80">
+        <div className="mb-6 rounded-2xl border glass-panel border-slate-900/10 p-4 text-sm text-slate-700">
           EkoMobil məlumatların yerləşdirilməsi və yayımlanması üçün platformadır. Elan məzmununun düzgünlüyü, tamlığı və
           aktuallığı satıcının məsuliyyətindədir. VIN, servis tarixçəsi və digər istinadların əlavə edilməsi elanın
           keyfiyyətini yüksəldir.
@@ -474,7 +474,7 @@ export default function PublishPage() {
             {/* Step 1: Vehicle info */}
             {step === "Avtomobil" && (
               <div className="card p-8 space-y-5">
-                <h2 className="text-lg font-semibold text-white">Avtomobil məlumatları</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Avtomobil məlumatları</h2>
 
                 <div>
                   <label className="label">Elan başlığı</label>
@@ -521,7 +521,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={seatHeating}
@@ -530,7 +530,7 @@ export default function PublishPage() {
                     />
                     Oturacaq isidilməsi
                   </label>
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={seatCooling}
@@ -542,7 +542,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={camera360}
@@ -551,7 +551,7 @@ export default function PublishPage() {
                     />
                     360 kamera
                   </label>
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={parkingSensors}
@@ -563,7 +563,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={adaptiveCruise}
@@ -572,7 +572,7 @@ export default function PublishPage() {
                     />
                     Adaptive cruise control
                   </label>
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={laneAssist}
@@ -596,7 +596,7 @@ export default function PublishPage() {
                     />
                   </div>
                   <div className="grid grid-cols-1 gap-2">
-                    <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                    <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                       <input
                         type="checkbox"
                         checked={hasServiceBook}
@@ -605,7 +605,7 @@ export default function PublishPage() {
                       />
                       Servis kitabçası var
                     </label>
-                    <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                    <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                       <input
                         type="checkbox"
                         checked={hasRepairHistory}
@@ -640,15 +640,15 @@ export default function PublishPage() {
                     placeholder="17 simvol"
                     maxLength={17}
                   />
-                  <p className="mt-1 text-xs text-white/40">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
+                  <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
                   <p className="mt-1 text-xs text-[#0057FF]">
                     VIN məcburi deyil, amma əlavə edildikdə elan alıcı üçün daha etibarlı görünür.
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-sm font-medium text-white">Etibarı artıran məlumatlar (tövsiyə olunur)</p>
-                  <p className="mt-1 text-xs text-white/65">
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 p-4">
+                  <p className="text-sm font-medium text-slate-900">Etibarı artıran məlumatlar (tövsiyə olunur)</p>
+                  <p className="mt-1 text-xs text-slate-600">
                     VIN və servis tarixçəsini açıq link və ya sənəd istinadı kimi paylaşa bilərsiniz. Bu məlumatlar alıcı üçün
                     daha şəffaf təqdimat yaradır.
                   </p>
@@ -798,7 +798,7 @@ export default function PublishPage() {
                       disabled={isElectricPowertrain}
                     />
                     {isElectricPowertrain && (
-                      <p className="mt-1 text-xs text-white/40">Elektrik avtomobillərdə mühərrik həcmi tətbiq edilmir.</p>
+                      <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillərdə mühərrik həcmi tətbiq edilmir.</p>
                     )}
                   </div>
                   <div>
@@ -810,7 +810,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                   <input
                     type="checkbox"
                     checked={hasSunroof}
@@ -821,7 +821,7 @@ export default function PublishPage() {
                 </label>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={creditAvailable}
@@ -830,7 +830,7 @@ export default function PublishPage() {
                     />
                     Kreditə uyğundur
                   </label>
-                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
                       checked={barterAvailable}
@@ -850,7 +850,7 @@ export default function PublishPage() {
 
                 {vehicleValidationVisible && vehicleStepErrors.length > 0 && (
                   <div className="rounded-xl alert-warning border p-4">
-                    <p className="text-sm font-medium text-amber-200">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
+                    <p className="text-sm font-medium text-amber-700">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
                     <ul className="mt-2 space-y-1">
                       {vehicleStepErrors.map((error) => (
                         <li key={error} className="text-sm text-amber-700">
@@ -871,8 +871,8 @@ export default function PublishPage() {
             {step === "Mediya" && (
               <div className="card p-8 space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Mediya protokolu</h2>
-                  <p className="mt-1 text-sm text-white/50">
+                  <h2 className="text-lg font-semibold text-slate-900">Mediya protokolu</h2>
+                  <p className="mt-1 text-sm text-slate-500">
                     Daha çox foto = daha yüksək etibar balı = daha sürətli satış
                   </p>
                 </div>
@@ -1006,17 +1006,17 @@ export default function PublishPage() {
                         )
                       }
                     ].map((angle) => (
-                      <div key={angle.label} className="rounded-xl border glass-panel border-white/10 p-2.5 text-center">
+                      <div key={angle.label} className="rounded-xl border glass-panel border-slate-900/10 p-2.5 text-center">
                         <div className="mb-1.5">{angle.icon}</div>
-                        <p className="text-xs font-semibold text-white/80 leading-tight">{angle.label}</p>
+                        <p className="text-xs font-semibold text-slate-700 leading-tight">{angle.label}</p>
                         <span className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
                           angle.priority === "Əsas" ? "bg-[#0057FF]/10 text-[#0057FF]" :
-                          angle.priority === "Vacib" ? "bg-emerald-500/10 text-emerald-300" :
-                          "bg-white/8 text-white/50"
+                          angle.priority === "Vacib" ? "bg-emerald-500/10 text-emerald-700" :
+                          "bg-white/63 text-slate-500"
                         }`}>
                           {angle.priority}
                         </span>
-                        <p className="mt-1 text-[10px] text-white/40 leading-tight">{angle.tip}</p>
+                        <p className="mt-1 text-[10px] text-slate-400 leading-tight">{angle.tip}</p>
                       </div>
                     ))}
                   </div>
@@ -1029,11 +1029,11 @@ export default function PublishPage() {
                 <div>
                   <div className="mb-2 flex items-center justify-between">
                     <label className="label mb-0">Şəkillər</label>
-                    <span className="text-xs text-white/40">
+                    <span className="text-xs text-slate-400">
                       {uploadedImages.length} / {currentPlan.maxImages} şəkil
                     </span>
                   </div>
-                  <p className="mb-2 text-xs text-white/50">
+                  <p className="mb-2 text-xs text-slate-500">
                     Minimum <strong>{minimumRequiredImages} əsas şəkil</strong> əlavə edin. Daha çox şəkil elanın keyfiyyətini artırır.
                   </p>
 
@@ -1042,7 +1042,7 @@ export default function PublishPage() {
                     className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 transition ${
                       uploadProcessing
                         ? "border-[#0057FF]/40 bg-[#0057FF]/5"
-                        : "border-white/15 bg-white/5 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
+                        : "border-slate-900/15 bg-white/60 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
                     }`}
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
@@ -1069,13 +1069,13 @@ export default function PublishPage() {
                       </div>
                     ) : (
                       <>
-                        <svg className="h-8 w-8 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
-                        <p className="text-sm text-white/50">
+                        <p className="text-sm text-slate-500">
                           <span className="font-semibold text-[#0057FF]">Fayl seçin</span> və ya bura sürükləyin
                         </p>
-                        <p className="text-xs text-white/40">
+                        <p className="text-xs text-slate-400">
                           JPEG · PNG · WebP · HEIC — istənilən ölçü qəbul olunur, sistem avtomatik sıxır
                         </p>
                       </>
@@ -1086,7 +1086,7 @@ export default function PublishPage() {
                   {uploadErrors.length > 0 && (
                     <div className="mt-2 rounded-xl alert-danger border p-3">
                       {uploadErrors.map((e, i) => (
-                        <p key={i} className="text-xs text-red-200">{e}</p>
+                        <p key={i} className="text-xs text-red-700">{e}</p>
                       ))}
                     </div>
                   )}
@@ -1095,7 +1095,7 @@ export default function PublishPage() {
                   {uploadedImages.length > 0 && (
                     <div className="mt-3 grid grid-cols-4 gap-2">
                       {uploadedImages.map((img, i) => (
-                        <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/8">
+                        <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-900/10 bg-white/63">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={URL.createObjectURL(img.file)}
@@ -1103,14 +1103,14 @@ export default function PublishPage() {
                             className="h-full w-full object-cover"
                           />
                           {/* Compression badge */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-center text-[9px] text-white">
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-center text-[9px] text-slate-900">
                             {formatFileSize(img.compressedSizeBytes)}
                             {img.wasResized && " · sıxıldı"}
                           </div>
                           {/* Remove button */}
                           <button
                             type="button"
-                            className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-white group-hover:flex"
+                            className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-slate-900 group-hover:flex"
                             onClick={() => {
                               setUploadedImages((prev) => prev.filter((_, idx) => idx !== i));
                               setMedia((prev) => ({ ...prev, imageCount: uploadedImages.length - 1 }));
@@ -1127,7 +1127,7 @@ export default function PublishPage() {
 
                   {/* Compression info note */}
                   {uploadedImages.length > 0 && (
-                    <p className="mt-2 text-[11px] text-white/40">
+                    <p className="mt-2 text-[11px] text-slate-400">
                       💾 Cəmi: {formatFileSize(uploadedImages.reduce((s, img) => s + img.compressedSizeBytes, 0))} · Sistem avtomatik JPEG 85%-ə çevirmişdir
                     </p>
                   )}
@@ -1143,13 +1143,13 @@ export default function PublishPage() {
                 {/* ── Angle checklist ─────────────────────────────────────── */}
                 <div>
                   <label className="label mb-3">Çəkilmiş bucaqları işarələyin</label>
-                  <p className="mb-3 text-xs text-white/50">
+                  <p className="mb-3 text-xs text-slate-500">
                     &quot;Ön panel&quot; dedikdə sükan, cihazlar paneli və mərkəzi ekranın göründüyü ön salon şəkli nəzərdə tutulur.
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
-                        media[key] ? "border-[#0057FF]/40 bg-[#0057FF]/5" : "glass-panel border-white/10 hover:border-white/15"
+                        media[key] ? "border-[#0057FF]/40 bg-[#0057FF]/5" : "glass-panel border-slate-900/10 hover:border-slate-900/15"
                       }`}>
                         <input
                           type="checkbox"
@@ -1157,7 +1157,7 @@ export default function PublishPage() {
                           onChange={(e) => updateBoolean(key, e.target.checked)}
                           className="h-4 w-4 rounded accent-[#0057FF]"
                         />
-                        <span className="text-sm font-medium text-white/80">{label}</span>
+                        <span className="text-sm font-medium text-slate-700">{label}</span>
                         {media[key] && (
                           <svg className="ml-auto h-4 w-4 text-[#0057FF]" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
@@ -1180,13 +1180,13 @@ export default function PublishPage() {
                       min={0}
                       max={60}
                     />
-                    <p className="mt-1 text-xs text-white/40">15–30 saniyə tövsiyə olunur. Video yükləmə müddəti ödəniş sonrası aktivləşir.</p>
+                    <p className="mt-1 text-xs text-slate-400">15–30 saniyə tövsiyə olunur. Video yükləmə müddəti ödəniş sonrası aktivləşir.</p>
                   </div>
                 )}
 
                 {mediaValidationVisible && !mediaCheck.isComplete && (
                   <div className="rounded-xl alert-warning border p-4">
-                    <p className="text-sm font-medium text-amber-200 mb-2">Çatışmayan tələblər:</p>
+                    <p className="text-sm font-medium text-amber-700 mb-2">Çatışmayan tələblər:</p>
                     <ul className="space-y-1">
                       {mediaCheck.missingRequirements.map((req) => (
                         <li key={req} className="text-sm text-amber-700 flex items-center gap-2">
@@ -1212,21 +1212,21 @@ export default function PublishPage() {
             {/* Step 3: Plan selection */}
             {step === "Plan" && (
               <div className="card p-8 space-y-6">
-                <h2 className="text-lg font-semibold text-white">Elan planı</h2>
-                <p className="text-sm text-white/50">Elanınızın necə görünməsini seçin</p>
+                <h2 className="text-lg font-semibold text-slate-900">Elan planı</h2>
+                <p className="text-sm text-slate-500">Elanınızın necə görünməsini seçin</p>
 
                 {/* Free plan limit note */}
-                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/65 space-y-1">
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-xs text-slate-600 space-y-1">
                   <p>
-                    <span className="font-semibold text-white/80">Pulsuz plan:</span>{" "}
+                    <span className="font-semibold text-slate-700">Pulsuz plan:</span>{" "}
                     eyni anda yalnız <strong>{FREE_LISTING_CONCURRENT_LIMIT} aktiv pulsuz elan</strong> yerləşdirə bilərsiniz.
                     İkinci elan üçün ilk elanın müddəti bitməli, yaxud Standart/VIP plan seçilməlidir.
                   </p>
                   <p>
-                    <span className="font-semibold text-white/80">Şəkil limiti:</span> Pulsuz plan üçün də indi {LISTING_PLANS[0].maxImages} şəkil əlavə etmək olar.
+                    <span className="font-semibold text-slate-700">Şəkil limiti:</span> Pulsuz plan üçün də indi {LISTING_PLANS[0].maxImages} şəkil əlavə etmək olar.
                   </p>
                   <p>
-                    <span className="font-semibold text-white/80">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0057FF] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
+                    <span className="font-semibold text-slate-700">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0057FF] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
                   </p>
                 </div>
 
@@ -1243,7 +1243,7 @@ export default function PublishPage() {
                       className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-4 transition ${
                         planType === plan.id
                           ? "border-[#0057FF] bg-[#0057FF]/5"
-                          : "glass-panel border-white/10 hover:border-white/15"
+                          : "glass-panel border-slate-900/10 hover:border-slate-900/15"
                       }`}
                     >
                       <input
@@ -1256,34 +1256,34 @@ export default function PublishPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-white">{plan.nameAz}</span>
-                          <span className="font-bold text-white shrink-0">
+                          <span className="font-semibold text-slate-900">{plan.nameAz}</span>
+                          <span className="font-bold text-slate-900 shrink-0">
                             {formatListingPlanPrice(plan.id, typeof priceAzn === "number" ? priceAzn : undefined)}
                           </span>
                         </div>
                         {/* Plan details chips */}
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
+                          <span className="rounded-md bg-white/63 px-2 py-0.5 text-xs text-slate-600">
                             {plan.durationDays} gün aktiv
                           </span>
-                          <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
+                          <span className="rounded-md bg-white/63 px-2 py-0.5 text-xs text-slate-600">
                             {plan.maxImages} şəkil
                           </span>
                           {plan.priceAzn > 0 && (
-                            <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
+                            <span className="rounded-md bg-white/63 px-2 py-0.5 text-xs text-slate-600">
                               birdəfəlik ödəniş
                             </span>
                           )}
-                          <span className="rounded-md bg-white/8 px-2 py-0.5 text-xs text-white/65">
+                          <span className="rounded-md bg-white/63 px-2 py-0.5 text-xs text-slate-600">
                             {plan.maxImageSizeKb >= 1024 ? `${(plan.maxImageSizeKb/1024).toFixed(0)} MB` : `${plan.maxImageSizeKb} KB`}/foto
                           </span>
                           {plan.videoEnabled && (
-                            <span className="rounded-md bg-emerald-500/10 text-emerald-300 px-2 py-0.5 text-xs">
+                            <span className="rounded-md bg-emerald-500/10 text-emerald-700 px-2 py-0.5 text-xs">
                               {plan.maxVideos} video ({plan.maxVideoSizeMb} MB)
                             </span>
                           )}
                           {plan.featuredInHome && (
-                            <span className="rounded-md bg-amber-500/15 text-amber-200 px-2 py-0.5 text-xs font-medium">
+                            <span className="rounded-md bg-amber-500/15 text-amber-700 px-2 py-0.5 text-xs font-medium">
                               ⭐ Ön səhifə
                             </span>
                           )}
@@ -1307,9 +1307,9 @@ export default function PublishPage() {
             {/* Step 4: Review & Submit */}
             {step === "Yoxlama" && (
               <div className="card p-8 space-y-6">
-                <h2 className="text-lg font-semibold text-white">Məlumatları yoxlayın</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Məlumatları yoxlayın</h2>
 
-                <div className="rounded-xl bg-white/5 divide-y divide-white/10">
+                <div className="rounded-xl bg-white/60 divide-y divide-slate-900/10">
                   {[
                     ["Elan başlığı", title],
                     ["Marka / Model", `${make} ${model}`],
@@ -1335,15 +1335,15 @@ export default function PublishPage() {
                     ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${formatListingPlanPrice(planType, typeof priceAzn === "number" ? priceAzn : undefined)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
-                      <span className="text-white/50">{label}</span>
-                      <span className="font-medium text-white">{value}</span>
+                      <span className="text-slate-500">{label}</span>
+                      <span className="font-medium text-slate-900">{value}</span>
                     </div>
                   ))}
                 </div>
 
                 {reviewErrors.length > 0 && (
                   <div className="rounded-xl alert-warning border p-4">
-                    <p className="text-sm font-medium text-amber-200">Dərc etməzdən əvvəl bunları düzəldin:</p>
+                    <p className="text-sm font-medium text-amber-700">Dərc etməzdən əvvəl bunları düzəldin:</p>
                     <ul className="mt-2 space-y-1">
                       {reviewErrors.map((error) => (
                         <li key={error} className="text-sm text-amber-700">
@@ -1382,11 +1382,11 @@ export default function PublishPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Elan qəbul edildi!</h2>
-              <p className="mt-2 text-white/50">Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong></p>
+              <h2 className="text-xl font-bold text-slate-900">Elan qəbul edildi!</h2>
+              <p className="mt-2 text-slate-500">Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong></p>
             </div>
             {result.signals?.mileageFlag && (
-              <div className="rounded-xl alert-warning border p-4 text-sm text-amber-200 text-left">
+              <div className="rounded-xl alert-warning border p-4 text-sm text-amber-700 text-left">
                 <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
               </div>
             )}

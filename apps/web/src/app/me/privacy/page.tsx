@@ -12,8 +12,8 @@ export default async function MePrivacyPage() {
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">Məxfilik və məlumat hüquqları</h1>
-          <p className="mt-1 text-sm text-white/50">
+          <h1 className="text-2xl font-bold text-slate-900">Məxfilik və məlumat hüquqları</h1>
+          <p className="mt-1 text-sm text-slate-500">
             Hesab məlumatlarınız üzrə ixrac, düzəliş, silinmə və emala etiraz sorğularını bu səhifədən idarə edin.
           </p>
         </div>

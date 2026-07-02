@@ -19,21 +19,21 @@ export function PageHero({ title, subtitle, icon: Icon, badge, actions, variant 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-4">
             {Icon && (
-              <div className={`icon-tile shrink-0 ${isDark ? "icon-tile-teal" : "icon-tile-teal"}`}>
+              <div className="icon-tile icon-tile-teal shrink-0">
                 <Icon className="h-6 w-6" strokeWidth={2.25} aria-hidden="true" />
               </div>
             )}
             <div>
               {badge && (
-                <span className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${isDark ? "bg-[#0057FF]/15 text-[#93c5fd]" : "bg-brand-50 text-[#0057FF]"}`}>
+                <span className="mb-2 inline-flex rounded-full bg-[#0057FF]/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#0046CC]">
                   {badge}
                 </span>
               )}
-              <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${isDark ? "text-white" : "text-white"}`}>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 {title}
               </h1>
               {subtitle && (
-                <p className={`mt-1.5 text-sm sm:text-base ${isDark ? "text-white/65" : "text-white/50"}`}>
+                <p className={`mt-1.5 text-sm sm:text-base ${isDark ? "text-slate-600" : "text-slate-500"}`}>
                   {subtitle}
                 </p>
               )}

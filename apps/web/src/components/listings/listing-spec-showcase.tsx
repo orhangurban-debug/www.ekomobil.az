@@ -21,7 +21,7 @@ export function ListingSpecShowcase({ specs }: ListingSpecShowcaseProps) {
             className="glass-panel flex flex-col items-center justify-center px-6 py-10 text-center"
           >
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              <span className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
                 {spec.value}
               </span>
               {spec.unit && (
@@ -30,7 +30,7 @@ export function ListingSpecShowcase({ specs }: ListingSpecShowcaseProps) {
                 </span>
               )}
             </div>
-            <p className="mt-3 text-xs font-medium uppercase tracking-[0.15em] text-white/45">
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.15em] text-slate-500">
               {spec.label}
             </p>
           </div>

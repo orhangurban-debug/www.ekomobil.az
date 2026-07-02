@@ -9,23 +9,23 @@ export const metadata = {
 export default function LegalPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-8 text-sm text-white/50">
-        <Link href="/" className="hover:text-white">
+      <nav className="mb-8 text-sm text-slate-500">
+        <Link href="/" className="hover:text-slate-900">
           Ana səhifə
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-white">Hüquqi məlumat</span>
+        <span className="text-slate-900">Hüquqi məlumat</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-white">Hüquqi məlumat və fırıldaqçılıqla mübarizə</h1>
-      <p className="mt-2 text-white/50">
+      <h1 className="text-3xl font-bold text-slate-900">Hüquqi məlumat və fırıldaqçılıqla mübarizə</h1>
+      <p className="mt-2 text-slate-500">
         EkoMobil alqı-satqının tərəfi deyil; lakin qanuna uyğun qaydada fırıldaqçılıq hallarına qarşı
         texniki və hüquqi tədbirlər görür.
       </p>
 
-      <div className="mt-8 space-y-8 text-white/80 leading-relaxed">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-xl font-semibold text-white">Platformanın rolu</h2>
+      <div className="mt-8 space-y-8 text-slate-700 leading-relaxed">
+        <section className="rounded-2xl border border-slate-900/10 bg-white/60 p-6">
+          <h2 className="text-xl font-semibold text-slate-900">Platformanın rolu</h2>
           <p className="mt-3">
             EkoMobil istifadəçilərə elan yerləşdirmək və bir-biri ilə əlaqə saxlamaq üçün texniki platforma verir.
             Avtomobilin və ya hissənin faktiki vəziyyəti, mülkiyyət hüququ, gizli qüsurlar və yekun alış qərarı
@@ -34,7 +34,7 @@ export default function LegalPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Fırıldaqçılıq və saxta elanlara qarşı tədbirlər</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Fırıldaqçılıq və saxta elanlara qarşı tədbirlər</h2>
           <ul className="mt-3 list-disc space-y-2 pl-6">
             <li>Telefon təsdiqi, elan dublikat yoxlaması, media və VIN siqnalları</li>
             <li>İstifadəçi şikayətləri və admin insident idarəetməsi</li>
@@ -45,7 +45,7 @@ export default function LegalPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Hüquq-mühafizə orqanları ilə əməkdaşlıq</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Hüquq-mühafizə orqanları ilə əməkdaşlıq</h2>
           <p className="mt-3">
             Qanuni tələb, məhkəmə qərarı, rəsmi araşdırma sorğusu və ya fövqəladə təhlükəsizlik halında EkoMobil
             müvafiq qanunvericiliyə uyğun olaraq istifadəçi məlumatlarını təqdim edə bilər. Bu məlumatlara daxil ola bilər:
@@ -58,13 +58,13 @@ export default function LegalPage() {
             <li>Ödəniş və komisyon qeydləri (bank kart məlumatları saxlanmır)</li>
             <li>KYC məlumatları (təsdiq prosesindən keçmiş istifadəçilər üçün)</li>
           </ul>
-          <p className="mt-3 text-sm text-white/65">
+          <p className="mt-3 text-sm text-slate-600">
             Rəsmi sorğular yalnız səlahiyyətli orqanlar tərəfindən, rəsmi sənəd və ya qanuni əsasla daxil edilməlidir.
           </p>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Şikayət və yalan şikayət qaydası</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Şikayət və yalan şikayət qaydası</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
             <li>
               <strong>Şikayət edən</strong> iddiasını sübutla (foto, sənəd, yazışma, yoxlama nəticəsi) təqdim etməlidir
@@ -86,7 +86,7 @@ export default function LegalPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Rəsmi sorğu necə göndərilir?</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Rəsmi sorğu necə göndərilir?</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-6">
             <li>Orqanın rəsmi adı, sorğu nömrəsi və qanuni əsas göstərilməlidir</li>
             <li>Subyekt (istifadəçi ID, elan ID, telefon və ya email) dəqiq göstərilməlidir</li>
@@ -104,7 +104,7 @@ export default function LegalPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-white">Əlaqəli sənədlər</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Əlaqəli sənədlər</h2>
           <ul className="mt-3 space-y-2">
             <li>
               <Link href="/terms" className="text-[#0057FF] hover:underline">

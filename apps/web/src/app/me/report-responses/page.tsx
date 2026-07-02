@@ -20,8 +20,8 @@ export default async function ReportResponsesPage() {
       <Link href="/me" className="text-sm text-[#0057FF] hover:underline">
         ← Profilə qayıt
       </Link>
-      <h1 className="mt-4 text-2xl font-bold text-white">Şikayət cavabları</h1>
-      <p className="mt-2 text-sm text-white/65">
+      <h1 className="mt-4 text-2xl font-bold text-slate-900">Şikayət cavabları</h1>
+      <p className="mt-2 text-sm text-slate-600">
         Sizə qarşı daxil edilmiş şikayətlərə müdafiə sübutu ilə cavab verin. Hər iki tərəfin sübutu yoxlanılır; müdafiə
         verilməsə, iş qanuni qaydada hüquq-mühafizə orqanlarına ötürülə bilər.
       </p>

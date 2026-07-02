@@ -92,8 +92,8 @@ function LoginForm() {
               priority
             />
           </Link>
-          <h1 className="text-2xl font-bold text-white">Hesabınıza daxil olun</h1>
-          <p className="mt-2 text-sm text-white/50">Platforma idarəetmə üçün giriş edin</p>
+          <h1 className="text-2xl font-bold text-slate-900">Hesabınıza daxil olun</h1>
+          <p className="mt-2 text-sm text-slate-500">Platforma idarəetmə üçün giriş edin</p>
         </div>
 
         {/* Card */}
@@ -103,7 +103,7 @@ function LoginForm() {
             prefetch={false}
             onClick={onGoogleClick}
             aria-disabled={isGoogleLoading}
-            className={`mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/5 ${
+            className={`mb-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-900/15 bg-white/60 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-900/5 ${
               isGoogleLoading ? "pointer-events-none opacity-60" : ""
             }`}
           >
@@ -112,9 +112,9 @@ function LoginForm() {
             </svg>
             {isGoogleLoading ? "Google-a yönləndirilir..." : "Google ilə daxil ol"}
           </Link>
-          <div className="mb-5 text-center text-xs text-white/40">və ya email ilə giriş et</div>
+          <div className="mb-5 text-center text-xs text-slate-400">və ya email ilə giriş et</div>
           {oauthErrorMessage && (
-            <div className="mb-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+            <div className="mb-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
               {oauthErrorMessage}
             </div>
           )}
@@ -146,7 +146,7 @@ function LoginForm() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl alert-danger border px-4 py-3 text-sm text-red-200">
+              <div className="flex items-center gap-2 rounded-xl alert-danger border px-4 py-3 text-sm text-red-700">
                 <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
                 </svg>
@@ -168,10 +168,10 @@ function LoginForm() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-white/40">
+        <p className="mt-6 text-center text-xs text-slate-400">
           © {new Date().getFullYear()} EkoMobil — ekomobil.az
         </p>
-        <p className="mt-3 text-center text-sm text-white/50">
+        <p className="mt-3 text-center text-sm text-slate-500">
           Hesabın yoxdur? <Link href="/register" className="font-medium text-[#0057FF]">Qeydiyyat</Link>
         </p>
       </div>

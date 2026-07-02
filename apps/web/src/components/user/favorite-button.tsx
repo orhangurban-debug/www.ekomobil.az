@@ -37,7 +37,7 @@ export function FavoriteButton({
     <button
       onClick={onToggle}
       disabled={loading}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#141419]/90 text-white/50 shadow-sm transition hover:text-red-500"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/10 bg-white/95 text-slate-500 shadow-sm transition hover:text-red-500"
       aria-label="favorite"
     >
       <svg className={`h-4 w-4 ${favorited ? "fill-red-500 text-red-500" : ""}`} viewBox="0 0 20 20" fill="none" stroke="currentColor">

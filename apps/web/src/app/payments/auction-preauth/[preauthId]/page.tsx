@@ -32,43 +32,43 @@ export default async function AuctionPreauthPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border glass-panel border-white/10 p-8 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-slate-900/10 p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#0057FF]">Auksion pre-auth</p>
-          <h1 className="mt-2 text-2xl font-bold text-white">Bid üçün kart hold</h1>
-          <p className="mt-2 text-sm text-white/50">
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">Bid üçün kart hold</h1>
+          <p className="mt-2 text-sm text-slate-500">
             Bu əməliyyat əsas satış ödənişi deyil. Yalnız auksion iştirak öhdəliyini təsdiqləyən kart hold əməliyyatıdır.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/60 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-white/50">Pre-auth ID</dt>
-            <dd className="mt-1 font-mono text-white">{preauth.id}</dd>
+            <dt className="text-slate-500">Pre-auth ID</dt>
+            <dd className="mt-1 font-mono text-slate-900">{preauth.id}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Status</dt>
-            <dd className="mt-1 font-medium text-white">{getStatusLabel(preauth.status)}</dd>
+            <dt className="text-slate-500">Status</dt>
+            <dd className="mt-1 font-medium text-slate-900">{getStatusLabel(preauth.status)}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Auction ID</dt>
-            <dd className="mt-1 font-mono text-white">{preauth.auctionId}</dd>
+            <dt className="text-slate-500">Auction ID</dt>
+            <dd className="mt-1 font-mono text-slate-900">{preauth.auctionId}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Məbləğ</dt>
-            <dd className="mt-1 font-medium text-white">{preauth.amountAzn} ₼</dd>
+            <dt className="text-slate-500">Məbləğ</dt>
+            <dd className="mt-1 font-medium text-slate-900">{preauth.amountAzn} ₼</dd>
           </div>
         </dl>
 
         {query.status && (
-          <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+          <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
             Son cavab: {query.status}
           </div>
         )}
 
         {preauth.status === "held" ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
               Kart hold təsdiqləndi. İndi lot səhifəsinə qayıdıb bid verə bilərsiniz.
             </div>
             <Link href={`/auction/${preauth.auctionId}`} className="btn-primary">
@@ -101,7 +101,7 @@ export default async function AuctionPreauthPage({
               </>
             ) : isLiveReady && preauth.checkoutUrl ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
                   Real checkout hazırdır. Bank səhifəsində kart hold əməliyyatını tamamlayın.
                 </div>
                 <Link href={preauth.checkoutUrl} className="btn-primary">
@@ -109,7 +109,7 @@ export default async function AuctionPreauthPage({
                 </Link>
               </div>
             ) : (
-              <div className="rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+              <div className="rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
                 Merchant məlumatları hələ əlavə olunmayıb. Bank inteqrasiyası hazır olduqdan sonra bu səhifə real checkout ilə işləyəcək.
               </div>
             )}

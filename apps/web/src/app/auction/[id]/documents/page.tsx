@@ -19,8 +19,8 @@ export default async function AuctionDocumentsPage({
   if (auction.sellerUserId !== user.id && user.role !== "admin" && user.role !== "support") {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-white">Giriş icazəsi yoxdur</h1>
-        <p className="mt-2 text-sm text-white/50">Bu lotun sənədlərini yalnız satıcı və ya ops idarə edə bilər.</p>
+        <h1 className="text-xl font-bold text-slate-900">Giriş icazəsi yoxdur</h1>
+        <p className="mt-2 text-sm text-slate-500">Bu lotun sənədlərini yalnız satıcı və ya ops idarə edə bilər.</p>
         <Link href="/auction" className="btn-primary mt-6 inline-flex justify-center">
           Auksiona qayıt
         </Link>
@@ -30,12 +30,12 @@ export default async function AuctionDocumentsPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <nav className="mb-6 text-sm text-white/50">
-        <Link href="/auction/sell" className="hover:text-white">
+      <nav className="mb-6 text-sm text-slate-500">
+        <Link href="/auction/sell" className="hover:text-slate-900">
           Lot yarat
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-white">Sənədlər</span>
+        <span className="text-slate-900">Sənədlər</span>
       </nav>
       <AuctionDocumentsManager auctionId={auction.id} lotTitle={auction.titleSnapshot} />
       <div className="mt-8 flex flex-wrap gap-3">

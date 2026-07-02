@@ -21,8 +21,8 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
 ];
 
 const accent = "text-[#0057FF]";
-const accentBg = "bg-[#0057FF]/15 text-[#0057FF]";
-const navIdle = "text-white/70 hover:bg-white/5 hover:text-white";
+const accentBg = "bg-[#0057FF]/12 text-[#0057FF]";
+const navIdle = "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900";
 
 export function Header({
   userEmail,
@@ -69,8 +69,8 @@ export function Header({
   return (
     <header className="glass-nav sticky top-0 z-50">
       {noticeVisible && (
-        <div className="border-b border-amber-500/25 bg-[#1a1205]">
-          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-100 sm:px-6 lg:px-8">
+        <div className="border-b border-amber-500/25 bg-amber-50/90 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 text-xs text-amber-800 sm:px-6 lg:px-8">
             <p className="leading-5">
               <span className="font-semibold">Diqqət:</span> Platforma hələ tam aktiv deyil. Yanlış əməliyyatların
               qarşısını almaq üçün qeydiyyat, ödəniş və auksion funksiyaları mərhələli şəkildə açılır. Zəhmət olmasa
@@ -90,7 +90,7 @@ export function Header({
               type="button"
               onClick={hideNotice}
               aria-label="Bildirişi bağla"
-              className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20"
+              className="shrink-0 rounded-md border border-amber-400/50 bg-white/70 px-2 py-0.5 text-[11px] font-semibold text-amber-800 transition hover:bg-white"
             >
               Bağla
             </button>
@@ -189,7 +189,7 @@ export function Header({
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-900/10 bg-white/60 text-slate-900 md:hidden"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {menuOpen ? (
@@ -203,7 +203,7 @@ export function Header({
       </div>
 
       {menuOpen && (
-        <div className="border-t border-white/10 bg-[#0a0a0f]/95 px-4 py-3 backdrop-blur-xl md:hidden">
+        <div className="border-t border-slate-900/8 bg-white/90 px-4 py-3 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
@@ -211,7 +211,7 @@ export function Header({
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium ${
-                  pathname === link.href ? accentBg : "text-white/80 hover:bg-white/5"
+                  pathname === link.href ? accentBg : "text-slate-700 hover:bg-slate-900/5"
                 }`}
               >
                 {link.live && (
@@ -224,7 +224,7 @@ export function Header({
               href={compareHref}
               onClick={() => setMenuOpen(false)}
               className={`flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium ${
-                pathname.startsWith("/compare") ? accentBg : "text-white/80 hover:bg-white/5"
+                pathname.startsWith("/compare") ? accentBg : "text-slate-700 hover:bg-slate-900/5"
               }`}
             >
               Müqayisə
@@ -234,7 +234,7 @@ export function Header({
                 </span>
               )}
             </Link>
-            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
+            <div className="mt-2 flex flex-col gap-2 border-t border-slate-900/8 pt-2">
               {userEmail ? (
                 <>
                   {primaryCta && (

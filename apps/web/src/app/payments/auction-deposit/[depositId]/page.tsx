@@ -42,47 +42,47 @@ export default async function AuctionDepositPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border glass-panel border-white/10 p-8 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-slate-900/10 p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#0057FF]">Kapital Bank skeleton</p>
-          <h1 className="mt-2 text-2xl font-bold text-white">Auksion bidder deposit</h1>
-          <p className="mt-2 text-sm text-white/50">
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">Auksion bidder deposit</h1>
+          <p className="mt-2 text-sm text-slate-500">
             Bu deposit əsas avtomobil ödənişi deyil. Yalnız auksion iştirak intizamı üçün xidmət ödənişidir.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/60 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-white/50">Deposit ID</dt>
-            <dd className="mt-1 font-mono text-white">{deposit.id}</dd>
+            <dt className="text-slate-500">Deposit ID</dt>
+            <dd className="mt-1 font-mono text-slate-900">{deposit.id}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Status</dt>
-            <dd className="mt-1 font-medium text-white">{getStatusLabel(deposit.status)}</dd>
+            <dt className="text-slate-500">Status</dt>
+            <dd className="mt-1 font-medium text-slate-900">{getStatusLabel(deposit.status)}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Provider rejimi</dt>
-            <dd className="mt-1 font-medium text-white">{deposit.providerMode ?? config.mode}</dd>
+            <dt className="text-slate-500">Provider rejimi</dt>
+            <dd className="mt-1 font-medium text-slate-900">{deposit.providerMode ?? config.mode}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Auction ID</dt>
-            <dd className="mt-1 font-mono text-white">{deposit.auctionId}</dd>
+            <dt className="text-slate-500">Auction ID</dt>
+            <dd className="mt-1 font-mono text-slate-900">{deposit.auctionId}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Məbləğ</dt>
-            <dd className="mt-1 font-medium text-white">{deposit.amountAzn} ₼</dd>
+            <dt className="text-slate-500">Məbləğ</dt>
+            <dd className="mt-1 font-medium text-slate-900">{deposit.amountAzn} ₼</dd>
           </div>
         </dl>
 
         {query.status && (
-          <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+          <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
             Son cavab: {query.status}
           </div>
         )}
 
         {deposit.status === "held" ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
               Deposit təsdiqləndi. Əsas avtomobil ödənişi sonradan birbaşa satıcıya ediləcək.
             </div>
             <Link href="/auction" className="btn-primary">
@@ -114,11 +114,11 @@ export default async function AuctionDepositPage({
                 </div>
               </>
             ) : isLiveReady ? (
-              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+              <div className="rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
                 Real bank redirect inteqrasiyası bu skeleton-un növbəti mərhələsində qoşulacaq.
               </div>
             ) : (
-              <div className="rounded-xl alert-warning border px-4 py-3 text-sm text-amber-200">
+              <div className="rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
                 Merchant məlumatları hələ əlavə olunmayıb. Bank inteqrasiyası hazır olduqdan sonra bu səhifə real checkout ilə əvəz olunacaq.
               </div>
             )}

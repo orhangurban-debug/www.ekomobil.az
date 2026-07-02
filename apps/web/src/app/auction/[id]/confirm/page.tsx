@@ -41,42 +41,42 @@ export default async function AuctionConfirmPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border glass-panel border-white/10 p-8 shadow-sm">
+      <div className="rounded-2xl border glass-panel border-slate-900/10 p-8 shadow-sm">
         <div className="mb-6">
           <p className="text-sm font-medium text-[#0057FF]">Post-auction settlement</p>
-          <h1 className="mt-2 text-3xl font-bold text-white">Satış nəticəsini təsdiqlə</h1>
-          <p className="mt-3 text-sm leading-6 text-white/50">
+          <h1 className="mt-2 text-3xl font-bold text-slate-900">Satış nəticəsini təsdiqlə</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-500">
             Bu ekran avtomobilin tam ödənişini qəbul etmir. Burada yalnız alıcı və satıcı off-platform
             satışın nəticəsini qeyd edir. Platforma yalnız öz xidmət haqları üzrə tərəfdir.
           </p>
         </div>
 
-        <dl className="grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2">
+        <dl className="grid gap-4 rounded-xl bg-white/60 p-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-white/50">Auksion ID</dt>
-            <dd className="mt-1 font-mono text-white">{auction.id}</dd>
+            <dt className="text-slate-500">Auksion ID</dt>
+            <dd className="mt-1 font-mono text-slate-900">{auction.id}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Status</dt>
-            <dd className="mt-1 font-medium text-white">{getAuctionStatusLabel(auction.status)}</dd>
+            <dt className="text-slate-500">Status</dt>
+            <dd className="mt-1 font-medium text-slate-900">{getAuctionStatusLabel(auction.status)}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Lot</dt>
-            <dd className="mt-1 font-medium text-white">{auction.titleSnapshot}</dd>
+            <dt className="text-slate-500">Lot</dt>
+            <dd className="mt-1 font-medium text-slate-900">{auction.titleSnapshot}</dd>
           </div>
           <div>
-            <dt className="text-white/50">Cari / qalib bid</dt>
-            <dd className="mt-1 font-medium text-white">
+            <dt className="text-slate-500">Cari / qalib bid</dt>
+            <dd className="mt-1 font-medium text-slate-900">
               {(auction.currentBidAzn ?? auction.startingBidAzn).toLocaleString("az-AZ")} ₼
             </dd>
           </div>
         </dl>
 
-        <div className="mt-6 rounded-xl alert-warning border p-4 text-sm text-amber-200">
+        <div className="mt-6 rounded-xl alert-warning border p-4 text-sm text-amber-700">
           Əsas satış ödənişi bank köçürməsi, notariat və ya tərəflərin razılaşdığı birbaşa üsulla
           tamamlanmalıdır. EkoMobil bu məbləği qəbul etmir və saxlamır.
         </div>
-        <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+        <div className="mt-4 rounded-xl border border-slate-900/10 bg-white/60 p-4 text-sm text-slate-700">
           EkoMobil alqı-satqının tərəfi deyil və nəqliyyat vasitəsinin texniki keyfiyyətinə, gizli qüsurlarına və ya
           ekspertiza nəticəsinə hüquqi zəmanət vermir. Platforma yalnız proses, audit izi və öhdəlik statuslarının
           qeydiyyatı üçün texniki infrastruktur təqdim edir.
@@ -98,19 +98,19 @@ export default async function AuctionConfirmPage({
           <div className="mt-6 rounded-2xl alert-danger border p-5">
             <h2 className="text-base font-semibold text-red-950">Mübahisə axını</h2>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl bg-white/80 p-4">
+              <div className="rounded-xl bg-white/95 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-red-500">1. Sübut əlavə et</div>
                 <p className="mt-2 text-sm text-red-900/90">
                   Foto, PDF, mesaj ekran görüntüsü və ya müvafiq sənədi aşağıdan yükləyin.
                 </p>
               </div>
-              <div className="rounded-xl bg-white/80 p-4">
+              <div className="rounded-xl bg-white/95 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-red-500">2. Qarşı tərəf cavabı</div>
                 <p className="mt-2 text-sm text-red-900/90">
                   Qarşı tərəfin də sübut təqdim etməsi gözlənilir. Əlavə sənəd olduqca yenidən yükləyə bilərsiniz.
                 </p>
               </div>
-              <div className="rounded-xl bg-white/80 p-4">
+              <div className="rounded-xl bg-white/95 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-red-500">3. Ops baxışı</div>
                 <p className="mt-2 text-sm text-red-900/90">
                   Ops komandası hər iki tərəfin materiallarını yoxlayır və nəticəni status yeniləməsi ilə qeydə alır.
@@ -133,13 +133,13 @@ export default async function AuctionConfirmPage({
                 Ops komandası hər iki tərəfin sübutlarını nəzərdən keçirəcək.
               </p>
             </div>
-            <h2 className="mb-4 text-base font-semibold text-white">Mübahisə sübutları</h2>
+            <h2 className="mb-4 text-base font-semibold text-slate-900">Mübahisə sübutları</h2>
             <DisputeEvidenceManager auctionId={auction.id} uploaderRole={uploaderRole} />
           </div>
         )}
 
         {!canActAsBuyer && !canActAsSeller && (
-          <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/65">
+          <div className="mt-6 rounded-xl border border-slate-900/10 bg-white/60 p-4 text-sm text-slate-600">
             Bu təsdiq addımı yalnız qalib alıcı və ya satıcı üçün açıqdır.
           </div>
         )}

@@ -72,10 +72,10 @@ export function ReportListingButton({
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-white">Elanı şikayət et</h3>
-            <p className="mt-1 text-sm text-white/50">{listingTitle}</p>
+            <h3 className="text-lg font-semibold text-slate-900">Elanı şikayət et</h3>
+            <p className="mt-1 text-sm text-slate-500">{listingTitle}</p>
 
-            <div className="mt-3 rounded-xl alert-warning border p-3 text-xs leading-relaxed text-amber-200">
+            <div className="mt-3 rounded-xl alert-warning border p-3 text-xs leading-relaxed text-amber-700">
               Şikayət yalnız sübutla qəbul edilir. Yalan və ya əsassız şikayətə görə məsuliyyət daşıyırsınız.
               Satıcı haqlıdırsa, 7 gün ərzində müdafiə sübutu təqdim edə bilər; sübut verməsə, iş hüquq-mühafizə
               orqanlarına ötürülə bilər.
@@ -121,7 +121,7 @@ export function ReportListingButton({
                 />
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3 text-xs text-white/80">
+              <label className="flex cursor-pointer items-start gap-3 text-xs text-slate-700">
                 <input
                   type="checkbox"
                   checked={ackLiability}
@@ -135,10 +135,10 @@ export function ReportListingButton({
               </label>
 
               {error && (
-                <div className="rounded-xl alert-danger border px-3 py-2 text-sm text-red-200">{error}</div>
+                <div className="rounded-xl alert-danger border px-3 py-2 text-sm text-red-700">{error}</div>
               )}
               {message && (
-                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
                   {message}
                 </div>
               )}

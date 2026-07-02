@@ -29,12 +29,12 @@ export function BrandLogo({
     return (
       <Link href={href} className="group flex shrink-0 items-center gap-2.5">
         <span
-          className={`flex ${iconSize} items-center justify-center rounded-xl bg-[#0057FF] shadow-[0_4px_14px_rgba(0,87,255,0.35)] transition group-hover:shadow-[0_6px_20px_rgba(0,87,255,0.45)]`}
+          className={`flex ${iconSize} items-center justify-center rounded-xl bg-[#0057FF] shadow-[0_4px_14px_rgba(0,87,255,0.3)] transition group-hover:shadow-[0_6px_20px_rgba(0,87,255,0.4)]`}
         >
           <CarMark className={size === "footer" ? "h-5 w-5 text-white" : "h-[18px] w-[18px] text-white"} />
         </span>
         <span className={`${textSize} font-bold tracking-tight`}>
-          <span className="text-white">Eko</span>
+          <span className="text-slate-900">Eko</span>
           <span className="text-[#0057FF]">Mobil</span>
         </span>
       </Link>
