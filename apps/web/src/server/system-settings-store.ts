@@ -7,6 +7,11 @@ import {
   parsePricingPlanAdminConfig,
   type PricingPlanAdminConfig
 } from "@/lib/pricing-plan-config";
+import {
+  DEFAULT_AD_SLOTS_CONFIG,
+  parseAdSlotsConfig,
+  type AdSlotsConfig
+} from "@/lib/ad-slots-config";
 import { getPgPool } from "@/lib/postgres";
 
 interface SystemSettingsDbRow {
@@ -139,4 +144,34 @@ export async function updatePricingPlanAdminConfig(input: PricingPlanAdminConfig
     result.rows[0]?.pricing_plan_config ?? payload,
     result.rows[0]?.pricing_economics_config ?? payload.economics
   );
+}
+
+export async function getAdSlotsConfig(): Promise<AdSlotsConfig> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ ad_slots_config: unknown }>(
+      `SELECT ad_slots_config FROM system_settings WHERE id = 1 LIMIT 1`
+    );
+    return parseAdSlotsConfig(result.rows[0]?.ad_slots_config ?? DEFAULT_AD_SLOTS_CONFIG);
+  } catch {
+    return { ...DEFAULT_AD_SLOTS_CONFIG, slots: [...DEFAULT_AD_SLOTS_CONFIG.slots] };
+  }
+}
+
+export async function updateAdSlotsConfig(input: AdSlotsConfig): Promise<AdSlotsConfig> {
+  const pool = getPgPool();
+  const payload = parseAdSlotsConfig({
+    ...input,
+    updatedAt: new Date().toISOString()
+  });
+  const result = await pool.query<{ ad_slots_config: unknown }>(
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, ad_slots_config, updated_at)
+     VALUES (1, 'BETA_FIN_ONLY', '{"vehicle":80,"part":15}'::jsonb, $1::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       ad_slots_config = EXCLUDED.ad_slots_config,
+       updated_at = NOW()
+     RETURNING ad_slots_config`,
+    [JSON.stringify(payload)]
+  );
+  return parseAdSlotsConfig(result.rows[0]?.ad_slots_config ?? payload);
 }

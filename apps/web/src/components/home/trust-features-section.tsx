@@ -36,7 +36,7 @@ const features: TrustFeature[] = [
 
 export function TrustFeaturesSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="section-title">Niyə EkoMobil?</h2>

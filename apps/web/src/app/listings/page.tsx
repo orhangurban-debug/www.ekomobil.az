@@ -6,6 +6,8 @@ import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { ListingsFiltersPanel } from "@/components/listings/listings-filters-panel";
 import { PageHero } from "@/components/ui/page-hero";
 import { listListings } from "@/server/listing-store";
+import { getAdSlotsConfig } from "@/server/system-settings-store";
+import { getAdSlotById } from "@/lib/ad-slots-config";
 
 export const metadata: Metadata = {
   title: "Bütün elanlar",
@@ -114,7 +116,9 @@ export default async function ListingsPage({
     page: typeof params.page === "string" ? Number(params.page) : 1,
     pageSize: 9
   };
-  const result = await listListings(query);
+  const [result, adSlotsConfig] = await Promise.all([listListings(query), getAdSlotsConfig()]);
+  const listingsInlineAd = getAdSlotById(adSlotsConfig, "listings-inline");
+  const listingsBottomAd = getAdSlotById(adSlotsConfig, "listings-bottom");
   const activeChips = [
     query.city && query.city !== "Hamısı" ? { label: query.city, href: chipHref(params, "city") } : null,
     query.make && query.make !== "Hamısı" ? { label: query.make, href: chipHref(params, "make") } : null,
@@ -192,8 +196,8 @@ export default async function ListingsPage({
                 <>
                   <ListingCard key={listing.id} listing={listing} variant="premium" />
                   {/* Hər 6 kartdan sonra native ad */}
-                  {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && (
-                    <NativeAdCard key={`ad-${idx}`} slotLabel={`listings-inline-${Math.floor(idx / 6)}`} />
+                  {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && listingsInlineAd?.enabled && (
+                    <NativeAdCard key={`ad-${idx}`} slotConfig={listingsInlineAd} />
                   )}
                 </>
               ))}
@@ -201,9 +205,9 @@ export default async function ListingsPage({
           )}
 
           {/* Leaderboard banner — pagination üstü */}
-          {result.items.length > 0 && (
+          {result.items.length > 0 && listingsBottomAd?.enabled && (
             <div className="mt-8">
-              <AdBanner size="leaderboard" slotLabel="listings-bottom" />
+              <AdBanner size="leaderboard" slotConfig={listingsBottomAd} />
             </div>
           )}
 

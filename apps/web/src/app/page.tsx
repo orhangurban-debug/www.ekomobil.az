@@ -1,10 +1,21 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { Car } from "lucide-react";
 import { ListingCard, ListingCardData } from "@/components/listings/listing-card";
-import { AdBanner } from "@/components/ads/ad-banner";
 import { LifestyleCategories } from "@/components/home/lifestyle-categories";
-import { PremiumHero } from "@/components/home/premium-hero";
+import { HeroCarousel } from "@/components/home/hero-carousel";
+import { PlatformStatsBar } from "@/components/home/platform-stats-bar";
+import { PlatformAudiences } from "@/components/home/platform-audiences";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { TrustFeaturesSection } from "@/components/home/trust-features-section";
+import {
+  HomeTopAdSlot,
+  HomeMidAdSlot,
+  HomeListingsNativeAd,
+  HomeBottomAdSlot
+} from "@/components/home/home-ad-slots";
 import { getActiveListingCount, listListings } from "@/server/listing-store";
+import { getAdSlotsConfig } from "@/server/system-settings-store";
 
 function toCardData(item: {
   id: string; title: string; priceAzn: number; city: string; year: number;
@@ -31,16 +42,22 @@ function toCardData(item: {
 }
 
 export default async function HomePage() {
-  const [listingsResult, activeCount] = await Promise.all([
+  const [listingsResult, activeCount, adSlotsConfig] = await Promise.all([
     listListings({ page: 1, pageSize: 6, sort: "recent" }),
-    getActiveListingCount()
+    getActiveListingCount(),
+    getAdSlotsConfig()
   ]);
   const featuredCards = listingsResult.items.map(toCardData);
 
   return (
     <div>
-      <PremiumHero activeCount={activeCount} />
-
+      <HeroCarousel activeCount={activeCount} />
+      <PlatformStatsBar activeCount={activeCount} />
+      <HomeTopAdSlot config={adSlotsConfig} />
+      <PlatformAudiences />
+      <HowItWorks />
+      <HomeMidAdSlot config={adSlotsConfig} />
+      <TrustFeaturesSection />
       <LifestyleCategories />
 
       <section id="featured" className="py-14">
@@ -57,17 +74,25 @@ export default async function HomePage() {
 
           {featuredCards.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredCards.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} variant="premium" />
+              {featuredCards.map((listing, idx) => (
+                <Fragment key={listing.id}>
+                  <ListingCard listing={listing} variant="premium" />
+                  {idx === 2 && <HomeListingsNativeAd config={adSlotsConfig} />}
+                </Fragment>
               ))}
             </div>
           ) : (
-            <div className="glass-panel flex flex-col items-center justify-center gap-4 py-16 text-center">
-              <div className="icon-tile icon-tile-teal h-14 w-14 rounded-2xl">
-                <Car className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
+            <div className="space-y-8">
+              <div className="glass-panel flex flex-col items-center justify-center gap-4 py-16 text-center">
+                <div className="icon-tile icon-tile-teal h-14 w-14 rounded-2xl">
+                  <Car className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
+                </div>
+                <p className="text-sm text-slate-500">Hələ elan yoxdur</p>
+                <Link href="/publish" className="btn-primary text-sm">Elan yerləşdir</Link>
               </div>
-              <p className="text-sm text-slate-500">Hələ elan yoxdur</p>
-              <Link href="/publish" className="btn-primary text-sm">Elan yerləşdir</Link>
+              <div className="flex justify-center">
+                <HomeListingsNativeAd config={adSlotsConfig} />
+              </div>
             </div>
           )}
 
@@ -77,11 +102,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="border-y border-slate-900/10 py-4">
+      <section className="py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <AdBanner size="leaderboard" slotLabel="home-after-listings" />
+          <div className="publish-strip items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Avtomobilinizi satmaq istəyirsiniz?</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Pulsuz elan, VIN yoxlama, etibar xalı və premium planlarla daha tez alıcı tapın.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-3">
+              <Link href="/publish" className="btn-primary">Elan yerləşdir</Link>
+              <Link href="/pricing" className="btn-secondary">Planları gör</Link>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <HomeBottomAdSlot config={adSlotsConfig} />
     </div>
   );
 }

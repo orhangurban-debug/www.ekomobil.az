@@ -6,6 +6,8 @@ import { NativeAdCard, AdBanner } from "@/components/ads/ad-banner";
 import { PartsFiltersPanel } from "@/components/parts/parts-filters-panel";
 import { PageHero } from "@/components/ui/page-hero";
 import { listListings } from "@/server/listing-store";
+import { getAdSlotsConfig } from "@/server/system-settings-store";
+import { getAdSlotById } from "@/lib/ad-slots-config";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import { getServerSessionUser } from "@/lib/auth";
 import { hasActiveBusinessSubscription, getEffectivePartsPlan } from "@/server/business-plan-store";
@@ -89,7 +91,9 @@ export default async function PartsPage({
     page: typeof params.page === "string" ? Number(params.page) : 1,
     pageSize: 9
   };
-  const result = await listListings(query);
+  const [result, adSlotsConfig] = await Promise.all([listListings(query), getAdSlotsConfig()]);
+  const partsInlineAd = getAdSlotById(adSlotsConfig, "parts-inline");
+  const partsBottomAd = getAdSlotById(adSlotsConfig, "parts-bottom");
   const activeChips = [
     query.city && query.city !== "Hamısı" ? { label: query.city, href: chipHref(params, "city") } : null,
     query.partCategory ? { label: query.partCategory, href: chipHref(params, "partCategory") } : null,
@@ -185,16 +189,16 @@ export default async function PartsPage({
                 <ListingCard key={listing.id} listing={listing} />
               ))}
               {result.items.map((_listing, idx) =>
-                (idx + 1) % 6 === 0 && idx < result.items.length - 1 ? (
-                  <NativeAdCard key={`ad-${idx}`} slotLabel={`parts-inline-${Math.floor(idx / 6)}`} />
+                (idx + 1) % 6 === 0 && idx < result.items.length - 1 && partsInlineAd?.enabled ? (
+                  <NativeAdCard key={`ad-${idx}`} slotConfig={partsInlineAd} />
                 ) : null
               )}
             </div>
           )}
 
-          {result.items.length > 0 && (
+          {result.items.length > 0 && partsBottomAd?.enabled && (
             <div className="mt-8">
-              <AdBanner size="leaderboard" slotLabel="parts-bottom" />
+              <AdBanner size="leaderboard" slotConfig={partsBottomAd} />
             </div>
           )}
 
