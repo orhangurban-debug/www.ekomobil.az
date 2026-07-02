@@ -19,6 +19,31 @@ function sanitizeFilename(name: string): string {
   return base || "file";
 }
 
+export class UploadStorageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UploadStorageError";
+  }
+}
+
+/** Admin panel / upload UI üçün — saxlama hazırdırmı? */
+export function getUploadStorageReadiness(): {
+  mode: "local" | "vercel_blob";
+  ready: boolean;
+  message?: string;
+} {
+  const mode = resolveStorageMode();
+  if (mode === "vercel_blob" && !process.env.BLOB_READ_WRITE_TOKEN) {
+    return {
+      mode,
+      ready: false,
+      message:
+        "BLOB_READ_WRITE_TOKEN Vercel-də təyin olunmayıb. Project Settings → Storage → Blob → token əlavə edin və redeploy edin."
+    };
+  }
+  return { mode, ready: true };
+}
+
 export async function persistSupportUploadFile(input: {
   folder: string;
   fileId: string;
@@ -32,24 +57,36 @@ export async function persistSupportUploadFile(input: {
   if (mode === "vercel_blob") {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {
-      throw new Error("BLOB_READ_WRITE_TOKEN təyin olunmayıb.");
+      throw new UploadStorageError(
+        "BLOB_READ_WRITE_TOKEN təyin olunmayıb. Vercel → Storage → Blob token əlavə edin."
+      );
     }
-    const { put } = await import("@vercel/blob");
-    const pathname = `${input.folder}/${input.fileId}-${safeName}`;
-    const result = await put(pathname, input.buffer, {
-      access: "public",
-      token,
-      contentType: input.mimeType,
-      addRandomSuffix: false
-    });
-    return { storageBackend: "vercel_blob", url: result.url };
+    try {
+      const { put } = await import("@vercel/blob");
+      const pathname = `${input.folder}/${input.fileId}-${safeName}`;
+      const result = await put(pathname, input.buffer, {
+        access: "public",
+        token,
+        contentType: input.mimeType,
+        addRandomSuffix: false
+      });
+      return { storageBackend: "vercel_blob", url: result.url };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Vercel Blob yükləməsi uğursuz oldu.";
+      throw new UploadStorageError(msg);
+    }
   }
 
-  const root = localRoot();
-  const dir = path.join(root, input.folder);
-  mkdirSync(dir, { recursive: true });
-  const relative = `${input.folder}/${input.fileId}-${safeName}`;
-  const full = path.join(root, relative);
-  await writeFile(full, input.buffer);
-  return { storageBackend: "local", url: `/api/support/uploads/file/${relative}` };
+  try {
+    const root = localRoot();
+    const dir = path.join(root, input.folder);
+    mkdirSync(dir, { recursive: true });
+    const relative = `${input.folder}/${input.fileId}-${safeName}`;
+    const full = path.join(root, relative);
+    await writeFile(full, input.buffer);
+    return { storageBackend: "local", url: `/api/support/uploads/file/${relative}` };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Lokal fayl yazıla bilmədi.";
+    throw new UploadStorageError(msg);
+  }
 }

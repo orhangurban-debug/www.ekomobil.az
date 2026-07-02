@@ -8,14 +8,33 @@ import {
   validateDocumentFilename,
   validateFileMagicBytes
 } from "@/lib/validate";
-import { persistSupportUploadFile } from "@/server/support-upload-storage";
+import {
+  getUploadStorageReadiness,
+  persistSupportUploadFile,
+  UploadStorageError
+} from "@/server/support-upload-storage";
 
 /** Admin marketinq media qovluqları — bunlar publik göstərilir (reklam/ana səhifə). */
 const ALLOWED_FOLDERS = new Set(["ad-creatives", "home-content"]);
 
+export async function GET(req: Request) {
+  const auth = requireApiRoles(req, ["admin"]);
+  if (!auth.ok) return auth.response;
+  const readiness = getUploadStorageReadiness();
+  return NextResponse.json({ ok: readiness.ready, ...readiness });
+}
+
 export async function POST(req: Request) {
   const auth = requireApiRoles(req, ["admin"]);
   if (!auth.ok) return auth.response;
+
+  const readiness = getUploadStorageReadiness();
+  if (!readiness.ready) {
+    return NextResponse.json(
+      { ok: false, error: readiness.message ?? "Şəkil saxlama konfiqurasiyası hazır deyil." },
+      { status: 503 }
+    );
+  }
 
   const limit = await checkRateLimit(`admin-media-upload:${auth.user.id}`, 60, 60);
   if (!limit.ok) {
@@ -64,13 +83,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Fayl məzmunu bəyan edilən növə uyğun deyil" }, { status: 400 });
   }
 
-  const stored = await persistSupportUploadFile({
-    folder,
-    fileId: randomUUID(),
-    originalFilename: file.name || "ad.jpg",
-    buffer,
-    mimeType: declaredMime
-  });
-
-  return NextResponse.json({ ok: true, url: stored.url });
+  try {
+    const stored = await persistSupportUploadFile({
+      folder,
+      fileId: randomUUID(),
+      originalFilename: file.name || "ad.jpg",
+      buffer,
+      mimeType: declaredMime
+    });
+    return NextResponse.json({ ok: true, url: stored.url });
+  } catch (err) {
+    const message =
+      err instanceof UploadStorageError
+        ? err.message
+        : "Şəkil yüklənmədi. Server konfiqurasiyasını yoxlayın.";
+    console.error("[admin/uploads]", err);
+    return NextResponse.json({ ok: false, error: message }, { status: 503 });
+  }
 }

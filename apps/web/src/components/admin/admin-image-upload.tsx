@@ -33,7 +33,13 @@ export function AdminImageUpload({
       form.append("file", file);
       form.append("folder", folder);
       const res = await fetch("/api/admin/uploads", { method: "POST", body: form });
-      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+      let data: { ok: boolean; url?: string; error?: string } = { ok: false };
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        setError(res.status === 500 ? "Server xətası (500) — BLOB token yoxlanın." : "Yükləmə uğursuz oldu.");
+        return;
+      }
       if (!res.ok || !data.ok || !data.url) {
         setError(data.error ?? "Yükləmə uğursuz oldu.");
         return;
