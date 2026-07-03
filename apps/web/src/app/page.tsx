@@ -17,9 +17,10 @@ import {
 import { getActiveListingCount, listListings } from "@/server/listing-store";
 import { getAdSlotsConfig, getHomeContentConfig } from "@/server/system-settings-store";
 
-// Admin dəyişiklikləri on-demand revalidatePath ilə dərhal görünür;
-// bu isə keş köhnəlməsin deyə dövri ehtiyat yeniləmədir.
-export const revalidate = 300;
+// Ana səhifə admin paneldən idarə olunur — hər dəfə DB-dən oxuyur ki,
+// admin dəyişikliyi anında görünsün. `revalidatePath` ilə birlikdə bu
+// həm sürəti, həm real-time yeniləməni təmin edir.
+export const dynamic = "force-dynamic";
 
 function toCardData(item: {
   id: string; title: string; priceAzn: number; city: string; year: number;

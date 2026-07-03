@@ -1,10 +1,10 @@
 import { getServerSessionUser } from "@/lib/auth";
-import { readSupportUploadFile } from "@/server/support-upload-storage";
+import { readSupportUploadStream } from "@/server/support-upload-storage";
 
 export const runtime = "nodejs";
 
-// Publik marketinq/media qovluqları — ziyarətçilərə açıqdır (auth tələb olunmur).
-// Digər qovluqlar (dəstək/hüquqi sənədlər) həssasdır və auth tələb edir.
+// Ziyarətçilərə açıq olan media qovluqları (auth tələb olunmur).
+// Digər qovluqlar daxil olmuş istifadəçi tələb edir.
 const PUBLIC_FOLDERS = new Set([
   "ad-creatives",
   "home-content",
@@ -19,7 +19,8 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
     return new Response("Not found", { status: 404 });
   }
 
-  const isPublic = PUBLIC_FOLDERS.has(parts[0]);
+  const folder = parts[0];
+  const isPublic = PUBLIC_FOLDERS.has(folder);
 
   if (!isPublic) {
     const sessionUser = await getServerSessionUser();
@@ -28,8 +29,7 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
     }
   }
 
-  const relative = parts.join("/");
-  const file = await readSupportUploadFile(relative);
+  const file = await readSupportUploadStream(parts);
   if (!file) {
     return new Response("Not found", { status: 404 });
   }
@@ -37,10 +37,9 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
   return new Response(file.stream as unknown as ReadableStream, {
     headers: {
       "Content-Type": file.contentType,
-      "Cache-Control": isPublic
-        ? "public, max-age=3600"
-        : // Həssas məzmun — private cache, uzunmüddətli immutable saxlama yoxdur.
-          "private, no-store"
+      // Public assets are safe to cache at the CDN edge.
+      // Private/sensitive documents must not be cached publicly.
+      "Cache-Control": isPublic ? "public, max-age=31536000, immutable" : "private, no-store"
     }
   });
 }

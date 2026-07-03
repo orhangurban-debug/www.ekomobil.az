@@ -200,7 +200,10 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
             src={listing.imageUrl}
             alt={listing.title}
             fill
-            unoptimized={listing.imageUrl.startsWith("data:")}
+            unoptimized={
+              listing.imageUrl.startsWith("data:") ||
+              listing.imageUrl.startsWith("/api/")
+            }
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
