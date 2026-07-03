@@ -86,9 +86,9 @@ function LoginForm() {
             <Image
               src="/brand/ekomobil-logo.png"
               alt="EkoMobil"
-              width={220}
-              height={56}
-              className="h-14 w-auto object-contain"
+              width={828}
+              height={167}
+              className="h-12 w-auto object-contain"
               priority
             />
           </Link>

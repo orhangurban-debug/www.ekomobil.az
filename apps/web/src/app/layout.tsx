@@ -57,12 +57,14 @@ export const metadata: Metadata = {
     url: APP_URL,
     siteName: "EkoMobil",
     title: "EkoMobil — Etibarlı Avtomobil Bazarı",
-    description: "Azərbaycanda VIN yoxlamalı, servis tarixçəli, şəffaf avtomobil alqı-satqı platforması."
+    description: "Azərbaycanda VIN yoxlamalı, servis tarixçəli, şəffaf avtomobil alqı-satqı platforması.",
+    images: [{ url: "/brand/ekomobil-og.png", width: 1200, height: 630, alt: "EkoMobil" }]
   },
   twitter: {
     card: "summary_large_image",
     title: "EkoMobil — Etibarlı Avtomobil Bazarı",
-    description: "Azərbaycanda VIN yoxlamalı, servis tarixçəli, şəffaf avtomobil alqı-satqı platforması."
+    description: "Azərbaycanda VIN yoxlamalı, servis tarixçəli, şəffaf avtomobil alqı-satqı platforması.",
+    images: ["/brand/ekomobil-og.png"]
   },
   robots: {
     index: true,
@@ -119,7 +121,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="az" className={plusJakarta.variable}>
       <head>
+        {/* Admin-tərəfindən Brand Kit-də tənzimlənə bilən dinamik favicon (əsas mənbə). */}
         <link rel="icon" href={faviconPath} />
+        {/* Statik ehtiyat: köhnə brauzerlər/OS-lər üçün çoxölçülü .ico və iOS home-screen ikonu. */}
+        <link rel="shortcut icon" href="/brand/favicon.ico" />
+        <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
       </head>
       <body
         className="min-h-screen flex flex-col text-slate-900"

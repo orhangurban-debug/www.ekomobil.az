@@ -79,19 +79,6 @@
     -webkit-backdrop-filter: blur(16px);
   }
 
-  .brand-logo-surface,
-  .brand-logo-surface-light,
-  .brand-logo-surface-soft,
-  .brand-logo-surface-dark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    padding: 0;
-  }
-
   .btn-primary {
     display: inline-flex;
     align-items: center;

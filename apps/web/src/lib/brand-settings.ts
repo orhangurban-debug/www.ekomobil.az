@@ -20,8 +20,8 @@ export interface BrandSettings {
 
 export const DEFAULT_BRAND_SETTINGS: BrandSettings = {
   logoUrl: "/brand/ekomobil-logo.png",
-  logoSquareUrl: "/brand/ekomobil-logo.png",
-  faviconUrl: "/brand/ekomobil-logo.png",
+  logoSquareUrl: "/brand/ekomobil-mark.png",
+  faviconUrl: "/brand/ekomobil-mark.png",
   primaryColor: "#0057FF",
   primaryHoverColor: "#0046CC",
   deepBaseColor: "#3E2F28",
@@ -31,9 +31,27 @@ export const DEFAULT_BRAND_SETTINGS: BrandSettings = {
   gallery: [
     {
       id: "default-main-logo",
-      label: "Əsas loqo (PNG)",
+      label: "Əsas loqo (PNG, şəffaf fon — açıq səthlər üçün)",
       url: "/brand/ekomobil-logo.png",
       kind: "logo"
+    },
+    {
+      id: "ekomobil-logo-dark",
+      label: "Loqo (tünd fon üçün, ağ mətn)",
+      url: "/brand/ekomobil-logo-dark.png",
+      kind: "logo"
+    },
+    {
+      id: "ekomobil-mark",
+      label: "Kvadrat loqo nişanı (favicon/app icon)",
+      url: "/brand/ekomobil-mark.png",
+      kind: "logo"
+    },
+    {
+      id: "ekomobil-og",
+      label: "Sosial paylaşım banneri (1200x630)",
+      url: "/brand/ekomobil-og.png",
+      kind: "social"
     }
   ]
 };
