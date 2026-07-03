@@ -20,6 +20,7 @@ const sections: Array<{
       { href: "/admin/brand-kit", label: "Brend Kit (Rəng və Loqo)" },
       { href: "/admin/home-content", label: "Ana səhifə məzmunu" },
       { href: "/admin/ad-slots", label: "Reklam yerləri" },
+      { href: "/admin/ad-requests", label: "Reklam müraciətləri" },
     ]
   },
   {

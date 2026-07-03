@@ -304,6 +304,159 @@ function buildSupportReplyHtml(data: SupportReplyEmailData): string {
 </html>`;
 }
 
+// ── Ad-request emails ────────────────────────────────────────────────────────
+
+export interface AdRequestConfirmationData {
+  to: string;
+  contactName: string;
+  companyName: string;
+  slotLabel: string;
+}
+
+export interface AdRequestAdminAlertData {
+  to: string;
+  record: {
+    id: string;
+    slotId: string;
+    companyName: string;
+    contactName: string;
+    contactEmail: string;
+    contactPhone: string | null;
+    websiteUrl: string | null;
+    message: string | null;
+    budgetAzn: number | null;
+    durationDays: number | null;
+    isWaitlist: boolean;
+  };
+  slotLabel: string;
+}
+
+export async function sendAdRequestConfirmation(
+  data: AdRequestConfirmationData
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resend = getResend();
+    const { error } = await resend.emails.send({
+      from: "EkoMobil Reklam <reklam@ekomobil.az>",
+      to: data.to,
+      subject: "Reklam müraciətiniz qeydə alındı — EkoMobil.az",
+      html: `<!DOCTYPE html>
+<html lang="az">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);padding:36px 40px;">
+            <h1 style="margin:0;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;">EkoMobil<span style="color:#38bdf8;">.az</span></h1>
+            <p style="margin:8px 0 0;font-size:13px;color:#94a3b8;">Reklam Xidməti</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 40px;">
+            <h2 style="margin:0 0 16px;font-size:18px;color:#0f172a;">Hörmətli ${data.contactName},</h2>
+            <p style="margin:0 0 20px;font-size:15px;color:#334155;line-height:1.6;">
+              <strong>${data.companyName}</strong> adından göndərdiyiniz reklam müraciəti uğurla qeydə alındı.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;padding:20px;margin-bottom:24px;">
+              <tr>
+                <td style="font-size:13px;color:#64748b;padding-bottom:8px;"><strong style="color:#0f172a;">Seçilmiş slot:</strong></td>
+                <td style="font-size:13px;color:#0f172a;text-align:right;">${data.slotLabel}</td>
+              </tr>
+            </table>
+            <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:24px;">
+              <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.6;">
+                <strong>Növbəti addımlar:</strong><br>
+                Komandamız <strong>1–2 iş günü</strong> ərzində sizinlə əlaqə saxlayacaq. Slot mövcudluğunu, qiyməti və yayım müddətini razılaşdırdıqdan sonra ödəniş linki göndəriləcək. Ödəniş təsdiqindən sonra reklamınız aktivləşdiriləcək.
+              </p>
+            </div>
+            <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6;">
+              Suallarınız üçün: <a href="mailto:reklam@ekomobil.az" style="color:#0891b2;">reklam@ekomobil.az</a>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">Ekomobil.az · Bakı, Azərbaycan · Avtomatik bildiriş</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "E-poçt göndərilə bilmədi" };
+  }
+}
+
+export async function sendAdRequestAdminAlert(
+  data: AdRequestAdminAlertData
+): Promise<{ ok: boolean; error?: string }> {
+  const r = data.record;
+  try {
+    const resend = getResend();
+    const rows = [
+      ["Şirkət", r.companyName],
+      ["Əlaqə şəxsi", r.contactName],
+      ["E-poçt", r.contactEmail],
+      ["Telefon", r.contactPhone ?? "—"],
+      ["Veb-sayt", r.websiteUrl ?? "—"],
+      ["Slot", data.slotLabel],
+      ["Növ", r.isWaitlist ? "Gözləmə siyahısı" : "Aktiv müraciət"],
+      ["Büdcə (₼)", r.budgetAzn != null ? String(r.budgetAzn) : "—"],
+      ["Müddət (gün)", r.durationDays != null ? String(r.durationDays) : "—"],
+      ["Mesaj", r.message ?? "—"]
+    ]
+      .map(
+        ([k, v]) =>
+          `<tr><td style="padding:8px 12px;font-size:13px;color:#64748b;white-space:nowrap;">${k}</td><td style="padding:8px 12px;font-size:13px;color:#0f172a;">${v}</td></tr>`
+      )
+      .join("");
+
+    const { error } = await resend.emails.send({
+      from: "EkoMobil Sistem <system@ekomobil.az>",
+      to: data.to,
+      subject: `Yeni reklam müraciəti — ${r.companyName} (${data.slotLabel})`,
+      html: `<!DOCTYPE html>
+<html lang="az">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+        <tr>
+          <td style="background:#0f172a;padding:24px 32px;">
+            <h1 style="margin:0;font-size:18px;color:#fff;">Yeni Reklam Müraciəti</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+              ${rows}
+            </table>
+            <div style="margin-top:24px;text-align:center;">
+              <a href="https://ekomobil.az/admin/ad-requests" style="display:inline-block;background:#0f172a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Admin paneldə bax</a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "E-poçt göndərilə bilmədi" };
+  }
+}
+
 export async function sendSupportReplyEmail(data: SupportReplyEmailData): Promise<{ ok: boolean; error?: string }> {
   try {
     const resend = getResend();

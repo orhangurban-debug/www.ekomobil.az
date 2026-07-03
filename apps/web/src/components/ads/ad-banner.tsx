@@ -127,7 +127,7 @@ function AdLabel() {
 function PlaceholderBanner({
   size,
   slotLabel,
-  contactHref = "/pricing",
+  contactHref = "/advertise",
   placeholderText = "Burda sizin reklamınız ola bilər!"
 }: {
   size: AdSize;
@@ -387,7 +387,7 @@ export function NativeAdCard({
   slotLabel,
   slotConfig,
   mode = "placeholder",
-  contactHref = "/pricing",
+  contactHref = "/advertise",
   placeholderText
 }: {
   slotLabel?: string;
