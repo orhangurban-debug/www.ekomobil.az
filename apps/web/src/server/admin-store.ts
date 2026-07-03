@@ -1667,6 +1667,35 @@ export async function updateSingleAdminListing(id: string, updates: {
   return (result.rowCount ?? 0) > 0;
 }
 
+/**
+ * Admin tərəfindən elanın aktivlik müddətini plan müddəti qədər uzadır.
+ *
+ * Niyə lazımdır: adi "Təsdiqlə" (status → active) əməliyyatı yalnız elan aktiv OLMAYANDA
+ * göstərilir və müddəti həmişə NOW()-dan hesablayır. Artıq aktiv olan, lakin müddəti bitməkdə
+ * olan PULSUZ (və ya ödənişli) elanı admin əlavə status dəyişikliyi etmədən uzada bilmirdi.
+ * Bu funksiya müddəti həmişə mövcud son tarixin (və ya indinin, hansı böyükdürsə) ÜZƏRİNƏ
+ * əlavə edir — yəni qalan günlər itmir, plan müddəti həqiqətən uzadılır.
+ */
+export async function extendListingPlanExpiry(id: string): Promise<boolean> {
+  const pool = getPgPool();
+  const result = await pool.query(
+    `
+      UPDATE listings
+      SET
+        updated_at = NOW(),
+        plan_expires_at = GREATEST(COALESCE(plan_expires_at, NOW()), NOW()) +
+          CASE COALESCE(plan_type, 'free')
+            WHEN 'vip' THEN INTERVAL '90 days'
+            WHEN 'standard' THEN INTERVAL '60 days'
+            ELSE INTERVAL '30 days'
+          END
+      WHERE id = $1
+    `,
+    [id]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function deleteAdminListing(id: string): Promise<boolean> {
   const pool = getPgPool();
   await pool.query("DELETE FROM listing_trust_signals WHERE listing_id = $1", [id]);

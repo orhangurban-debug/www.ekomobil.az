@@ -126,16 +126,22 @@ export default async function PartsPage({
         title="Mağaza elanları"
         subtitle={`${result.total} hissə və aksesuar elanı tapıldı`}
         actions={
-          <>
-            {canSeePartsAnalytics && (
-              <Link href="/parts/analytics" className="btn-secondary text-sm">
-                Analitika
+          // Qeyd: bu ictimai baxış (browse) səhifəsidir — "Toplu yükləmə" alıcılara
+          // deyil, yalnız aktiv mağaza abunəliyi olan satıcılara (və ya admin-ə) aiddir.
+          // Əvvəllər düymə hamıya (giriş etməmiş ziyarətçilər daxil) göstərilirdi ki, bu da
+          // məntiqsiz idi və istifadəçini icazəsi olmayan səhifəyə yönləndirirdi.
+          hasStorePlan ? (
+            <>
+              {canSeePartsAnalytics && (
+                <Link href="/parts/analytics" className="btn-secondary text-sm">
+                  Analitika
+                </Link>
+              )}
+              <Link href="/parts/publish/bulk" className="btn-secondary text-sm">
+                Toplu yükləmə
               </Link>
-            )}
-            <Link href="/parts/publish/bulk" className="btn-secondary text-sm">
-              Toplu yükləmə
-            </Link>
-          </>
+            </>
+          ) : undefined
         }
       />
 

@@ -45,6 +45,26 @@ export function AdminListingActions({ listingId, currentStatus, listingTitle }: 
     }
   }
 
+  async function extendPlan() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/listings/${listingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "extend" }),
+      });
+      const payload = (await res.json()) as { ok: boolean; error?: string };
+      if (!payload.ok) throw new Error(payload.error);
+      toast.success("Elanın müddəti uzadıldı");
+      router.refresh();
+    } catch {
+      toast.error("Müddət uzadılmadı");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const STATUS_CLS: Record<string, string> = {
     active: "bg-emerald-50 text-emerald-700 border-emerald-200",
     pending_review: "bg-amber-50 text-amber-700 border-amber-200",
@@ -98,6 +118,15 @@ export function AdminListingActions({ listingId, currentStatus, listingTitle }: 
               Yoxlamaya göndər
             </button>
           )}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void extendPlan()}
+            title="Elanın aktivlik müddətini plan müddəti qədər uzadır"
+            className="rounded-xl border border-[#0057FF]/30 bg-white px-4 py-1.5 text-sm font-semibold text-[#0057FF] hover:bg-[#0057FF]/5 disabled:opacity-60"
+          >
+            Müddəti uzat
+          </button>
           <a
             href="/admin/listings"
             className="rounded-xl border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import {
   deleteAdminListing,
+  extendListingPlanExpiry,
   getAdminListing,
   updateSingleAdminListing
 } from "@/server/admin-store";
@@ -26,11 +27,19 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   }
   const { id } = await ctx.params;
   const body = (await req.json()) as {
+    action?: string;
     status?: string;
     priceAzn?: number;
     title?: string;
     city?: string;
   };
+
+  // Elan müddətinin uzadılması ayrıca əməliyyatdır (status dəyişmədən müddəti plan qədər artırır).
+  if (body.action === "extend") {
+    const extended = await extendListingPlanExpiry(id);
+    if (!extended) return NextResponse.json({ ok: false, error: "Elan tapılmadı." }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  }
 
   const VALID_STATUSES = ["active", "pending_review", "rejected", "archived", "inactive", "draft"];
   if (body.status && !VALID_STATUSES.includes(body.status)) {
