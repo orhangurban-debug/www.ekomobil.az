@@ -285,7 +285,7 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
           </div>
         )}
 
-        {/* Trust badges */}
+        {/* Trust badges — yalnız kritik siqnallar */}
         <div className={`flex flex-wrap items-center gap-1.5 border-t pt-3 ${isPremium ? "border-slate-900/10" : "border-slate-100"}`}>
           {(listing.vinProvided || listing.vinVerified) && (
             <span className="badge-verified" title="VIN nömrəsi satıcı tərəfindən daxil edilib">
@@ -303,17 +303,8 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
               Satıcı
             </span>
           )}
-          {listing.mileageFlagSeverity === "warning" && (
-            <span className="badge-warning">Yürüş fərqi</span>
-          )}
           {listing.mileageFlagSeverity === "high_risk" && (
-            <span className="badge-danger">Yüksək risk</span>
-          )}
-          {listing.creditAvailable && (
-            <span className="badge-neutral">Kredit</span>
-          )}
-          {listing.barterAvailable && (
-            <span className="badge-neutral">Barter</span>
+            <span className="badge-danger">Yürüş riski</span>
           )}
           {!isPart && (
             <div className="ml-auto">

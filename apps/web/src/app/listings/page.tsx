@@ -135,13 +135,13 @@ export default async function ListingsPage({
     query.seatCooling ? { label: "Oturacaq soyudulması", href: chipHref(params, "seatCooling") } : null,
     query.camera360 ? { label: "360 kamera", href: chipHref(params, "camera360") } : null,
     query.parkingSensors ? { label: "Park sensoru", href: chipHref(params, "parkingSensors") } : null,
-    query.adaptiveCruise ? { label: "Adaptive cruise", href: chipHref(params, "adaptiveCruise") } : null,
-    query.laneAssist ? { label: "Lane assist", href: chipHref(params, "laneAssist") } : null,
+    query.adaptiveCruise ? { label: "Adaptiv kruiz", href: chipHref(params, "adaptiveCruise") } : null,
+    query.laneAssist ? { label: "Zolaq köməkçisi", href: chipHref(params, "laneAssist") } : null,
     query.maxOwnersCount ? { label: `Sahib ≤ ${query.maxOwnersCount}`, href: chipHref(params, "maxOwnersCount") } : null,
     query.hasServiceBook ? { label: "Servis kitabçası", href: chipHref(params, "hasServiceBook") } : null,
     query.hasRepairHistory ? { label: "Təmir tarixçəsi", href: chipHref(params, "hasRepairHistory") } : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Salon" : "Fərdi", href: chipHref(params, "sellerType") } : null,
-    query.vinVerified ? { label: "VIN verified", href: chipHref(params, "vinVerified") } : null,
+    query.vinVerified ? { label: "VIN doğrulanmış", href: chipHref(params, "vinVerified") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
@@ -172,11 +172,8 @@ export default async function ListingsPage({
                     {chip.label} ×
                   </Link>
                 ))
-              ) : (
-                <span className="text-sm text-slate-400">Aktiv filter yoxdur</span>
-              )}
+              ) : null}
             </div>
-            <div className="hidden text-sm text-slate-500 lg:block">{result.total} elan</div>
           </div>
 
           {result.items.length === 0 ? (

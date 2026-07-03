@@ -7,7 +7,6 @@ import { HeroCarousel } from "@/components/home/hero-carousel";
 import { PlatformStatsBar } from "@/components/home/platform-stats-bar";
 import { PlatformAudiences } from "@/components/home/platform-audiences";
 import { HowItWorks } from "@/components/home/how-it-works";
-import { TrustFeaturesSection } from "@/components/home/trust-features-section";
 import {
   HomeTopAdSlot,
   HomeMidAdSlot,
@@ -63,7 +62,6 @@ export default async function HomePage() {
       <PlatformAudiences />
       <HowItWorks />
       <HomeMidAdSlot config={adSlotsConfig} />
-      <TrustFeaturesSection />
       <LifestyleCategories categories={homeContent.categories} />
 
       <section id="featured" className="py-14">
