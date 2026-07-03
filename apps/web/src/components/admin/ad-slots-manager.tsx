@@ -128,6 +128,36 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
     }
   }
 
+  async function toggleEnabled(id: string, enabled: boolean) {
+    if (readOnly) return;
+    const next = {
+      ...config,
+      slots: config.slots.map((s) => (s.id === id ? { ...s, enabled } : s))
+    };
+    setConfig(next);
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/ad-slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next)
+      });
+      const data = (await res.json()) as { ok: boolean; config?: AdSlotsConfig; error?: string };
+      if (!res.ok || !data.ok || !data.config) {
+        setMessage(data.error ?? "Saxlama uğursuz oldu.");
+        setConfig(config);
+        return;
+      }
+      setConfig(data.config);
+    } catch {
+      setMessage("Şəbəkə xətası — yenidən cəhd edin.");
+      setConfig(config);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {readOnly && <AdminReadOnlyBanner />}
@@ -180,55 +210,81 @@ export function AdSlotsManager({ initial, readOnly = false }: Props) {
               const custom = slot.customContent ?? emptyCustom();
               return (
                 <div key={slot.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : slot.id)}
-                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium text-slate-900">{slot.label}</p>
-                      <p className="text-xs text-slate-400">
-                        {slot.size} · {slot.priceAznPerMonth} ₼/ay
-                        {slot.mode === "campaign" && slot.campaign?.advertiserName
-                          ? ` · ${slot.campaign.advertiserName}`
-                          : ""}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      {slot.mode === "campaign" && (() => {
-                        const meta =
-                          CAMPAIGN_STATE_META[computeAdCampaignStatus(slot.campaign).state] ??
-                          CAMPAIGN_STATE_META.not_configured;
-                        return (
-                          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${meta.cls}`}>
-                            {meta.label}
-                          </span>
-                        );
-                      })()}
+                  {/* ── Slot header ── */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {/* Toggle switch — expand paneli açmadan birbaşa bağla/aç */}
+                    <button
+                      type="button"
+                      aria-label={slot.enabled ? "Banneri söndür" : "Banneri yandır"}
+                      disabled={readOnly || busy}
+                      onClick={() => toggleEnabled(slot.id, !slot.enabled)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                        slot.enabled ? "bg-emerald-500" : "bg-slate-200"
+                      }`}
+                    >
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          slot.enabled ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                        className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                          slot.enabled ? "translate-x-5" : "translate-x-0.5"
                         }`}
-                      >
-                        {slot.enabled ? "Aktiv" : "Deaktiv"}
-                      </span>
-                      <span className="text-slate-400">{expanded ? "▲" : "▼"}</span>
-                    </div>
-                  </button>
+                      />
+                    </button>
+
+                    {/* Slot adı — tıkla, paneli aç/bağla */}
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expanded ? null : slot.id)}
+                      className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-medium ${slot.enabled ? "text-slate-900" : "text-slate-400"}`}>
+                          {slot.label}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {slot.size} · {slot.priceAznPerMonth} ₼/ay
+                          {slot.mode === "campaign" && slot.campaign?.advertiserName
+                            ? ` · ${slot.campaign.advertiserName}`
+                            : ""}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {slot.mode === "campaign" && (() => {
+                          const meta =
+                            CAMPAIGN_STATE_META[computeAdCampaignStatus(slot.campaign).state] ??
+                            CAMPAIGN_STATE_META.not_configured;
+                          return (
+                            <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${meta.cls}`}>
+                              {meta.label}
+                            </span>
+                          );
+                        })()}
+                        <span className="text-slate-300">{expanded ? "▲" : "▼"}</span>
+                      </div>
+                    </button>
+                  </div>
 
                   {expanded && (
                     <div className="space-y-4 border-t border-slate-100 px-4 py-4">
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <label className="flex items-center gap-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            disabled={readOnly}
-                            checked={slot.enabled}
-                            onChange={(e) => updateSlot(slot.id, { enabled: e.target.checked })}
-                            className="rounded border-slate-300"
-                          />
-                          Slot aktivdir
-                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            aria-label={slot.enabled ? "Banneri söndür" : "Banneri yandır"}
+                            disabled={readOnly || busy}
+                            onClick={() => toggleEnabled(slot.id, !slot.enabled)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+                              slot.enabled ? "bg-emerald-500" : "bg-slate-200"
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                                slot.enabled ? "translate-x-5" : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+                          <span className="text-sm text-slate-700">
+                            {slot.enabled ? "Banner açıqdır" : "Banner bağlıdır"}
+                          </span>
+                        </div>
                         <label className="block text-sm">
                           <span className="text-slate-500">Rejim</span>
                           <select
