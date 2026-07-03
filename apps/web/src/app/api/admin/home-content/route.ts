@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import type { HomeContentConfig } from "@/lib/home-content";
 import { parseHomeContentConfig } from "@/lib/home-content";
@@ -40,6 +41,8 @@ export async function POST(req: Request) {
         categoryCount: updated.categories.length
       }
     });
+    // Ana səhifə statik keşlənir — dəyişiklik dərhal görünsün deyə yenilə.
+    revalidatePath("/");
     return NextResponse.json({ ok: true, config: updated });
   } catch {
     return NextResponse.json({ ok: false, error: "Ana səhifə məzmununu saxlamaq mümkün olmadı." }, { status: 500 });

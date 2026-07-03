@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import type { AdSlotsConfig } from "@/lib/ad-slots-config";
 import { parseAdSlotsConfig } from "@/lib/ad-slots-config";
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
         slotCount: updated.slots.length
       }
     });
+    // Reklam slotları bütün saytda görünür — kök layout-u revalidate et.
+    revalidatePath("/", "layout");
     return NextResponse.json({ ok: true, config: updated });
   } catch {
     return NextResponse.json({ ok: false, error: "Reklam slotlarını saxlamaq mümkün olmadı." }, { status: 500 });

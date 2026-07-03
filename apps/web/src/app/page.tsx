@@ -17,6 +17,10 @@ import {
 import { getActiveListingCount, listListings } from "@/server/listing-store";
 import { getAdSlotsConfig, getHomeContentConfig } from "@/server/system-settings-store";
 
+// Admin dəyişiklikləri on-demand revalidatePath ilə dərhal görünür;
+// bu isə keş köhnəlməsin deyə dövri ehtiyat yeniləmədir.
+export const revalidate = 300;
+
 function toCardData(item: {
   id: string; title: string; priceAzn: number; city: string; year: number;
   mileageKm: number; fuelType: string; transmission: string; trustScore: number;
