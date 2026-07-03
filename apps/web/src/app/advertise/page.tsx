@@ -2,11 +2,12 @@ import { Metadata } from "next";
 import Link from "next/link";
 import {
   Megaphone, TrendingUp, Users, BarChart3,
-  Mail, CheckCircle, Info
+  CheckCircle, Info, MessageSquare
 } from "lucide-react";
 import { getAdSlotsConfig } from "@/server/system-settings-store";
 import { computeAdCampaignStatus } from "@/lib/ad-slots-config";
 import SlotCard from "@/components/ads/slot-card";
+import GeneralInquiryButton from "@/components/ads/general-inquiry-button";
 
 export const metadata: Metadata = {
   title: "Reklam ver — EkoMobil.az",
@@ -200,18 +201,14 @@ export default async function AdvertisePage() {
       {/* ── Contact ── */}
       <section className="py-16 px-4 text-center">
         <div className="mx-auto max-w-lg">
-          <Mail className="mx-auto mb-4 h-8 w-8 text-slate-400" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+            <MessageSquare className="h-6 w-6 text-slate-500" />
+          </div>
           <h2 className="text-xl font-semibold text-slate-900 mb-3">Sualınız var?</h2>
           <p className="text-slate-500 text-sm mb-6">
-            Xüsusi paket, endirimlər və ya birləşik kampaniyalar üçün bizimlə əlaqə saxlayın.
+            Xüsusi paket, endirimlər və ya birləşik kampaniyalar üçün müraciət göndərin — komandamız cavab verəcək.
           </p>
-          <a
-            href={`mailto:${config.contactEmail}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-700 transition-colors"
-          >
-            <Mail className="h-4 w-4" />
-            {config.contactEmail}
-          </a>
+          <GeneralInquiryButton />
           <p className="mt-6 text-xs text-slate-400">
             <Link href="/pricing" className="underline hover:text-slate-600">Qiymət planlarına</Link>
             {" "}baxın · <Link href="/trust" className="underline hover:text-slate-600">Dəstək</Link>

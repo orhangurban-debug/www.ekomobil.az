@@ -34,9 +34,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Düzgün e-poçt ünvanı daxil edin" }, { status: 400 });
   }
 
-  // Verify the slot exists
+  // Verify the slot exists (allow "general-inquiry" as a virtual slot for general questions)
   const config = await getAdSlotsConfig();
-  const slot = config.slots.find((s) => s.id === slotId);
+  const slot = slotId === "general-inquiry"
+    ? { label: "Ümumi sorğu" }
+    : config.slots.find((s) => s.id === slotId);
   if (!slot) {
     return NextResponse.json({ ok: false, error: "Seçilmiş slot tapılmadı" }, { status: 400 });
   }
