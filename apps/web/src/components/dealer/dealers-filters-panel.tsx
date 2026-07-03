@@ -12,8 +12,10 @@ export function DealersFiltersPanel({
   initialVerified?: boolean;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [city, setCity] = useState(initialCity ?? "Hamısı");
   const [verifiedOnly, setVerifiedOnly] = useState(Boolean(initialVerified));
+  const activeCount = (city !== "Hamısı" ? 1 : 0) + (verifiedOnly ? 1 : 0);
 
   function apply(nextCity = city, nextVerifiedOnly = verifiedOnly) {
     const params = new URLSearchParams();
@@ -23,8 +25,15 @@ export function DealersFiltersPanel({
     router.push(query ? `/dealers?${query}` : "/dealers");
   }
 
-  return (
-    <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border glass-panel border-slate-900/10 p-4">
+  function reset() {
+    setCity("Hamısı");
+    setVerifiedOnly(false);
+    setOpen(false);
+    router.push("/dealers");
+  }
+
+  const panel = (
+    <div className="flex flex-wrap items-end gap-3">
       <div>
         <label className="label">Şəhər</label>
         <select
@@ -55,19 +64,40 @@ export function DealersFiltersPanel({
         Yalnız təsdiqlənmiş salonlar
       </label>
 
-      {(city !== "Hamısı" || verifiedOnly) && (
-        <button
-          type="button"
-          className="btn-secondary pb-2.5 text-xs"
-          onClick={() => {
-            setCity("Hamısı");
-            setVerifiedOnly(false);
-            router.push("/dealers");
-          }}
-        >
+      {activeCount > 0 && (
+        <button type="button" className="btn-secondary pb-2.5 text-xs" onClick={reset}>
           Sıfırla
         </button>
       )}
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile trigger */}
+      <div className="mb-4 flex items-center gap-2 lg:hidden">
+        <button type="button" onClick={() => setOpen(true)} className="btn-secondary text-sm">
+          Filterlər {activeCount > 0 ? `(${activeCount})` : ""}
+        </button>
+      </div>
+
+      {/* Desktop panel */}
+      <div className="mb-6 hidden rounded-2xl border glass-panel border-slate-900/10 p-4 lg:block">
+        {panel}
+      </div>
+
+      {/* Mobile bottom sheet */}
+      {open && (
+        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-slate-900/10 bg-white px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+            <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-slate-900/10 bg-white pb-2">
+              <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
+              <button type="button" onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>
+            </div>
+            {panel}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

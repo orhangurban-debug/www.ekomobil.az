@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
 import { resolvePrimaryHeaderCta } from "@/lib/page-cta";
 import type { UserRole } from "@/lib/auth";
@@ -44,6 +44,8 @@ export function Header({
   const [mounted, setMounted] = useState(false);
   const { ids: compareIds } = useCompare();
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const primaryCta = resolvePrimaryHeaderCta(pathname, userRole);
 
@@ -58,6 +60,41 @@ export function Header({
       BETA_NOTICE_ENABLED && window.localStorage.getItem(GLOBAL_NOTICE_STORAGE_KEY) !== "1"
     );
   }, []);
+
+  // Menyu açıq olanda arxa fon skrollu kilidlənsin.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
+  // Kənara toxunanda və ya Escape ilə menyu bağlansın.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      if (mobileMenuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   async function onLogout() {
     if (logoutLoading) return;
@@ -125,7 +162,7 @@ export function Header({
           <Link
             href="/favorites"
             aria-label="Favorilər"
-            className={`hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition ${
+            className={`hidden md:flex h-11 w-11 items-center justify-center rounded-lg transition ${
               pathname === "/favorites" ? accentBg : navIdle
             }`}
           >
@@ -137,7 +174,7 @@ export function Header({
           <Link
             href={compareHref}
             aria-label="Müqayisə"
-            className={`relative hidden md:flex h-9 w-9 items-center justify-center rounded-lg transition ${
+            className={`relative hidden md:flex h-11 w-11 items-center justify-center rounded-lg transition ${
               pathname.startsWith("/compare") ? accentBg : navIdle
             }`}
           >
@@ -192,8 +229,12 @@ export function Header({
           )}
 
           <button
+            ref={menuButtonRef}
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-900/10 bg-white/60 text-slate-900 md:hidden"
+            aria-label={menuOpen ? "Menyunu bağla" : "Menyunu aç"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-menu"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-900/10 bg-white/60 text-slate-900 md:hidden"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {menuOpen ? (
@@ -207,7 +248,11 @@ export function Header({
       </div>
 
       {menuOpen && (
-        <div className="border-t border-slate-900/8 bg-white/90 px-4 py-3 backdrop-blur-xl md:hidden">
+        <div
+          id="mobile-nav-menu"
+          ref={mobileMenuRef}
+          className="border-t border-slate-900/8 bg-white/90 px-4 py-3 backdrop-blur-xl md:hidden"
+        >
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
@@ -224,6 +269,15 @@ export function Header({
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/favorites"
+              onClick={() => setMenuOpen(false)}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium ${
+                pathname === "/favorites" ? accentBg : "text-slate-700 hover:bg-slate-900/5"
+              }`}
+            >
+              Favorilər
+            </Link>
             <Link
               href={compareHref}
               onClick={() => setMenuOpen(false)}

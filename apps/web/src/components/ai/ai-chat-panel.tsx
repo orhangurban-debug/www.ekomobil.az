@@ -209,7 +209,7 @@ export function AiChatPanel() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0057FF] text-white shadow-lg transition hover:bg-[#0046CC]"
+        className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0057FF] text-white shadow-lg transition hover:bg-[#0046CC]"
         aria-label="AI köməkçi"
       >
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -218,7 +218,7 @@ export function AiChatPanel() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[28rem] w-[22rem] flex-col overflow-hidden rounded-2xl border border-slate-900/10 bg-white/95 shadow-xl backdrop-blur-xl sm:h-[32rem] sm:w-[26rem]">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 flex h-[28rem] w-auto flex-col overflow-hidden rounded-2xl border border-slate-900/10 bg-white/95 shadow-xl backdrop-blur-xl sm:left-auto sm:right-6 sm:h-[32rem] sm:w-[26rem]">
           <div className="flex items-center justify-between border-b border-slate-900/10 bg-[#0057FF] px-4 py-3">
             <span className="font-semibold text-slate-900">EkoMobil köməkçi</span>
             {remaining !== null && (
@@ -227,7 +227,8 @@ export function AiChatPanel() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded p-1 text-slate-900 hover:bg-slate-900/20"
+              aria-label="Bağla"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded text-slate-900 hover:bg-slate-900/20"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -322,7 +323,7 @@ export function AiChatPanel() {
                 disabled={loading || imageSearching || (remaining !== null && remaining <= 0)}
                 title="Şəkillə axtar"
                 aria-label="Şəkillə axtar"
-                className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-slate-900/10 bg-white/60 text-slate-600 transition hover:border-[#0057FF]/40 hover:text-[#0057FF] disabled:opacity-50"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-900/10 bg-white/60 text-slate-600 transition hover:border-[#0057FF]/40 hover:text-[#0057FF] disabled:opacity-50"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -335,7 +336,7 @@ export function AiChatPanel() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Nə axtarırsınız?"
                 disabled={loading || imageSearching || (remaining !== null && remaining <= 0)}
-                className="flex-1 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0057FF] disabled:opacity-50"
+                className="flex-1 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-2.5 text-base text-slate-900 outline-none focus:border-[#0057FF] disabled:opacity-50"
               />
               <button
                 type="submit"

@@ -250,7 +250,8 @@
     border: 1px solid rgba(15, 23, 42, 0.12);
     background-color: rgba(255, 255, 255, 0.85);
     padding: 0.625rem 1rem;
-    font-size: 0.875rem;
+    /* 16px minimum — iOS Safari avtomatik zoom edir əgər fokuslanan input 16px-dən kiçikdirsə. */
+    font-size: 1rem;
     color: #0f172a;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
@@ -470,7 +471,7 @@
 
   .floating-cta {
     position: fixed;
-    bottom: 1.5rem;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
     right: 1.5rem;
     z-index: 40;
     border-radius: 1.25rem;
@@ -487,7 +488,7 @@
     .floating-cta {
       left: 1rem;
       right: 1rem;
-      bottom: 5.5rem;
+      bottom: calc(5.5rem + env(safe-area-inset-bottom));
       min-width: unset;
     }
   }

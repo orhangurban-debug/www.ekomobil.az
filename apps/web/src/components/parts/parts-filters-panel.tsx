@@ -326,7 +326,7 @@ export function PartsFiltersPanel({
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
-          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-slate-900/10 bg-white p-5">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-y-auto rounded-t-3xl border-t border-slate-900/10 bg-white px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
             <div className="sticky top-0 mb-4 flex items-center justify-between border-b border-slate-900/10 bg-white pb-2">
               <h2 className="font-semibold text-slate-900">Filterlər {activeCount > 0 ? `(${activeCount})` : ""}</h2>
               <button onClick={() => setOpen(false)} className="btn-secondary text-xs">Bağla</button>

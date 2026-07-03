@@ -17,7 +17,7 @@ export function CompareBar() {
 
   const href = `/compare?ids=${ids.join(",")}`;
   return (
-    <div className="fixed bottom-4 left-1/2 z-50 w-[min(92vw,640px)] -translate-x-1/2 rounded-2xl border border-slate-900/10 bg-white/90 p-4 shadow-[0_8px_32px_rgba(15,23,42,0.16)] backdrop-blur-xl">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(92vw,640px)] -translate-x-1/2 rounded-2xl border border-slate-900/10 bg-white/90 p-4 shadow-[0_8px_32px_rgba(15,23,42,0.16)] backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-slate-900">Müqayisə aləti</div>
