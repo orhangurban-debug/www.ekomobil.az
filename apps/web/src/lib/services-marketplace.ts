@@ -97,15 +97,9 @@ export interface ServiceListingRecord {
   imageUrls?: string[];
 }
 
-// Service provider data is fetched from the database via the partner onboarding flow.
-// This array is empty until real partners register through the platform.
-
-export const demoServiceListings: ServiceListingRecord[] = [];
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getServiceListingBySlug(_slug: string): ServiceListingRecord | null {
-  return null;
-}
+// Actual listing data is fetched from the database (`service_listings` table) via
+// `@/server/service-listing-store`, populated by the approved partner onboarding pipeline
+// (see `inspection-partner-application-form.tsx` → `/api/support/requests` → admin approval).
 
 export function getAllServiceProviderTypes(): ServiceProviderType[] {
   return Object.keys(SERVICE_PROVIDER_TYPE_LABELS) as ServiceProviderType[];

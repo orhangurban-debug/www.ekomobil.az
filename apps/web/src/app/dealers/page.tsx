@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { listPublicDealers } from "@/server/dealer-store";
+import { DealersFiltersPanel } from "@/components/dealer/dealers-filters-panel";
 
 function DealerAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
   if (logoUrl) {
@@ -26,8 +27,15 @@ export const metadata = {
   description: "Azərbaycanda avtomobil salonları və salon profillərini kəşf edin."
 };
 
-export default async function DealersPage() {
-  const dealers = await listPublicDealers();
+export default async function DealersPage({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const city = typeof params.city === "string" ? params.city : undefined;
+  const verified = params.verified === "1" ? true : undefined;
+  const dealers = await listPublicDealers({ city, verified, limit: 50 });
 
   return (
     <div className="min-h-screen bg-white/60">
@@ -38,14 +46,20 @@ export default async function DealersPage() {
       />
 
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+        <DealersFiltersPanel initialCity={city} initialVerified={verified} />
+
         {dealers.length === 0 ? (
           <div className="rounded-3xl border glass-panel border-slate-900/10 p-12 text-center">
             <div className="icon-tile icon-tile-amber mx-auto mb-4 h-16 w-16 rounded-2xl">
               <Building2 className="h-8 w-8" strokeWidth={2} aria-hidden="true" />
             </div>
-            <h2 className="text-lg font-semibold text-slate-900">Hələ salon yoxdur</h2>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {city || verified ? "Bu filtrə uyğun salon tapılmadı" : "Hələ salon yoxdur"}
+            </h2>
             <p className="mt-2 text-sm text-slate-500">
-              Salonlar platforma tərəfindən mərhələli şəkildə əlavə olunur. Tezliklə burada salon profilləri görünəcək.
+              {city || verified
+                ? "Filtrləri dəyişərək yenidən yoxlayın."
+                : "Salonlar platforma tərəfindən mərhələli şəkildə əlavə olunur. Tezliklə burada salon profilləri görünəcək."}
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link href="/listings" className="btn-primary">Elanlara bax</Link>

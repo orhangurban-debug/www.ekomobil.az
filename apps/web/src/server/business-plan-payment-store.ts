@@ -71,10 +71,51 @@ function toRecord(row: BusinessPlanPaymentRow): BusinessPlanPaymentRecord {
 async function getPlanPriceAzn(businessType: BusinessType, planId: string): Promise<number | null> {
   const catalog =
     businessType === "dealer" ? await getDealerPlanCatalog() : await getPartsPlanCatalog();
-  return catalog.find((item) => item.id === planId)?.priceAzn ?? null;
+  const plan = catalog.find((item) => item.id === planId);
+  if (!plan) return null;
+  return plan.priceAzn;
 }
 
 const BILLING_DAYS = 30;
+
+/**
+ * Açılış kampaniyası (və ya admin tərəfindən 0 ₼ təyin olunmuş plan) aktiv olduqda
+ * bank ödəniş sessiyası yaratmadan abunəliyi birbaşa aktivləşdirir. Audit üçün
+ * $0 "succeeded" ödəniş qeydi yaradılır ki, hesabat və faktura tarixçəsi qırılmasın.
+ */
+async function activateFreeBusinessPlan(input: {
+  ownerUserId: string;
+  businessType: BusinessType;
+  planId: string;
+}): Promise<{ ok: true; payment: BusinessPlanPaymentRecord }> {
+  const id = randomUUID();
+  const window = await calculateNextSubscriptionWindow({
+    ownerUserId: input.ownerUserId,
+    businessType: input.businessType
+  });
+
+  const pool = getPgPool();
+  const result = await pool.query<BusinessPlanPaymentRow>(
+    `INSERT INTO business_plan_payments (
+       id, owner_user_id, business_type, plan_id, amount_azn, provider, status, checkout_url,
+       completed_at, starts_at, expires_at
+     )
+     VALUES ($1, $2, $3, $4, 0, 'kapital_bank', 'succeeded', '', NOW(), $5::timestamptz, $6::timestamptz)
+     RETURNING *`,
+    [id, input.ownerUserId, input.businessType, input.planId, window.startsAt.toISOString(), window.expiresAt.toISOString()]
+  );
+
+  await upsertBusinessPlanSubscription({
+    ownerUserId: input.ownerUserId,
+    businessType: input.businessType,
+    planId: input.planId,
+    status: "active",
+    startsAt: window.startsAt.toISOString(),
+    expiresAt: window.expiresAt.toISOString()
+  });
+
+  return { ok: true, payment: toRecord(result.rows[0]) };
+}
 
 export async function createBusinessPlanPayment(input: {
   ownerUserId: string;
@@ -82,8 +123,11 @@ export async function createBusinessPlanPayment(input: {
   planId: string;
 }): Promise<{ ok: true; payment: BusinessPlanPaymentRecord } | { ok: false; error: string }> {
   const amountAzn = await getPlanPriceAzn(input.businessType, input.planId);
-  if (!amountAzn || amountAzn <= 0) {
-    return { ok: false, error: "Plan tapılmadı və ya ödəniş məbləği düzgün deyil." };
+  if (amountAzn === null) {
+    return { ok: false, error: "Plan tapılmadı." };
+  }
+  if (amountAzn <= 0) {
+    return activateFreeBusinessPlan(input);
   }
 
   const id = randomUUID();

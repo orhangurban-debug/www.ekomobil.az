@@ -161,6 +161,7 @@ function sanitizePart(raw: Record<string, unknown>): PartAiSuggestion {
 async function callGeminiVision(input: {
   prompt: string;
   images: Array<{ mimeType: string; data: string }>;
+  maxOutputTokens?: number;
 }): Promise<Record<string, unknown> | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || input.images.length === 0) return null;
@@ -181,7 +182,7 @@ async function callGeminiVision(input: {
         contents: [{ parts }],
         generationConfig: {
           temperature: 0.15,
-          maxOutputTokens: 4096,
+          maxOutputTokens: input.maxOutputTokens ?? 4096,
           responseMimeType: "application/json"
         }
       })
@@ -275,6 +276,77 @@ suggestedTags: şəkildə görünən avadanlıq, xidmət və ixtisas tag-ları (
 Yalnız oxunan/görünən məlumat; fieldConfidence 0-1.
 Cavab YALNIZ JSON:
 {"providerName":"","providerType":"mechanic","city":"","address":"","description":"","experience":"","workingHours":"","suggestedTags":[],"suggestedCertifications":[],"fieldConfidence":{},"notes":""}`;
+
+// ─── Şəkillə axtarış (AI chat widget) ──────────────────────────────────────
+// Tam elan formatı deyil — yalnız axtarış üçün lazım olan az sayda atribut,
+// aşağı token xərci ilə (search-quota, boost-plan yox).
+
+export interface ImageSearchAttributes {
+  kind: "vehicle" | "part";
+  make?: string;
+  model?: string;
+  color?: string;
+  bodyType?: string;
+  partCategory?: string;
+  partBrand?: string;
+  searchKeywords: string[];
+}
+
+const SEARCH_PROMPT = `Sən EkoMobil platformasının şəkillə axtarış köməkçisisən. Şəkildəki obyektin AVTOMOBİL yoxsa EHTİYYAT HİSSƏSİ olduğunu müəyyən et və YALNIZ axtarış üçün lazım olan az sayda atribut çıxar (tam elan yaratmır, sadəcə oxşar elanları tapmaq üçün).
+
+Əgər AVTOMOBİL-dirsə: kind="vehicle", make, model (bilinirsə), color, bodyType doldur.
+Əgər EHTİYYAT HİSSƏSİ / aksesuar-dırsa: kind="part", partCategory (${PART_CATEGORIES.join(" | ")}), partBrand (görünürsə) doldur.
+Hər iki halda searchKeywords: 3-8 qısa açar söz (Azərbaycan və ya orijinal marka adları ilə) ver ki, sayt axtarışında oxşar elanlar tapılsın.
+
+Cavab YALNIZ JSON, izah yazma:
+{"kind":"vehicle","make":"","model":"","color":"","bodyType":"","partCategory":"","partBrand":"","searchKeywords":[]}`;
+
+function sanitizeImageSearchAttributes(raw: Record<string, unknown>): ImageSearchAttributes {
+  const kind = raw.kind === "part" ? "part" : "vehicle";
+  const searchKeywords = Array.isArray(raw.searchKeywords)
+    ? raw.searchKeywords
+        .filter((v): v is string => typeof v === "string")
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+
+  if (kind === "part") {
+    return {
+      kind,
+      partCategory:
+        pickEnum(raw.partCategory, PART_CATEGORIES) ??
+        (typeof raw.partCategory === "string" ? raw.partCategory.trim() : undefined),
+      partBrand:
+        pickEnum(raw.partBrand, PART_BRANDS) ?? (typeof raw.partBrand === "string" ? raw.partBrand.trim() : undefined),
+      searchKeywords
+    };
+  }
+
+  return {
+    kind,
+    make: pickEnum(raw.make, CAR_MAKES) ?? (typeof raw.make === "string" ? raw.make.trim() : undefined),
+    model: typeof raw.model === "string" ? raw.model.trim() : undefined,
+    color: pickEnum(raw.color, COLORS) ?? (typeof raw.color === "string" ? raw.color.trim() : undefined),
+    bodyType: pickEnum(raw.bodyType, BODY_TYPES) ?? (typeof raw.bodyType === "string" ? raw.bodyType.trim() : undefined),
+    searchKeywords
+  };
+}
+
+/** Şəkildən sürətli axtarış atributları çıxarır — tam AI analiz panelindən daha yüngül/ucuzdur. */
+export async function analyzeImageForSearch(input: {
+  imageDataUrl: string;
+}): Promise<ImageSearchAttributes | null> {
+  const match = input.imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) return null;
+  const raw = await callGeminiVision({
+    prompt: SEARCH_PROMPT,
+    images: [{ mimeType: match[1], data: match[2] }],
+    maxOutputTokens: 512
+  });
+  if (!raw) return null;
+  return sanitizeImageSearchAttributes(raw);
+}
 
 export async function analyzeListingImages(input: {
   listingKind: ListingKindForAi;

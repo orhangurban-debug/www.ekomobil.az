@@ -32,6 +32,7 @@ const sections: Array<{
       { href: "/admin/payments-readiness", label: "Ödəniş test hazırlığı" },
       { href: "/admin/business-plans", label: "Biznes plan abunələri" },
       { href: "/admin/business-profiles", label: "Mağaza/Salon profilləri" },
+      { href: "/admin/service-listings", label: "Servis elanları" },
       { href: "/admin/crm", label: "CRM" },
       { href: "/admin/audit", label: "Audit jurnalı" },
       { href: "/admin/settings", label: "Sistem parametrləri" }

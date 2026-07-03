@@ -12,6 +12,7 @@ export function BusinessPlanCheckoutButton(props: {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activated, setActivated] = useState(false);
 
   async function onCheckout() {
     setLoading(true);
@@ -29,9 +30,16 @@ export function BusinessPlanCheckoutButton(props: {
         ok: boolean;
         error?: string;
         checkoutUrl?: string;
+        status?: string;
       };
-      if (!response.ok || !payload.ok || !payload.checkoutUrl) {
+      if (!response.ok || !payload.ok) {
         setError(payload.error ?? "Ödəniş başlatmaq mümkün olmadı.");
+        return;
+      }
+      // Açılış kampaniyası aktivdirsə plan bank ödənişi olmadan dərhal aktivləşir.
+      if (!payload.checkoutUrl || payload.status === "succeeded") {
+        setActivated(true);
+        router.refresh();
         return;
       }
       router.push(payload.checkoutUrl);
@@ -49,10 +57,15 @@ export function BusinessPlanCheckoutButton(props: {
         type="button"
         className={props.className ?? "btn-primary"}
         onClick={onCheckout}
-        disabled={loading}
+        disabled={loading || activated}
       >
-        {loading ? "Yönləndirilir..." : (props.label ?? "Planı aktiv et")}
+        {activated ? "Aktivləşdirildi ✓" : loading ? "Göndərilir..." : (props.label ?? "Planı aktiv et")}
       </button>
+      {activated && (
+        <p className="text-xs font-medium text-emerald-700">
+          Açılış kampaniyası ilə plan pulsuz aktivləşdirildi.
+        </p>
+      )}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );

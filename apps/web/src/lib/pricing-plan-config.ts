@@ -1,5 +1,6 @@
 import type { DealerPlanId } from "@/lib/dealer-plans";
 import type { PartsStorePlanId } from "@/lib/parts-store-plans";
+import { DEFAULT_LAUNCH_PROMO_CONFIG, parseLaunchPromoConfig, type LaunchPromoConfig } from "@/lib/launch-promo";
 
 export interface PricingCostModel {
   storageCostPerImageAzn: number;
@@ -63,13 +64,15 @@ export interface PricingPlanAdminConfig {
   parts: Partial<Record<PartsStorePlanId, PartsStorePlanOverride>>;
   service: Record<string, ServicePlanOverride>;
   economics: PricingCostModel;
+  launchPromo: LaunchPromoConfig;
 }
 
 export const DEFAULT_PRICING_PLAN_ADMIN_CONFIG: PricingPlanAdminConfig = {
   dealer: {},
   parts: {},
   service: {},
-  economics: { ...DEFAULT_PRICING_COST_MODEL }
+  economics: { ...DEFAULT_PRICING_COST_MODEL },
+  launchPromo: { ...DEFAULT_LAUNCH_PROMO_CONFIG }
 };
 
 function sanitizeStringArray(value: unknown): string[] | undefined {
@@ -162,7 +165,9 @@ export function parsePricingPlanAdminConfig(rawConfig: unknown, rawEconomics: un
     targetCogsRatioPct: typeof econ.targetCogsRatioPct === "number" ? Math.max(5, Math.min(95, econ.targetCogsRatioPct)) : DEFAULT_PRICING_COST_MODEL.targetCogsRatioPct
   };
 
-  return { dealer, parts, service, economics };
+  const launchPromo = parseLaunchPromoConfig(cfg.launchPromo);
+
+  return { dealer, parts, service, economics, launchPromo };
 }
 
 export function calculateRecommendedActiveLimit(input: {

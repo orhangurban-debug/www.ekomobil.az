@@ -9,6 +9,7 @@ import {
   buildPartnerApplicationPlanOptions,
   getPartnerPlanGroupForProviderType
 } from "@/lib/service-plans";
+import { useLaunchPromo } from "@/hooks/use-launch-promo";
 
 // ─── Provider types (grouped) ─────────────────────────────────────────────────
 
@@ -281,9 +282,13 @@ export function InspectionPartnerApplicationForm() {
   const [isError, setIsError] = useState(false);
   const [limitFeedback, setLimitFeedback] = useState<string | null>(null);
 
+  const launchPromo = useLaunchPromo();
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
   const planGroup = providerType ? getPartnerPlanGroupForProviderType(providerType) : "mechanic";
-  const planOptions = useMemo(() => buildPartnerApplicationPlanOptions(planGroup), [planGroup]);
+  const planOptions = useMemo(
+    () => buildPartnerApplicationPlanOptions(planGroup, launchPromo),
+    [planGroup, launchPromo]
+  );
   const selectedPlanMeta = planOptions.find((plan) => plan.value === selectedPlan) ?? planOptions[0];
 
   const providerOptions = useMemo<ProviderOption[]>(() => {
@@ -446,6 +451,7 @@ export function InspectionPartnerApplicationForm() {
       if (uploadedCertificates.length > 0) {
         message.push(`Certificate files: ${uploadedCertificates.map((file) => `${file.name} → ${file.url}`).join(" | ")}`);
       }
+      const about = [experience.trim(), notes.trim()].filter(Boolean).join("\n\n");
       const response = await fetch("/api/support/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -455,7 +461,20 @@ export function InspectionPartnerApplicationForm() {
           message: message.join("\n"),
           name: contactName.trim(),
           email: email.trim() || "info@ekomobil.az",
-          phone: phone.trim()
+          phone: phone.trim(),
+          servicePartner: {
+            providerType,
+            name: providerName.trim(),
+            city,
+            address: address.trim() || undefined,
+            mapUrl: mapLink.trim() || undefined,
+            about,
+            services: selectedTags,
+            certifications: certifications.length > 0 ? certifications : undefined,
+            imageUrls: uploadedImages.length > 0 ? uploadedImages.map((file) => file.url) : undefined,
+            phone: phone.trim(),
+            whatsapp: whatsapp.trim() || phone.trim()
+          }
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };

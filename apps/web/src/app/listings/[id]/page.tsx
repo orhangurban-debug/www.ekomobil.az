@@ -12,6 +12,7 @@ import { ListingGallery } from "@/components/listings/listing-gallery";
 import { ListingFloatingCta } from "@/components/listings/listing-floating-cta";
 import { ListingSpecShowcase } from "@/components/listings/listing-spec-showcase";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
+import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
 import { ReportListingButton } from "@/components/listings/report-listing-button";
 import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
@@ -359,6 +360,30 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   <strong>Risk xülasəsi:</strong> {listing.riskSummary}
                 </div>
               )}
+              {(listing.vinInfoUrl || listing.vinDocumentRef) && (
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 p-3 text-xs text-slate-600">
+                  <strong>VIN hesabatı:</strong>{" "}
+                  {listing.vinInfoUrl ? (
+                    <a href={listing.vinInfoUrl} target="_blank" rel="noopener noreferrer" className="text-[#0057FF] hover:underline">
+                      Hesabatı aç →
+                    </a>
+                  ) : (
+                    listing.vinDocumentRef
+                  )}
+                </div>
+              )}
+              {(listing.serviceHistoryUrl || listing.serviceHistoryDocumentRef) && (
+                <div className="rounded-xl border border-slate-900/10 bg-white/60 p-3 text-xs text-slate-600">
+                  <strong>Servis tarixçəsi sənədi:</strong>{" "}
+                  {listing.serviceHistoryUrl ? (
+                    <a href={listing.serviceHistoryUrl} target="_blank" rel="noopener noreferrer" className="text-[#0057FF] hover:underline">
+                      Sənədi aç →
+                    </a>
+                  ) : (
+                    listing.serviceHistoryDocumentRef
+                  )}
+                </div>
+              )}
               {listing.lastVerifiedAt && (
                 <p className="text-xs text-slate-400">
                   Son yoxlama: {new Date(listing.lastVerifiedAt).toLocaleString("az-AZ")}
@@ -436,39 +461,63 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <div className="grid gap-2">
               {isOwner && (
                 <div className="space-y-2">
-                  <OwnerEditListingButton
-                    listingId={listing.id}
-                    title={listing.title}
-                    description={listing.description}
-                    make={listing.make}
-                    model={listing.model}
-                    year={listing.year}
-                    mileageKm={listing.mileageKm}
-                    city={listing.city}
-                    priceAzn={listing.priceAzn}
-                    vin={listing.vin}
-                    fuelType={listing.fuelType}
-                    engineType={listing.engineType}
-                    transmission={listing.transmission}
-                    bodyType={listing.bodyType}
-                    driveType={listing.driveType}
-                    color={listing.color}
-                    condition={listing.condition}
-                    engineVolumeCc={listing.engineVolumeCc}
-                    interiorMaterial={listing.interiorMaterial}
-                    hasSunroof={listing.hasSunroof}
-                    creditAvailable={listing.creditAvailable}
-                    barterAvailable={listing.barterAvailable}
-                    seatHeating={listing.seatHeating}
-                    seatCooling={listing.seatCooling}
-                    camera360={listing.camera360}
-                    parkingSensors={listing.parkingSensors}
-                    adaptiveCruise={listing.adaptiveCruise}
-                    laneAssist={listing.laneAssist}
-                    ownersCount={listing.ownersCount}
-                    hasServiceBook={listing.hasServiceBook}
-                    hasRepairHistory={listing.hasRepairHistory}
-                  />
+                  {isPart ? (
+                    <OwnerEditPartListingButton
+                      listingId={listing.id}
+                      title={listing.title}
+                      description={listing.description}
+                      city={listing.city}
+                      priceAzn={listing.priceAzn}
+                      partCategory={listing.partCategory}
+                      partSubcategory={listing.partSubcategory}
+                      partName={listing.model}
+                      partBrand={listing.partBrand}
+                      partCondition={listing.partCondition}
+                      partAuthenticity={listing.partAuthenticity}
+                      partOemCode={listing.partOemCode}
+                      partSku={listing.partSku}
+                      partQuantity={listing.partQuantity}
+                      partCompatibility={listing.partCompatibility}
+                    />
+                  ) : (
+                    <OwnerEditListingButton
+                      listingId={listing.id}
+                      title={listing.title}
+                      description={listing.description}
+                      make={listing.make}
+                      model={listing.model}
+                      year={listing.year}
+                      mileageKm={listing.mileageKm}
+                      city={listing.city}
+                      priceAzn={listing.priceAzn}
+                      vin={listing.vin}
+                      fuelType={listing.fuelType}
+                      engineType={listing.engineType}
+                      transmission={listing.transmission}
+                      bodyType={listing.bodyType}
+                      driveType={listing.driveType}
+                      color={listing.color}
+                      condition={listing.condition}
+                      engineVolumeCc={listing.engineVolumeCc}
+                      interiorMaterial={listing.interiorMaterial}
+                      hasSunroof={listing.hasSunroof}
+                      creditAvailable={listing.creditAvailable}
+                      barterAvailable={listing.barterAvailable}
+                      seatHeating={listing.seatHeating}
+                      seatCooling={listing.seatCooling}
+                      camera360={listing.camera360}
+                      parkingSensors={listing.parkingSensors}
+                      adaptiveCruise={listing.adaptiveCruise}
+                      laneAssist={listing.laneAssist}
+                      ownersCount={listing.ownersCount}
+                      hasServiceBook={listing.hasServiceBook}
+                      hasRepairHistory={listing.hasRepairHistory}
+                      vinInfoUrl={listing.vinInfoUrl}
+                      vinDocumentRef={listing.vinDocumentRef}
+                      serviceHistoryUrl={listing.serviceHistoryUrl}
+                      serviceHistoryDocumentRef={listing.serviceHistoryDocumentRef}
+                    />
+                  )}
                   <BoostListingButton
                     listingId={listing.id}
                     currentPlan={listing.planType ?? "free"}

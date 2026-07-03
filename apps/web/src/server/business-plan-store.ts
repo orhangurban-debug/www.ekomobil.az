@@ -3,6 +3,7 @@ import { getPgPool } from "@/lib/postgres";
 import { DEALER_PLANS, type DealerPlan, type DealerPlanId } from "@/lib/dealer-plans";
 import { PARTS_STORE_PLANS, type PartsStorePlan, type PartsStorePlanId } from "@/lib/parts-store-plans";
 import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
+import { applyLaunchPromoPrice } from "@/lib/launch-promo";
 
 export type BusinessType = "dealer" | "parts_store";
 
@@ -58,11 +59,14 @@ export async function getDealerPlanCatalog(): Promise<DealerPlan[]> {
   const cfg = await getPricingPlanAdminConfig();
   return DEALER_PLANS.map((plan) => {
     const override = cfg.dealer[plan.id];
-    if (!override) return plan;
+    const basePriceAzn = override?.priceAzn ?? plan.priceAzn;
+    if (!override) {
+      return { ...plan, priceAzn: applyLaunchPromoPrice(basePriceAzn, cfg.launchPromo) };
+    }
     return {
       ...plan,
       nameAz: override.nameAz ?? plan.nameAz,
-      priceAzn: override.priceAzn ?? plan.priceAzn,
+      priceAzn: applyLaunchPromoPrice(basePriceAzn, cfg.launchPromo),
       maxActiveListings: override.maxActiveListings ?? plan.maxActiveListings,
       perListingMaxImages: override.perListingMaxImages ?? plan.perListingMaxImages,
       maxVideosPerListing: override.maxVideosPerListing ?? plan.maxVideosPerListing,
@@ -79,11 +83,14 @@ export async function getPartsPlanCatalog(): Promise<PartsStorePlan[]> {
   const cfg = await getPricingPlanAdminConfig();
   return PARTS_STORE_PLANS.map((plan) => {
     const override = cfg.parts[plan.id];
-    if (!override) return plan;
+    const basePriceAzn = override?.priceAzn ?? plan.priceAzn;
+    if (!override) {
+      return { ...plan, priceAzn: applyLaunchPromoPrice(basePriceAzn, cfg.launchPromo) };
+    }
     return {
       ...plan,
       nameAz: override.nameAz ?? plan.nameAz,
-      priceAzn: override.priceAzn ?? plan.priceAzn,
+      priceAzn: applyLaunchPromoPrice(basePriceAzn, cfg.launchPromo),
       maxActiveListings: override.maxActiveListings ?? plan.maxActiveListings,
       perListingMaxImages: override.perListingMaxImages ?? plan.perListingMaxImages,
       analyticsEnabled: override.analyticsEnabled ?? plan.analyticsEnabled,

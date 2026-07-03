@@ -265,11 +265,24 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
     return { created: 0, errors: [`CSV başlığında çatışmayan sahələr: ${missing.join(", ")}`] };
   }
 
+  const parseBoolean = (value: string): boolean | undefined => {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return undefined;
+    return ["1", "true", "var", "bəli", "yes"].includes(normalized);
+  };
+  const parseNumber = (value: string): number | undefined => {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    const num = Number(trimmed);
+    return Number.isFinite(num) ? num : undefined;
+  };
+
   let created = 0;
   const errors: string[] = [];
   for (const [index, row] of rows.entries()) {
     const parts = row.split(",").map((item) => item.trim());
     const get = (key: string) => parts[columns.indexOf(key)] || "";
+    const getOptional = (key: string) => (columns.includes(key) ? get(key).trim() || undefined : undefined);
     const vin = get("vin");
     if (!vin) {
       errors.push(`Sətir ${index + 2}: VIN tələb olunur.`);
@@ -289,9 +302,28 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
         priceAzn: Number(get("priceAzn")),
         mileageKm: Number(get("mileageKm")),
         fuelType: get("fuelType"),
+        engineType: getOptional("engineType"),
         transmission: get("transmission"),
         vin,
         sellerType: "dealer",
+        bodyType: getOptional("bodyType"),
+        driveType: getOptional("driveType"),
+        color: getOptional("color"),
+        condition: getOptional("condition"),
+        engineVolumeCc: getOptional("engineVolumeCc") !== undefined ? parseNumber(get("engineVolumeCc")) : undefined,
+        interiorMaterial: getOptional("interiorMaterial"),
+        hasSunroof: getOptional("hasSunroof") !== undefined ? parseBoolean(get("hasSunroof")) : undefined,
+        creditAvailable: getOptional("creditAvailable") !== undefined ? parseBoolean(get("creditAvailable")) : undefined,
+        barterAvailable: getOptional("barterAvailable") !== undefined ? parseBoolean(get("barterAvailable")) : undefined,
+        seatHeating: getOptional("seatHeating") !== undefined ? parseBoolean(get("seatHeating")) : undefined,
+        seatCooling: getOptional("seatCooling") !== undefined ? parseBoolean(get("seatCooling")) : undefined,
+        camera360: getOptional("camera360") !== undefined ? parseBoolean(get("camera360")) : undefined,
+        parkingSensors: getOptional("parkingSensors") !== undefined ? parseBoolean(get("parkingSensors")) : undefined,
+        adaptiveCruise: getOptional("adaptiveCruise") !== undefined ? parseBoolean(get("adaptiveCruise")) : undefined,
+        laneAssist: getOptional("laneAssist") !== undefined ? parseBoolean(get("laneAssist")) : undefined,
+        ownersCount: getOptional("ownersCount") !== undefined ? parseNumber(get("ownersCount")) : undefined,
+        hasServiceBook: getOptional("hasServiceBook") !== undefined ? parseBoolean(get("hasServiceBook")) : undefined,
+        hasRepairHistory: getOptional("hasRepairHistory") !== undefined ? parseBoolean(get("hasRepairHistory")) : undefined,
         trust: {
           // CSV yükləmə zamanı VIN DOĞRULANMIR — yalnız nömrə saxlanılır.
           // vinVerified ancaq real xarici API (CarVertical, DVX) yoxlamasından sonra true ola bilər.
@@ -485,9 +517,25 @@ export interface PublicDealerSummary {
   description?: string;
 }
 
-export async function listPublicDealers(limit = 50): Promise<PublicDealerSummary[]> {
+export async function listPublicDealers(
+  limitOrFilter: number | { limit?: number; city?: string; verified?: boolean } = 50
+): Promise<PublicDealerSummary[]> {
+  const filter = typeof limitOrFilter === "number" ? { limit: limitOrFilter } : limitOrFilter;
+  const limit = filter.limit ?? 50;
   try {
     const pool = getPgPool();
+    const values: unknown[] = [];
+    const where: string[] = [];
+    if (filter.city && filter.city !== "Hamısı") {
+      values.push(filter.city);
+      where.push(`dp.city = $${values.length}`);
+    }
+    if (filter.verified !== undefined) {
+      values.push(filter.verified);
+      where.push(`dp.verified = $${values.length}`);
+    }
+    const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    values.push(limit);
     const result = await pool.query<{
       id: string; name: string; city: string; verified: boolean;
       response_sla_minutes: number; logo_url: string | null; description: string | null;
@@ -498,10 +546,11 @@ export async function listPublicDealers(limit = 50): Promise<PublicDealerSummary
               COUNT(l.id)::int AS active_listing_count
        FROM dealer_profiles dp
        LEFT JOIN listings l ON l.dealer_profile_id = dp.id AND l.status = 'active'
+       ${whereSql}
        GROUP BY dp.id
        ORDER BY dp.verified DESC, active_listing_count DESC, dp.name ASC
-       LIMIT $1`,
-      [limit]
+       LIMIT $${values.length}`,
+      values
     );
     return result.rows.map((row) => ({
       id: row.id,

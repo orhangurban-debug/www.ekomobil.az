@@ -47,6 +47,10 @@ export function OwnerEditListingButton(props: {
   ownersCount?: number;
   hasServiceBook?: boolean;
   hasRepairHistory?: boolean;
+  vinInfoUrl?: string;
+  vinDocumentRef?: string;
+  serviceHistoryUrl?: string;
+  serviceHistoryDocumentRef?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -82,7 +86,13 @@ export function OwnerEditListingButton(props: {
     laneAssist: Boolean(props.laneAssist),
     ownersCount: props.ownersCount ?? "",
     hasServiceBook: Boolean(props.hasServiceBook),
-    hasRepairHistory: Boolean(props.hasRepairHistory)
+    hasRepairHistory: Boolean(props.hasRepairHistory),
+    vinInfoType: (props.vinDocumentRef ? "document" : "link") as "link" | "document",
+    vinInfoUrl: props.vinInfoUrl ?? "",
+    vinDocumentRef: props.vinDocumentRef ?? "",
+    serviceHistoryType: (props.serviceHistoryDocumentRef ? "document" : "link") as "link" | "document",
+    serviceHistoryUrl: props.serviceHistoryUrl ?? "",
+    serviceHistoryDocumentRef: props.serviceHistoryDocumentRef ?? ""
   });
   const modelOptions = getModelsForMake(form.make);
   const engineTypeOptions = getCompatibleEngineTypes(form.fuelType);
@@ -153,7 +163,12 @@ export function OwnerEditListingButton(props: {
           laneAssist: form.laneAssist,
           ownersCount: form.ownersCount === "" ? undefined : Number(form.ownersCount),
           hasServiceBook: form.hasServiceBook,
-          hasRepairHistory: form.hasRepairHistory
+          hasRepairHistory: form.hasRepairHistory,
+          vinInfoUrl: form.vinInfoType === "link" ? form.vinInfoUrl.trim() || undefined : "",
+          vinDocumentRef: form.vinInfoType === "document" ? form.vinDocumentRef.trim() || undefined : "",
+          serviceHistoryUrl: form.serviceHistoryType === "link" ? form.serviceHistoryUrl.trim() || undefined : "",
+          serviceHistoryDocumentRef:
+            form.serviceHistoryType === "document" ? form.serviceHistoryDocumentRef.trim() || undefined : ""
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
@@ -370,6 +385,64 @@ export function OwnerEditListingButton(props: {
                   onChange={(e) => setForm((prev) => ({ ...prev, engineVolumeCc: e.target.value === "" ? "" : Number(e.target.value) }))}
                   placeholder="Mühərrik həcmi (cc)"
                 />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="label">VIN məlumat formatı</label>
+                  <select
+                    className="input-field"
+                    value={form.vinInfoType}
+                    onChange={(e) => setForm((prev) => ({ ...prev, vinInfoType: e.target.value as "link" | "document" }))}
+                  >
+                    <option value="link">Xarici keçid (link)</option>
+                    <option value="document">Sənəd istinadı</option>
+                  </select>
+                  {form.vinInfoType === "link" ? (
+                    <input
+                      type="url"
+                      className="input-field mt-2"
+                      value={form.vinInfoUrl}
+                      onChange={(e) => setForm((prev) => ({ ...prev, vinInfoUrl: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      className="input-field mt-2"
+                      value={form.vinDocumentRef}
+                      onChange={(e) => setForm((prev) => ({ ...prev, vinDocumentRef: e.target.value }))}
+                      placeholder="Məs: VIN-report.pdf və ya sənəd ID"
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className="label">Servis tarixçəsi formatı</label>
+                  <select
+                    className="input-field"
+                    value={form.serviceHistoryType}
+                    onChange={(e) => setForm((prev) => ({ ...prev, serviceHistoryType: e.target.value as "link" | "document" }))}
+                  >
+                    <option value="link">Xarici keçid (link)</option>
+                    <option value="document">Sənəd istinadı</option>
+                  </select>
+                  {form.serviceHistoryType === "link" ? (
+                    <input
+                      type="url"
+                      className="input-field mt-2"
+                      value={form.serviceHistoryUrl}
+                      onChange={(e) => setForm((prev) => ({ ...prev, serviceHistoryUrl: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      className="input-field mt-2"
+                      value={form.serviceHistoryDocumentRef}
+                      onChange={(e) => setForm((prev) => ({ ...prev, serviceHistoryDocumentRef: e.target.value }))}
+                      placeholder="Məs: servis-kitabçası.pdf"
+                    />
+                  )}
+                </div>
               </div>
               <div className="grid gap-2 sm:grid-cols-3 text-sm text-slate-700">
                 {BOOLEAN_TOGGLES.map(({ key, label }) => (

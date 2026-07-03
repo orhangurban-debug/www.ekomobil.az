@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
-import { updateListingForOwner } from "@/server/listing-store";
+import { updateListingForOwner, updatePartListingForOwner } from "@/server/listing-store";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -19,6 +19,7 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   }
 
   const payload = (body ?? {}) as {
+    listingKind?: "vehicle" | "part";
     title?: string;
     description?: string;
     city?: string;
@@ -49,7 +50,45 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     ownersCount?: number;
     hasServiceBook?: boolean;
     hasRepairHistory?: boolean;
+    vinInfoUrl?: string;
+    vinDocumentRef?: string;
+    serviceHistoryUrl?: string;
+    serviceHistoryDocumentRef?: string;
+    partCategory?: string;
+    partSubcategory?: string;
+    partName?: string;
+    partBrand?: string;
+    partCondition?: "new" | "used" | "refurbished";
+    partAuthenticity?: "original" | "oem" | "aftermarket";
+    partOemCode?: string;
+    partSku?: string;
+    partQuantity?: number;
+    partCompatibility?: string;
   };
+
+  if (payload.listingKind === "part") {
+    const result = await updatePartListingForOwner(id, user.id, {
+      title: typeof payload.title === "string" ? payload.title : undefined,
+      description: typeof payload.description === "string" ? payload.description : undefined,
+      city: typeof payload.city === "string" ? payload.city : undefined,
+      priceAzn: typeof payload.priceAzn === "number" ? payload.priceAzn : undefined,
+      partCategory: typeof payload.partCategory === "string" ? payload.partCategory : undefined,
+      partSubcategory: typeof payload.partSubcategory === "string" ? payload.partSubcategory : undefined,
+      partName: typeof payload.partName === "string" ? payload.partName : undefined,
+      partBrand: typeof payload.partBrand === "string" ? payload.partBrand : undefined,
+      partCondition: payload.partCondition,
+      partAuthenticity: payload.partAuthenticity,
+      partOemCode: typeof payload.partOemCode === "string" ? payload.partOemCode : undefined,
+      partSku: typeof payload.partSku === "string" ? payload.partSku : undefined,
+      partQuantity: typeof payload.partQuantity === "number" ? payload.partQuantity : undefined,
+      partCompatibility: typeof payload.partCompatibility === "string" ? payload.partCompatibility : undefined
+    });
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error ?? "Yenilənmə uğursuz oldu." }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true });
+  }
 
   const result = await updateListingForOwner(id, user.id, {
     title: typeof payload.title === "string" ? payload.title : undefined,
@@ -81,7 +120,11 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     laneAssist: typeof payload.laneAssist === "boolean" ? payload.laneAssist : undefined,
     ownersCount: typeof payload.ownersCount === "number" ? payload.ownersCount : undefined,
     hasServiceBook: typeof payload.hasServiceBook === "boolean" ? payload.hasServiceBook : undefined,
-    hasRepairHistory: typeof payload.hasRepairHistory === "boolean" ? payload.hasRepairHistory : undefined
+    hasRepairHistory: typeof payload.hasRepairHistory === "boolean" ? payload.hasRepairHistory : undefined,
+    vinInfoUrl: typeof payload.vinInfoUrl === "string" ? payload.vinInfoUrl : undefined,
+    vinDocumentRef: typeof payload.vinDocumentRef === "string" ? payload.vinDocumentRef : undefined,
+    serviceHistoryUrl: typeof payload.serviceHistoryUrl === "string" ? payload.serviceHistoryUrl : undefined,
+    serviceHistoryDocumentRef: typeof payload.serviceHistoryDocumentRef === "string" ? payload.serviceHistoryDocumentRef : undefined
   });
 
   if (!result.ok) {

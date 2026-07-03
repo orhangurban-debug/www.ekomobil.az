@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListings } from "@/server/listing-store";
-import { extractSearchParams, generateChatReply } from "@/lib/ai/gemini";
+import { extractSearchParams, generateChatReply, isForbiddenChatTopic, CHAT_FORBIDDEN_TOPIC_REPLY } from "@/lib/ai/gemini";
 import { checkAiLimit, incrementAiUsage } from "@/lib/ai/limits";
 
 function hashIp(ip: string): string {
@@ -37,13 +37,29 @@ export async function POST(req: Request) {
     );
   }
 
+  // Hard server-side refusal before ever calling Gemini — prevents off-topic
+  // (e.g. medical) questions from consuming AI quota or getting a model-generated answer.
+  if (isForbiddenChatTopic(message)) {
+    await incrementAiUsage(identifier);
+    return Response.json({
+      ok: true,
+      message: CHAT_FORBIDDEN_TOPIC_REPLY,
+      listings: [],
+      remaining: limit.remaining - 1
+    });
+  }
+
   try {
     let searchParams = await extractSearchParams(message);
+    const hasPartIntent = /ehtiyyat hiss|hissə|detal|zapçast|запчаст/i.test(message);
     const hasSearchIntent = Object.keys(searchParams).length > 0 || 
-      /axtar|tap|göstər|bax|ol|var|budcet|qiymət|manat|min|max|marka|model|şəhər|avtomobil|masin/i.test(message);
+      /axtar|tap|göstər|bax|ol|var|budcet|qiymət|manat|min|max|marka|model|şəhər|avtomobil|masin/i.test(message) ||
+      hasPartIntent;
 
     if (hasSearchIntent && Object.keys(searchParams).length === 0 && message.length >= 3) {
-      searchParams = { search: message };
+      searchParams = { search: message, listingKind: hasPartIntent ? "part" : undefined };
+    } else if (hasPartIntent && !searchParams.listingKind) {
+      searchParams = { ...searchParams, listingKind: "part" };
     }
 
     let searchResult: Awaited<ReturnType<typeof listListings>> | null = null;

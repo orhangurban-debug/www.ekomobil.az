@@ -114,6 +114,8 @@ export async function GET(req: Request) {
     partBrand: searchParams.get("partBrand") || undefined,
     partCondition: (searchParams.get("partCondition") as "new" | "used" | "refurbished" | null) ?? undefined,
     partAuthenticity: (searchParams.get("partAuthenticity") as "original" | "oem" | "aftermarket" | null) ?? undefined,
+    partOemCode: searchParams.get("partOemCode") || undefined,
+    partCompatibilitySearch: searchParams.get("partCompatibility") || undefined,
     inStock: searchParams.get("inStock") === "1" ? true : undefined,
     listingKind: (searchParams.get("listingKind") as ListingKind | null) ?? undefined,
     sort: (searchParams.get("sort") as
@@ -414,6 +416,10 @@ async function handleCreateListing(req: Request): Promise<Response> {
     ownersCount?: number;
     hasServiceBook?: boolean;
     hasRepairHistory?: boolean;
+    vinInfoUrl?: string;
+    vinDocumentRef?: string;
+    serviceHistoryUrl?: string;
+    serviceHistoryDocumentRef?: string;
     imageUrls?: string[];
     imageHashes?: string[];
     sellerType?: "private" | "dealer";
@@ -574,6 +580,10 @@ async function handleCreateListing(req: Request): Promise<Response> {
         : undefined,
     hasServiceBook: vehiclePayload.hasServiceBook === true ? true : undefined,
     hasRepairHistory: vehiclePayload.hasRepairHistory === true ? true : undefined,
+    vinInfoUrl: vehiclePayload.vinInfoUrl?.trim() || undefined,
+    vinDocumentRef: vehiclePayload.vinDocumentRef?.trim() || undefined,
+    serviceHistoryUrl: vehiclePayload.serviceHistoryUrl?.trim() || undefined,
+    serviceHistoryDocumentRef: vehiclePayload.serviceHistoryDocumentRef?.trim() || undefined,
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,

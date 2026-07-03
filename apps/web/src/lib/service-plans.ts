@@ -6,6 +6,7 @@ import {
   getServicePlanGroupForProvider,
   type ServicePlanGroup
 } from "@/lib/ai/service-plan-limits";
+import { isLaunchPromoActive, getLaunchPromoBadgeText, type LaunchPromoConfig } from "@/lib/launch-promo";
 
 export interface ServicePlan {
   id: string;
@@ -259,23 +260,27 @@ export const SERVICE_PLAN_CATEGORIES: ServicePlanCategory[] = [
 ];
 
 export function getServicePlanCategoriesWithOverrides(
-  overrides?: Record<string, ServicePlanOverride>
+  overrides?: Record<string, ServicePlanOverride>,
+  launchPromo?: LaunchPromoConfig
 ): ServicePlanCategory[] {
-  if (!overrides || Object.keys(overrides).length === 0) return SERVICE_PLAN_CATEGORIES;
+  const promoActive = launchPromo ? isLaunchPromoActive(launchPromo) : false;
+  const promoBadge = launchPromo ? getLaunchPromoBadgeText(launchPromo) : null;
+  const hasOverrides = overrides && Object.keys(overrides).length > 0;
+  if (!hasOverrides && !promoActive) return SERVICE_PLAN_CATEGORIES;
   return SERVICE_PLAN_CATEGORIES.map((category) => ({
     ...category,
     plans: category.plans.map((plan) => {
-      const override = overrides[plan.id];
-      if (!override) return plan;
+      const override = hasOverrides ? overrides![plan.id] : undefined;
+      const basePriceAzn = override?.priceAzn ?? plan.priceAzn;
       return {
         ...plan,
-        nameAz: override.nameAz ?? plan.nameAz,
-        priceAzn: override.priceAzn ?? plan.priceAzn,
-        billingAz: override.billingAz ?? plan.billingAz,
-        descriptionAz: override.descriptionAz ?? plan.descriptionAz,
-        launchOfferAz: override.launchOfferAz ?? plan.launchOfferAz,
-        ctaLabel: override.ctaLabel ?? plan.ctaLabel,
-        features: override.features && override.features.length > 0 ? override.features : plan.features
+        nameAz: override?.nameAz ?? plan.nameAz,
+        priceAzn: promoActive ? 0 : basePriceAzn,
+        billingAz: override?.billingAz ?? plan.billingAz,
+        descriptionAz: override?.descriptionAz ?? plan.descriptionAz,
+        launchOfferAz: promoActive ? (promoBadge ?? plan.launchOfferAz) : (override?.launchOfferAz ?? plan.launchOfferAz),
+        ctaLabel: override?.ctaLabel ?? plan.ctaLabel,
+        features: override?.features && override.features.length > 0 ? override.features : plan.features
       };
     })
   }));
@@ -296,23 +301,28 @@ function partnerPlanShortId(planId: string): string {
   return planId.split("-").slice(-1)[0] ?? planId;
 }
 
-export function buildPartnerApplicationPlanOptions(group: ServicePlanGroup): PartnerApplicationPlanOption[] {
+export function buildPartnerApplicationPlanOptions(
+  group: ServicePlanGroup,
+  promoStatus?: { active: boolean; badge?: string | null }
+): PartnerApplicationPlanOption[] {
+  const promoActive = promoStatus?.active ?? false;
   const category = SERVICE_PLAN_CATEGORIES.find((item) => item.id === group);
   const plans = category?.plans ?? MECHANIC_PLANS;
   return plans.map((plan) => {
     const shortId = partnerPlanShortId(plan.id);
     const limits = getServicePartnerPlanLimits(group, shortId);
+    const effectivePriceAzn = promoActive ? 0 : plan.priceAzn;
     const priceLabel =
-      plan.priceAzn === 0 ? plan.nameAz : `${plan.nameAz} — ${plan.priceAzn} ₼${plan.billingAz}`;
+      effectivePriceAzn === 0 ? plan.nameAz : `${plan.nameAz} — ${plan.priceAzn} ₼${plan.billingAz}`;
     return {
       value: shortId,
       label: priceLabel,
-      desc: plan.launchOfferAz ?? plan.descriptionAz,
+      desc: promoActive ? (promoStatus?.badge ?? plan.launchOfferAz ?? plan.descriptionAz) : (plan.launchOfferAz ?? plan.descriptionAz),
       tagLimit: limits.tagLimit,
       certLimit: limits.certLimit,
       imageLimit: limits.imageLimit,
       certFileLimit: limits.certFileLimit,
-      promo: Boolean(plan.launchOfferAz)
+      promo: promoActive || Boolean(plan.launchOfferAz)
     };
   });
 }

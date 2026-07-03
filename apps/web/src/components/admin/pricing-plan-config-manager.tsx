@@ -11,6 +11,7 @@ import {
 } from "@/lib/pricing-plan-config";
 import { SERVICE_PLAN_CATEGORIES } from "@/lib/service-plans";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { DEFAULT_LAUNCH_PROMO_CONFIG, isLaunchPromoActive, type LaunchPromoConfig } from "@/lib/launch-promo";
 
 interface Props {
   initialConfig: PricingPlanAdminConfig;
@@ -37,9 +38,17 @@ function mergeEconomics(model: PricingCostModel): PricingCostModel {
 export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Props) {
   const [config, setConfig] = useState<PricingPlanAdminConfig>({
     ...initialConfig,
-    economics: mergeEconomics(initialConfig.economics)
+    economics: mergeEconomics(initialConfig.economics),
+    launchPromo: initialConfig.launchPromo ?? { ...DEFAULT_LAUNCH_PROMO_CONFIG }
   });
   const [busy, setBusy] = useState(false);
+
+  function patchLaunchPromo(patch: Partial<LaunchPromoConfig>) {
+    setConfig((prev) => ({
+      ...prev,
+      launchPromo: { ...prev.launchPromo, ...patch }
+    }));
+  }
 
   const serviceCategoryByPlanId = useMemo(() => {
     const map = new Map<string, string>();
@@ -158,6 +167,56 @@ export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Pr
       <p className="mt-1 text-sm text-slate-500">
         Qiymət, aktiv elan limiti, media limiti və plan mətnlərini mərkəzdən idarə edin.
       </p>
+
+      <div className="mt-5 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold text-emerald-900">Açılış kampaniyası</h4>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              isLaunchPromoActive(config.launchPromo)
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-200 text-slate-600"
+            }`}
+          >
+            {isLaunchPromoActive(config.launchPromo) ? "Aktivdir" : "Deaktivdir"}
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-emerald-800">
+          Aktiv olduqda bütün elan (Standart/VIP), Salon, Mağaza və Servis/Ekspertiza/Usta planları avtomatik
+          pulsuz olur — istifadəçi bank ödənişinə yönləndirilmir. Bitmə tarixi qoyulmasa admin bağlayana qədər davam edir.
+        </p>
+        <div className="mt-3 flex flex-wrap items-end gap-4">
+          <label className="flex items-center gap-2 text-sm font-medium text-emerald-900">
+            <input
+              type="checkbox"
+              checked={config.launchPromo.enabled}
+              onChange={(e) => patchLaunchPromo({ enabled: e.target.checked })}
+              className="h-4 w-4"
+            />
+            Kampaniyanı aktivləşdir
+          </label>
+          <label className="space-y-1">
+            <span className="block text-xs text-emerald-800">Bitmə tarixi (boş = tarix yoxdur)</span>
+            <input
+              type="date"
+              value={config.launchPromo.endsAt ? config.launchPromo.endsAt.slice(0, 10) : ""}
+              onChange={(e) =>
+                patchLaunchPromo({ endsAt: e.target.value ? new Date(e.target.value).toISOString() : null })
+              }
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </label>
+          {config.launchPromo.endsAt && (
+            <button
+              type="button"
+              onClick={() => patchLaunchPromo({ endsAt: null })}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600"
+            >
+              Tarixi sil
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">

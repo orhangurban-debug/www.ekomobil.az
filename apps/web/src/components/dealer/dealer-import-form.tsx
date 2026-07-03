@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
-const sampleCsv = `title,description,make,model,year,city,priceAzn,mileageKm,fuelType,transmission,vin
-Toyota Camry 2020,Tam baxımlı sedan,Toyota,Camry,2020,Bakı,28500,64000,Benzin,Avtomat,4T1G11AK1LU123456`;
+const REQUIRED_COLUMNS = "title,description,make,model,year,city,priceAzn,mileageKm,fuelType,transmission,vin";
+const OPTIONAL_COLUMNS =
+  "engineType,bodyType,driveType,color,condition,engineVolumeCc,interiorMaterial,hasSunroof,creditAvailable,barterAvailable,seatHeating,seatCooling,camera360,parkingSensors,adaptiveCruise,laneAssist,ownersCount,hasServiceBook,hasRepairHistory";
+
+const sampleCsv = `${REQUIRED_COLUMNS},${OPTIONAL_COLUMNS}
+Toyota Camry 2020,Tam baxımlı sedan,Toyota,Camry,2020,Bakı,28500,64000,Benzin,Avtomat,4T1G11AK1LU123456,Atmosfer,Sedan,Ön,Ağ,İşlənmiş,2500,Dəri,1,1,0,1,1,1,1,0,1,1,1,0`;
 
 export function DealerImportForm() {
   const [csv, setCsv] = useState(sampleCsv);
@@ -46,8 +50,17 @@ export function DealerImportForm() {
       </div>
 
       <form onSubmit={onSubmit} className="card space-y-5 p-6">
-        <div className="rounded-xl bg-white/60 p-4 text-xs text-slate-500">
-          Başlıq: <code>title,description,make,model,year,city,priceAzn,mileageKm,fuelType,transmission,vin</code>
+        <div className="rounded-xl bg-white/60 p-4 text-xs text-slate-500 space-y-2">
+          <p>
+            Mütləq sütunlar: <code className="break-all">{REQUIRED_COLUMNS}</code>
+          </p>
+          <p>
+            Əlavə (istəyə bağlı) sütunlar — daxil edilməsə həmin sahə boş qalır və elan həmin filtrlərdə görünməyəcək:{" "}
+            <code className="break-all">{OPTIONAL_COLUMNS}</code>
+          </p>
+          <p>
+            Boolean (bəli/xeyr) sütunlar üçün <code>1</code> / <code>0</code> (və ya <code>true</code>/<code>false</code>) istifadə edin.
+          </p>
         </div>
         <textarea
           className="input-field min-h-[260px] font-mono text-xs"

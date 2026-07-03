@@ -18,6 +18,7 @@ import {
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
+import { useLaunchPromo } from "@/hooks/use-launch-promo";
 import {
   processImageForUpload,
   formatFileSize,
@@ -155,6 +156,14 @@ export default function PublishPage() {
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
   const [planType, setPlanType] = useState<PlanType>("free");
+  const launchPromo = useLaunchPromo();
+  const planPriceLabel = useCallback(
+    (planId: PlanType) =>
+      launchPromo.active && planId !== "free"
+        ? "Pulsuz (kampaniya)"
+        : formatListingPlanPrice(planId, typeof priceAzn === "number" ? priceAzn : undefined),
+    [launchPromo.active, priceAzn]
+  );
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<TrustApiResponse | null>(null);
   const [vehicleValidationVisible, setVehicleValidationVisible] = useState(false);
@@ -206,19 +215,6 @@ export default function PublishPage() {
   const availableEngineTypes = useMemo(() => getCompatibleEngineTypes(fuelType), [fuelType]);
   const availableTransmissions = useMemo(() => getCompatibleTransmissions(fuelType), [fuelType]);
   const isElectricPowertrain = fuelType === "Elektrik";
-
-  const referenceNote = useMemo(() => {
-    const notes: string[] = [];
-    if (vinInfoType === "link" && vinInfoUrl.trim()) notes.push(`VIN məlumat linki: ${vinInfoUrl.trim()}`);
-    if (vinInfoType === "document" && vinDocumentRef.trim()) notes.push(`VIN sənəd istinadı: ${vinDocumentRef.trim()}`);
-    if (serviceHistoryType === "link" && serviceHistoryUrl.trim()) {
-      notes.push(`Servis tarixçə linki: ${serviceHistoryUrl.trim()}`);
-    }
-    if (serviceHistoryType === "document" && serviceHistoryDocumentRef.trim()) {
-      notes.push(`Servis tarixçəsi sənəd istinadı: ${serviceHistoryDocumentRef.trim()}`);
-    }
-    return notes.join(" | ");
-  }, [serviceHistoryDocumentRef, serviceHistoryType, serviceHistoryUrl, vinDocumentRef, vinInfoType, vinInfoUrl]);
 
   function updateBoolean(field: keyof MediaProtocolInput, value: boolean) {
     setMedia((prev) => ({ ...prev, [field]: value }));
@@ -362,10 +358,12 @@ export default function PublishPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: (() => {
-            const base = description.trim() || `${make} ${model} üçün yaradılan elan.`;
-            return referenceNote ? `${base}\n\nMəlumat istinadları: ${referenceNote}` : base;
-          })(),
+          description: description.trim() || `${make} ${model} üçün yaradılan elan.`,
+          vinInfoUrl: vinInfoType === "link" ? vinInfoUrl.trim() || undefined : undefined,
+          vinDocumentRef: vinInfoType === "document" ? vinDocumentRef.trim() || undefined : undefined,
+          serviceHistoryUrl: serviceHistoryType === "link" ? serviceHistoryUrl.trim() || undefined : undefined,
+          serviceHistoryDocumentRef:
+            serviceHistoryType === "document" ? serviceHistoryDocumentRef.trim() || undefined : undefined,
           priceAzn,
           city,
           fuelType,
@@ -422,9 +420,16 @@ export default function PublishPage() {
             ok: boolean;
             error?: string;
             checkoutUrl?: string;
+            status?: string;
           };
           if (paymentPayload.ok && paymentPayload.checkoutUrl) {
             router.push(paymentPayload.checkoutUrl);
+            router.refresh();
+            return;
+          }
+          if (paymentPayload.ok && paymentPayload.status === "succeeded") {
+            // Açılış kampaniyası ilə plan bank ödənişi olmadan dərhal aktivləşdi.
+            router.push(`/listings/${createPayload.id}`);
             router.refresh();
             return;
           }
@@ -1248,7 +1253,13 @@ export default function PublishPage() {
                   </p>
                 </div>
 
-                {planType !== "free" && (
+                {launchPromo.active && (
+                  <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700">
+                    {launchPromo.badge ?? "Açılış kampaniyası — bütün planlar hazırda pulsuzdur"}
+                  </div>
+                )}
+
+                {planType !== "free" && !launchPromo.active && (
                   <div className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/5 px-4 py-3 text-sm text-[#0057FF]">
                     Ödənişli plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, Kapital Bank ödənişi tamamlanandan sonra aktivləşir.
                   </div>
@@ -1276,7 +1287,7 @@ export default function PublishPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-slate-900">{plan.nameAz}</span>
                           <span className="font-bold text-slate-900 shrink-0">
-                            {formatListingPlanPrice(plan.id, typeof priceAzn === "number" ? priceAzn : undefined)}
+                            {planPriceLabel(plan.id)}
                           </span>
                         </div>
                         {/* Plan details chips */}
@@ -1350,7 +1361,7 @@ export default function PublishPage() {
                       serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
                     ],
                     ["Mediya", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
-                    ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${formatListingPlanPrice(planType, typeof priceAzn === "number" ? priceAzn : undefined)})`]
+                    ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${planPriceLabel(planType)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
                       <span className="text-slate-500">{label}</span>
@@ -1385,7 +1396,7 @@ export default function PublishPage() {
                         </svg>
                         Yoxlanılır...
                       </>
-                    ) : planType === "free" ? "Elan yerləşdir" : "Ödənişə keç"}
+                    ) : planType === "free" || launchPromo.active ? "Elan yerləşdir" : "Ödənişə keç"}
                   </button>
                 </div>
               </div>

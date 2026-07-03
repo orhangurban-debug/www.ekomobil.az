@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import {
-  SERVICE_PROVIDER_TYPE_LABELS,
-  getServiceListingBySlug
-} from "@/lib/services-marketplace";
+import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
+import { getApprovedServiceListingBySlug } from "@/server/service-listing-store";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -12,7 +10,7 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const item = getServiceListingBySlug(slug);
+  const item = await getApprovedServiceListingBySlug(slug);
   if (!item) {
     return { title: "Servis profili tapılmadı | EkoMobil" };
   }
@@ -24,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ServiceProfilePage({ params }: PageProps) {
   const { slug } = await params;
-  const item = getServiceListingBySlug(slug);
+  const item = await getApprovedServiceListingBySlug(slug);
   if (!item) notFound();
 
   return (

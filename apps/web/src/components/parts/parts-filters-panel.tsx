@@ -17,6 +17,8 @@ interface PartsQueryState {
   partBrand?: string;
   partCondition?: "new" | "used" | "refurbished";
   partAuthenticity?: "original" | "oem" | "aftermarket";
+  partOemCode?: string;
+  partCompatibilitySearch?: string;
   inStock?: boolean;
   sort?: "trust_desc" | "price_asc" | "price_desc" | "recent";
 }
@@ -34,6 +36,8 @@ function buildUrl(query: PartsQueryState) {
   if (query.partBrand) params.set("partBrand", query.partBrand);
   if (query.partCondition) params.set("partCondition", query.partCondition);
   if (query.partAuthenticity) params.set("partAuthenticity", query.partAuthenticity);
+  if (query.partOemCode) params.set("partOemCode", query.partOemCode);
+  if (query.partCompatibilitySearch) params.set("partCompatibility", query.partCompatibilitySearch);
   if (query.inStock) params.set("inStock", "1");
   if (query.sort) params.set("sort", query.sort);
   const search = params.toString();
@@ -59,6 +63,8 @@ export function PartsFiltersPanel({
     partBrand: initialQuery.partBrand,
     partCondition: initialQuery.partCondition,
     partAuthenticity: initialQuery.partAuthenticity,
+    partOemCode: initialQuery.partOemCode ?? "",
+    partCompatibilitySearch: initialQuery.partCompatibilitySearch ?? "",
     inStock: initialQuery.inStock,
     sort: initialQuery.sort ?? "recent"
   });
@@ -82,6 +88,8 @@ export function PartsFiltersPanel({
         query.partBrand,
         query.partCondition,
         query.partAuthenticity,
+        query.partOemCode,
+        query.partCompatibilitySearch,
         query.inStock
       ].filter(Boolean).length,
     [query]
@@ -191,6 +199,26 @@ export function PartsFiltersPanel({
             <option key={item.value} value={item.value}>{item.label}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="label">Hansı modelə uyğundur</label>
+        <input
+          className="input-field"
+          value={query.partCompatibilitySearch ?? ""}
+          onChange={(e) => setQuery((prev) => ({ ...prev, partCompatibilitySearch: e.target.value }))}
+          placeholder="Məs: Toyota Corolla 2018"
+        />
+      </div>
+
+      <div>
+        <label className="label">OEM kodu (dəqiq uyğunluq)</label>
+        <input
+          className="input-field"
+          value={query.partOemCode ?? ""}
+          onChange={(e) => setQuery((prev) => ({ ...prev, partOemCode: e.target.value }))}
+          placeholder="Məs: 04465-33471"
+        />
       </div>
 
       <div>

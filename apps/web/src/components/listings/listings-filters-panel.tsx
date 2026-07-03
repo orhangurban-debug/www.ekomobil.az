@@ -53,6 +53,7 @@ interface QueryState {
   hasRepairHistory?: boolean;
   sellerType?: "private" | "dealer";
   sellerVerified?: boolean;
+  vinVerified?: boolean;
   sort?: "trust_desc" | "price_asc" | "price_desc" | "year_desc" | "mileage_asc" | "recent";
 }
 
@@ -93,6 +94,7 @@ function buildUrl(query: QueryState, basePath: string) {
   if (query.hasRepairHistory) params.set("hasRepairHistory", "1");
   if (query.sellerType) params.set("sellerType", query.sellerType);
   if (query.sellerVerified) params.set("sellerVerified", "1");
+  if (query.vinVerified) params.set("vinVerified", "1");
   if (query.sort) params.set("sort", query.sort);
   const search = params.toString();
   return search ? `${basePath}?${search}` : basePath;
@@ -149,6 +151,7 @@ export function ListingsFiltersPanel({
     hasRepairHistory: initialQuery.hasRepairHistory,
     sellerType: initialQuery.sellerType,
     sellerVerified: initialQuery.sellerVerified,
+    vinVerified: initialQuery.vinVerified,
     sort: initialQuery.sort ?? "recent"
   });
 
@@ -198,7 +201,8 @@ export function ListingsFiltersPanel({
         query.hasServiceBook,
         query.hasRepairHistory,
         query.sellerType,
-        query.sellerVerified
+        query.sellerVerified,
+        query.vinVerified
       ].filter(Boolean).length,
     [query]
   );
@@ -232,7 +236,8 @@ export function ListingsFiltersPanel({
         query.hasServiceBook,
         query.hasRepairHistory,
         query.sellerType,
-        query.sellerVerified
+        query.sellerVerified,
+        query.vinVerified
       ].filter(Boolean).length,
     [query]
   );
@@ -703,6 +708,15 @@ export function ListingsFiltersPanel({
                   className="h-4 w-4 rounded accent-[#0057FF]"
                 />
                 Satıcı doğrulanmış
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={query.vinVerified ?? false}
+                  onChange={(e) => setQuery((prev) => ({ ...prev, vinVerified: e.target.checked || undefined }))}
+                  className="h-4 w-4 rounded accent-[#0057FF]"
+                />
+                VIN doğrulanmış
               </label>
             </div>
           </div>

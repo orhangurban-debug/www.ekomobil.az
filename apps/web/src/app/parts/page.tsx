@@ -81,6 +81,8 @@ export default async function PartsPage({
       (typeof params.partCondition === "string" ? params.partCondition : undefined) as "new" | "used" | "refurbished" | undefined,
     partAuthenticity:
       (typeof params.partAuthenticity === "string" ? params.partAuthenticity : undefined) as "original" | "oem" | "aftermarket" | undefined,
+    partOemCode: typeof params.partOemCode === "string" ? params.partOemCode : undefined,
+    partCompatibilitySearch: typeof params.partCompatibility === "string" ? params.partCompatibility : undefined,
     inStock: params.inStock === "1" ? true : undefined,
     listingKind: "part" as const,
     sort: (typeof params.sort === "string" ? params.sort : "recent") as
@@ -110,7 +112,11 @@ export default async function PartsPage({
       : null,
     query.sellerType ? { label: query.sellerType === "dealer" ? "Salon" : "Fərdi", href: chipHref(params, "sellerType") } : null,
     query.sellerVerified ? { label: "Satıcı doğrulanmış", href: chipHref(params, "sellerVerified") } : null,
-    query.inStock ? { label: "Stokda var", href: chipHref(params, "inStock") } : null
+    query.inStock ? { label: "Stokda var", href: chipHref(params, "inStock") } : null,
+    query.partOemCode ? { label: `OEM: ${query.partOemCode}`, href: chipHref(params, "partOemCode") } : null,
+    query.partCompatibilitySearch
+      ? { label: `Uyğunluq: ${query.partCompatibilitySearch}`, href: chipHref(params, "partCompatibility") }
+      : null
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 
   return (

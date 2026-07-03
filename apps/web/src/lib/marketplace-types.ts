@@ -47,6 +47,12 @@ export interface ListingRecord {
   ownersCount?: number;
   hasServiceBook?: boolean;
   hasRepairHistory?: boolean;
+  /** VIN hesabatı — xarici link (məs. Carfax) və ya yüklənmiş sənədə istinad, struktur sahə kimi saxlanılır. */
+  vinInfoUrl?: string;
+  vinDocumentRef?: string;
+  /** Servis tarixçəsi sübutu — struktur sahə kimi saxlanılır (əvvəllər description-a qatlanırdı). */
+  serviceHistoryUrl?: string;
+  serviceHistoryDocumentRef?: string;
   /** Avtomobil və ya hissə elanı; auksion qapıları üçün */
   listingKind?: ListingKind;
   partCategory?: string;
@@ -144,6 +150,8 @@ export interface ListingQuery {
   partBrand?: string;
   partCondition?: PartCondition;
   partAuthenticity?: PartAuthenticity;
+  partOemCode?: string;
+  partCompatibilitySearch?: string;
   inStock?: boolean;
   compareIds?: string[];
   page?: number;

@@ -9,6 +9,7 @@ import {
   VIP_PACKAGES,
   type BoostPackage
 } from "@/lib/listing-boost-plans";
+import { useLaunchPromo } from "@/hooks/use-launch-promo";
 
 interface BoostListingButtonProps {
   listingId: string;
@@ -36,11 +37,12 @@ export function BoostListingButton({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const launchPromo = useLaunchPromo();
 
   const availablePlans = PAID_PLANS.filter((planId) => PLAN_RANK[planId] >= PLAN_RANK[currentPlan]);
 
   function planPriceLabel(planId: PlanType): string {
-    const fee = formatListingPlanPrice(planId, listingPriceAzn);
+    const fee = launchPromo.active ? "Pulsuz" : formatListingPlanPrice(planId, listingPriceAzn);
     return `${fee} · ${formatListingPlanDuration(planId)}`;
   }
 
@@ -55,10 +57,14 @@ export function BoostListingButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ listingId, planType, source: "boost" })
       });
-      const data = (await res.json()) as { ok: boolean; error?: string; checkoutUrl?: string };
+      const data = (await res.json()) as { ok: boolean; error?: string; checkoutUrl?: string; status?: string };
       if (data.ok && data.checkoutUrl) {
         setOpen(false);
         router.push(data.checkoutUrl);
+      } else if (data.ok && data.status === "succeeded") {
+        // Açılış kampaniyası ilə bank ödənişi olmadan dərhal aktivləşdi.
+        setOpen(false);
+        router.refresh();
       } else {
         setError(data.error || "Xəta baş verdi");
       }

@@ -15,6 +15,7 @@ import {
 } from "@/lib/auction-fees";
 import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
 import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
+import { isLaunchPromoActive, getLaunchPromoBadgeText } from "@/lib/launch-promo";
 import { getServerSessionUser } from "@/lib/auth";
 import { getSystemSettings } from "@/server/system-settings-store";
 import { BusinessPlanCheckoutButton } from "@/components/business/business-plan-checkout-button";
@@ -247,7 +248,9 @@ export default async function PricingPage() {
   const isDealerAccount = sessionUser?.role === "dealer" || sessionUser?.role === "admin";
   const bizCtaClass =
     "mt-5 block w-full rounded-xl bg-[#0057FF] py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0046CC]";
-  const serviceCategories = getServicePlanCategoriesWithOverrides(pricingPlanConfig.service);
+  const serviceCategories = getServicePlanCategoriesWithOverrides(pricingPlanConfig.service, pricingPlanConfig.launchPromo);
+  const promoActive = isLaunchPromoActive(pricingPlanConfig.launchPromo);
+  const promoBadge = getLaunchPromoBadgeText(pricingPlanConfig.launchPromo);
   const dealerBaza = dealerPlans.find((plan) => plan.id === "baza") ?? dealerPlans[0];
   const dealerPro = dealerPlans.find((plan) => plan.id === "peşəkar") ?? dealerPlans[1] ?? dealerBaza;
   const dealerCorp = dealerPlans.find((plan) => plan.id === "korporativ") ?? dealerPlans[2] ?? dealerPro;
@@ -308,6 +311,11 @@ export default async function PricingPage() {
               </span>
             ))}
           </div>
+          {promoActive && (
+            <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-700">
+              {promoBadge ?? "Açılış kampaniyası — bütün elan, salon, mağaza və servis planları hazırda pulsuzdur"}
+            </div>
+          )}
         </div>
       </div>
 
@@ -391,10 +399,10 @@ export default async function PricingPage() {
                       <td className="py-3 pl-5 pr-3 font-medium text-slate-700">{tier.labelAz}</td>
                       <td className="px-3 py-3 text-center text-slate-400">0 ₼</td>
                       <td className="px-3 py-3 text-center font-semibold text-slate-900">
-                        {tier.standardPriceAzn} ₼
+                        {promoActive ? "Pulsuz" : `${tier.standardPriceAzn} ₼`}
                       </td>
                       <td className="px-3 py-3 text-center font-bold text-[#0057FF]">
-                        {tier.vipPriceAzn} ₼
+                        {promoActive ? "Pulsuz" : `${tier.vipPriceAzn} ₼`}
                       </td>
                     </tr>
                   ))}
@@ -455,7 +463,7 @@ export default async function PricingPage() {
             <div className="mb-4">
                     <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
-                      {plan.priceAzn === 0 ? (
+                      {plan.priceAzn === 0 || promoActive ? (
                         <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
                       ) : (
                         <>
@@ -516,12 +524,12 @@ export default async function PricingPage() {
             <Link
               href="/publish"
                     className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
-                      plan.priceAzn === 0
+                      plan.priceAzn === 0 || promoActive
                   ? "bg-white/63 text-slate-700 hover:bg-slate-900/10"
                   : "bg-[#0057FF] text-white hover:bg-[#0046CC]"
               }`}
             >
-                    {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Elan ver"}
+                    {plan.priceAzn === 0 || promoActive ? "Pulsuz yerləşdir" : "Elan ver"}
             </Link>
                 </div>
               );
@@ -723,12 +731,20 @@ export default async function PricingPage() {
                 <div className="mb-4">
                   <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-slate-900"}`}>
-                      {plan.priceAzn} ₼
-                    </span>
-                    <span className="text-sm text-slate-400">/ ay</span>
+                    {promoActive ? (
+                      <span className="text-3xl font-bold text-emerald-600">Pulsuz</span>
+                    ) : (
+                      <>
+                        <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-slate-900"}`}>
+                          {plan.priceAzn} ₼
+                        </span>
+                        <span className="text-sm text-slate-400">/ ay</span>
+                      </>
+                    )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">Aylıq abunə planı</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {promoActive ? (promoBadge ?? "Açılış kampaniyası") : "Aylıq abunə planı"}
+                  </p>
                 </div>
 
                 {/* Feature chips */}
@@ -784,7 +800,7 @@ export default async function PricingPage() {
                   <BusinessPlanCheckoutButton
                     businessType="dealer"
                     planId={plan.id}
-                    label={`Abunə ol — ${plan.priceAzn} ₼/ay`}
+                    label={promoActive ? "Abunə ol — Pulsuz (kampaniya)" : `Abunə ol — ${plan.priceAzn} ₼/ay`}
                     className={bizCtaClass}
                   />
                 ) : (
@@ -854,12 +870,20 @@ export default async function PricingPage() {
                 <div className="mb-5">
                   <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-slate-900"}`}>
-                      {plan.priceAzn} ₼
-                    </span>
-                    <span className="text-sm text-slate-400">/ ay</span>
+                    {promoActive ? (
+                      <span className="text-3xl font-bold text-emerald-600">Pulsuz</span>
+                    ) : (
+                      <>
+                        <span className={`text-3xl font-bold ${plan.highlight ? "text-[#0057FF]" : "text-slate-900"}`}>
+                          {plan.priceAzn} ₼
+                        </span>
+                        <span className="text-sm text-slate-400">/ ay</span>
+                      </>
+                    )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">Aylıq mağaza planı</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {promoActive ? (promoBadge ?? "Açılış kampaniyası") : "Aylıq mağaza planı"}
+                  </p>
       </div>
 
                 {/* Feature chips */}
@@ -913,7 +937,7 @@ export default async function PricingPage() {
                   <BusinessPlanCheckoutButton
                     businessType="parts_store"
                     planId={plan.id}
-                    label={`Paketi seç — ${plan.priceAzn} ₼/ay`}
+                    label={promoActive ? "Paketi seç — Pulsuz (kampaniya)" : `Paketi seç — ${plan.priceAzn} ₼/ay`}
                     className={bizCtaClass}
                   />
                 ) : (

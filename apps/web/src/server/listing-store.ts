@@ -52,6 +52,10 @@ interface ListingRow {
   owners_count?: number | null;
   has_service_book?: boolean | null;
   has_repair_history?: boolean | null;
+  vin_info_url?: string | null;
+  vin_document_ref?: string | null;
+  service_history_url?: string | null;
+  service_history_document_ref?: string | null;
   created_at: Date;
   updated_at: Date;
   plan_type?: string | null;
@@ -247,6 +251,10 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     ownersCount: row.owners_count ?? undefined,
     hasServiceBook: row.has_service_book ?? undefined,
     hasRepairHistory: row.has_repair_history ?? undefined,
+    vinInfoUrl: row.vin_info_url ?? undefined,
+    vinDocumentRef: row.vin_document_ref ?? undefined,
+    serviceHistoryUrl: row.service_history_url ?? undefined,
+    serviceHistoryDocumentRef: row.service_history_document_ref ?? undefined,
     listingKind: row.listing_kind === "part" ? "part" : "vehicle",
     partCategory: row.part_category ?? undefined,
     partSubcategory: row.part_subcategory ?? undefined,
@@ -321,11 +329,20 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
       values.push(`%${query.search.toLowerCase()}%`);
       where.push(
         `LOWER(
-          l.title || ' ' || l.make || ' ' || l.model || ' ' ||
+          l.title || ' ' || l.make || ' ' || l.model || ' ' || COALESCE(l.description, '') || ' ' ||
           COALESCE(l.part_category, '') || ' ' || COALESCE(l.part_subcategory, '') || ' ' ||
-          COALESCE(l.part_brand, '') || ' ' || COALESCE(l.part_oem_code, '') || ' ' || COALESCE(l.part_sku, '')
+          COALESCE(l.part_brand, '') || ' ' || COALESCE(l.part_oem_code, '') || ' ' || COALESCE(l.part_sku, '') || ' ' ||
+          COALESCE(l.part_compatibility, '')
         ) LIKE $${values.length}`
       );
+    }
+    if (query.partOemCode) {
+      values.push(query.partOemCode.trim().toLowerCase());
+      where.push(`LOWER(COALESCE(l.part_oem_code, '')) = $${values.length}`);
+    }
+    if (query.partCompatibilitySearch) {
+      values.push(`%${query.partCompatibilitySearch.toLowerCase()}%`);
+      where.push(`LOWER(COALESCE(l.part_compatibility, '')) LIKE $${values.length}`);
     }
     if (query.compareIds && query.compareIds.length > 0) {
       values.push(query.compareIds);
@@ -501,6 +518,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.credit_available, l.barter_available,
           l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
           l.owners_count, l.has_service_book, l.has_repair_history,
+          l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -562,6 +580,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.credit_available, l.barter_available,
           l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
           l.owners_count, l.has_service_book, l.has_repair_history,
+          l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -708,6 +727,10 @@ export async function createListingRecord(input: {
   ownersCount?: number;
   hasServiceBook?: boolean;
   hasRepairHistory?: boolean;
+  vinInfoUrl?: string;
+  vinDocumentRef?: string;
+  serviceHistoryUrl?: string;
+  serviceHistoryDocumentRef?: string;
   status?: ListingStatus;
   planType?: PlanType;
   /** Verilsə, avtomatik müddət hesablamasını əvəz edir (mağaza elanları üçün null). */
@@ -759,9 +782,10 @@ export async function createListingRecord(input: {
           part_category, part_subcategory, part_brand, part_condition, part_authenticity, part_oem_code, part_sku, part_quantity, part_compatibility,
           body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available,
           seat_heating, seat_cooling, camera_360, parking_sensors, adaptive_cruise, lane_assist,
-          owners_count, has_service_book, has_repair_history
+          owners_count, has_service_book, has_repair_history,
+          vin_info_url, vin_document_ref, service_history_url, service_history_document_ref
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51)
       `,
       [
         id,
@@ -810,7 +834,11 @@ export async function createListingRecord(input: {
         input.laneAssist ?? null,
         input.ownersCount ?? null,
         input.hasServiceBook ?? null,
-        input.hasRepairHistory ?? null
+        input.hasRepairHistory ?? null,
+        input.vinInfoUrl ?? null,
+        input.vinDocumentRef ?? null,
+        input.serviceHistoryUrl ?? null,
+        input.serviceHistoryDocumentRef ?? null
       ]
     );
 
@@ -877,6 +905,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.credit_available, l.barter_available,
           l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
           l.owners_count, l.has_service_book, l.has_repair_history,
+          l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -914,6 +943,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.credit_available, l.barter_available,
           l.seat_heating, l.seat_cooling, l.camera_360, l.parking_sensors, l.adaptive_cruise, l.lane_assist,
           l.owners_count, l.has_service_book, l.has_repair_history,
+          l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
           l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
@@ -1290,6 +1320,10 @@ export async function updateListingForOwner(
     ownersCount?: number;
     hasServiceBook?: boolean;
     hasRepairHistory?: boolean;
+    vinInfoUrl?: string;
+    vinDocumentRef?: string;
+    serviceHistoryUrl?: string;
+    serviceHistoryDocumentRef?: string;
   }
 ): Promise<{ ok: boolean; error?: string }> {
   const ownership = await validateListingOwnership(listingId, userId);
@@ -1394,9 +1428,13 @@ export async function updateListingForOwner(
           owners_count = COALESCE($28, owners_count),
           has_service_book = COALESCE($29, has_service_book),
           has_repair_history = COALESCE($30, has_repair_history),
+          vin_info_url = COALESCE($31, vin_info_url),
+          vin_document_ref = COALESCE($32, vin_document_ref),
+          service_history_url = COALESCE($33, service_history_url),
+          service_history_document_ref = COALESCE($34, service_history_document_ref),
           status = 'pending_review',
           updated_at = NOW()
-        WHERE id = $31
+        WHERE id = $35
       `,
       [
         title ?? null,
@@ -1429,6 +1467,108 @@ export async function updateListingForOwner(
         input.ownersCount ?? null,
         input.hasServiceBook ?? null,
         input.hasRepairHistory ?? null,
+        input.vinInfoUrl?.trim() ?? null,
+        input.vinDocumentRef?.trim() ?? null,
+        input.serviceHistoryUrl?.trim() ?? null,
+        input.serviceHistoryDocumentRef?.trim() ?? null,
+        listingId
+      ]
+    );
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Elan yenilənərkən xəta baş verdi" };
+  }
+}
+
+export async function updatePartListingForOwner(
+  listingId: string,
+  userId: string,
+  input: {
+    title?: string;
+    description?: string;
+    priceAzn?: number;
+    city?: string;
+    partCategory?: string;
+    partSubcategory?: string;
+    partName?: string;
+    partBrand?: string;
+    partCondition?: "new" | "used" | "refurbished";
+    partAuthenticity?: "original" | "oem" | "aftermarket";
+    partOemCode?: string;
+    partSku?: string;
+    partQuantity?: number;
+    partCompatibility?: string;
+  }
+): Promise<{ ok: boolean; error?: string }> {
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  const title = input.title?.trim();
+  const description = input.description?.trim();
+  const city = input.city?.trim();
+  const priceAzn = input.priceAzn;
+  const partCategory = input.partCategory?.trim();
+  const partSubcategory = input.partSubcategory !== undefined ? input.partSubcategory.trim() : undefined;
+  const partName = input.partName?.trim();
+  const partBrand = input.partBrand !== undefined ? input.partBrand.trim() : undefined;
+  const partOemCode = input.partOemCode !== undefined ? input.partOemCode.trim() : undefined;
+  const partSku = input.partSku !== undefined ? input.partSku.trim() : undefined;
+  const partCompatibility = input.partCompatibility !== undefined ? input.partCompatibility.trim() : undefined;
+  const partQuantity = input.partQuantity;
+
+  if (title !== undefined && !title) return { ok: false, error: "Başlıq boş ola bilməz." };
+  if (description !== undefined && !description) return { ok: false, error: "Təsvir boş ola bilməz." };
+  if (city !== undefined && !city) return { ok: false, error: "Şəhər boş ola bilməz." };
+  if (partCategory !== undefined && !partCategory) return { ok: false, error: "Kateqoriya boş ola bilməz." };
+  if (partName !== undefined && !partName) return { ok: false, error: "Hissə adı boş ola bilməz." };
+  if (priceAzn !== undefined && (!Number.isFinite(priceAzn) || priceAzn <= 0)) {
+    return { ok: false, error: "Qiymət düzgün deyil." };
+  }
+  if (partQuantity !== undefined && (!Number.isFinite(partQuantity) || partQuantity < 0)) {
+    return { ok: false, error: "Say məlumatı düzgün deyil." };
+  }
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    await pool.query(
+      `
+        UPDATE listings
+        SET
+          title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          city = COALESCE($3, city),
+          price_azn = COALESCE($4, price_azn),
+          part_category = COALESCE($5, part_category),
+          make = COALESCE($5, make),
+          part_subcategory = COALESCE($6, part_subcategory),
+          model = COALESCE($7, model),
+          part_brand = COALESCE($8, part_brand),
+          part_condition = COALESCE($9, part_condition),
+          part_authenticity = COALESCE($10, part_authenticity),
+          part_oem_code = COALESCE($11, part_oem_code),
+          part_sku = COALESCE($12, part_sku),
+          part_quantity = COALESCE($13, part_quantity),
+          part_compatibility = COALESCE($14, part_compatibility),
+          status = 'pending_review',
+          updated_at = NOW()
+        WHERE id = $15
+      `,
+      [
+        title ?? null,
+        description ?? null,
+        city ?? null,
+        priceAzn ?? null,
+        partCategory ?? null,
+        partSubcategory || null,
+        partName || null,
+        partBrand || null,
+        input.partCondition ?? null,
+        input.partAuthenticity ?? null,
+        partOemCode || null,
+        partSku || null,
+        partQuantity ?? null,
+        partCompatibility || null,
         listingId
       ]
     );

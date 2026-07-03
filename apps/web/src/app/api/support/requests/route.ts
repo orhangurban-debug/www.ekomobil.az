@@ -4,6 +4,7 @@ import { verifySessionToken } from "@/lib/auth";
 import { getPgPool } from "@/lib/postgres";
 import { getClientIp } from "@/lib/rate-limit";
 import { defaultPriorityForRequestType } from "@/lib/support-admin";
+import { createPendingServiceListing } from "@/server/service-listing-store";
 
 const ALLOWED_TYPES = new Set([
   "question",
@@ -92,6 +93,20 @@ async function insertSupportRequest(input: {
   }
 }
 
+interface ServicePartnerDraft {
+  providerType?: string;
+  name?: string;
+  city?: string;
+  address?: string;
+  mapUrl?: string;
+  about?: string;
+  services?: string[];
+  certifications?: string[];
+  imageUrls?: string[];
+  phone?: string;
+  whatsapp?: string;
+}
+
 export async function POST(req: Request) {
   const body = (await req.json()) as {
     requestType?: string;
@@ -101,6 +116,7 @@ export async function POST(req: Request) {
     email?: string;
     phone?: string;
     listingId?: string;
+    servicePartner?: ServicePartnerDraft;
   };
   if (!body.subject?.trim() || !body.message?.trim()) {
     return NextResponse.json({ ok: false, error: "Mövzu və müraciət mətni mütləqdir." }, { status: 400 });
@@ -115,9 +131,10 @@ export async function POST(req: Request) {
     reporterIp: reporterIp || null,
     reporterUserAgent
   };
+  const supportRequestId = randomUUID();
   try {
     await insertSupportRequest({
-      id: randomUUID(),
+      id: supportRequestId,
       requestType,
       subject: body.subject.trim(),
       message: body.message.trim(),
@@ -131,7 +148,39 @@ export async function POST(req: Request) {
       reporterUserAgent,
       metadata
     });
-    return NextResponse.json({ ok: true, message: "Müraciətiniz qəbul edildi. Qısa zamanda cavab veriləcək." });
+
+    if (requestType === "inspection_partner" && body.servicePartner) {
+      const draft = body.servicePartner;
+      if (draft.providerType?.trim() && draft.name?.trim() && draft.city?.trim() && draft.phone?.trim()) {
+        try {
+          await createPendingServiceListing({
+            supportRequestId,
+            name: draft.name.trim(),
+            providerType: draft.providerType.trim(),
+            city: draft.city.trim(),
+            address: draft.address?.trim() || undefined,
+            mapUrl: draft.mapUrl?.trim() || undefined,
+            about: draft.about?.trim() || "",
+            services: Array.isArray(draft.services) ? draft.services.filter((s) => typeof s === "string") : [],
+            certifications: Array.isArray(draft.certifications)
+              ? draft.certifications.filter((s) => typeof s === "string")
+              : undefined,
+            imageUrls: Array.isArray(draft.imageUrls) ? draft.imageUrls.filter((s) => typeof s === "string") : undefined,
+            phone: draft.phone.trim(),
+            whatsapp: draft.whatsapp?.trim() || undefined
+          });
+        } catch (error) {
+          // Support ticket already saved — a missed pending listing draft must not fail the whole submission.
+          console.error("Failed to create pending service listing draft", error);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      id: supportRequestId,
+      message: "Müraciətiniz qəbul edildi. Qısa zamanda cavab veriləcək."
+    });
   } catch {
     return NextResponse.json({ ok: false, error: "Müraciət göndərilə bilmədi. Yenidən cəhd edin." }, { status: 500 });
   }
