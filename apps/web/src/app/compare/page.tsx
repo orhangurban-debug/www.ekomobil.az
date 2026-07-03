@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { listListings } from "@/server/listing-store";
-import { getCarInsights, getBrandContext, type CarModelInsights, type BrandContext } from "@/lib/car-insights";
-import { generateCarInsightsAi } from "@/lib/ai/gemini";
+import {
+  getCarInsights,
+  getBrandContext,
+  type CarModelInsights,
+  type BrandContext,
+  type CarGlobalUpdates,
+  type GlobalUpdateCategory
+} from "@/lib/car-insights";
+import { generateCarInsightsAi, generateCarGlobalUpdatesAi } from "@/lib/ai/gemini";
 import { getPowertrainInfo, hasElectricComponent, requiresCharging, type PowertrainCategory } from "@/lib/powertrain-types";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
@@ -187,6 +194,55 @@ function ListColumn({
   );
 }
 
+// ── Global updates column ─────────────────────────────────────────────────
+
+const UPDATE_CATEGORY_META: Record<
+  GlobalUpdateCategory,
+  { label: string; dot: string; badge: string }
+> = {
+  recall: { label: "Geri çağırış", dot: "bg-red-500", badge: "bg-red-500/10 text-red-700 border-red-500/25" },
+  facelift: { label: "Yeni nəsil", dot: "bg-violet-500", badge: "bg-violet-500/10 text-violet-700 border-violet-500/25" },
+  issue: { label: "Problem", dot: "bg-amber-500", badge: "bg-amber-500/15 text-amber-700 border-amber-500/25" },
+  market: { label: "Bazar trendi", dot: "bg-sky-500", badge: "bg-sky-50 text-sky-700 border-sky-200" },
+  other: { label: "Yenilik", dot: "bg-slate-400", badge: "bg-slate-100 text-slate-700 border-slate-200" }
+};
+
+function GlobalUpdatesColumn({ data }: { data: CarGlobalUpdates | null }) {
+  if (!data || data.updates.length === 0) {
+    return (
+      <p className="px-4 py-3 text-xs italic text-slate-400">
+        Bu model üçün qlobalda əhəmiyyətli yenilik tapılmadı.
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-3 px-4 py-3">
+      {data.summary && (
+        <p className="text-xs leading-relaxed text-slate-500">{data.summary}</p>
+      )}
+      <ul className="space-y-2.5">
+        {data.updates.map((u, i) => {
+          const meta = UPDATE_CATEGORY_META[u.category];
+          return (
+            <li key={i} className="rounded-xl border border-slate-900/10 bg-white/63 p-3">
+              <div className="mb-1 flex items-center gap-2">
+                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${meta.dot}`} />
+                <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${meta.badge}`}>
+                  {meta.label}
+                </span>
+                {u.date && <span className="text-[10px] text-slate-400">{u.date}</span>}
+              </div>
+              <p className="text-xs font-semibold text-slate-900">{u.title}</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{u.detail}</p>
+              {u.source && <p className="mt-1 text-[10px] text-slate-400">Mənbə: {u.source}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 // ── Verdict card ──────────────────────────────────────────────────────────
 
 const TIER_LABELS: Record<BrandContext["reliabilityTier"], { label: string; cls: string }> = {
@@ -298,6 +354,13 @@ export default async function ComparePage({
   );
   const brandContexts = items.map((item, i) =>
     insightsData[i] === null ? getBrandContext(item.make) : null
+  );
+
+  // Qlobal yeniliklər (recall/facelift/problem/bazar) — Google Search grounding ilə.
+  // İlk dəfə AI web-dən tapır və DB-yə yazır; növbəti dəfə eyni model üçün cavab
+  // birbaşa sistemdən (cache-dən) gəlir.
+  const globalUpdatesData: (CarGlobalUpdates | null)[] = await Promise.all(
+    items.map((item) => generateCarGlobalUpdatesAi(item.make, item.model, item.year))
   );
 
   // Column accent colors
@@ -703,6 +766,38 @@ export default async function ComparePage({
             </p>
           </div>
         </Section>
+
+        {/* ── Qlobalda yeniliklər (AI + Google Search) ───────────────────── */}
+        {globalUpdatesData.some((d) => d && d.updates.length > 0) && (
+          <Section
+            title="Qlobalda son yeniliklər"
+            icon={
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            }
+          >
+            <div className="grid divide-x divide-slate-900/10" style={{ gridTemplateColumns: `repeat(${colCount}, 1fr)` }}>
+              {items.map((item, i) => (
+                <div key={item.id}>
+                  <div className="px-4 pt-3 pb-1">
+                    <span className="text-xs font-semibold" style={{ color: COLORS[i] }}>
+                      {item.make} {item.model}
+                    </span>
+                  </div>
+                  <GlobalUpdatesColumn data={globalUpdatesData[i]} />
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-slate-900/10 bg-white/60/50 px-5 py-3">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Bu bölmə AI tərəfindən Google axtarışı ilə toplanır (geri çağırışlar, yeni nəsil/facelift,
+                son problemlər, bazar trendi) və sistemə yadda saxlanılır. Növbəti dəfə eyni model
+                qarşılaşdırılanda məlumat birbaşa sistemdən gəlir. Rəsmi mənbələrlə yoxlama tövsiyə olunur.
+              </p>
+            </div>
+          </Section>
+        )}
 
         {/* ── 3. Güclü tərəflər ──────────────────────────────────────────── */}
         <Section

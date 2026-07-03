@@ -56,6 +56,47 @@ export interface CarModelInsights {
   powertrain?: PowertrainSpec;
 }
 
+// ── Qlobal yeniliklər (AI + Google Search grounding ilə) ────────────────────
+
+/**
+ * Qlobal yeniliyin növü:
+ *  - recall:   təhlükəsizlik/texniki geri çağırış
+ *  - facelift: facelift / yeni nəsil / model yeniləməsi
+ *  - issue:    son aşkarlanan yayğın problem / şikayət
+ *  - market:   bazar / qiymət / tələb trendi
+ *  - other:    digər əhəmiyyətli yenilik
+ */
+export type GlobalUpdateCategory = "recall" | "facelift" | "issue" | "market" | "other";
+
+export interface CarGlobalUpdate {
+  category: GlobalUpdateCategory;
+  /** Qısa başlıq (Azərbaycan dilində) */
+  title: string;
+  /** İzah (1–2 cümlə, Azərbaycan dilində) */
+  detail: string;
+  /** Təxmini tarix/dövr, məs. "2024" və ya "2024-03" (opsional) */
+  date?: string;
+  /** Mənbə adı və ya URL (opsional) */
+  source?: string;
+}
+
+/**
+ * Bir model üçün qlobalda son yeniliklərin toplusu.
+ * Statik `CarModelInsights`-dən AYRI saxlanılır — çünki xəbər/recall məlumatı
+ * daha tez köhnəlir və Google Search grounding ilə ayrıca generasiya olunur.
+ */
+export interface CarGlobalUpdates {
+  make: string;
+  model: string;
+  yearFrom: number;
+  /** Qısa ümumi xülasə */
+  summary: string;
+  /** Yeniliklər siyahısı */
+  updates: CarGlobalUpdate[];
+  /** Grounding mənbə URL-ləri (varsa) */
+  sources: string[];
+}
+
 const insights: CarModelInsights[] = [
   // ── Toyota ────────────────────────────────────────────────────────────────
   {

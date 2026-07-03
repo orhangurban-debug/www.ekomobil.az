@@ -12,9 +12,11 @@
  */
 
 import { getPgPool } from "@/lib/postgres";
-import type { CarModelInsights } from "@/lib/car-insights";
+import type { CarModelInsights, CarGlobalUpdates } from "@/lib/car-insights";
 
 const FRESHNESS_DAYS = 30;
+// Qlobal yeniliklər (recall/facelift/xəbər) daha tez köhnəlir — daha qısa pəncərə.
+const UPDATES_FRESHNESS_DAYS = 14;
 
 // ── DB Schema ─────────────────────────────────────────────────────────────────
 
@@ -202,4 +204,109 @@ export async function listStaleInsights(limit = 20): Promise<Array<{
   } catch {
     return [];
   }
+}
+
+// ── Qlobal yeniliklər cache-i ───────────────────────────────────────────────
+//
+// Ayrı cədvəl: recall/facelift/xəbər məlumatı statik analizdən daha tez köhnəlir
+// və Google Search grounding ilə ayrıca generasiya olunur. Cache açarı və il-bucket
+// məntiqi eynidir (model_insights ilə) — beləliklə eyni model qarşılaşdırılanda
+// cavab birbaşa sistemdən (DB-dən) gəlir, təkrar AI çağırışı olmadan.
+
+let globalUpdatesTableEnsured = false;
+
+export async function ensureGlobalUpdatesTable(): Promise<void> {
+  if (globalUpdatesTableEnsured) return;
+  try {
+    const pool = getPgPool();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS model_global_updates (
+        id           TEXT PRIMARY KEY,
+        make         TEXT NOT NULL,
+        model        TEXT NOT NULL,
+        year_from    INTEGER,
+        data         JSONB NOT NULL,
+        source       TEXT NOT NULL DEFAULT 'ai',
+        generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    globalUpdatesTableEnsured = true;
+  } catch {
+    // Cədvəl artıq mövcud ola bilər və ya DB əlçatan olmaya bilər — sükutla keç.
+  }
+}
+
+export async function getCachedGlobalUpdates(
+  make: string,
+  model: string,
+  year: number
+): Promise<{ data: CarGlobalUpdates; isStale: boolean } | null> {
+  try {
+    const pool = getPgPool();
+    const key = cacheKey(make, model, yearBucket(year));
+    const result = await pool.query<{
+      data: CarGlobalUpdates;
+      generated_at: Date;
+    }>(
+      `SELECT data, generated_at FROM model_global_updates WHERE id = $1 LIMIT 1`,
+      [key]
+    );
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0];
+    const ageMs = Date.now() - row.generated_at.getTime();
+    const isStale = ageMs > UPDATES_FRESHNESS_DAYS * 24 * 60 * 60 * 1000;
+    return { data: row.data, isStale };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveGlobalUpdatesToCache(
+  make: string,
+  model: string,
+  year: number,
+  data: CarGlobalUpdates,
+  source: "ai" | "manual" = "ai"
+): Promise<void> {
+  try {
+    const pool = getPgPool();
+    const key = cacheKey(make, model, yearBucket(year));
+    await pool.query(
+      `
+        INSERT INTO model_global_updates (id, make, model, year_from, data, source, generated_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE
+          SET data = EXCLUDED.data,
+              source = EXCLUDED.source,
+              updated_at = NOW(),
+              generated_at = NOW()
+      `,
+      [key, make, model, yearBucket(year), JSON.stringify(data), source]
+    );
+  } catch {
+    // Yazma xətası — best-effort cache, sükutla davam et.
+  }
+}
+
+/**
+ * Köhnəlmiş qlobal yenilikləri fonda (bloklamadan) yeniləyir.
+ * Mövcud (köhnə) məlumatı dərhal göstərmək üçün çağıran tərəf gözləmir.
+ */
+export function scheduleGlobalUpdatesRefreshIfStale(
+  make: string,
+  model: string,
+  year: number,
+  generator: () => Promise<CarGlobalUpdates | null>
+): void {
+  Promise.resolve().then(async () => {
+    const existing = await getCachedGlobalUpdates(make, model, year);
+    if (!existing?.isStale) return;
+    const fresh = await generator();
+    if (fresh) {
+      await saveGlobalUpdatesToCache(make, model, year, fresh, "ai");
+    }
+  }).catch(() => {
+    // Fon yeniləmə xətası — sükutla keç.
+  });
 }

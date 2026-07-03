@@ -1,12 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_MODEL } from "@/lib/ai/gemini-model";
 import type { ListingQuery } from "@/lib/marketplace-types";
-import type { CarModelInsights } from "@/lib/car-insights";
+import type { CarModelInsights, CarGlobalUpdates, CarGlobalUpdate, GlobalUpdateCategory } from "@/lib/car-insights";
 import {
   getCachedInsight,
   saveInsightToCache,
   scheduleRefreshIfStale,
-  ensureModelInsightsTable
+  ensureModelInsightsTable,
+  getCachedGlobalUpdates,
+  saveGlobalUpdatesToCache,
+  scheduleGlobalUpdatesRefreshIfStale,
+  ensureGlobalUpdatesTable
 } from "@/server/model-insights-store";
 
 const EXTRACT_SEARCH_PROMPT = `Sən EkoMobil avtomobil platformasının köməkçisisən. İstifadəçinin mesajından elan axtarış parametrlərini çıxar.
@@ -237,6 +241,159 @@ export async function generateCarInsightsAi(
     inMemoryCache.set(memKey, generated);
     // Persist to DB (non-blocking)
     saveInsightToCache(make, model, year, generated, "ai").catch(() => {});
+  }
+  return generated;
+}
+
+// ── Qlobal yeniliklər (Google Search grounding ilə) ─────────────────────────
+
+const GLOBAL_UPDATES_PROMPT = `Sən avtomobil bazarı üzrə analitik jurnalistsən. Google axtarışından istifadə edərək aşağıdakı avtomobil modeli haqqında QLOBALDA ƏN SON yenilikləri tap və Azərbaycan dilində qısa şəkildə ümumiləşdir.
+
+Aşağıdakı kateqoriyaları əhatə et (mövcud olanları):
+- recall:   təhlükəsizlik və ya texniki geri çağırışlar (recall)
+- facelift: facelift, yeni nəsil, model yeniləməsi və ya istehsalın dayandırılması
+- issue:    son aşkarlanan yayğın problemlər / kütləvi şikayətlər
+- market:   bazar, qiymət, tələb və ya ikinci əl dəyəri trendləri
+
+Yalnız DÜZGÜN və mənbə ilə təsdiqlənən məlumat ver. Uydurma. Əgər konkret yenilik tapılmasa, boş "updates" massivi qaytar.
+
+YALNIZ aşağıdakı JSON strukturunu qaytar (heç bir izah, heç bir markdown kod bloku əlavə etmə):
+{
+  "summary": "1-2 cümləlik ümumi xülasə (Azərbaycan dilində)",
+  "updates": [
+    {
+      "category": "recall" | "facelift" | "issue" | "market",
+      "title": "qısa başlıq",
+      "detail": "1-2 cümləlik izah",
+      "date": "2024 və ya 2024-03 formatında təxmini dövr",
+      "source": "mənbə adı və ya qısa qeyd"
+    }
+  ]
+}
+
+Ən çox 6 yenilik. Ən yeni və ən əhəmiyyətli olanları seç.`;
+
+const ALLOWED_UPDATE_CATEGORIES: GlobalUpdateCategory[] = ["recall", "facelift", "issue", "market", "other"];
+
+/**
+ * Grounding cavabı JSON mime-type dəstəkləmir, ona görə model bəzən mətni
+ * ```json ... ``` bloku içində qaytara bilər. İlk düzgün JSON obyektini çıxarırıq.
+ */
+function extractJsonObject(text: string): string | null {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced ? fenced[1] : text;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  return candidate.slice(start, end + 1);
+}
+
+const globalUpdatesMemCache = new Map<string, CarGlobalUpdates>();
+
+async function generateGlobalUpdatesFromGemini(
+  make: string,
+  model: string,
+  year: number
+): Promise<CarGlobalUpdates | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: `${GLOBAL_UPDATES_PROMPT}\n\nModel: ${make} ${model} (${year} il və ətrafı)`,
+      config: {
+        // Google Search grounding — real vaxt qlobal web məlumatı.
+        tools: [{ googleSearch: {} }],
+        temperature: 0.3,
+        maxOutputTokens: 1500
+      }
+    });
+
+    const text = response.text?.trim();
+    if (!text) return null;
+
+    const jsonStr = extractJsonObject(text);
+    if (!jsonStr) return null;
+
+    const parsed = JSON.parse(jsonStr) as {
+      summary?: string;
+      updates?: Array<Partial<CarGlobalUpdate>>;
+    };
+
+    const updates: CarGlobalUpdate[] = Array.isArray(parsed.updates)
+      ? parsed.updates
+          .filter((u) => u && typeof u.title === "string" && typeof u.detail === "string")
+          .slice(0, 6)
+          .map((u) => ({
+            category: ALLOWED_UPDATE_CATEGORIES.includes(u.category as GlobalUpdateCategory)
+              ? (u.category as GlobalUpdateCategory)
+              : "other",
+            title: String(u.title).slice(0, 160),
+            detail: String(u.detail).slice(0, 400),
+            date: typeof u.date === "string" ? u.date.slice(0, 24) : undefined,
+            source: typeof u.source === "string" ? u.source.slice(0, 200) : undefined
+          }))
+      : [];
+
+    // Grounding mənbə URL-lərini çıxar (varsa).
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+    const sources = Array.from(
+      new Set(
+        chunks
+          .map((c) => c.web?.uri)
+          .filter((u): u is string => typeof u === "string" && u.length > 0)
+      )
+    ).slice(0, 8);
+
+    return {
+      make,
+      model,
+      yearFrom: Math.floor(year / 5) * 5,
+      summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 400) : "",
+      updates,
+      sources
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Qlobal yenilikləri qaytarır. Prioritet:
+ *   1. In-memory cache (eyni sorğu daxilində)
+ *   2. PostgreSQL cache (deploy-lar arası davamlı; köhnədirsə fonda yenilənir)
+ *   3. Gemini + Google Search grounding → DB-yə saxla
+ * Beləliklə eyni model növbəti dəfə qarşılaşdırılanda cavab sistemdən gəlir.
+ */
+export async function generateCarGlobalUpdatesAi(
+  make: string,
+  model: string,
+  year: number
+): Promise<CarGlobalUpdates | null> {
+  const memKey = `${make}::${model}::${Math.floor(year / 5) * 5}`;
+
+  if (globalUpdatesMemCache.has(memKey)) return globalUpdatesMemCache.get(memKey)!;
+
+  await ensureGlobalUpdatesTable();
+  const cached = await getCachedGlobalUpdates(make, model, year);
+  if (cached) {
+    globalUpdatesMemCache.set(memKey, cached.data);
+    if (cached.isStale) {
+      scheduleGlobalUpdatesRefreshIfStale(make, model, year, async () => {
+        const fresh = await generateGlobalUpdatesFromGemini(make, model, year);
+        if (fresh) globalUpdatesMemCache.set(memKey, fresh);
+        return fresh;
+      });
+    }
+    return cached.data;
+  }
+
+  const generated = await generateGlobalUpdatesFromGemini(make, model, year);
+  if (generated) {
+    globalUpdatesMemCache.set(memKey, generated);
+    saveGlobalUpdatesToCache(make, model, year, generated, "ai").catch(() => {});
   }
   return generated;
 }
