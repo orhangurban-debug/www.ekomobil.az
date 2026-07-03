@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { useToast } from "@/components/ui/toast-provider";
 import { SERVICE_PROVIDER_TYPE_LABELS, type ServiceProviderType } from "@/lib/services-marketplace";
 
 interface ServiceListingItem {
@@ -42,6 +43,7 @@ export function AdminServiceListingsTable({
 }) {
   const [localItems, setLocalItems] = useState(items);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const toast = useToast();
 
   async function setStatus(id: string, status: ServiceListingItem["status"]) {
     setBusyId(id);
@@ -53,7 +55,7 @@ export function AdminServiceListingsTable({
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !payload.ok) {
-        alert(payload.error ?? "Status yenilənə bilmədi.");
+        toast.error(payload.error ?? "Status yenilənə bilmədi.");
         return;
       }
       setLocalItems((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)));

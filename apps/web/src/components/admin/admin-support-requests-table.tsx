@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog-provider";
 import type { AdminSupportRequestRow, AssignableStaff } from "@/components/admin/admin-support-types";
 import {
   PRIORITY_LABELS,
@@ -116,6 +117,7 @@ export function AdminSupportRequestsTable({
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [incidentMsg, setIncidentMsg] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     setRows(items);
@@ -285,7 +287,13 @@ export function AdminSupportRequestsTable({
 
   async function deleteSelected() {
     if (!selected || selected.status !== "archived") return;
-    if (!window.confirm("Bu arxiv müraciəti həmişəlik silinsin? Geri qaytarmaq mümkün deyil.")) return;
+    const confirmed = await confirm({
+      title: "Arxiv müraciətini sil",
+      message: "Bu arxiv müraciəti həmişəlik silinsin? Geri qaytarmaq mümkün deyil.",
+      confirmLabel: "Sil",
+      danger: true
+    });
+    if (!confirmed) return;
     setBusy(true);
     setError(null);
     try {

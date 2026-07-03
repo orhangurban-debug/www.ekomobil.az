@@ -11,6 +11,7 @@ import {
 } from "@/lib/pricing-plan-config";
 import { SERVICE_PLAN_CATEGORIES } from "@/lib/service-plans";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { useToast } from "@/components/ui/toast-provider";
 import { DEFAULT_LAUNCH_PROMO_CONFIG, isLaunchPromoActive, type LaunchPromoConfig } from "@/lib/launch-promo";
 
 interface Props {
@@ -42,6 +43,7 @@ export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Pr
     launchPromo: initialConfig.launchPromo ?? { ...DEFAULT_LAUNCH_PROMO_CONFIG }
   });
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   function patchLaunchPromo(patch: Partial<LaunchPromoConfig>) {
     setConfig((prev) => ({
@@ -151,9 +153,9 @@ export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Pr
       const payload = (await response.json()) as { ok: boolean; error?: string; config?: PricingPlanAdminConfig };
       if (!payload.ok || !payload.config) throw new Error(payload.error || "Yadda saxlama alınmadı");
       setConfig(payload.config);
-      alert("Plan ayarları saxlanıldı.");
+      toast.success("Plan ayarları saxlanıldı.");
     } catch {
-      alert("Plan ayarları saxlanmadı.");
+      toast.error("Plan ayarları saxlanmadı.");
     } finally {
       setBusy(false);
     }

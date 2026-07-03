@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 type UserRole = "admin" | "support" | "dealer" | "viewer";
 type UserStatus = "active" | "suspended" | "review";
@@ -41,6 +42,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
   const [rows, setRows] = useState(users);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
+  const toast = useToast();
 
   async function updateRole(userId: string, role: UserRole) {
     setBusyId(userId);
@@ -56,7 +58,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
       if (!payload.ok) throw new Error(payload.error || "Rol yenilənmədi");
     } catch {
       setRows(prev);
-      alert("Rol yenilənmədi");
+      toast.error("Rol yenilənmədi");
     } finally {
       setBusyId(null);
     }
@@ -76,7 +78,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
       if (!payload.ok) throw new Error(payload.error || "Status yenilənmədi");
     } catch {
       setRows(prev);
-      alert("Status yenilənmədi");
+      toast.error("Status yenilənmədi");
     } finally {
       setBusyId(null);
     }
@@ -99,7 +101,7 @@ export function UserManagementTable({ users, canEditRoles = false }: Props) {
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Toplu status yenilənmədi");
+      toast.error("Toplu status yenilənmədi");
     } finally {
       setBulkBusy(false);
     }

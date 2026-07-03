@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { BrandImageAsset, BrandSettings } from "@/lib/brand-settings";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Props {
   initial: BrandSettings;
@@ -13,6 +14,7 @@ interface Props {
 export function BrandKitSettingsForm({ initial, readOnly = false }: Props) {
   const [form, setForm] = useState<BrandSettings>(initial);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   const galleryPreview = useMemo(
     () => form.gallery.filter((item) => item.url.trim().length > 0),
@@ -54,11 +56,11 @@ export function BrandKitSettingsForm({ initial, readOnly = false }: Props) {
       });
       const payload = (await response.json()) as { ok: boolean; error?: string; settings?: BrandSettings };
       if (!response.ok || !payload.ok || !payload.settings) {
-        alert(payload.error ?? "Brend ayarları saxlanmadı.");
+        toast.error(payload.error ?? "Brend ayarları saxlanmadı.");
         return;
       }
       setForm(payload.settings);
-      alert("Brend ayarları yadda saxlanıldı. Saytda avtomatik yenilənəcək.");
+      toast.success("Brend ayarları yadda saxlanıldı. Saytda avtomatik yenilənəcək.");
     } finally {
       setBusy(false);
     }

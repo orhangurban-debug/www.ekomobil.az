@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog-provider";
 import type { AuctionListingDocumentRecord } from "@/lib/auction-documents";
 import {
   AUCTION_DOCUMENT_MAX_BYTES,
@@ -22,6 +23,7 @@ export function AuctionDocumentsManager({
   const [error, setError] = useState<string | null>(null);
   const [docType, setDocType] = useState<string>(AUCTION_DOCUMENT_TYPES[0]);
   const [file, setFile] = useState<File | null>(null);
+  const confirm = useConfirm();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,7 +84,8 @@ export function AuctionDocumentsManager({
   }
 
   async function onDelete(docId: string) {
-    if (!window.confirm("Bu sənədi silmək istəyirsiniz?")) return;
+    const confirmed = await confirm({ message: "Bu sənədi silmək istəyirsiniz?", confirmLabel: "Sil", danger: true });
+    if (!confirmed) return;
     setError(null);
     try {
       const res = await fetch(`/api/auctions/${auctionId}/documents/${docId}`, { method: "DELETE" });

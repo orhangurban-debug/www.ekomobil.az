@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface AdminIncidentCase {
   id: string;
@@ -52,6 +53,7 @@ function derivedOpsHref(item: AdminIncidentCase): string | null {
 export function AdminIncidentsTable({ items }: { items: AdminIncidentCase[] }) {
   const [rows, setRows] = useState(items);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const toast = useToast();
 
   async function updateIncidentStatus(id: string, status: string) {
     setBusyId(id);
@@ -67,7 +69,7 @@ export function AdminIncidentsTable({ items }: { items: AdminIncidentCase[] }) {
       if (!payload.ok) throw new Error(payload.error || "İnsident yenilənməsi uğursuz oldu");
     } catch {
       setRows(prev);
-      alert("İnsident yenilənməsi uğursuz oldu");
+      toast.error("İnsident yenilənməsi uğursuz oldu");
     } finally {
       setBusyId(null);
     }

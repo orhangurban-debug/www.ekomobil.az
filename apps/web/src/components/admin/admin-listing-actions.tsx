@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Props {
   listingId: string;
@@ -22,6 +23,7 @@ export function AdminListingActions({ listingId, currentStatus, listingTitle }: 
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   async function updateStatus(newStatus: string) {
     if (busy || newStatus === status) return;
@@ -37,7 +39,7 @@ export function AdminListingActions({ listingId, currentStatus, listingTitle }: 
       setStatus(newStatus);
       router.refresh();
     } catch {
-      alert("Status yenilənmədi");
+      toast.error("Status yenilənmədi");
     } finally {
       setBusy(false);
     }

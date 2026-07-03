@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 export function AdminCreateIncidentForm() {
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
   const [form, setForm] = useState({
     subjectType: "listing",
     subjectId: "",
@@ -34,7 +36,7 @@ export function AdminCreateIncidentForm() {
       });
       window.location.reload();
     } catch {
-      alert("Hal yaradılmadı");
+      toast.error("Hal yaradılmadı");
     } finally {
       setBusy(false);
     }

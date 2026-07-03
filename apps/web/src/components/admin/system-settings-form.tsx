@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Props {
   auctionMode: "BETA_FIN_ONLY" | "STRICT_PRE_AUTH";
@@ -15,6 +16,7 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty, r
   const [vehicle, setVehicle] = useState(vehiclePenalty);
   const [part, setPart] = useState(partPenalty);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   async function save() {
     setBusy(true);
@@ -29,9 +31,9 @@ export function SystemSettingsForm({ auctionMode, vehiclePenalty, partPenalty, r
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
       if (!payload.ok) throw new Error(payload.error || "Parametrlər saxlanmadı");
-      alert("Parametrlər uğurla saxlanıldı");
+      toast.success("Parametrlər uğurla saxlanıldı");
     } catch {
-      alert("Parametrlər saxlanmadı");
+      toast.error("Parametrlər saxlanmadı");
     } finally {
       setBusy(false);
     }

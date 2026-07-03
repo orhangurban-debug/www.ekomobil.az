@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface AdminListingRow {
   id: string;
@@ -64,6 +65,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
   const [editModal, setEditModal] = useState<EditModalState | null>(null);
   const [editBusy, setEditBusy] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const toast = useToast();
 
   async function bulkUpdate(status: string) {
     if (busy) return;
@@ -83,7 +85,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Toplu yeniləmə uğursuz oldu");
+      toast.error("Toplu yeniləmə uğursuz oldu");
     } finally {
       setBusy(false);
     }
@@ -102,7 +104,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
       if (!payload.ok) throw new Error(payload.error);
     } catch {
       setRows(prev);
-      alert("Status yenilənmədi");
+      toast.error("Status yenilənmədi");
     }
   }
 
@@ -131,7 +133,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
       );
       setEditModal(null);
     } catch {
-      alert("Dəyişiklik saxlanılmadı");
+      toast.error("Dəyişiklik saxlanılmadı");
     } finally {
       setEditBusy(false);
     }
@@ -149,7 +151,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
         return next;
       });
     } catch {
-      alert("Elan silinmədi");
+      toast.error("Elan silinmədi");
     } finally {
       setDeleteConfirm(null);
     }

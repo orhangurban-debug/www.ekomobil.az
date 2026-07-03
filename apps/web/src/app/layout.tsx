@@ -5,6 +5,8 @@ import { type CSSProperties, ReactNode } from "react";
 import { AiChatPanel } from "@/components/ai/ai-chat-panel";
 import { CompareBar } from "@/components/compare/compare-bar";
 import { CompareProvider } from "@/components/compare/compare-context";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog-provider";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getServerSessionUser } from "@/lib/auth";
@@ -133,13 +135,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
-        <CompareProvider>
-          <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} />
-          <main className="flex-1 pb-20">{children}</main>
-          <Footer logoUrl={logoPath} />
-          <CompareBar />
-          <AiChatPanel />
-        </CompareProvider>
+        <ToastProvider>
+          <ConfirmDialogProvider>
+            <CompareProvider>
+              <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} />
+              <main className="flex-1 pb-20">{children}</main>
+              <Footer logoUrl={logoPath} />
+              <CompareBar />
+              <AiChatPanel />
+            </CompareProvider>
+          </ConfirmDialogProvider>
+        </ToastProvider>
       </body>
     </html>
   );

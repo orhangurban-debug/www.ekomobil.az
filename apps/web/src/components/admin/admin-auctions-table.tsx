@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface AdminAuctionRow {
   id: string;
@@ -31,6 +32,7 @@ const AUCTION_STATUS_LABELS: Record<string, string> = {
 export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
   const [rows, setRows] = useState(items);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const toast = useToast();
 
   async function updateControl(row: AdminAuctionRow, patch: { freezeBidding?: boolean; forceManualReview?: boolean }) {
     setBusyId(row.id);
@@ -54,7 +56,7 @@ export function AdminAuctionsTable({ items }: { items: AdminAuctionRow[] }) {
       if (!payload.ok) throw new Error(payload.error || "Auksion idarəetmə yenilənməsi uğursuz oldu");
     } catch {
       setRows(prev);
-      alert("Auksion idarəetmə yenilənməsi uğursuz oldu");
+      toast.error("Auksion idarəetmə yenilənməsi uğursuz oldu");
     } finally {
       setBusyId(null);
     }

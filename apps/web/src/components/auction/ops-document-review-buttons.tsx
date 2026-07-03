@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 
 export function OpsDocumentReviewButtons({
   docId,
@@ -13,6 +14,7 @@ export function OpsDocumentReviewButtons({
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const toast = useToast();
 
   async function review(status: "approved" | "rejected") {
     setBusy(status);
@@ -25,13 +27,13 @@ export function OpsDocumentReviewButtons({
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (!data.ok) {
-        window.alert(data.error || "Əməliyyat alınmadı");
+        toast.error(data.error || "Əməliyyat alınmadı");
         return;
       }
       setNote("");
       router.refresh();
     } catch {
-      window.alert("Əməliyyat zamanı şəbəkə xətası baş verdi");
+      toast.error("Əməliyyat zamanı şəbəkə xətası baş verdi");
     } finally {
       setBusy(null);
     }

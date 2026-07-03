@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
+import { useConfirm } from "@/components/ui/confirm-dialog-provider";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface BusinessProfileItem {
   dealerId: string;
@@ -29,6 +31,8 @@ export function AdminBusinessProfilesTable({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [localItems, setLocalItems] = useState(items);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   async function patch(
     dealerId: string,
@@ -43,7 +47,7 @@ export function AdminBusinessProfilesTable({
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !payload.ok) {
-        alert(payload.error ?? "Yeniləmə uğursuz oldu.");
+        toast.error(payload.error ?? "Yeniləmə uğursuz oldu.");
         return;
       }
       setLocalItems((prev) =>
@@ -73,10 +77,10 @@ export function AdminBusinessProfilesTable({
     label: string
   ) {
     if (selectedIds.length === 0) {
-      alert("Əvvəl ən azı 1 profil seçin.");
+      toast.error("Əvvəl ən azı 1 profil seçin.");
       return;
     }
-    const confirmed = confirm(
+    const confirmed = await confirm(
       `${selectedIds.length} profil üçün "${label}" əməliyyatını tətbiq etmək istəyirsiniz?`
     );
     if (!confirmed) return;
@@ -89,13 +93,13 @@ export function AdminBusinessProfilesTable({
       });
       const payload = (await response.json()) as { ok: boolean; error?: string; updatedCount?: number };
       if (!response.ok || !payload.ok) {
-        alert(payload.error ?? "Toplu əməliyyat uğursuz oldu.");
+        toast.error(payload.error ?? "Toplu əməliyyat uğursuz oldu.");
         return;
       }
       setLocalItems((prev) =>
         prev.map((item) => (selectedIds.includes(item.dealerId) ? { ...item, ...patchData } : item))
       );
-      alert(`Toplu əməliyyat tamamlandı. Yenilənən profil sayı: ${payload.updatedCount ?? selectedIds.length}`);
+      toast.success(`Toplu əməliyyat tamamlandı. Yenilənən profil sayı: ${payload.updatedCount ?? selectedIds.length}`);
       setSelectedIds([]);
     } finally {
       setBulkBusy(false);

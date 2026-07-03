@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast-provider";
 import { LEAD_STAGE_OPTIONS } from "@/lib/admin-leads";
 
 interface AdminLeadRow {
@@ -20,6 +21,7 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const toast = useToast();
 
   async function updateStage(leadIds: string[], stage: string) {
     if (leadIds.length === 0) return;
@@ -46,7 +48,7 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
       setSelected({});
     } catch {
       setRows(prev);
-      alert("Toplu mərhələ yenilənməsi uğursuz oldu");
+      toast.error("Toplu mərhələ yenilənməsi uğursuz oldu");
     } finally {
       setBusy(false);
     }
@@ -60,7 +62,7 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
       await updateStage([id], stage);
     } catch {
       setRows(prev);
-      alert("Mərhələ yenilənməsi uğursuz oldu");
+      toast.error("Mərhələ yenilənməsi uğursuz oldu");
     } finally {
       setBusyId(null);
     }
