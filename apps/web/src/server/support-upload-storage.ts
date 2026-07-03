@@ -1,6 +1,7 @@
-import { mkdirSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { mkdirSync, createReadStream } from "node:fs";
+import { access, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 function resolveStorageMode(): "local" | "vercel_blob" {
   const explicit = process.env.SUPPORT_UPLOAD_STORAGE;
@@ -19,24 +20,23 @@ function sanitizeFilename(name: string): string {
   return base || "file";
 }
 
+/** `full` yolunun həqiqətən `root` qovluğunun içində olduğunu təsdiqləyir (traversal qoruması). */
+function isInsideRoot(root: string, full: string): boolean {
+  const relative = path.relative(root, full);
+  return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+/** Blob pathname təhlükəsizdirmi (traversal yoxdur). */
+function isSafeRelativePath(relative: string): boolean {
+  if (!relative || relative.includes("..") || relative.startsWith("/")) return false;
+  return true;
+}
+
 export class UploadStorageError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "UploadStorageError";
   }
-}
-
-/**
- * Public marketinq şəkilləri (reklam kreativləri, ana səhifə) üçün token.
- * Auksion sənədləri private store-dadır — marketinq üçün public store lazımdır.
- * Ayrıca public store token-i varsa onu istifadə edir, yoxdursa əsas token-ə düşür.
- */
-function marketingBlobToken(): string | undefined {
-  return (
-    process.env.BLOB_MARKETING_READ_WRITE_TOKEN ||
-    process.env.BLOB_PUBLIC_READ_WRITE_TOKEN ||
-    process.env.BLOB_READ_WRITE_TOKEN
-  );
 }
 
 /** Admin panel / upload UI üçün — saxlama hazırdırmı? */
@@ -46,71 +46,22 @@ export function getUploadStorageReadiness(): {
   message?: string;
 } {
   const mode = resolveStorageMode();
-  if (mode === "vercel_blob" && !marketingBlobToken()) {
+  if (mode === "vercel_blob" && !process.env.BLOB_READ_WRITE_TOKEN) {
     return {
       mode,
       ready: false,
       message:
-        "Public Blob token təyin olunmayıb. Vercel → Storage → public store yaradın və layihəyə BLOB_MARKETING prefiksi ilə bağlayın (read-write token seçimi ilə)."
+        "BLOB_READ_WRITE_TOKEN Vercel-də təyin olunmayıb. Project Settings → Storage → Blob → token əlavə edin və redeploy edin."
     };
   }
   return { mode, ready: true };
 }
 
 /**
- * Public marketinq faylı yükləyir (reklam/ana səhifə şəkilləri).
- * Public Blob store tələb olunur — private store-a public yükləmə mümkün deyil.
+ * Faylı saxlayır. Vercel Blob rejimində fayl **private** yüklənir və daxili
+ * proxy route (`/api/support/uploads/file/...`) vasitəsilə token ilə oxunur.
+ * Bu, private store ilə də işləyir — ayrıca public store tələb olunmur.
  */
-export async function persistPublicMarketingFile(input: {
-  folder: string;
-  fileId: string;
-  originalFilename: string;
-  buffer: Buffer;
-  mimeType: string;
-}): Promise<{ storageBackend: "local" | "vercel_blob"; url: string }> {
-  const mode = resolveStorageMode();
-  const safeName = sanitizeFilename(input.originalFilename);
-
-  if (mode === "vercel_blob") {
-    const token = marketingBlobToken();
-    if (!token) {
-      throw new UploadStorageError(
-        "Public Blob token təyin olunmayıb. Marketinq şəkilləri üçün public store lazımdır."
-      );
-    }
-    try {
-      const { put } = await import("@vercel/blob");
-      const pathname = `${input.folder}/${input.fileId}-${safeName}`;
-      const result = await put(pathname, input.buffer, {
-        access: "public",
-        token,
-        contentType: input.mimeType,
-        addRandomSuffix: false
-      });
-      return { storageBackend: "vercel_blob", url: result.url };
-    } catch (err) {
-      const raw = err instanceof Error ? err.message : "Vercel Blob yükləməsi uğursuz oldu.";
-      const msg = /private access|public access on a private/i.test(raw)
-        ? "Seçilmiş Blob store private-dir. Reklam/ana səhifə şəkilləri üçün Vercel-də AYRICA public store yaradın və BLOB_MARKETING prefiksi ilə bağlayın."
-        : raw;
-      throw new UploadStorageError(msg);
-    }
-  }
-
-  try {
-    const root = localRoot();
-    const dir = path.join(root, input.folder);
-    mkdirSync(dir, { recursive: true });
-    const relative = `${input.folder}/${input.fileId}-${safeName}`;
-    const full = path.join(root, relative);
-    await writeFile(full, input.buffer);
-    return { storageBackend: "local", url: `/api/support/uploads/file/${relative}` };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Lokal fayl yazıla bilmədi.";
-    throw new UploadStorageError(msg);
-  }
-}
-
 export async function persistSupportUploadFile(input: {
   folder: string;
   fileId: string;
@@ -120,6 +71,7 @@ export async function persistSupportUploadFile(input: {
 }): Promise<{ storageBackend: "local" | "vercel_blob"; url: string }> {
   const mode = resolveStorageMode();
   const safeName = sanitizeFilename(input.originalFilename);
+  const pathname = `${input.folder}/${input.fileId}-${safeName}`;
 
   if (mode === "vercel_blob") {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
@@ -130,14 +82,13 @@ export async function persistSupportUploadFile(input: {
     }
     try {
       const { put } = await import("@vercel/blob");
-      const pathname = `${input.folder}/${input.fileId}-${safeName}`;
-      const result = await put(pathname, input.buffer, {
-        access: "public",
+      await put(pathname, input.buffer, {
+        access: "private",
         token,
         contentType: input.mimeType,
         addRandomSuffix: false
       });
-      return { storageBackend: "vercel_blob", url: result.url };
+      return { storageBackend: "vercel_blob", url: `/api/support/uploads/file/${pathname}` };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Vercel Blob yükləməsi uğursuz oldu.";
       throw new UploadStorageError(msg);
@@ -148,12 +99,68 @@ export async function persistSupportUploadFile(input: {
     const root = localRoot();
     const dir = path.join(root, input.folder);
     mkdirSync(dir, { recursive: true });
-    const relative = `${input.folder}/${input.fileId}-${safeName}`;
-    const full = path.join(root, relative);
+    const full = path.join(root, pathname);
     await writeFile(full, input.buffer);
-    return { storageBackend: "local", url: `/api/support/uploads/file/${relative}` };
+    return { storageBackend: "local", url: `/api/support/uploads/file/${pathname}` };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Lokal fayl yazıla bilmədi.";
     throw new UploadStorageError(msg);
   }
+}
+
+/**
+ * Reklam kreativləri / ana səhifə şəkilləri üçün alias.
+ * Fayllar private saxlanır və proxy route üzərindən publik göstərilir.
+ */
+export const persistPublicMarketingFile = persistSupportUploadFile;
+
+function inferContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".pdf") return "application/pdf";
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".heic") return "image/heic";
+  if (ext === ".heif") return "image/heif";
+  if (ext === ".svg") return "image/svg+xml";
+  return "image/jpeg";
+}
+
+/**
+ * Saxlanmış faylı oxuyur (proxy serving route üçün).
+ * Blob rejimində private blob token ilə oxunur; lokal rejimdə diskdən.
+ * Fayl tapılmasa `null` qaytarır.
+ */
+export async function readSupportUploadFile(
+  relativePath: string
+): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string } | null> {
+  if (!isSafeRelativePath(relativePath)) return null;
+  const mode = resolveStorageMode();
+
+  if (mode === "vercel_blob") {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) return null;
+    try {
+      const { get } = await import("@vercel/blob");
+      const result = await get(relativePath, { access: "private", token });
+      if (!result || result.statusCode !== 200 || !result.stream) return null;
+      return {
+        stream: result.stream,
+        contentType: result.blob.contentType || inferContentType(relativePath)
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  const root = localRoot();
+  const full = path.resolve(root, relativePath);
+  if (!isInsideRoot(root, full)) return null;
+  try {
+    await access(full);
+  } catch {
+    return null;
+  }
+  const stream = Readable.toWeb(createReadStream(full)) as ReadableStream<Uint8Array>;
+  return { stream, contentType: inferContentType(full) };
 }

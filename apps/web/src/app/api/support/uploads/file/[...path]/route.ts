@@ -1,32 +1,17 @@
-import path from "node:path";
-import { createReadStream } from "node:fs";
-import { access } from "node:fs/promises";
-import { Readable } from "node:stream";
 import { getServerSessionUser } from "@/lib/auth";
+import { readSupportUploadFile } from "@/server/support-upload-storage";
 
-function localRoot(): string {
-  return process.env.SUPPORT_UPLOADS_DIR || path.join(process.cwd(), ".support-uploads");
-}
+export const runtime = "nodejs";
 
-/** `full` yolunun həqiqətən `root` qovluğunun içində olduğunu təsdiqləyir (traversal qoruması). */
-function isInsideRoot(root: string, full: string): boolean {
-  const relative = path.relative(root, full);
-  return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
-}
-
-function inferContentType(filePath: string): string {
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext === ".pdf") return "application/pdf";
-  if (ext === ".png") return "image/png";
-  if (ext === ".webp") return "image/webp";
-  if (ext === ".heic") return "image/heic";
-  if (ext === ".heif") return "image/heif";
-  return "image/jpeg";
-}
-
-// Publik marketinq media qovluqları — reklam kreativləri və ana səhifə şəkilləri
-// ziyarətçilərə açıqdır (auth tələb olunmur). Digər qovluqlar həssasdır.
-const PUBLIC_FOLDERS = new Set(["ad-creatives", "home-content"]);
+// Publik marketinq/media qovluqları — ziyarətçilərə açıqdır (auth tələb olunmur).
+// Digər qovluqlar (dəstək/hüquqi sənədlər) həssasdır və auth tələb edir.
+const PUBLIC_FOLDERS = new Set([
+  "ad-creatives",
+  "home-content",
+  "listing-images",
+  "support-images",
+  "support-certificates"
+]);
 
 export async function GET(_req: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path: parts } = await context.params;
@@ -37,28 +22,21 @@ export async function GET(_req: Request, context: { params: Promise<{ path: stri
   const isPublic = PUBLIC_FOLDERS.has(parts[0]);
 
   if (!isPublic) {
-    // Dəstək/hüquqi/partnyor sənədləri həssasdır — yalnız daxil olmuş istifadəçilərə verilir.
     const sessionUser = await getServerSessionUser();
     if (!sessionUser) {
       return new Response("Unauthorized", { status: 401 });
     }
   }
 
-  const root = localRoot();
   const relative = parts.join("/");
-  const full = path.resolve(root, relative);
-  if (!isInsideRoot(root, full)) {
-    return new Response("Forbidden", { status: 403 });
-  }
-  try {
-    await access(full);
-  } catch {
+  const file = await readSupportUploadFile(relative);
+  if (!file) {
     return new Response("Not found", { status: 404 });
   }
-  const stream = Readable.toWeb(createReadStream(full)) as ReadableStream<Uint8Array>;
-  return new Response(stream as unknown as ReadableStream, {
+
+  return new Response(file.stream as unknown as ReadableStream, {
     headers: {
-      "Content-Type": inferContentType(full),
+      "Content-Type": file.contentType,
       "Cache-Control": isPublic
         ? "public, max-age=3600"
         : // Həssas məzmun — private cache, uzunmüddətli immutable saxlama yoxdur.
