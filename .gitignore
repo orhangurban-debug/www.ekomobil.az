@@ -11,5 +11,7 @@ apps/web/.next
 apps/web/.env
 .auction-documents
 apps/web/.auction-documents
+.support-uploads
+apps/web/.support-uploads
 *.tsbuildinfo
 .vercel

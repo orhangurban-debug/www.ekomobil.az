@@ -158,16 +158,30 @@ async function hasListingBoostActivationsTable(): Promise<boolean> {
   }
 }
 
+/**
+ * Qeyd: bu bazar-qiyməti aralığı YALNIZ işlənmiş AVTOMOBİL elanları üçün nəzərdə tutulub
+ * (22 000–33 000 ₼ təxmini orta bazar seqmenti). Hissə/aksesuar elanları (adətən 5–5000 ₼
+ * aralığında) bu funksiyaya ötürülməməlidir — əks halda demək olar ki, HƏR hissə elanı
+ * yanlış olaraq "Bazar altı" nişanı alır (bax: çağıran yer — `listingKind === "vehicle"` yoxlaması).
+ */
 function inferPriceInsight(priceAzn: number): PriceInsight {
   if (priceAzn < 22000) return "below_market";
   if (priceAzn > 33000) return "above_market";
   return "market_rate";
 }
 
+/**
+ * Elan şəkilləri həmişə öz upload proxy-mizdən (`/api/...`) və ya `data:image/...`
+ * base64 formatında gəlir (bax: `/api/media/listing-images`, `persistSupportUploadFile`).
+ * İxtiyari xarici host-lardan `https://` şəkil linklərinə icazə vermək TƏHLÜKƏLİDİR:
+ * `next/image` konfiqurasiya edilməmiş host görəndə render zamanı XƏTA ATIR və bütövlükdə
+ * səhifəni (`/listings`, `/parts`, elan detalı və s.) BÜTÜN ziyarətçilər üçün çökdürür —
+ * yəni istənilən autentifikasiya olunmuş istifadəçi bilərəkdən/səhvən API-yə birbaşa
+ * sorğu göndərərək (UI-ı keçərək) ictimai səhifələr üçün DoS yarada bilər.
+ */
 function sanitizeMediaUrl(url: string): string | null {
   const normalized = url.trim();
   if (!normalized) return null;
-  if (/^https?:\/\//i.test(normalized)) return normalized;
   if (/^\//.test(normalized)) return normalized;
   if (/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(normalized)) return normalized;
   return null;
@@ -281,7 +295,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     serviceHistorySummary: row.service_history_summary ?? undefined,
     riskSummary: row.risk_summary ?? undefined,
     lastVerifiedAt: row.last_verified_at?.toISOString(),
-    priceInsight: inferPriceInsight(row.price_azn)
+    priceInsight: row.listing_kind === "part" ? undefined : inferPriceInsight(row.price_azn)
   };
 }
 
@@ -1016,11 +1030,8 @@ export async function countConcurrentFreeVehicleListingsForUser(userId: string):
         WHERE COALESCE(l.plan_type, 'free') = 'free'
           AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
           AND l.status IN ('active', 'pending_review')
-          AND (
-            l.owner_user_id = $1 OR l.dealer_profile_id IN (
-              SELECT id FROM dealer_profiles WHERE owner_user_id = $1
-            )
-          )
+          AND COALESCE(l.seller_type, 'private') = 'private'
+          AND l.owner_user_id = $1
       `,
       [userId]
     );

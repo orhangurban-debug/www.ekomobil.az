@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import { CarFront } from "lucide-react";
 import { ListingCard } from "@/components/listings/listing-card";
@@ -190,13 +191,13 @@ export default async function ListingsPage({
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {result.items.map((listing, idx) => (
-                <>
-                  <ListingCard key={listing.id} listing={listing} variant="premium" />
+                <Fragment key={listing.id}>
+                  <ListingCard listing={listing} variant="premium" />
                   {/* Hər 6 kartdan sonra native ad */}
                   {(idx + 1) % 6 === 0 && idx < result.items.length - 1 && listingsInlineAd?.enabled && (
                     <NativeAdCard key={`ad-${idx}`} slotConfig={listingsInlineAd} />
                   )}
-                </>
+                </Fragment>
               ))}
             </div>
           )}

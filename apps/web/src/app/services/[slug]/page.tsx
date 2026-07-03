@@ -4,6 +4,12 @@ import type { Metadata } from "next";
 import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 import { getApprovedServiceListingBySlug } from "@/server/service-listing-store";
 
+// Admin təsdiqləri istənilən vaxt baş verə bilər (yeni servis təsdiqlənməsi/rədd edilməsi),
+// ona görə bu səhifə Full Route Cache-ə salınmamalıdır — əks halda yeni təsdiqlənmiş profillər
+// keş təzələnənə qədər 404 qala bilər (məsələn, `dynamicParams` fallback keşləməsi ilk sorğuda
+// baş verən keçici bir xətanı belə əbədi keşləyə bilər).
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

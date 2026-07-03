@@ -33,7 +33,19 @@ interface ServiceListingRow {
   created_at: Date;
 }
 
+let serviceListingsTableEnsured = false;
+
+/**
+ * DİQQƏT: bu funksiya əvvəllər HƏR çağırışda `CREATE TABLE/INDEX IF NOT EXISTS` DDL-ini
+ * yenidən işə salırdı. Next.js-in eyni marşrutu üçün paralel sorğular olanda (məsələn,
+ * `<Link>` prefetch + real naviqasiya demək olar ki, eyni anda) bu, Postgres-də konkurrent
+ * "CREATE INDEX IF NOT EXISTS" DDL-lərinin toqquşmasına səbəb ola bilirdi (well-known Postgres
+ * race — paralel DDL bəzən "tuple concurrently updated" xətası atır), nəticədə sorğulardan
+ * biri səssizcə uğursuz olub 404 kimi görünürdü. Digər `ensureXTable()` funksiyaları kimi
+ * (bax: `bootstrap-seed.ts`), DDL-i prosesin ömrü boyunca YALNIZ BİR DƏFƏ icra edirik.
+ */
 async function ensureServiceListingsTable(): Promise<void> {
+  if (serviceListingsTableEnsured) return;
   try {
     const pool = getPgPool();
     await pool.query(`
@@ -65,6 +77,7 @@ async function ensureServiceListingsTable(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_service_listings_city ON service_listings (city);
       CREATE INDEX IF NOT EXISTS idx_service_listings_created_at ON service_listings (created_at DESC);
     `);
+    serviceListingsTableEnsured = true;
   } catch {
     // Non-blocking safety net — migration 048_service_listings.sql is the source of truth.
   }
@@ -178,12 +191,31 @@ export async function listApprovedServiceListings(filter?: {
       values
     );
     return result.rows.map(mapRow);
-  } catch {
+  } catch (error) {
+    console.error("listApprovedServiceListings failed:", error);
     return [];
   }
 }
 
-export async function getApprovedServiceListingBySlug(slug: string): Promise<ServiceListingRecord | null> {
+/**
+ * Next.js 16 (Turbopack, dev) bəzən dinamik seqment parametrini (`params.slug`) eyni sorğu
+ * daxilində `generateMetadata` və səhifə komponentinə FƏRQLİ formada ötürür — biri artıq
+ * decode olunmuş (məs. "bakı"), digəri isə hələ percent-encoded («bak%C4%B1») qalır. Bu,
+ * qeyri-müəyyən şəkildə hansı çağırışın uğursuz olacağına səbəb olur (bax: uzun müddət
+ * debug edilmiş flaky 404 bug-ı — slug DB-də mövcud idi, amma təsadüfi "tapılmadı" alınırdı).
+ * Bunun qarşısını almaq üçün slug-u burada, sorğu göndərilməzdən əvvəl, DƏYİŞMƏZ şəkildə
+ * decode edirik — artıq decode olunmuşsa bu əməliyyat no-op olur.
+ */
+function normalizeSlugParam(slug: string): string {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
+}
+
+export async function getApprovedServiceListingBySlug(rawSlug: string): Promise<ServiceListingRecord | null> {
+  const slug = normalizeSlugParam(rawSlug);
   try {
     await ensureServiceListingsTable();
     const pool = getPgPool();
@@ -193,7 +225,8 @@ export async function getApprovedServiceListingBySlug(slug: string): Promise<Ser
     );
     const row = result.rows[0];
     return row ? mapRow(row) : null;
-  } catch {
+  } catch (error) {
+    console.error(`getApprovedServiceListingBySlug failed for slug ${slug}:`, error);
     return null;
   }
 }

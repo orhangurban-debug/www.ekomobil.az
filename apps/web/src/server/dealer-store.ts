@@ -179,7 +179,16 @@ export async function getDealerDashboard(userId: string): Promise<{
         vinVerified: row.vin_verified ?? false,
         sellerVerified: row.seller_verified ?? false,
         mediaComplete: row.media_complete ?? false,
-        priceInsight: row.price_azn < 25000 ? "below_market" : row.price_azn > 35000 ? "above_market" : "market_rate"
+        // Bazar-qiyməti aralığı yalnız avtomobil elanları üçün mənalıdır — hissə elanları
+        // (adətən 5-5000 ₼) bu aralıqla müqayisə olunanda yanlış olaraq həmişə "Bazar altı" alır.
+        priceInsight:
+          row.listing_kind === "part"
+            ? undefined
+            : row.price_azn < 25000
+              ? "below_market"
+              : row.price_azn > 35000
+                ? "above_market"
+                : "market_rate"
       })),
       leads: leadsResult.rows.map(mapLead)
     };
@@ -481,7 +490,14 @@ export async function getPublicDealerProfile(
       vinVerified: r.vin_verified ?? false,
       sellerVerified: r.seller_verified ?? false,
       mediaComplete: r.media_complete ?? false,
-      priceInsight: r.price_azn < 22000 ? "below_market" : r.price_azn > 50000 ? "above_market" : "market_rate"
+      priceInsight:
+        r.listing_kind === "part"
+          ? undefined
+          : r.price_azn < 22000
+            ? "below_market"
+            : r.price_azn > 50000
+              ? "above_market"
+              : "market_rate"
     }));
 
     return {

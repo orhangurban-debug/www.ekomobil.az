@@ -28,7 +28,11 @@ const SUSPICIOUS_TEXT_PATTERNS: RegExp[] = [
   /instagram\.com/i,
   /@[\w.]{3,}/i,
   /https?:\/\//i,
-  /\+?\d[\d\s\-()]{6,}/
+  // Telefon nömrəsi bənzəri ardıcıllıq: ən azı 9 rəqəm (AZ nömrələri 9-12 rəqəmdən ibarətdir).
+  // Əvvəlki versiya "\d[\d\s\-()]{6,}" idi — bu, "Model 3 (2022)", "911 (2020)", "308 (2018)"
+  // kimi rəqəmli model adı + mötərizədə il olan tamamilə normal elan mətnlərini yalnış olaraq
+  // spam kimi işarələyirdi, çünki hər təkrarda ən azı 1 rəqəm tələb etmirdi.
+  /\+?(?:\d[\s\-()]*){9,}/
 ];
 
 function containsSuspiciousText(value: string | undefined): boolean {
