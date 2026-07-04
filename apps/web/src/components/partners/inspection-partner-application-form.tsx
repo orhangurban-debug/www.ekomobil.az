@@ -23,6 +23,14 @@ const PROVIDER_GROUPS = [
     ]
   },
   {
+    groupId: "maintenance",
+    groupLabel: "Baxım və diaqnostika",
+    types: [
+      { value: "oil_change", label: "Yağ dəyişmə / texniki baxım", icon: "🛢️" },
+      { value: "diagnostics", label: "Diaqnostika mərkəzi", icon: "📊" }
+    ]
+  },
+  {
     groupId: "mechanic",
     groupLabel: "Mexanik və bərpa",
     types: [
@@ -61,6 +69,22 @@ const PROVIDER_GROUPS = [
     groupLabel: "Şin və texeraltı",
     types: [
       { value: "tire_wheel", label: "Şin balansı / texeraltı", icon: "🛞" }
+    ]
+  },
+  {
+    groupId: "appearance",
+    groupLabel: "Görünüş və baxım",
+    types: [
+      { value: "car_wash", label: "Avtomobil yuma", icon: "🫧" },
+      { value: "detailing", label: "Deteylinq / bərpa", icon: "✨" },
+      { value: "tinting_wrap", label: "Tinting / vinyl örtük", icon: "🪟" }
+    ]
+  },
+  {
+    groupId: "roadside",
+    groupLabel: "Yol kənarı yardım",
+    types: [
+      { value: "roadside_assistance", label: "Yol kənarı yardım", icon: "🚨" }
     ]
   }
 ] as const;
@@ -243,6 +267,81 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
     "Disk satışı",
     "TPMS sıfırlama",
     "Şin keçirilməsi"
+  ],
+  oil_change: [
+    "Mühərrik yağı dəyişimi",
+    "Süzgəc dəyişimi (yağ, hava, yakıt, salon)",
+    "Transmissiya yağı",
+    "Diferensial yağı",
+    "Soyuducu dəyişimi",
+    "Tormoz mayesi",
+    "Ötürücü yağı",
+    "Direksiyon mayesi",
+    "Cihaz lenti dəyişimi",
+    "Bujilər",
+    "Periodik baxım (TO)",
+    "Yakıt sistemi təmizliyi"
+  ],
+  diagnostics: [
+    "OBD-II diaqnostika",
+    "Xəta kodlarının oxunması",
+    "Motor diaqnostika",
+    "ABS/SRS diaqnostika",
+    "Elektrik sistemi diaqnostika",
+    "Yanacaq sistemi diaqnostika",
+    "Şassi diaqnostika",
+    "Ötürücü diaqnostika",
+    "Pre-purchase yoxlama",
+    "Sızdırmazlıq yoxlama",
+    "Kompressiya ölçümü"
+  ],
+  car_wash: [
+    "Əl ilə yuma",
+    "Kontaktsız yuma",
+    "İç salon təmizliyi",
+    "Buxar ilə yuma",
+    "Motor yuma",
+    "Bagaj yuma",
+    "İzlər / ləkə bərpası",
+    "Cüzi cilalama",
+    "Şüşə təmizliyi",
+    "Tekerlər təmizliyi"
+  ],
+  detailing: [
+    "Tam deteylinq",
+    "Paint correction (boya düzəltmə)",
+    "PPF (boya qoruma filmi)",
+    "Keramika örtüm",
+    "Nano örtüm",
+    "Interior deteylinq",
+    "Dəri bərpası",
+    "Polishing",
+    "Plastik bərpası",
+    "Krom bərpası",
+    "Headlight restore",
+    "Ozon dezinfeksiya"
+  ],
+  tinting_wrap: [
+    "Şüşə tinting",
+    "Vinyl örtük (tam)",
+    "Vinyl örtük (qismən)",
+    "Boya örtüm filmi",
+    "Rəng dəyişimi (vinyl)",
+    "Karbon fiber örtüm",
+    "Çizilmə qoruma filmi",
+    "Panora tinting",
+    "Faralar tinting",
+    "Yazı / loqo stiker"
+  ],
+  roadside_assistance: [
+    "Akkumulyator ötürücüsü",
+    "Təkər dəyişimi (yol kənarında)",
+    "Yanacaq çatdırılması",
+    "Çəkici xidməti",
+    "Qapı açılması (açar itdikdə)",
+    "Yedəkdə çəkmə",
+    "Başlanğıc yardımı",
+    "Kiçik texniki yardım"
   ]
 };
 

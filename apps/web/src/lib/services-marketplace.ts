@@ -4,6 +4,9 @@ export type ServiceProviderType =
   // Official / branded
   | "official_service"
   | "inspection_company"
+  // Routine maintenance
+  | "oil_change"
+  | "diagnostics"
   // General mechanics
   | "mechanic"
   | "auto_electrician"
@@ -18,11 +21,19 @@ export type ServiceProviderType =
   | "audio_media"
   | "glass_sunroof"
   // Wheel & chassis
-  | "tire_wheel";
+  | "tire_wheel"
+  // Appearance
+  | "car_wash"
+  | "detailing"
+  | "tinting_wrap"
+  // Roadside
+  | "roadside_assistance";
 
 export const SERVICE_PROVIDER_TYPE_LABELS: Record<ServiceProviderType, string> = {
-  official_service: "Rəsmi servis",
+  official_service: "Rəsmi servis mərkəzi",
   inspection_company: "Ekspertiza şirkəti",
+  oil_change: "Yağ dəyişmə / texniki baxım",
+  diagnostics: "Diaqnostika mərkəzi",
   mechanic: "Mexanik / usta",
   auto_electrician: "Avto elektrik",
   body_shop: "Dəmirçi / kuzov",
@@ -33,7 +44,11 @@ export const SERVICE_PROVIDER_TYPE_LABELS: Record<ServiceProviderType, string> =
   ac_specialist: "Kondisioner / soyuducu",
   audio_media: "Audio / multimedia",
   glass_sunroof: "Cam / lyuk",
-  tire_wheel: "Şin balansı / texeraltı"
+  tire_wheel: "Şin balansı / texeraltı",
+  car_wash: "Avtomobil yuma",
+  detailing: "Deteylinq / bərpa",
+  tinting_wrap: "Tinting / vinyl örtük",
+  roadside_assistance: "Yol kənarı yardım"
 };
 
 // ─── Groups (for sidebar filtering) ─────────────────────────────────────────
@@ -49,6 +64,11 @@ export const SERVICE_PROVIDER_GROUPS: ServiceProviderGroup[] = [
     id: "official",
     label: "Rəsmi və ekspertiza",
     types: ["official_service", "inspection_company"]
+  },
+  {
+    id: "maintenance",
+    label: "Baxım və diaqnostika",
+    types: ["oil_change", "diagnostics"]
   },
   {
     id: "mechanic",
@@ -74,6 +94,16 @@ export const SERVICE_PROVIDER_GROUPS: ServiceProviderGroup[] = [
     id: "wheel",
     label: "Şin və texeraltı",
     types: ["tire_wheel"]
+  },
+  {
+    id: "appearance",
+    label: "Görünüş və baxım",
+    types: ["car_wash", "detailing", "tinting_wrap"]
+  },
+  {
+    id: "roadside",
+    label: "Yol kənarı yardım",
+    types: ["roadside_assistance"]
   }
 ];
 
