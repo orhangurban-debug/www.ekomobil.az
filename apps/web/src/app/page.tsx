@@ -5,8 +5,7 @@ import { ListingCard, ListingCardData } from "@/components/listings/listing-card
 import { LifestyleCategories } from "@/components/home/lifestyle-categories";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { PlatformStatsBar } from "@/components/home/platform-stats-bar";
-import { PlatformAudiences } from "@/components/home/platform-audiences";
-import { HowItWorks } from "@/components/home/how-it-works";
+import { QuickAccessGrid } from "@/components/home/quick-access-grid";
 import {
   HomeTopAdSlot,
   HomeMidAdSlot,
@@ -58,9 +57,8 @@ export default async function HomePage() {
     <div>
       <HeroCarousel activeCount={activeCount} slides={homeContent.slides} />
       <PlatformStatsBar activeCount={activeCount} />
+      <QuickAccessGrid />
       <HomeTopAdSlot config={adSlotsConfig} />
-      <PlatformAudiences />
-      <HowItWorks />
       <HomeMidAdSlot config={adSlotsConfig} />
       <LifestyleCategories categories={homeContent.categories} />
 
