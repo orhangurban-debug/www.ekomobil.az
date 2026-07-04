@@ -3,7 +3,9 @@
 import { FormEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ComboboxInput } from "@/components/ui/combobox-input";
 import {
+  AZERBAIJAN_CITIES,
   BODY_TYPES,
   CAR_MAKES,
   COLORS,
@@ -799,50 +801,35 @@ export default function PublishPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className={fieldLabelClass("make")}>Marka</label>
-                    <input
-                      list="publish-car-makes"
+                    <ComboboxInput
                       value={make}
-                      onChange={(e) => {
-                        setMake(e.target.value);
+                      options={CAR_MAKES}
+                      onChange={(v) => {
+                        setMake(v);
                         setModel("");
                         clearFieldError("make");
                         clearFieldError("model");
                       }}
-                      className={fieldInputClass("make")}
                       placeholder="Marka seçin və ya yazın"
+                      className={fieldInputClass("make")}
                       required
                     />
-                    <datalist id="publish-car-makes">
-                      {CAR_MAKES.map((item) => (
-                        <option key={item} value={item} />
-                      ))}
-                    </datalist>
-                    {!displayFieldErrors.make && (
-                      <p className="mt-1 text-xs text-slate-400">Siyahıda yoxdursa əl ilə yaza bilərsiniz.</p>
-                    )}
                     {renderFieldError("make")}
                   </div>
                   <div>
                     <label className={fieldLabelClass("model")}>Model</label>
-                    <input
-                      list={availableModels.length > 0 ? "publish-car-models" : undefined}
+                    <ComboboxInput
                       value={model}
-                      onChange={(e) => {
-                        setModel(e.target.value);
+                      options={availableModels.length > 0 ? availableModels : []}
+                      onChange={(v) => {
+                        setModel(v);
                         clearFieldError("model");
                       }}
-                      className={fieldInputClass("model")}
                       placeholder={make.trim() ? "Model seçin və ya yazın" : "Əvvəl marka daxil edin"}
                       disabled={!make.trim()}
+                      className={fieldInputClass("model")}
                       required
                     />
-                    {availableModels.length > 0 && (
-                      <datalist id="publish-car-models">
-                        {availableModels.map((item) => (
-                          <option key={item} value={item} />
-                        ))}
-                      </datalist>
-                    )}
                     {renderFieldError("model")}
                   </div>
                 </div>
@@ -899,16 +886,16 @@ export default function PublishPage() {
                   </div>
                   <div>
                     <label className={fieldLabelClass("city")}>Şəhər</label>
-                    <select
+                    <ComboboxInput
                       value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
+                      options={AZERBAIJAN_CITIES}
+                      onChange={(v) => {
+                        setCity(v);
                         clearFieldError("city");
                       }}
+                      placeholder="Şəhər seçin"
                       className={fieldInputClass("city")}
-                    >
-                      {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Mingəçevir", "Digər"].map((c) => <option key={c}>{c}</option>)}
-                    </select>
+                    />
                     {renderFieldError("city")}
                   </div>
                 </div>
@@ -1108,34 +1095,46 @@ export default function PublishPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Ban növü</label>
-                    <select value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="input-field">
-                      <option value="">Seçilməyib</option>
-                      {BODY_TYPES.map((item) => <option key={item}>{item}</option>)}
-                    </select>
+                    <ComboboxInput
+                      value={bodyType}
+                      options={BODY_TYPES}
+                      onChange={setBodyType}
+                      placeholder="Seçin və ya yazın"
+                      className="input-field"
+                    />
                   </div>
                   <div>
                     <label className="label">Ötürmə növü</label>
-                    <select value={driveType} onChange={(e) => setDriveType(e.target.value)} className="input-field">
-                      <option value="">Seçilməyib</option>
-                      {DRIVE_TYPES.map((item) => <option key={item}>{item}</option>)}
-                    </select>
+                    <ComboboxInput
+                      value={driveType}
+                      options={DRIVE_TYPES}
+                      onChange={setDriveType}
+                      placeholder="Seçin"
+                      className="input-field"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Rəng</label>
-                    <select value={color} onChange={(e) => setColor(e.target.value)} className="input-field">
-                      <option value="">Seçilməyib</option>
-                      {COLORS.map((item) => <option key={item}>{item}</option>)}
-                    </select>
+                    <ComboboxInput
+                      value={color}
+                      options={COLORS}
+                      onChange={setColor}
+                      placeholder="Seçin və ya yazın"
+                      className="input-field"
+                    />
                   </div>
                   <div>
                     <label className="label">Vəziyyət</label>
-                    <select value={vehicleCondition} onChange={(e) => setVehicleCondition(e.target.value)} className="input-field">
-                      <option value="">Seçilməyib</option>
-                      {CONDITIONS.map((item) => <option key={item}>{item}</option>)}
-                    </select>
+                    <ComboboxInput
+                      value={vehicleCondition}
+                      options={CONDITIONS}
+                      onChange={setVehicleCondition}
+                      placeholder="Seçin"
+                      className="input-field"
+                    />
                   </div>
                 </div>
 
