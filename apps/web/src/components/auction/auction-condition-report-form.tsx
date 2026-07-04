@@ -292,7 +292,7 @@ export function AuctionConditionReportForm({ auctionId, initial }: Props) {
               <label key={key} className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm hover:border-[#0057FF]/40">
                 <input
                   type="checkbox"
-                  checked={(form as Record<string, boolean>)[key] as boolean}
+                  checked={(form as unknown as Record<string, boolean>)[key]}
                   onChange={(e) => setField(key as keyof typeof form, e.target.checked as never)}
                   className="rounded"
                 />
@@ -332,7 +332,7 @@ export function AuctionConditionReportForm({ auctionId, initial }: Props) {
               <label className="text-xs font-medium text-slate-600">{label}</label>
               <textarea
                 rows={2}
-                value={(form as Record<string, string>)[key] as string}
+                value={(form as unknown as Record<string, string>)[key]}
                 onChange={(e) => setField(key as keyof typeof form, e.target.value as never)}
                 placeholder="Varsa qeyd edin..."
                 className="mt-1 w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#0057FF] focus:outline-none"
