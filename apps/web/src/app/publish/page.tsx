@@ -597,7 +597,9 @@ export default function PublishPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        listingId: vin || crypto.randomUUID(),
+        // listingId is intentionally omitted here — the listing does not exist yet.
+        // The trust API would reject a VIN or random UUID as a non-existent listing ID.
+        // Trust signals are persisted inside createListingRecord after the DB row is created.
         title,
         priceAzn,
         city,

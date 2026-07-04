@@ -11,6 +11,10 @@ export type ImagePhotoTag =
   | "exterior_rear"
   | "exterior_left"
   | "exterior_right"
+  | "exterior_front_left"
+  | "exterior_front_right"
+  | "exterior_rear_left"
+  | "exterior_rear_right"
   | "interior_dashboard"
   | "interior_front_seats"
   | "interior_rear_seats"
@@ -72,6 +76,38 @@ export const IMAGE_PHOTO_TAG_OPTIONS: PhotoTagOption[] = [
     hint: "Tam sağ tərəf, düz müstəvi",
     group: "xarici",
     protocolKey: "hasRightSide"
+  },
+  {
+    id: "exterior_front_left",
+    label: "Ön-sol (3/4)",
+    shortLabel: "Ön-Sol",
+    hint: "Ön-sol 3/4 rakurs — ən çox istifadə edilən satış rakursu",
+    group: "xarici",
+    protocolKey: "hasFrontAngle"
+  },
+  {
+    id: "exterior_front_right",
+    label: "Ön-sağ (3/4)",
+    shortLabel: "Ön-Sağ",
+    hint: "Ön-sağ 3/4 rakurs",
+    group: "xarici",
+    protocolKey: "hasFrontAngle"
+  },
+  {
+    id: "exterior_rear_left",
+    label: "Arxa-sol (3/4)",
+    shortLabel: "Arxa-Sol",
+    hint: "Arxa-sol 3/4 rakurs",
+    group: "xarici",
+    protocolKey: "hasRearAngle"
+  },
+  {
+    id: "exterior_rear_right",
+    label: "Arxa-sağ (3/4)",
+    shortLabel: "Arxa-Sağ",
+    hint: "Arxa-sağ 3/4 rakurs",
+    group: "xarici",
+    protocolKey: "hasRearAngle"
   },
   {
     id: "interior_dashboard",
@@ -279,8 +315,12 @@ export function applyAiImageTagsToAngleList(
 /** Elan kartı və qalereya üçün şəkil sıralaması — ön xarici görüntü həmişə birinci */
 export const LISTING_IMAGE_TAG_DISPLAY_ORDER: ImagePhotoTag[] = [
   "exterior_front",
+  "exterior_front_left",
+  "exterior_front_right",
   "exterior_left",
   "exterior_right",
+  "exterior_rear_left",
+  "exterior_rear_right",
   "exterior_rear",
   "wheel",
   "engine",
@@ -303,20 +343,24 @@ export function listingPhotoTagSortRank(tag: ImagePhotoTag | null | undefined): 
 /** SQL: listing_media üzrə üzlük şəkli və qalereya sıralaması */
 export const LISTING_MEDIA_DISPLAY_ORDER_SQL = `
   CASE COALESCE(lm.photo_tag, '')
-    WHEN 'exterior_front' THEN 0
-    WHEN 'exterior_left' THEN 1
-    WHEN 'exterior_right' THEN 2
-    WHEN 'exterior_rear' THEN 3
-    WHEN 'wheel' THEN 4
-    WHEN 'engine' THEN 5
-    WHEN 'interior_dashboard' THEN 20
+    WHEN 'exterior_front'       THEN 0
+    WHEN 'exterior_front_left'  THEN 1
+    WHEN 'exterior_front_right' THEN 2
+    WHEN 'exterior_left'        THEN 3
+    WHEN 'exterior_right'       THEN 4
+    WHEN 'exterior_rear_left'   THEN 5
+    WHEN 'exterior_rear_right'  THEN 6
+    WHEN 'exterior_rear'        THEN 7
+    WHEN 'wheel'                THEN 8
+    WHEN 'engine'               THEN 9
+    WHEN 'interior_dashboard'   THEN 20
     WHEN 'interior_front_seats' THEN 21
-    WHEN 'interior_rear_seats' THEN 22
-    WHEN 'interior_ceiling' THEN 23
-    WHEN 'odometer' THEN 24
-    WHEN 'trunk' THEN 25
-    WHEN 'detail_damage' THEN 30
-    WHEN 'other' THEN 31
+    WHEN 'interior_rear_seats'  THEN 22
+    WHEN 'interior_ceiling'     THEN 23
+    WHEN 'odometer'             THEN 24
+    WHEN 'trunk'                THEN 25
+    WHEN 'detail_damage'        THEN 30
+    WHEN 'other'                THEN 31
     ELSE 40
   END,
   lm.sort_order ASC
