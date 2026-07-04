@@ -1,10 +1,9 @@
 /**
  * EkoMobil — Açılış kampaniyası (Launch Promo)
  *
- * Platforma yeni açıldığı üçün istifadəçiləri cəlb etmək məqsədilə bütün
- * elan/abunəlik planları müvəqqəti olaraq pulsuzdur: fərdi elan planları
- * (Standart/VIP), Salon abunəlikləri, Mağaza abunəlikləri və Servis/Ekspertiza/
- * Usta planları.
+ * Salon abunəlikləri, Mağaza abunəlikləri və Servis/Ekspertiza/Usta planları
+ * üçün müvəqqəti pulsuz dövr. Fərdi elan planları (Pulsuz/Standart/VIP) bu
+ * kampaniyaya daxil deyil — Standart və VIP həmişə ödənişlidir.
  *
  * Kampaniya admin panelindən (Ayarlar → Qiymət planları) kod dəyişikliyi
  * olmadan aktivləşdirilə, uzadıla və ya bağlana bilər — konfiqurasiya

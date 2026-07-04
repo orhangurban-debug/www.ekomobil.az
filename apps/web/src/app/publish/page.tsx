@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BODY_TYPES,
@@ -17,7 +17,6 @@ import {
 import { MediaProtocolInput, validateMediaProtocol } from "@/lib/media-protocol";
 import { trackEvent } from "@/lib/analytics/client";
 import { LISTING_PLANS, FREE_LISTING_CONCURRENT_LIMIT, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
-import { useLaunchPromo } from "@/hooks/use-launch-promo";
 import {
   processImageForUpload,
   type ProcessedImage
@@ -171,13 +170,10 @@ export default function PublishPage() {
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
   const [planType, setPlanType] = useState<PlanType>("free");
-  const launchPromo = useLaunchPromo();
   const planPriceLabel = useCallback(
     (planId: PlanType) =>
-      launchPromo.active && planId !== "free"
-        ? "Pulsuz (kampaniya)"
-        : formatListingPlanPrice(planId, typeof priceAzn === "number" ? priceAzn : undefined),
-    [launchPromo.active, priceAzn]
+      formatListingPlanPrice(planId, typeof priceAzn === "number" && priceAzn > 0 ? priceAzn : undefined),
+    [priceAzn]
   );
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<TrustApiResponse | null>(null);
@@ -191,6 +187,15 @@ export default function PublishPage() {
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!("scrollRestoration" in history)) return;
+    const previous = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    return () => {
+      history.scrollRestoration = previous;
+    };
+  }, []);
 
   const currentPlan = useMemo(
     () => LISTING_PLANS.find((plan) => plan.id === planType) ?? LISTING_PLANS[0],
@@ -233,9 +238,25 @@ export default function PublishPage() {
   const isElectricPowertrain = fuelType === "Elektrik";
 
   const goToStep = useCallback((next: Step) => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setStep(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  useLayoutEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0 });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    scrollToTop();
+    const frame = requestAnimationFrame(() => {
+      scrollToTop();
+      requestAnimationFrame(scrollToTop);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [step]);
 
   function handleVehicleNext() {
     setVehicleValidationVisible(true);
@@ -480,7 +501,6 @@ export default function PublishPage() {
             return;
           }
           if (paymentPayload.ok && paymentPayload.status === "succeeded") {
-            // Açılış kampaniyası ilə plan bank ödənişi olmadan dərhal aktivləşdi.
             router.push(`/listings/${createPayload.id}`);
             router.refresh();
             return;
@@ -542,39 +562,42 @@ export default function PublishPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Marka</label>
-                    <select
+                    <input
+                      list="publish-car-makes"
                       value={make}
                       onChange={(e) => {
                         setMake(e.target.value);
                         setModel("");
                       }}
                       className="input-field"
+                      placeholder="Marka seçin və ya yazın"
                       required
-                    >
-                      <option value="">Marka seçin</option>
+                    />
+                    <datalist id="publish-car-makes">
                       {CAR_MAKES.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
+                        <option key={item} value={item} />
                       ))}
-                    </select>
+                    </datalist>
+                    <p className="mt-1 text-xs text-slate-400">Siyahıda yoxdursa əl ilə yaza bilərsiniz.</p>
                   </div>
                   <div>
                     <label className="label">Model</label>
-                    <select
+                    <input
+                      list={availableModels.length > 0 ? "publish-car-models" : undefined}
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
                       className="input-field"
-                      disabled={!make}
+                      placeholder={make.trim() ? "Model seçin və ya yazın" : "Əvvəl marka daxil edin"}
+                      disabled={!make.trim()}
                       required
-                    >
-                      <option value="">{make ? "Model seçin" : "Əvvəl marka seçin"}</option>
-                      {availableModels.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
+                    />
+                    {availableModels.length > 0 && (
+                      <datalist id="publish-car-models">
+                        {availableModels.map((item) => (
+                          <option key={item} value={item} />
+                        ))}
+                      </datalist>
+                    )}
                   </div>
                 </div>
 
@@ -974,17 +997,21 @@ export default function PublishPage() {
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Plan seçin</h2>
 
-                {launchPromo.active && (
-                  <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {launchPromo.badge ?? "Açılış kampaniyası — planlar hazırda pulsuzdur"}
-                  </div>
-                )}
-
                 <details className="rounded-xl border border-slate-900/10 bg-white/50 text-xs text-slate-600">
                   <summary className="cursor-pointer px-4 py-2.5 font-medium text-slate-700">Plan qaydaları</summary>
-                  <div className="space-y-1 border-t border-slate-900/10 px-4 py-3">
-                    <p>Pulsuz: eyni anda {FREE_LISTING_CONCURRENT_LIMIT} aktiv elan.</p>
-                    <p>Ödənişli planlar limitsiz sayda eyni vaxtda aktiv ola bilər.</p>
+                  <div className="space-y-2 border-t border-slate-900/10 px-4 py-3">
+                    <p>
+                      <strong>Pulsuz</strong> — {LISTING_PLANS[0].durationDays} gün aktiv, {LISTING_PLANS[0].maxImages} şəkil,
+                      eyni anda {FREE_LISTING_CONCURRENT_LIMIT} aktiv elan.
+                    </p>
+                    <p>
+                      <strong>Standart</strong> — {LISTING_PLANS[1].durationDays} gün aktiv, {LISTING_PLANS[1].maxImages} şəkil,
+                      birdəfəlik ödəniş (qiymət avtomobildən asılıdır).
+                    </p>
+                    <p>
+                      <strong>VIP</strong> — {LISTING_PLANS[2].durationDays} gün aktiv, {LISTING_PLANS[2].maxImages} şəkil,
+                      birdəfəlik ödəniş, ön səhifədə vurğulanır.
+                    </p>
                   </div>
                 </details>
 
@@ -1105,7 +1132,7 @@ export default function PublishPage() {
                         </svg>
                         Yoxlanılır...
                       </>
-                    ) : planType === "free" || launchPromo.active ? "Elan yerləşdir" : "Ödənişə keç"}
+                    ) : planType === "free" ? "Elan yerləşdir" : "Ödənişə keç"}
                   </button>
                 </div>
               </div>

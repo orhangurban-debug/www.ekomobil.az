@@ -16,7 +16,6 @@ import {
 } from "@/lib/parts-catalog";
 import { LISTING_PLANS, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
 import { formatFileSize, processImageForUpload, type ProcessedImage } from "@/lib/image-processor";
-import { useLaunchPromo } from "@/hooks/use-launch-promo";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -55,13 +54,10 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
   const [partCompatibility, setPartCompatibility] = useState("");
   const [sellerType, setSellerType] = useState<"private" | "dealer">(storeAccessEnabled ? "dealer" : "private");
   const [planType, setPlanType] = useState<PlanType>("free");
-  const launchPromo = useLaunchPromo();
   const planPriceLabel = useCallback(
     (planId: PlanType) =>
-      launchPromo.active && planId !== "free"
-        ? "Pulsuz (kampaniya)"
-        : formatListingPlanPrice(planId, typeof priceAzn === "number" ? priceAzn : undefined),
-    [launchPromo.active, priceAzn]
+      formatListingPlanPrice(planId, typeof priceAzn === "number" ? priceAzn : undefined),
+    [priceAzn]
   );
 
   const maxImages = 8;
@@ -207,7 +203,6 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           return;
         }
         if (paymentPayload.ok && paymentPayload.status === "succeeded") {
-          // Açılış kampaniyası ilə plan bank ödənişi olmadan dərhal aktivləşdi.
           router.push(`/listings/${payload.id}`);
           router.refresh();
           return;
@@ -423,11 +418,6 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           {!storeAccessEnabled ? (
             <>
               <label className="label">Elan planı</label>
-              {launchPromo.active && (
-                <div className="mb-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-700">
-                  {launchPromo.badge ?? "Açılış kampaniyası — bütün planlar hazırda pulsuzdur"}
-                </div>
-              )}
               <div className="grid gap-2 sm:grid-cols-3">
                 {LISTING_PLANS.map((plan) => (
                   <button

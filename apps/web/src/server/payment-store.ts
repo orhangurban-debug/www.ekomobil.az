@@ -11,8 +11,6 @@ import { applyListingPlanForOwner, validateListingOwnership } from "@/server/lis
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
 import { issueAndSendInvoice } from "@/server/invoice-store";
 import { getUserProfile } from "@/server/user-store";
-import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
-import { applyLaunchPromoPrice } from "@/lib/launch-promo";
 
 const globalForPayments = globalThis as unknown as {
   ekomobilPayments?: ListingPlanPaymentRecord[];
@@ -83,54 +81,6 @@ async function getListingPriceAzn(listingId: string): Promise<number | null> {
   }
 }
 
-/**
- * Açılış kampaniyası aktiv olduqda Standart/VIP elan planını bank ödənişi
- * yaratmadan birbaşa aktivləşdirir. Audit/hesabat üçün $0 "succeeded" ödəniş
- * qeydi yaradılır.
- */
-async function activateFreeListingPlan(input: {
-  listingId: string;
-  ownerUserId: string;
-  planType: "standard" | "vip";
-  source: ListingPlanPaymentSource;
-}): Promise<{ ok: true; payment: ListingPlanPaymentRecord } | { ok: false; error: string }> {
-  const activation = await applyListingPlanForOwner(input.listingId, input.ownerUserId, input.planType, {
-    activate: input.source === "publish"
-  });
-  if (!activation.ok) {
-    return { ok: false, error: activation.error ?? "Plan aktivləşdirilə bilmədi" };
-  }
-
-  const id = randomUUID();
-  try {
-    const pool = getPgPool();
-    const result = await pool.query<PaymentRow>(
-      `INSERT INTO listing_plan_payments (
-         id, listing_id, owner_user_id, plan_type, amount_azn, source, provider, status, checkout_url, completed_at
-       )
-       VALUES ($1, $2, $3, $4, 0, $5, 'kapital_bank', 'succeeded', '', NOW())
-       RETURNING *`,
-      [id, input.listingId, input.ownerUserId, input.planType, input.source]
-    );
-    return { ok: true, payment: mapRow(result.rows[0]) };
-  } catch {
-    const payment: ListingPlanPaymentRecord = {
-      id,
-      listingId: input.listingId,
-      ownerUserId: input.ownerUserId,
-      planType: input.planType,
-      amountAzn: 0,
-      source: input.source,
-      provider: "kapital_bank",
-      status: "succeeded",
-      checkoutUrl: "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    return { ok: true, payment };
-  }
-}
-
 export async function createListingPlanPayment(input: {
   listingId: string;
   ownerUserId: string;
@@ -154,12 +104,7 @@ export async function createListingPlanPayment(input: {
       ? calculateListingFee(input.planType, listingPriceAzn)
       : plan.priceAzn;
 
-  // Açılış kampaniyası aktivdirsə elan planı haqqı bank ödənişi olmadan pulsuz aktivləşir.
-  const pricingConfig = await getPricingPlanAdminConfig();
-  const amountAzn = applyLaunchPromoPrice(baseAmountAzn, pricingConfig.launchPromo);
-  if (amountAzn <= 0) {
-    return activateFreeListingPlan(input);
-  }
+  const amountAzn = baseAmountAzn;
 
   // Idempotency: if a recent unfinished payment exists for the same listing/owner/plan,
   // reuse it instead of creating a duplicate bank session on double-submit / retry.
