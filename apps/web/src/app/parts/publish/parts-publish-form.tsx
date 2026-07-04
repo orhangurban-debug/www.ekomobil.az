@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
+import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import type { PartAiSuggestion } from "@/lib/ai/listing-vision-types";
 import {
   PART_AUTHENTICITY_OPTIONS,
@@ -31,6 +33,7 @@ async function fileToDataUrl(file: File): Promise<string> {
 
 export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
   const router = useRouter();
+  const { isLoggedIn, loading: authLoading } = useAuthSession();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -233,21 +236,25 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         <span className="text-slate-900">Yeni hissə elanı</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Yeni hissə elanı</h1>
+      <h1 className="text-3xl font-bold text-slate-900">Hissə sat</h1>
       <p className="mt-2 text-slate-600">
-        Məhsul şəklini yükləyin — AI sahələri dolduracaq, siz yalnız yoxlayacaqsınız.
+        Şəkil yükləyin, AI kömək edəcək — siz yalnız yoxlayın.
       </p>
 
       <ListingPublishEaseTip variant="part" className="mt-4" />
+      <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mt-4" />
 
       {!storeAccessEnabled && (
-        <div className="mt-4 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
-          Fərdi satıcı kimi elan verə bilərsiniz. Mağaza rejimi üçün{" "}
+        <p className="mt-3 text-xs text-slate-500">
+          Çox məhsulunuz var?{" "}
+          <Link href="/parts/publish/bulk" className="font-medium text-[#0057FF] hover:underline">
+            Toplu yükləmə
+          </Link>
+          {" · "}Mağaza üçün{" "}
           <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
-            mağaza planını
-          </Link>{" "}
-          aktivləşdirin.
-        </div>
+            mağaza planı
+          </Link>
+        </p>
       )}
 
       <div className="card mt-6 space-y-4 p-4 sm:p-6">
@@ -307,28 +314,10 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
         <ListingAiAnalyzePanel
           analysisContext="part"
-          optional
           externalImages={uploadedImages}
+          autoApply
           onApplyPart={applyPartAiSuggestion}
         />
-      </div>
-
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border-2 border-[#0057FF] bg-[#0057FF]/5 p-4">
-          <p className="text-sm font-semibold text-slate-900">Tək məhsul rejimi</p>
-          <p className="mt-1 text-xs text-slate-600">
-            Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
-          </p>
-        </div>
-        <Link
-          href="/parts/publish/bulk"
-          className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 transition hover:border-violet-300 hover:bg-violet-50"
-        >
-          <p className="text-sm font-semibold text-violet-900">Toplu yükləmə rejimi</p>
-          <p className="mt-1 text-xs text-violet-700">
-            Plan limitinizə qədər fərqli məhsul şəkli — AI avtomatik qruplaşdırır.
-          </p>
-        </Link>
       </div>
 
       <form onSubmit={onSubmit} className="card mt-8 space-y-5 p-4 sm:p-6">

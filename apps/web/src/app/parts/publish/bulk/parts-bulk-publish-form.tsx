@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
+import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import type { PartBulkProductSuggestion } from "@/lib/ai/listing-vision-types";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
@@ -69,6 +71,7 @@ function toDraft(product: PartBulkProductSuggestion, index: number): DraftProduc
 
 export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
   const router = useRouter();
+  const { isLoggedIn, loading: authLoading } = useAuthSession();
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [drafts, setDrafts] = useState<DraftProduct[]>([]);
   const [city, setCity] = useState("Bakı");
@@ -205,20 +208,22 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
         <span className="text-slate-900">Toplu yükləmə</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Toplu məhsul elanı</h1>
+      <h1 className="text-3xl font-bold text-slate-900">Çox məhsul sat</h1>
       <p className="mt-2 text-slate-600">
-        Çox sayda məhsul şəklini bir dəfəyə yükləyin — AI ayrı elanlar yaradacaq, siz yoxlayacaqsınız.
+        Bütün şəkilləri yükləyin — AI hər məhsulu ayrıca tanıyacaq.
       </p>
+
+      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
+      <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mt-4" />
 
       <ListingAiAnalyzePanel
         analysisContext="part_bulk"
         bulkMode
+        autoApply
         onImagesChange={setImages}
         onApplyBulkParts={applyBulkParts}
         className="mt-6"
       />
-
-      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
 
       {drafts.length > 0 && (
         <div className="mt-8 space-y-4">

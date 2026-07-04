@@ -111,10 +111,10 @@ export function ListingAiAnalyzePanel({
   }, [quotaQuery, result]);
 
   const title = useMemo(() => {
-    if (analysisContext === "service") return "AI servis profili analizi";
-    if (bulkMode || analysisContext === "part_bulk") return "AI toplu məhsul analizi";
-    if (analysisContext === "vehicle") return "AI avtomobil analizi";
-    return "AI məhsul analizi";
+    if (analysisContext === "service") return "Şəkillərdən profil doldur";
+    if (bulkMode || analysisContext === "part_bulk") return "Şəkillərdən məhsulları tanı";
+    if (analysisContext === "vehicle") return "Şəkillərdən avtomatik doldur";
+    return "Şəkillərdən məhsul doldur";
   }, [analysisContext, bulkMode]);
 
   const handleFiles = useCallback(

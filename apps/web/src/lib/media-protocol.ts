@@ -40,14 +40,14 @@ export function validateMediaProtocol(
     missingRequirements.push("Mühərrik videosu 15-30 saniyə aralığında olmalıdır.");
   }
 
-  if (!input.hasFrontAngle) missingRequirements.push("Ön görünüş şəkli işarələnməyib.");
-  if (!input.hasRearAngle) missingRequirements.push("Arxa görünüş şəkli işarələnməyib.");
-  if (!input.hasLeftSide) missingRequirements.push("Sol tərəf şəkli işarələnməyib.");
-  if (!input.hasRightSide) missingRequirements.push("Sağ tərəf şəkli işarələnməyib.");
-  if (!input.hasDashboard) missingRequirements.push("Ön panel şəkli işarələnməyib.");
-  if (!input.hasInterior) missingRequirements.push("Salon şəkli işarələnməyib.");
-  if (!input.hasOdometer) missingRequirements.push("Odometr şəkli işarələnməyib.");
-  if (!input.hasTrunk) missingRequirements.push("Baqaj şəkli işarələnməyib.");
+  if (!input.hasFrontAngle) missingRequirements.push("Ön tərəfin şəkli seçilməyib.");
+  if (!input.hasRearAngle) missingRequirements.push("Arxa tərəfin şəkli seçilməyib.");
+  if (!input.hasLeftSide) missingRequirements.push("Sol tərəfin şəkli seçilməyib.");
+  if (!input.hasRightSide) missingRequirements.push("Sağ tərəfin şəkli seçilməyib.");
+  if (!input.hasDashboard) missingRequirements.push("Sükan panelinin şəkli seçilməyib.");
+  if (!input.hasInterior) missingRequirements.push("Salonun şəkli seçilməyib.");
+  if (!input.hasOdometer) missingRequirements.push("Yürüş sayğacının şəkli seçilməyib.");
+  if (!input.hasTrunk) missingRequirements.push("Baqajın şəkli seçilməyib.");
 
   return {
     isComplete: missingRequirements.length === 0,

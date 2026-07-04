@@ -40,7 +40,7 @@ import {
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
-const STEPS = ["Mediya", "Avtomobil", "Plan", "Yoxlama"] as const;
+const STEPS = ["Şəkillər", "Məlumatlar", "Plan", "Yayımla"] as const;
 type Step = (typeof STEPS)[number];
 
 interface TrustApiResponse {
@@ -131,7 +131,7 @@ function StepIndicator({ current }: { current: Step }) {
 export default function PublishPage() {
   const router = useRouter();
   const { user, loading: authLoading, isLoggedIn } = useAuthSession();
-  const [step, setStep] = useState<Step>("Mediya");
+  const [step, setStep] = useState<Step>("Şəkillər");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceAzn, setPriceAzn] = useState(0);
@@ -245,12 +245,12 @@ export default function PublishPage() {
     setMediaValidationVisible(true);
     if (!mediaCheck.isComplete) return;
     setReviewErrors([]);
-    setStep("Avtomobil");
+    setStep("Məlumatlar");
   }
 
   function handlePlanNext() {
     setReviewErrors([]);
-    setStep("Yoxlama");
+    setStep("Yayımla");
   }
 
   const applyVehicleAiSuggestion = useCallback((suggestion: VehicleAiSuggestion) => {
@@ -359,12 +359,12 @@ export default function PublishPage() {
     setMediaValidationVisible(true);
 
     if (!mediaCheck.isComplete) {
-      setStep("Mediya");
+      setStep("Şəkillər");
       return;
     }
 
     if (vehicleStepErrors.length > 0) {
-      setStep("Avtomobil");
+      setStep("Məlumatlar");
       return;
     }
 
@@ -507,9 +507,9 @@ export default function PublishPage() {
     <div className="min-h-screen overflow-x-hidden bg-white/60 py-6 sm:py-10">
       <div className="mx-auto min-w-0 max-w-2xl px-4">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Elan yerləşdir</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Maşını sat</h1>
           <p className="mt-2 text-slate-500">
-            Şəkil yükləyin — AI sahələri doldurmağa kömək edəcək. Siz yalnız yoxlayıb redaktə edin.
+            Şəkil yükləyin, AI kömək edəcək — siz yalnız yoxlayın.
           </p>
         </div>
 
@@ -519,29 +519,25 @@ export default function PublishPage() {
 
         {isLoggedIn && user && (
           <div className="mb-6 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-2.5 text-xs text-emerald-800">
-            {user.email} kimi daxil olmusunuz — elanı yayımlaya bilərsiniz.
+            Daxil olmusunuz — elanı yayımlaya bilərsiniz.
           </div>
         )}
 
-        <div className="mb-6 rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4 text-sm text-slate-700">
-          Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
-          <Link href="/auction/sell" className="font-semibold text-[#0057FF] hover:underline">Auksion lotu yarat</Link>{" "}
-          axınından istifadə edin. Auksionda əsas satış ödənişi platformadan keçmir.
-        </div>
-        <div className="mb-6 rounded-2xl border glass-panel border-slate-900/10 p-4 text-sm text-slate-700">
-          EkoMobil məlumatların yerləşdirilməsi və yayımlanması üçün platformadır. Elan məzmununun düzgünlüyü, tamlığı və
-          aktuallığı satıcının məsuliyyətindədir. VIN, servis tarixçəsi və digər istinadların əlavə edilməsi elanın
-          keyfiyyətini yüksəldir.
-        </div>
+        <p className="mb-6 text-center text-xs text-slate-500">
+          Hərracda satmaq istəyirsiniz?{" "}
+          <Link href="/auction/sell" className="font-medium text-[#0057FF] hover:underline">
+            Auksion lotu yaradın
+          </Link>
+        </p>
 
         <StepIndicator current={step} />
 
         {!result ? (
           <form onSubmit={onSubmit} className="space-y-6">
             {/* Step 1: Media */}
-            {step === "Avtomobil" && (
+            {step === "Məlumatlar" && (
               <div className="card space-y-5 p-4 sm:p-8">
-                <h2 className="text-lg font-semibold text-slate-900">Avtomobil məlumatları</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Maşın haqqında</h2>
 
                 <div>
                   <label className="label">Elan başlığı</label>
@@ -554,7 +550,7 @@ export default function PublishPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="input-field min-h-[120px]"
-                    placeholder="Avtomobilin vəziyyəti, komplektasiya, servis tarixçəsi və digər detallar. AI analizi işə salınıbsa, təsvir avtomatik doldurulur — redaktə edə bilərsiniz."
+                    placeholder="Maşının vəziyyəti, nə var, nə yox — AI doldurubsa redaktə edin."
                   />
                   <p className="mt-1 text-xs text-slate-400">
                     Xarici link, telefon və ya mesajlaşma tətbiqi əlaqələri əlavə etməyin — belə elanlar avtomatik rədd edilir.
@@ -942,33 +938,26 @@ export default function PublishPage() {
                 )}
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={() => setStep("Mediya")} className="btn-secondary flex-1 justify-center py-3">
+                <button type="button" onClick={() => setStep("Şəkillər")} className="btn-secondary flex-1 justify-center py-3">
                   Geri
                 </button>
                 <button type="button" onClick={handleVehicleNext} className="btn-primary flex-1 justify-center py-3">
-                  Növbəti: Plan
+                  Davam et
                 </button>
                 </div>
               </div>
             )}
 
             {/* Step 2: Vehicle info */}
-            {step === "Mediya" && (
+            {step === "Şəkillər" && (
               <div className="card space-y-6 p-4 sm:p-8">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Mediya protokolu</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">Şəkilləri yükləyin</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Daha çox foto = daha yüksək etibar balı = daha sürətli satış
+                    Maşını müxtəlif tərəfdən çəkin — sonra «AI ilə doldur» basın.
                   </p>
                 </div>
 
-                <VehiclePhotoGuide
-                  bodyType={bodyType}
-                  category={photoGuideCategory}
-                  onCategoryChange={setPhotoGuideCategory}
-                />
-
-                {/* ── Real image upload ───────────────────────────────────── */}
                 <PublishImageAngleTagger
                   uploadedImages={uploadedImages}
                   imageAngleTags={imageAngleTags}
@@ -989,6 +978,12 @@ export default function PublishPage() {
                   externalImages={uploadedImages}
                   autoApply
                   onApplyVehicle={applyVehicleAiSuggestion}
+                />
+
+                <VehiclePhotoGuide
+                  bodyType={bodyType}
+                  category={photoGuideCategory}
+                  onCategoryChange={setPhotoGuideCategory}
                 />
 
                 {/* ── Video duration ──────────────────────────────────────── */}
@@ -1023,7 +1018,7 @@ export default function PublishPage() {
 
                 <div className="flex gap-3">
                   <button type="button" onClick={handleMediaNext} className="btn-primary w-full justify-center py-3 sm:flex-1">
-                    Növbəti: Avtomobil
+                    Davam et
                   </button>
                 </div>
               </div>
@@ -1120,20 +1115,20 @@ export default function PublishPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Avtomobil")} className="btn-secondary flex-1 justify-center py-3">
+                  <button type="button" onClick={() => setStep("Məlumatlar")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
                   <button type="button" onClick={handlePlanNext} className="btn-primary flex-1 justify-center py-3">
-                    Növbəti: Yoxlama
+                    Davam et
                   </button>
                 </div>
               </div>
             )}
 
             {/* Step 4: Review & Submit */}
-            {step === "Yoxlama" && (
+            {step === "Yayımla" && (
               <div className="card space-y-6 p-4 sm:p-8">
-                <h2 className="text-lg font-semibold text-slate-900">Məlumatları yoxlayın</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Hazırdır — yoxlayın</h2>
 
                 <div className="rounded-xl bg-white/60 divide-y divide-slate-900/10">
                   {[
@@ -1157,7 +1152,7 @@ export default function PublishPage() {
                       "Servis tarixçəsi",
                       serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
                     ],
-                    ["Mediya", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
+                    ["Şəkillər", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
                     ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${planPriceLabel(planType)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
@@ -1226,7 +1221,7 @@ export default function PublishPage() {
                 <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
               </div>
             )}
-            <button onClick={() => { setResult(null); setStep("Mediya"); }} className="btn-secondary">
+            <button onClick={() => { setResult(null); setStep("Şəkillər"); }} className="btn-secondary">
               Yenidən cəhd et
             </button>
           </div>

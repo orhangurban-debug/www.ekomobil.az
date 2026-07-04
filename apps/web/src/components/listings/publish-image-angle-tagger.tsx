@@ -60,18 +60,17 @@ export function PublishImageAngleTagger({
             {uploadedImages.length} / {maxImages} şəkil
           </span>
         </div>
-        <p className="text-xs text-slate-500">
-          Şəkil yükləyin, sonra hər birinin altından <strong>rakursunu seçin</strong>. Minimum{" "}
-          <strong>{minimumRequiredImages} şəkil</strong> və 8 əsas rakurs tələb olunur.
+        <p className="text-sm text-slate-600">
+          Telefondan şəkil yükləyin. AI kömək edəcək — siz yalnız yoxlayın.
         </p>
       </div>
 
       {uploadedImages.length > 0 && (
         <div className="rounded-2xl border border-slate-900/10 bg-white/70 p-3 sm:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-slate-800">Rakurs irəliləyişi</p>
+            <p className="text-sm font-semibold text-slate-800">Hansı şəkillər var?</p>
             <span className="rounded-full bg-[#0057FF]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0057FF]">
-              {completedAngles}/{VEHICLE_MEDIA_ANGLE_OPTIONS.length} rakurs
+              {completedAngles} / {VEHICLE_MEDIA_ANGLE_OPTIONS.length}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -104,8 +103,8 @@ export function PublishImageAngleTagger({
             })}
           </div>
           {untaggedCount > 0 && (
-            <p className="mt-2 text-[11px] text-amber-700">
-              {untaggedCount} şəkil üçün hələ rakurs seçilməyib — aşağıdan təyin edin.
+            <p className="mt-2 text-xs text-amber-700">
+              {untaggedCount} şəkil üçün «bu nədir?» seçin — və ya AI ilə doldurun.
             </p>
           )}
         </div>
@@ -207,7 +206,7 @@ export function PublishImageAngleTagger({
                     </div>
 
                     <div className="space-y-2">
-                      <span className="text-xs font-medium text-slate-600">Rakurs seçin</span>
+                      <span className="text-xs font-medium text-slate-600">Bu şəkil nədir?</span>
                       <div className="flex flex-wrap gap-1.5">
                         {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
                           const usedBy = takenAngles.get(item.key);
@@ -260,8 +259,8 @@ export function PublishImageAngleTagger({
                         {VEHICLE_MEDIA_ANGLE_OPTIONS.find((item) => item.key === selectedAngle)?.hint}
                       </p>
                     ) : (
-                      <p className="text-[11px] text-amber-700">
-                        Əsas rakurs deyilsə, əlavə detal şəkli kimi buraxa bilərsiniz — amma 8 əsas rakurs ayrıca seçilməlidir.
+                      <p className="text-[11px] text-slate-500">
+                        Əlavə şəkildirsə boş buraxa bilərsiniz — AI də kömək edə bilər.
                       </p>
                     )}
                   </div>

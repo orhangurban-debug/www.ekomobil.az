@@ -516,19 +516,21 @@ export function InspectionPartnerApplicationForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-8 overflow-x-hidden">
 
-      {/* ── 1. Şəkillər və sənədlər ─────────────────────────────────── */}
+      <ListingPublishEaseTip variant="service" />
+
+      {/* ── 1. Şəkillər ─────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-slate-900/10 bg-white p-4 shadow-sm sm:p-6">
         <h2 className="text-base font-semibold text-slate-900">
           <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">1</span>
-          Şəkillər və sertifikat faylları
+          Şəkilləri yükləyin
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Cari plan üzrə maksimum {selectedPlanMeta.imageLimit} şəkil və {selectedPlanMeta.certFileLimit} sertifikat faylı yükləyə bilərsiniz.
+        <p className="mt-1 text-sm text-slate-500">
+          Emalatxananızın və ya sertifikatlarınızın şəkillərini əlavə edin.
         </p>
 
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="text-sm font-medium text-slate-700">
               Servis şəkilləri ({serviceImages.length}/{selectedPlanMeta.imageLimit})
             </span>
             <input
@@ -551,8 +553,8 @@ export function InspectionPartnerApplicationForm() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Sertifikat faylları ({certificateFiles.length}/{selectedPlanMeta.certFileLimit})
+            <span className="text-sm font-medium text-slate-700">
+              Sertifikatlar ({certificateFiles.length}/{selectedPlanMeta.certFileLimit})
             </span>
             <input
               className="input-field"
@@ -576,11 +578,9 @@ export function InspectionPartnerApplicationForm() {
 
         {limitFeedback && <p className="mt-3 text-xs text-amber-700">{limitFeedback}</p>}
 
-        <ListingPublishEaseTip variant="service" className="mt-4" />
-
         <ListingAiAnalyzePanel
           analysisContext="service"
-          optional
+          autoApply
           servicePlanGroup={planGroup}
           servicePlanId={selectedPlan || selectedPlanMeta.value}
           providerTypeHint={providerType || undefined}
@@ -595,7 +595,7 @@ export function InspectionPartnerApplicationForm() {
           <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">2</span>
           Servis növünü seçin
         </h2>
-        <p className="mt-1 text-xs text-slate-500">Profil tipini seçin — növbəti bölmədəki xidmət tagları avtomatik dəyişəcək.</p>
+        <p className="mt-1 text-sm text-slate-500">Hansı xidmət göstərdiyinizi seçin.</p>
 
         <div className="mt-4 space-y-4">
           {PROVIDER_GROUPS.map((group) => (
