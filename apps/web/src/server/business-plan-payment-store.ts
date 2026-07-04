@@ -1,7 +1,14 @@
 import { randomUUID } from "node:crypto";
 import type { PaymentCheckoutStrategy, PaymentProviderMode, PaymentProviderPayload } from "@/lib/payments";
 import { getPgPool } from "@/lib/postgres";
-import { type BusinessType, getDealerPlanCatalog, getPartsPlanCatalog, upsertBusinessPlanSubscription } from "@/server/business-plan-store";
+import {
+  type BusinessType,
+  getDealerPlanCatalog,
+  getPartsPlanCatalog,
+  hasUsedFirstActivationTrial,
+  upsertBusinessPlanSubscription
+} from "@/server/business-plan-store";
+import { getPricingPlanAdminConfig } from "@/server/system-settings-store";
 import { prepareKapitalBankCheckoutSession } from "@/server/payments/kapital-bank-provider";
 import { issueAndSendInvoice } from "@/server/invoice-store";
 import { getUserProfile } from "@/server/user-store";
@@ -87,6 +94,7 @@ async function activateFreeBusinessPlan(input: {
   ownerUserId: string;
   businessType: BusinessType;
   planId: string;
+  trialGrantedAt?: string;
 }): Promise<{ ok: true; payment: BusinessPlanPaymentRecord }> {
   const id = randomUUID();
   const window = await calculateNextSubscriptionWindow({
@@ -111,7 +119,8 @@ async function activateFreeBusinessPlan(input: {
     planId: input.planId,
     status: "active",
     startsAt: window.startsAt.toISOString(),
-    expiresAt: window.expiresAt.toISOString()
+    expiresAt: window.expiresAt.toISOString(),
+    trialGrantedAt: input.trialGrantedAt
   });
 
   return { ok: true, payment: toRecord(result.rows[0]) };
@@ -121,13 +130,59 @@ export async function createBusinessPlanPayment(input: {
   ownerUserId: string;
   businessType: BusinessType;
   planId: string;
-}): Promise<{ ok: true; payment: BusinessPlanPaymentRecord } | { ok: false; error: string }> {
+}): Promise<{ ok: true; payment: BusinessPlanPaymentRecord; isTrial?: boolean } | { ok: false; error: string }> {
   const amountAzn = await getPlanPriceAzn(input.businessType, input.planId);
   if (amountAzn === null) {
     return { ok: false, error: "Plan tapılmadı." };
   }
+
+  // Plan pulsuz olarsa (kampaniya qiyməti) — birbaşa aktivləşdir
   if (amountAzn <= 0) {
     return activateFreeBusinessPlan(input);
+  }
+
+  // İlk aktivləşdirmə sınaq müddəti: admin aktiv edibsə VƏ bu istifadəçi hələ sınaq
+  // planından istifadə etməyibsə — ödəniş almadan 30 günlük pulsuz abunə ver.
+  const pricingConfig = await getPricingPlanAdminConfig();
+  const trial = pricingConfig.firstActivationTrial;
+  if (trial.enabled) {
+    const alreadyUsed = await hasUsedFirstActivationTrial(input.ownerUserId, input.businessType);
+    if (!alreadyUsed) {
+      const trialNow = new Date().toISOString();
+      // calculateNextSubscriptionWindow-u trial günü ilə override edirik
+      const trialWindow = {
+        startsAt: new Date(),
+        expiresAt: (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + trial.trialDays);
+          return d;
+        })()
+      };
+      const id = randomUUID();
+      const pool = getPgPool();
+      await pool.query(
+        `INSERT INTO business_plan_payments (
+           id, owner_user_id, business_type, plan_id, amount_azn, provider, status, checkout_url,
+           completed_at, starts_at, expires_at
+         )
+         VALUES ($1, $2, $3, $4, 0, 'kapital_bank', 'succeeded', '', NOW(), $5::timestamptz, $6::timestamptz)`,
+        [id, input.ownerUserId, input.businessType, input.planId, trialWindow.startsAt.toISOString(), trialWindow.expiresAt.toISOString()]
+      );
+      await upsertBusinessPlanSubscription({
+        ownerUserId: input.ownerUserId,
+        businessType: input.businessType,
+        planId: input.planId,
+        status: "active",
+        startsAt: trialWindow.startsAt.toISOString(),
+        expiresAt: trialWindow.expiresAt.toISOString(),
+        trialGrantedAt: trialNow
+      });
+      const payment = await pool.query<BusinessPlanPaymentRow>(
+        `SELECT * FROM business_plan_payments WHERE id = $1`,
+        [id]
+      );
+      return { ok: true, payment: toRecord(payment.rows[0]), isTrial: true };
+    }
   }
 
   const id = randomUUID();

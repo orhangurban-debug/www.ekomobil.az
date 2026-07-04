@@ -16,6 +16,7 @@ interface SubscriptionRow {
   status: string;
   starts_at: Date | null;
   expires_at: Date | null;
+  trial_granted_at?: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -29,6 +30,7 @@ export interface BusinessPlanSubscriptionRecord {
   status: "active" | "expired" | "cancelled";
   startsAt?: string;
   expiresAt?: string;
+  trialGrantedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -243,9 +245,31 @@ function mapSubRow(row: SubscriptionRow): BusinessPlanSubscriptionRecord {
     status: (row.status as BusinessPlanSubscriptionRecord["status"]) || "active",
     startsAt: row.starts_at?.toISOString(),
     expiresAt: row.expires_at?.toISOString(),
+    trialGrantedAt: row.trial_granted_at?.toISOString() ?? undefined,
     createdAt: row.created_at?.toISOString(),
     updatedAt: row.updated_at?.toISOString()
   };
+}
+
+/** Verilmiş istifadəçinin bu biznes tipi üçün artıq sınaq planından istifadə edib-etmədiyini yoxlayır. */
+export async function hasUsedFirstActivationTrial(
+  ownerUserId: string,
+  businessType: BusinessType
+): Promise<boolean> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ trial_granted_at: Date | null }>(
+      `SELECT trial_granted_at
+       FROM business_plan_subscriptions
+       WHERE owner_user_id = $1 AND business_type = $2
+       ORDER BY created_at ASC
+       LIMIT 1`,
+      [ownerUserId, businessType]
+    );
+    return result.rows[0]?.trial_granted_at != null;
+  } catch {
+    return false;
+  }
 }
 
 function isValidPlanForBusinessType(businessType: BusinessType, planId: string): boolean {
@@ -269,6 +293,7 @@ export async function listBusinessPlanSubscriptions(limit = 200): Promise<Busine
           s.status,
           s.starts_at,
           s.expires_at,
+          s.trial_granted_at,
           s.created_at,
           s.updated_at
         FROM business_plan_subscriptions s
@@ -291,6 +316,7 @@ export async function upsertBusinessPlanSubscription(input: {
   status: "active" | "expired" | "cancelled";
   startsAt?: string;
   expiresAt?: string;
+  trialGrantedAt?: string;
 }): Promise<BusinessPlanSubscriptionRecord> {
   if (!isValidPlanForBusinessType(input.businessType, input.planId)) {
     throw new Error("Plan növü seçilmiş biznes tipinə uyğun deyil.");
@@ -299,7 +325,8 @@ export async function upsertBusinessPlanSubscription(input: {
   const pool = getPgPool();
   const existing = await pool.query<SubscriptionRow>(
     `
-      SELECT id, owner_user_id, business_type, plan_id, status, starts_at, expires_at, created_at, updated_at
+      SELECT id, owner_user_id, business_type, plan_id, status, starts_at, expires_at,
+             trial_granted_at, created_at, updated_at
       FROM business_plan_subscriptions
       WHERE owner_user_id = $1 AND business_type = $2
       ORDER BY updated_at DESC
@@ -313,17 +340,20 @@ export async function upsertBusinessPlanSubscription(input: {
   const result = await pool.query<SubscriptionRow>(
     `
       INSERT INTO business_plan_subscriptions
-        (id, owner_user_id, business_type, plan_id, status, starts_at, expires_at, created_at, updated_at)
+        (id, owner_user_id, business_type, plan_id, status, starts_at, expires_at,
+         trial_granted_at, created_at, updated_at)
       VALUES
-        ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz, NOW(), NOW())
+        ($1, $2, $3, $4, $5, $6::timestamptz, $7::timestamptz, $8::timestamptz, NOW(), NOW())
       ON CONFLICT (id) DO UPDATE SET
         plan_id = EXCLUDED.plan_id,
         status = EXCLUDED.status,
         starts_at = EXCLUDED.starts_at,
         expires_at = EXCLUDED.expires_at,
+        trial_granted_at = COALESCE(business_plan_subscriptions.trial_granted_at, EXCLUDED.trial_granted_at),
         updated_at = NOW()
       RETURNING
-        id, owner_user_id, business_type, plan_id, status, starts_at, expires_at, created_at, updated_at
+        id, owner_user_id, business_type, plan_id, status, starts_at, expires_at,
+        trial_granted_at, created_at, updated_at
     `,
     [
       id,
@@ -332,7 +362,8 @@ export async function upsertBusinessPlanSubscription(input: {
       input.planId,
       input.status,
       input.startsAt ?? null,
-      input.expiresAt ?? null
+      input.expiresAt ?? null,
+      input.trialGrantedAt ?? null
     ]
   );
 

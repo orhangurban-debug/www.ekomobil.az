@@ -258,6 +258,9 @@ export default async function PricingPage() {
   const partsPro = partsPlans.find((plan) => plan.id === "peşəkar") ?? partsPlans[1] ?? partsBaza;
   const partsNet = partsPlans.find((plan) => plan.id === "şəbəkə") ?? partsPlans[2] ?? partsPro;
   const economics = pricingPlanConfig.economics;
+  const firstActivationTrial = pricingPlanConfig.firstActivationTrial;
+  const trialActive = firstActivationTrial.enabled;
+  const trialDays = firstActivationTrial.trialDays;
   const freeDurationDays = FREE_LISTING_PLAN?.durationDays ?? 30;
   const freeGraceDays = FREE_LISTING_PLAN?.renewGracePeriodDays ?? 7;
   const faqItems = [
@@ -745,6 +748,14 @@ export default async function PricingPage() {
                   <p className="mt-1 text-xs text-slate-400">
                     {promoActive ? (promoBadge ?? "Açılış kampaniyası") : "Aylıq abunə planı"}
                   </p>
+                  {trialActive && !promoActive && (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      İlk {trialDays} gün pulsuz
+                    </div>
+                  )}
                 </div>
 
                 {/* Feature chips */}
@@ -884,6 +895,14 @@ export default async function PricingPage() {
                   <p className="mt-1 text-xs text-slate-400">
                     {promoActive ? (promoBadge ?? "Açılış kampaniyası") : "Aylıq mağaza planı"}
                   </p>
+                  {trialActive && !promoActive && (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      İlk {trialDays} gün pulsuz
+                    </div>
+                  )}
       </div>
 
                 {/* Feature chips */}

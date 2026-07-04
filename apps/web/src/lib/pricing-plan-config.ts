@@ -59,12 +59,37 @@ export interface ServicePlanOverride {
   features?: string[];
 }
 
+export interface FirstActivationTrialConfig {
+  /** Admin bu funksiyanı açıb/bağlaya bilər. Default: aktiv. */
+  enabled: boolean;
+  /** Sınaq müddəti (gün). Default: 30. */
+  trialDays: number;
+}
+
+export const DEFAULT_FIRST_ACTIVATION_TRIAL: FirstActivationTrialConfig = {
+  enabled: true,
+  trialDays: 30
+};
+
+export function parseFirstActivationTrialConfig(raw: unknown): FirstActivationTrialConfig {
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_FIRST_ACTIVATION_TRIAL };
+  const o = raw as Record<string, unknown>;
+  return {
+    enabled: typeof o.enabled === "boolean" ? o.enabled : DEFAULT_FIRST_ACTIVATION_TRIAL.enabled,
+    trialDays:
+      typeof o.trialDays === "number" && o.trialDays > 0
+        ? Math.round(o.trialDays)
+        : DEFAULT_FIRST_ACTIVATION_TRIAL.trialDays
+  };
+}
+
 export interface PricingPlanAdminConfig {
   dealer: Partial<Record<DealerPlanId, DealerPlanOverride>>;
   parts: Partial<Record<PartsStorePlanId, PartsStorePlanOverride>>;
   service: Record<string, ServicePlanOverride>;
   economics: PricingCostModel;
   launchPromo: LaunchPromoConfig;
+  firstActivationTrial: FirstActivationTrialConfig;
 }
 
 export const DEFAULT_PRICING_PLAN_ADMIN_CONFIG: PricingPlanAdminConfig = {
@@ -72,7 +97,8 @@ export const DEFAULT_PRICING_PLAN_ADMIN_CONFIG: PricingPlanAdminConfig = {
   parts: {},
   service: {},
   economics: { ...DEFAULT_PRICING_COST_MODEL },
-  launchPromo: { ...DEFAULT_LAUNCH_PROMO_CONFIG }
+  launchPromo: { ...DEFAULT_LAUNCH_PROMO_CONFIG },
+  firstActivationTrial: { ...DEFAULT_FIRST_ACTIVATION_TRIAL }
 };
 
 function sanitizeStringArray(value: unknown): string[] | undefined {
@@ -166,8 +192,9 @@ export function parsePricingPlanAdminConfig(rawConfig: unknown, rawEconomics: un
   };
 
   const launchPromo = parseLaunchPromoConfig(cfg.launchPromo);
+  const firstActivationTrial = parseFirstActivationTrialConfig(cfg.firstActivationTrial);
 
-  return { dealer, parts, service, economics, launchPromo };
+  return { dealer, parts, service, economics, launchPromo, firstActivationTrial };
 }
 
 export function calculateRecommendedActiveLimit(input: {
