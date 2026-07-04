@@ -9,6 +9,7 @@ import {
 } from "@/server/auction-memory";
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
 import { getAuctionListing, recordAuctionAuditLog } from "@/server/auction-store";
+import { runShillBidCheck } from "@/server/auction-shill-detection";
 
 interface AuctionBidRow {
   id: string;
@@ -194,6 +195,21 @@ export async function placeAuctionBid(input: {
       await client.query("ROLLBACK");
       return { ok: false, error: "Satıcı öz lotuna bid verə bilməz" };
     }
+
+    // Shill bid yoxlaması — kritik flag varsa bid bloklanır, lot dondurulur
+    const ipHash = input.ip ? createHash("sha256").update(input.ip).digest("hex") : null;
+    const shillCheck = await runShillBidCheck({
+      auctionId: input.auctionId,
+      bidderUserId: input.bidderUserId,
+      sellerUserId: auction.seller_user_id,
+      ipHash,
+      deviceFingerprint: input.deviceFingerprint ?? null
+    });
+    if (!shillCheck.clean && shillCheck.flags.some((f) => f.severity === "critical")) {
+      await client.query("ROLLBACK");
+      return { ok: false, error: "Bid qəbul edilmədi. Hesabla bağlı şübhəli fəaliyyət aşkarlandı." };
+    }
+
     const now = Date.now();
     if (auction.ends_at.getTime() <= now || auction.starts_at.getTime() > now) {
       await client.query("ROLLBACK");

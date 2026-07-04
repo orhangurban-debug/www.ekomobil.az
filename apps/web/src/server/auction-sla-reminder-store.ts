@@ -92,7 +92,7 @@ function mapReminderRow(row: AuctionSlaReminderRow): AuctionSlaReminderRecord {
 }
 
 function resolveSlaForStatus(status: string): { type: ReminderType; hours: number } | null {
-  if (status === "ended_pending_confirmation" || status === "buyer_confirmed" || status === "seller_confirmed") {
+  if (status === "ended_pending_inspection" || status === "ended_pending_confirmation" || status === "buyer_confirmed" || status === "seller_confirmed") {
     return { type: "confirmation_step", hours: CONFIRMATION_SLA_HOURS };
   }
   if (status === "no_show" || status === "seller_breach") {
@@ -205,7 +205,7 @@ async function listSlaCandidates(): Promise<AuctionSlaCandidateRow[]> {
     const result = await pool.query<AuctionSlaCandidateRow>(
       `SELECT id, title_snapshot, status, updated_at, winner_user_id, current_bidder_user_id
        FROM auction_listings
-       WHERE status IN ('ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'no_show', 'seller_breach')
+       WHERE status IN ('ended_pending_inspection', 'ended_pending_confirmation', 'buyer_confirmed', 'seller_confirmed', 'no_show', 'seller_breach')
        ORDER BY updated_at DESC
        LIMIT 120`
     );
@@ -227,6 +227,34 @@ async function listSlaCandidates(): Promise<AuctionSlaCandidateRow[]> {
         current_bidder_user_id: entry.currentBidderUserId ?? null
       }));
   }
+}
+
+/** 24 saatlıq müayinə müddəti bitdikdə alıcı cavab verməsə avtomatik irəlilədir */
+async function autoAdvanceExpiredInspection(input: AuctionSlaCandidateRow): Promise<boolean> {
+  if (input.status !== "ended_pending_inspection") return false;
+  try {
+    const pool = getPgPool();
+    // inspection_deadline_at keçibsə ended_pending_confirmation-a keçir
+    const result = await pool.query<{ id: string }>(
+      `UPDATE auction_listings
+       SET status = 'ended_pending_confirmation', updated_at = NOW()
+       WHERE id = $1 AND status = 'ended_pending_inspection'
+         AND inspection_deadline_at IS NOT NULL AND inspection_deadline_at < NOW()
+       RETURNING id`,
+      [input.id]
+    );
+    if ((result.rowCount ?? 0) > 0) {
+      await recordAuctionAuditLog({
+        auctionId: input.id,
+        actionType: "inspection_period_expired",
+        detail: "24 saatlıq müayinə müddəti bitdi — avtomatik ended_pending_confirmation"
+      });
+      return true;
+    }
+  } catch {
+    // best-effort
+  }
+  return false;
 }
 
 async function autoEscalateOverdueSellerResponse(input: AuctionSlaCandidateRow): Promise<boolean> {
@@ -257,6 +285,9 @@ export async function runAuctionSlaReminderSweep(now = new Date()): Promise<Auct
   let scanned = 0;
 
   for (const item of candidates) {
+    // 24 saatlıq müayinə müddəti bitdikdə irəlilədir
+    await autoAdvanceExpiredInspection(item).catch(() => undefined);
+
     const reminders = buildReminderEvents(item, now);
     if (reminders.length === 0) continue;
     scanned += 1;

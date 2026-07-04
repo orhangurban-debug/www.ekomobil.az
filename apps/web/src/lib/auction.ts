@@ -5,6 +5,7 @@ export type AuctionStatus =
   | "scheduled"
   | "live"
   | "extended"
+  | "ended_pending_inspection"   // 24 saatlıq alıcı müayinə müddəti
   | "ended_pending_confirmation"
   | "buyer_confirmed"
   | "seller_confirmed"

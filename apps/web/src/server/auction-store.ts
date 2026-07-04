@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AUCTION_FEES, calcSellerPerformanceBond, getEffectiveNoShowPenaltyAzn, getEffectiveSellerBreachPenaltyAzn } from "@/lib/auction-fees";
 import { getSystemSettings } from "@/server/system-settings-store";
+import { calcSellerCommission, getLotListingFeeAzn } from "@/lib/auction-fees";
 import {
   type AuctionListingRecord,
   type AuctionOutcomeRecord,
@@ -25,6 +26,35 @@ import {
 import { assertAuctionMemoryFallbackAllowed } from "@/server/auction-runtime";
 
 const AUCTION_SELLER_BLOCK_PENALTY_AZN = Number(process.env.AUCTION_SELLER_BLOCK_PENALTY_AZN ?? "500");
+
+/** VIN formatını yoxlayır: 17 simvol, I/O/Q xaric */
+export function isValidVin(vin: string): boolean {
+  if (!vin || vin.length !== 17) return false;
+  return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
+}
+
+/** Eyni VIN-in aktiv auksionunda dublikat var mı yoxlayır */
+export async function checkVinDuplicate(
+  vin: string,
+  excludeAuctionId?: string
+): Promise<boolean> {
+  if (!vin) return false;
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
+       FROM auction_listings al
+       JOIN listings l ON l.id = al.listing_id
+       WHERE l.vin = $1
+         AND al.status IN ('draft','scheduled','live','extended','ended_pending_confirmation','ended_pending_inspection')
+         AND ($2::uuid IS NULL OR al.id != $2::uuid)`,
+      [vin, excludeAuctionId ?? null]
+    );
+    return parseInt(result.rows[0]?.count ?? "0") > 0;
+  } catch {
+    return false;
+  }
+}
 
 export function meetsAuctionListingTrustGate(
   listing: Pick<ListingDetail, "listingKind" | "mediaComplete" | "vinProvided">
@@ -236,6 +266,17 @@ export async function createAuctionListing(input: {
           ? "Hissə elanı üçün media checklist tam olmalıdır."
           : "Auksion üçün VIN daxil edilməli və media checklist tam olmalıdır."
     };
+  }
+
+  // VIN dublikat yoxlaması — eyni VIN ilə başqa aktiv auksion ola bilməz
+  if (listing.vin && listing.listingKind !== "part") {
+    const vinDup = await checkVinDuplicate(listing.vin);
+    if (vinDup) {
+      return {
+        ok: false,
+        error: "Bu VIN kodu ilə artıq aktiv bir auksion mövcuddur. Eyni avtomobil iki auksiona eyni vaxtda yerləşdirilə bilməz."
+      };
+    }
   }
 
   const startsAt = input.startsAt ? new Date(input.startsAt) : new Date();
@@ -834,6 +875,43 @@ export async function confirmAuctionSale(input: {
     }
 
     await notifyCounterpart(nextStatus).catch(() => undefined);
+
+    // Auksion tamamlandıqda platforma satış sənədini yarat
+    // Escrow olmasa da bu sənəd hüquqi qoruma verir — vergi yükü artmır
+    // (platforma yalnız öz komissiyasını alır, avtomobilin dəyərini deyil)
+    if (nextStatus === "completed" && winnerUserId && auction.currentBidAzn) {
+      try {
+        const vinRow = await pool.query<{ vin: string | null }>(
+          `SELECT vin FROM listings WHERE id = $1 LIMIT 1`,
+          [auction.listingId]
+        );
+        const feeProfile = await pool.query<{ listing_kind: string }>(
+          `SELECT l.listing_kind FROM auction_listings a JOIN listings l ON l.id = a.listing_id WHERE a.id = $1 LIMIT 1`,
+          [auction.id]
+        );
+        const kind = feeProfile.rows[0]?.listing_kind === "part" ? "part" as const : "vehicle" as const;
+        const hammerPrice = auction.currentBidAzn;
+        await pool.query(
+          `INSERT INTO auction_sale_agreements (
+            id, auction_id, listing_id, seller_user_id, buyer_user_id,
+            hammer_price_azn, vin, vehicle_title_snapshot,
+            lot_fee_azn, seller_commission_azn, agreed_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW())
+          ON CONFLICT (auction_id) DO NOTHING`,
+          [
+            randomUUID(), auction.id, auction.listingId,
+            auction.sellerUserId, winnerUserId,
+            hammerPrice,
+            vinRow.rows[0]?.vin ?? null,
+            auction.titleSnapshot,
+            getLotListingFeeAzn(kind),
+            calcSellerCommission(hammerPrice, kind)
+          ]
+        );
+      } catch {
+        // Satış sənədi xətası tamamlanmanı bloklamasın
+      }
+    }
 
     return { ok: true, auction: updatedAuction, outcome };
   } catch (error) {

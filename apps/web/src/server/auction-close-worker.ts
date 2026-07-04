@@ -38,7 +38,7 @@ function pickClosedStatus(input: {
   currentBidAzn: number | null;
   reservePriceAzn: number | null;
   currentBidderUserId: string | null;
-}): { status: string; winnerUserId: string | null } {
+}): { status: string; winnerUserId: string | null; inspectionDeadlineAt?: string } {
   const bid = input.currentBidAzn;
   const reserve = input.reservePriceAzn;
   const leader = input.currentBidderUserId;
@@ -47,10 +47,13 @@ function pickClosedStatus(input: {
     return { status: "not_met_reserve", winnerUserId: null };
   }
   if (reserve === null || reserve <= 0) {
-    return { status: "ended_pending_confirmation", winnerUserId: leader };
+    // Qalib var — 24 saatlıq müayinə müddəti ver
+    const inspectionDeadlineAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    return { status: "ended_pending_inspection", winnerUserId: leader, inspectionDeadlineAt };
   }
   if (bid >= reserve) {
-    return { status: "ended_pending_confirmation", winnerUserId: leader };
+    const inspectionDeadlineAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    return { status: "ended_pending_inspection", winnerUserId: leader, inspectionDeadlineAt };
   }
   const gap = (reserve - bid) / reserve;
   if (gap < 0.05) {
@@ -66,6 +69,28 @@ async function notifyClosedAuction(input: {
   titleSnapshot: string;
   status: string;
 }): Promise<void> {
+  if (input.status === "ended_pending_inspection" && input.winnerUserId) {
+    await Promise.all([
+      createAuctionNotification({
+        userId: input.winnerUserId,
+        auctionId: input.auctionId,
+        type: "auction_won",
+        title: "Auksionu qazandınız — 24 saat müayinə müddəti",
+        message: `"${input.titleSnapshot}" lotunda qalib oldunuz. 24 saat ərzində avtomobili yoxlayıb nəticəni təsdiqləyin.`,
+        ctaHref: `/auction/${input.auctionId}/confirm`
+      }),
+      createAuctionNotification({
+        userId: input.sellerUserId,
+        auctionId: input.auctionId,
+        type: "auction_ended",
+        title: "Lot bağlandı — alıcı müayinə müddəti",
+        message: `"${input.titleSnapshot}" lotu bağlandı. Alıcının 24 saatlıq müayinə müddəti başladı.`,
+        ctaHref: `/auction/${input.auctionId}/confirm`
+      })
+    ]);
+    return;
+  }
+
   if (input.status === "ended_pending_confirmation" && input.winnerUserId) {
     await Promise.all([
       createAuctionNotification({
@@ -146,7 +171,7 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
     }));
 
     for (const row of rows.rows) {
-      const { status, winnerUserId } = pickClosedStatus({
+      const { status, winnerUserId, inspectionDeadlineAt } = pickClosedStatus({
         currentBidAzn: row.current_bid_azn,
         reservePriceAzn: row.reserve_price_azn,
         currentBidderUserId: row.current_bidder_user_id
@@ -156,9 +181,10 @@ export async function closeExpiredAuctionsBatch(): Promise<number> {
         `UPDATE auction_listings
          SET status = $2::text,
              winner_user_id = $3,
+             inspection_deadline_at = $4::timestamptz,
              updated_at = NOW()
          WHERE id = $1`,
-        [row.id, status, winnerUserId]
+        [row.id, status, winnerUserId, inspectionDeadlineAt ?? null]
       );
 
       if (settings.auctionMode === "STRICT_PRE_AUTH") {
