@@ -58,7 +58,7 @@ function resolvePublishErrorStep(messages: string[]): Step {
   if (/plan limiti|pulsuz plan|ödəniş|checkout|payment/.test(text)) {
     return "Plan";
   }
-  if (/başlıq|qiymət|şəhər|vin|yürüş|avtomobil ili|mətn|link|kontakt|marka|model|məlumat/.test(text)) {
+  if (/başlıq|qiymət|şəhər|vin|yürüş|avtomobil ili|mətn|link|kontakt|marka|model|məlumat|telefon|əlaqə nömrəsi/.test(text)) {
     return "Məlumatlar";
   }
   return "Yayımla";
@@ -93,7 +93,8 @@ type PublishFieldKey =
   | "vin"
   | "engineVolumeCc"
   | "ownersCount"
-  | "description";
+  | "description"
+  | "contactPhone";
 
 type PublishFieldErrors = Partial<Record<PublishFieldKey, string>>;
 
@@ -111,7 +112,8 @@ const PUBLISH_FIELD_MATCHERS: Array<{ field: PublishFieldKey; test: (message: st
   { field: "year", test: (m) => /avtomobil ili|icazə verilən aralıqda/i.test(m) },
   { field: "engineVolumeCc", test: (m) => /mühərrik həcmi/i.test(m) },
   { field: "ownersCount", test: (m) => /sahib/i.test(m) },
-  { field: "description", test: (m) => /mətn|açıqlama|link|kontakt/i.test(m) }
+  { field: "description", test: (m) => /mətn|açıqlama|link|kontakt/i.test(m) },
+  { field: "contactPhone", test: (m) => /telefon|əlaqə nömrəsi|phone/i.test(m) }
 ];
 
 function mapMessagesToFieldErrors(messages: string[]): PublishFieldErrors {
@@ -298,6 +300,8 @@ export default function PublishPage() {
   const [ownersCount, setOwnersCount] = useState<number | "">("");
   const [hasServiceBook, setHasServiceBook] = useState(false);
   const [hasRepairHistory, setHasRepairHistory] = useState(false);
+  const [contactPhone, setContactPhone] = useState("");
+  const [whatsappPhone, setWhatsappPhone] = useState("");
   const vinVerified = false;
   const sellerVerified = false;
   const [media, setMedia] = useState<MediaProtocolInput>(initialMedia);
@@ -663,6 +667,8 @@ export default function PublishPage() {
           ownersCount: ownersCount === "" ? undefined : ownersCount,
           hasServiceBook,
           hasRepairHistory,
+          contactPhone: contactPhone.trim(),
+          whatsappPhone: whatsappPhone.trim() || undefined,
           sellerType: "private",
           vehicle: { vin: vin.trim().toUpperCase(), make, model, year, declaredMileageKm },
           vinVerified,
@@ -897,6 +903,42 @@ export default function PublishPage() {
                       className={fieldInputClass("city")}
                     />
                     {renderFieldError("city")}
+                  </div>
+                </div>
+
+                {/* Contact info */}
+                <div className="rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4">
+                  <p className="mb-3 text-sm font-semibold text-[#0057FF]">📞 Əlaqə məlumatı</p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className={fieldLabelClass("contactPhone")}>
+                        Əlaqə nömrəsi <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={contactPhone}
+                        onChange={(e) => {
+                          setContactPhone(e.target.value);
+                          clearFieldError("contactPhone");
+                        }}
+                        className={fieldInputClass("contactPhone")}
+                        placeholder="+994 50 123 45 67"
+                        required
+                      />
+                      <p className="mt-1 text-xs text-slate-400">Alıcılar bu nömrəyə zəng edəcək</p>
+                      {renderFieldError("contactPhone")}
+                    </div>
+                    <div>
+                      <label className="label">WhatsApp nömrəsi <span className="text-slate-400 text-xs">(istəyə görə)</span></label>
+                      <input
+                        type="tel"
+                        value={whatsappPhone}
+                        onChange={(e) => setWhatsappPhone(e.target.value)}
+                        className="input-field"
+                        placeholder="+994 50 123 45 67"
+                      />
+                      <p className="mt-1 text-xs text-slate-400">Boş buraxılsa əlaqə nömrəsi istifadə olunur</p>
+                    </div>
                   </div>
                 </div>
 

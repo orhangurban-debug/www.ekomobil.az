@@ -25,6 +25,8 @@ export interface PartListingPublishInput {
   partCompatibility?: string;
   sellerVerified: boolean;
   mediaProtocol: MediaProtocolInput;
+  contactPhone?: string;
+  whatsappPhone?: string;
 }
 
 export interface ListingInput {
@@ -36,6 +38,8 @@ export interface ListingInput {
   vinVerified: boolean;
   latestMileageEvent?: MileageEvent;
   mediaProtocol: MediaProtocolInput;
+  contactPhone?: string;
+  whatsappPhone?: string;
 }
 
 export interface ListingValidationResult {
@@ -58,6 +62,11 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
     errors.push("Qiymət 0-dan böyük olmalıdır.");
   }
   if (!city) errors.push("Şəhər seçilməlidir.");
+  const phone = input?.contactPhone?.trim() ?? "";
+  if (!phone) errors.push("Əlaqə telefon nömrəsi tələb olunur.");
+  else if (!/^\+?[0-9\s\-()]{7,15}$/.test(phone)) {
+    errors.push("Telefon nömrəsi düzgün formatda deyil (məs: +994501234567).");
+  }
   if (vin && !VIN_PATTERN.test(vin.toUpperCase())) {
     errors.push("VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.");
   }

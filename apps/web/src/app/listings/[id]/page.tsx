@@ -124,8 +124,8 @@ export default async function ListingDetailPage({
       ]
     : [
         {
-          value: listing.mileageKm >= 1000 ? Math.round(listing.mileageKm / 1000).toLocaleString("az-AZ") : String(listing.mileageKm),
-          unit: listing.mileageKm >= 1000 ? "KM" : "km",
+          value: listing.mileageKm.toLocaleString("az-AZ"),
+          unit: "KM",
           label: "Yürüş"
         },
         { value: String(listing.year), unit: "", label: "Buraxılış ili" },

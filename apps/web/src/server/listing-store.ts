@@ -618,11 +618,12 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
           dp.owner_user_id AS dealer_owner_user_id,
-          COALESCE(NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr}) AS contact_phone,
+          COALESCE(NULLIF(l.contact_phone, ''), NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr}) AS contact_phone,
           CASE
+            WHEN NULLIF(l.whatsapp_phone, '') IS NOT NULL THEN l.whatsapp_phone
             WHEN dp.id IS NOT NULL AND ${dealerShowWhatsappExpr} = TRUE AND ${dealerWhatsappPhoneExpr} IS NOT NULL
               THEN ${dealerWhatsappPhoneExpr}
-            ELSE COALESCE(NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr})
+            ELSE COALESCE(NULLIF(l.contact_phone, ''), NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr})
           END AS whatsapp_phone
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
@@ -769,6 +770,8 @@ export async function createListingRecord(input: {
   partSku?: string;
   partQuantity?: number;
   partCompatibility?: string;
+  contactPhone?: string;
+  whatsappPhone?: string;
   imageUrls?: string[];
   imageHashes?: string[];
   imagePhotoTags?: Array<ImagePhotoTag | null>;
@@ -808,9 +811,10 @@ export async function createListingRecord(input: {
           body_type, drive_type, color, condition, engine_volume_cc, interior_material, has_sunroof, credit_available, barter_available,
           seat_heating, seat_cooling, camera_360, parking_sensors, adaptive_cruise, lane_assist,
           owners_count, has_service_book, has_repair_history,
-          vin_info_url, vin_document_ref, service_history_url, service_history_document_ref
+          vin_info_url, vin_document_ref, service_history_url, service_history_document_ref,
+          contact_phone, whatsapp_phone
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53)
       `,
       [
         id,
@@ -863,7 +867,9 @@ export async function createListingRecord(input: {
         input.vinInfoUrl ?? null,
         input.vinDocumentRef ?? null,
         input.serviceHistoryUrl ?? null,
-        input.serviceHistoryDocumentRef ?? null
+        input.serviceHistoryDocumentRef ?? null,
+        input.contactPhone?.trim() || null,
+        input.whatsappPhone?.trim() || null
       ]
     );
 

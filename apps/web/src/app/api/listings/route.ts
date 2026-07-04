@@ -430,6 +430,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
     imagePhotoTags?: Array<string | null>;
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
+    contactPhone?: string;
+    whatsappPhone?: string;
   };
 
   withServerAuthoritativeImageCount(vehiclePayload);
@@ -600,6 +602,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
     vinDocumentRef: vehiclePayload.vinDocumentRef?.trim() || undefined,
     serviceHistoryUrl: vehiclePayload.serviceHistoryUrl?.trim() || undefined,
     serviceHistoryDocumentRef: vehiclePayload.serviceHistoryDocumentRef?.trim() || undefined,
+    contactPhone: vehiclePayload.contactPhone?.trim() || undefined,
+    whatsappPhone: vehiclePayload.whatsappPhone?.trim() || undefined,
     planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
     status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,
