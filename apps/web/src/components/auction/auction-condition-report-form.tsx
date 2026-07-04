@@ -217,7 +217,7 @@ export function AuctionConditionReportForm({ auctionId, initial }: Props) {
                 key={field.key}
                 label={field.label}
                 fieldKey={field.key}
-                value={(form as Record<string, ConditionRating>)[field.key] as ConditionRating}
+                value={(form as unknown as Record<string, ConditionRating>)[field.key]}
                 onChange={(v) => setField(field.key as keyof typeof form, v as never)}
                 allowNa={field.key === "clutchCondition"}
               />
