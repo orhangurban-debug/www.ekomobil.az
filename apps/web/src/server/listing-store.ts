@@ -1310,11 +1310,21 @@ export async function applyListingPlanForOwner(
     await ensureSeedData();
     const pool = getPgPool();
     const planExpiresAt = calculatePlanExpiry(planType);
+    // Draft listings always move to pending_review after any paid plan payment
+    // so they enter admin review regardless of whether source=publish or source=boost.
     await pool.query(
       `UPDATE listings
        SET plan_type = $1,
-           plan_expires_at = CASE WHEN $4 THEN NULL ELSE $2 END,
-           status = CASE WHEN $4 THEN 'pending_review' ELSE status END,
+           plan_expires_at = CASE
+             WHEN $4 THEN NULL
+             WHEN status = 'draft' THEN NULL
+             ELSE $2
+           END,
+           status = CASE
+             WHEN $4 THEN 'pending_review'
+             WHEN status = 'draft' THEN 'pending_review'
+             ELSE status
+           END,
            updated_at = NOW()
        WHERE id = $3`,
       [planType, planExpiresAt, listingId, options?.activate === true]
@@ -1322,6 +1332,36 @@ export async function applyListingPlanForOwner(
     return { ok: true };
   } catch {
     return { ok: false, error: "Plan yenilənərkən xəta baş verdi" };
+  }
+}
+
+/** Convert a draft listing to free pending_review so the user can publish without paying. */
+export async function activateListingAsFree(
+  listingId: string,
+  userId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `UPDATE listings
+       SET plan_type = 'free',
+           status = 'pending_review',
+           plan_expires_at = NULL,
+           updated_at = NOW()
+       WHERE id = $1 AND status = 'draft'
+       RETURNING id`,
+      [listingId]
+    );
+    if (result.rowCount === 0) {
+      return { ok: false, error: "Elan artıq yayımlanıb və ya tapılmadı" };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Elan pulsuz aktivləşdirilə bilmədi" };
   }
 }
 
@@ -1479,7 +1519,7 @@ export async function updateListingForOwner(
           vin_document_ref = COALESCE($32, vin_document_ref),
           service_history_url = COALESCE($33, service_history_url),
           service_history_document_ref = COALESCE($34, service_history_document_ref),
-          status = 'pending_review',
+          status = CASE WHEN status = 'draft' THEN 'draft' ELSE 'pending_review' END,
           updated_at = NOW()
         WHERE id = $35
       `,

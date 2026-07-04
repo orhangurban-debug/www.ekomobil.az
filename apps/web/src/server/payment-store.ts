@@ -206,6 +206,35 @@ export async function getListingPlanPayment(paymentId: string): Promise<ListingP
   }
 }
 
+/** Returns the most recent open (non-succeeded, non-cancelled) payment for a listing + user. */
+export async function getLatestPendingPaymentForListing(
+  listingId: string,
+  ownerUserId: string
+): Promise<ListingPlanPaymentRecord | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<PaymentRow>(
+      `SELECT * FROM listing_plan_payments
+       WHERE listing_id = $1 AND owner_user_id = $2
+         AND status NOT IN ('succeeded', 'cancelled')
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [listingId, ownerUserId]
+    );
+    return result.rows[0] ? mapRow(result.rows[0]) : null;
+  } catch {
+    return (
+      getCreatedPayments().find(
+        (item) =>
+          item.listingId === listingId &&
+          item.ownerUserId === ownerUserId &&
+          item.status !== "succeeded" &&
+          item.status !== "cancelled"
+      ) ?? null
+    );
+  }
+}
+
 export async function getListingPlanPaymentByRemoteOrderId(remoteOrderId: string): Promise<ListingPlanPaymentRecord | null> {
   try {
     const pool = getPgPool();

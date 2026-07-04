@@ -20,6 +20,7 @@ import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
 import { getListingStats } from "@/server/listing-stats-store";
+import { getLatestPendingPaymentForListing } from "@/server/payment-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
 import type { PlanType } from "@/lib/listing-plans";
 
@@ -102,6 +103,10 @@ export default async function ListingDetailPage({
     getRelatedListings(listing.relatedIds),
   ]);
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
+  const pendingPayment =
+    isOwner && listing.status === "draft" && user
+      ? await getLatestPendingPaymentForListing(listing.id, user.id)
+      : null;
   const isPart = listing.listingKind === "part";
 
   const scoreColor =
@@ -160,8 +165,10 @@ export default async function ListingDetailPage({
       {isOwner && (
         <ListingOwnerStatusBanner
           status={listing.status}
+          listingId={listing.id}
           paymentSuccess={paymentSuccess}
           rejectionNote={listing.rejectionNote}
+          pendingPaymentId={pendingPayment?.id}
         />
       )}
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
+import { DraftListingActions } from "@/components/listings/draft-listing-actions";
 import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
@@ -8,6 +9,7 @@ import { ContactActionButton } from "@/components/support/contact-action-button"
 import { PrivacyControls } from "@/components/user/privacy-controls";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
+import { getLatestPendingPaymentForListing } from "@/server/payment-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
@@ -44,6 +46,16 @@ export default async function ProfilePage({
     loadBusinessAccountSnapshot(user)
   ]);
   const hasNonActiveListings = myListings.some((item) => item.status !== "active");
+
+  // Load pending payment IDs for draft listings so users can resume payment
+  const draftListings = myListings.filter((item) => item.status === "draft");
+  const draftPaymentMap = new Map<string, string | undefined>();
+  await Promise.all(
+    draftListings.map(async (item) => {
+      const payment = await getLatestPendingPaymentForListing(item.id, user.id);
+      draftPaymentMap.set(item.id, payment?.id);
+    })
+  );
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
     active: { label: "Aktiv", cls: "bg-emerald-500/15 text-emerald-700 border-emerald-500/25" },
@@ -336,6 +348,12 @@ export default async function ProfilePage({
                               variant="compact"
                             />
                           </div>
+                        )}
+                        {item.status === "draft" && (
+                          <DraftListingActions
+                            listingId={item.id}
+                            pendingPaymentId={draftPaymentMap.get(item.id)}
+                          />
                         )}
                         {item.status === "rejected" && item.rejectionNote && (
                           <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">

@@ -1,9 +1,12 @@
 import type { ListingStatus } from "@/lib/marketplace-types";
+import { DraftListingActions } from "./draft-listing-actions";
 
 type ListingOwnerStatusBannerProps = {
   status: ListingStatus;
+  listingId?: string;
   paymentSuccess?: boolean;
   rejectionNote?: string;
+  pendingPaymentId?: string;
 };
 
 const statusCopy: Partial<Record<ListingStatus, { title: string; body: string; cls: string }>> = {
@@ -34,7 +37,7 @@ const statusCopy: Partial<Record<ListingStatus, { title: string; body: string; c
   }
 };
 
-export function ListingOwnerStatusBanner({ status, paymentSuccess, rejectionNote }: ListingOwnerStatusBannerProps) {
+export function ListingOwnerStatusBanner({ status, listingId, paymentSuccess, rejectionNote, pendingPaymentId }: ListingOwnerStatusBannerProps) {
   const copy = statusCopy[status];
   if (!copy && !paymentSuccess) return null;
 
@@ -49,6 +52,9 @@ export function ListingOwnerStatusBanner({ status, paymentSuccess, rejectionNote
         <div className={`rounded-xl border px-4 py-3 text-sm ${copy.cls}`}>
           <p className="font-semibold">{copy.title}</p>
           <p className="mt-1">{copy.body}</p>
+          {status === "draft" && listingId && (
+            <DraftListingActions listingId={listingId} pendingPaymentId={pendingPaymentId} />
+          )}
           {status === "rejected" && rejectionNote && (
             <div className="mt-3 rounded-lg border border-red-200 bg-white/70 px-3 py-2 text-xs">
               <p className="font-semibold text-red-700">Admin qeydi:</p>

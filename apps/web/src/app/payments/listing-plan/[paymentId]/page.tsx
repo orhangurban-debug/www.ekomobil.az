@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getKapitalBankConfig, getKapitalBankStatusLabel, isKapitalBankLiveReady } from "@/lib/kapital-bank";
 import { getPlanById } from "@/lib/listing-plans";
-import { getListingPlanPayment } from "@/server/payment-store";
+import { finalizeListingPlanPayment, getListingPlanPayment } from "@/server/payment-store";
 
 export default async function ListingPlanPaymentPage({
   params,
@@ -15,6 +15,14 @@ export default async function ListingPlanPaymentPage({
   const query = await searchParams;
   const payment = await getListingPlanPayment(paymentId);
   if (!payment) notFound();
+
+  // When the bank redirects back with ?status=cancelled, persist it in DB
+  if (query.status === "cancelled" && payment.status === "redirect_ready") {
+    await finalizeListingPlanPayment({ paymentId, status: "cancelled" });
+    // Re-fetch after finalizing so the rest of the page renders correctly
+    const refreshed = await getListingPlanPayment(paymentId);
+    if (refreshed) Object.assign(payment, refreshed);
+  }
 
   const config = getKapitalBankConfig();
   const plan = getPlanById(payment.planType);
@@ -68,7 +76,12 @@ export default async function ListingPlanPaymentPage({
           </div>
         )}
 
-        {query.status && (
+        {query.status === "cancelled" && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Ödəniş ləğv edildi. Elanınız qaralama olaraq saxlanıb — ödənişi yenidən tamamlaya və ya pulsuz yerləşdirə bilərsiniz.
+          </div>
+        )}
+        {query.status && query.status !== "cancelled" && (
           <div className="mt-4 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
             Son cavab: {query.status}
           </div>
@@ -120,6 +133,14 @@ export default async function ListingPlanPaymentPage({
               <Link href={`/listings/${payment.listingId}`} className="btn-secondary justify-center">
                 Elana qayıt
               </Link>
+              {(query.status === "cancelled" || payment.status === "cancelled") && (
+                <Link
+                  href={`/listings/${payment.listingId}?activateFree=1`}
+                  className="btn-secondary justify-center"
+                >
+                  Pulsuz yerləşdir
+                </Link>
+              )}
               <Link href="/pricing" className="btn-secondary justify-center">
                 Planlara bax
               </Link>
