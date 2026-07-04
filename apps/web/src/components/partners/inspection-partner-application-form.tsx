@@ -121,7 +121,7 @@ const SERVICE_TAGS: Record<ProviderTypeValue, string[]> = {
     "Asqı sistemi"
   ],
   inspection_company: [
-    "220 bənd yoxlama",
+    "Çoxbəndli texniki yoxlama",
     "Boya ölçümü",
     "Road test",
     "Rəqəmsal raport",
