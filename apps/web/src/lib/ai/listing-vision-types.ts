@@ -5,6 +5,21 @@ export interface AiFieldConfidence {
   confidence: number;
 }
 
+export type VehicleAiImageAngleKey =
+  | "hasFrontAngle"
+  | "hasRearAngle"
+  | "hasLeftSide"
+  | "hasRightSide"
+  | "hasDashboard"
+  | "hasInterior"
+  | "hasOdometer"
+  | "hasTrunk";
+
+export interface VehicleAiImageTag {
+  index: number;
+  angle: VehicleAiImageAngleKey | null;
+}
+
 export interface VehicleAiSuggestion {
   title?: string;
   make?: string;
@@ -21,6 +36,8 @@ export interface VehicleAiSuggestion {
   vin?: string;
   description?: string;
   priceAzn?: number;
+  /** Hər şəkil üçün (0-based) rakurs təyini */
+  imageTags?: VehicleAiImageTag[];
   mediaAngles?: {
     hasFrontAngle?: boolean;
     hasRearAngle?: boolean;

@@ -44,3 +44,43 @@ export function buildMediaAnglesFromTags(
 export function mediaAngleLabel(key: VehicleMediaAngleKey): string {
   return VEHICLE_MEDIA_ANGLE_OPTIONS.find((item) => item.key === key)?.shortLabel ?? key;
 }
+
+export function applyAiImageTagsToAngleList(
+  imageCount: number,
+  imageTags: Array<{ index: number; angle: VehicleMediaAngleKey | null }> | undefined,
+  fallbackAngles?: Partial<Record<VehicleMediaAngleKey, boolean>>
+): Array<VehicleMediaAngleKey | null> {
+  const next = Array.from({ length: imageCount }, () => null as VehicleMediaAngleKey | null);
+
+  if (imageTags?.length) {
+    for (const tag of imageTags) {
+      if (tag.index < 0 || tag.index >= imageCount || !tag.angle) continue;
+      if (next.includes(tag.angle)) continue;
+      next[tag.index] = tag.angle;
+    }
+    return next;
+  }
+
+  if (fallbackAngles) {
+    const priority: VehicleMediaAngleKey[] = [
+      "hasFrontAngle",
+      "hasRearAngle",
+      "hasLeftSide",
+      "hasRightSide",
+      "hasDashboard",
+      "hasInterior",
+      "hasOdometer",
+      "hasTrunk"
+    ];
+    let cursor = 0;
+    for (const key of priority) {
+      if (!fallbackAngles[key]) continue;
+      while (cursor < next.length && next[cursor]) cursor += 1;
+      if (cursor >= next.length) break;
+      next[cursor] = key;
+      cursor += 1;
+    }
+  }
+
+  return next;
+}

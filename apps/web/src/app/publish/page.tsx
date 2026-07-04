@@ -27,12 +27,18 @@ import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import { VehiclePhotoGuide } from "@/components/listings/vehicle-photo-guide";
 import { PublishImageAngleTagger } from "@/components/listings/publish-image-angle-tagger";
-import type { VehiclePhotoGuideCategory } from "@/lib/vehicle-photo-guide";
+import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
 import {
+  photoGuideCategoryFromBodyType,
+  type VehiclePhotoGuideCategory
+} from "@/lib/vehicle-photo-guide";
+import {
+  applyAiImageTagsToAngleList,
   buildMediaAnglesFromTags,
   type VehicleMediaAngleKey
 } from "@/lib/vehicle-media-angles";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const STEPS = ["Mediya", "Avtomobil", "Plan", "Yoxlama"] as const;
 type Step = (typeof STEPS)[number];
@@ -124,6 +130,7 @@ function StepIndicator({ current }: { current: Step }) {
 
 export default function PublishPage() {
   const router = useRouter();
+  const { user, loading: authLoading, isLoggedIn } = useAuthSession();
   const [step, setStep] = useState<Step>("Mediya");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -262,16 +269,24 @@ export default function PublishPage() {
     if (suggestion.declaredMileageKm !== undefined) setDeclaredMileageKm(suggestion.declaredMileageKm);
     if (suggestion.priceAzn) setPriceAzn(suggestion.priceAzn);
     if (suggestion.description?.trim()) setDescription(suggestion.description.trim());
-    if (suggestion.mediaAngles) {
+    if (suggestion.bodyType) {
+      const category = photoGuideCategoryFromBodyType(suggestion.bodyType);
+      if (category) setPhotoGuideCategory(category);
+    }
+
+    const nextTags = applyAiImageTagsToAngleList(
+      uploadedImages.length,
+      suggestion.imageTags,
+      suggestion.mediaAngles
+    );
+    if (nextTags.some(Boolean)) {
+      setImageAngleTags(nextTags);
+      setMedia((mediaPrev) => buildMediaAnglesFromTags(nextTags, uploadedImages.length, mediaPrev));
+    } else if (suggestion.mediaAngles) {
       setImageAngleTags((prev) => {
-        const next = [...prev];
-        (Object.keys(suggestion.mediaAngles ?? {}) as VehicleMediaAngleKey[]).forEach((key) => {
-          if (!suggestion.mediaAngles?.[key] || next.includes(key)) return;
-          const emptyIndex = next.findIndex((tag) => !tag);
-          if (emptyIndex >= 0) next[emptyIndex] = key;
-        });
-        setMedia((mediaPrev) => buildMediaAnglesFromTags(next, uploadedImages.length, mediaPrev));
-        return next;
+        const filled = applyAiImageTagsToAngleList(uploadedImages.length, undefined, suggestion.mediaAngles);
+        setMedia((mediaPrev) => buildMediaAnglesFromTags(filled, uploadedImages.length, mediaPrev));
+        return filled;
       });
     }
   }, [uploadedImages.length]);
@@ -435,6 +450,10 @@ export default function PublishPage() {
         errors?: string[];
         paymentRequired?: boolean;
       };
+      if (createResponse.status === 401) {
+        router.push("/login?next=/publish");
+        return;
+      }
       if (createPayload.ok && createPayload.id) {
         if (createPayload.paymentRequired) {
           const paymentResponse = await fetch("/api/payments/listing-plan", {
@@ -495,6 +514,14 @@ export default function PublishPage() {
         </div>
 
         <ListingPublishEaseTip variant="vehicle" className="mb-6" />
+
+        <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mb-6" />
+
+        {isLoggedIn && user && (
+          <div className="mb-6 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-2.5 text-xs text-emerald-800">
+            {user.email} kimi daxil olmusunuz — elanı yayımlaya bilərsiniz.
+          </div>
+        )}
 
         <div className="mb-6 rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4 text-sm text-slate-700">
           Avtomobilinizi hərrac formatında satmaq istəyirsinizsə, ayrıca{" "}
@@ -960,6 +987,7 @@ export default function PublishPage() {
                   analysisContext="vehicle"
                   planType={planType}
                   externalImages={uploadedImages}
+                  autoApply
                   onApplyVehicle={applyVehicleAiSuggestion}
                 />
 
@@ -1152,10 +1180,19 @@ export default function PublishPage() {
                   </div>
                 )}
 
+                {!isLoggedIn && !authLoading && (
+                  <PublishAuthNotice isLoggedIn={false} className="!mb-0" />
+                )}
+
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setStep("Plan")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
+                  {!isLoggedIn ? (
+                    <Link href="/login?next=/publish" className="btn-primary flex-1 justify-center py-3">
+                      Daxil ol və yayımla
+                    </Link>
+                  ) : (
                   <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center py-3">
                     {submitting ? (
                       <>
@@ -1167,6 +1204,7 @@ export default function PublishPage() {
                       </>
                     ) : planType === "free" || launchPromo.active ? "Elan yerləşdir" : "Ödənişə keç"}
                   </button>
+                  )}
                 </div>
               </div>
             )}

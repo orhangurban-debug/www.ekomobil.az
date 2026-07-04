@@ -206,16 +206,42 @@ export function PublishImageAngleTagger({
                       <span className="text-[11px] text-slate-400">{formatFileSize(img.compressedSizeBytes)}</span>
                     </div>
 
-                    <label className="block space-y-1">
-                      <span className="text-xs font-medium text-slate-600">Bu şəkil hansı rakursdan çəkilib?</span>
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-slate-600">Rakurs seçin</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
+                          const usedBy = takenAngles.get(item.key);
+                          const usedElsewhere = usedBy !== undefined && usedBy !== index;
+                          const active = selectedAngle === item.key;
+                          return (
+                            <button
+                              key={item.key}
+                              type="button"
+                              disabled={usedElsewhere}
+                              title={item.hint}
+                              onClick={() => onAssignAngle(index, active ? null : item.key)}
+                              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                                active
+                                  ? "border-[#0057FF] bg-[#0057FF] text-white"
+                                  : usedElsewhere
+                                    ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                    : "border-slate-200 bg-white text-slate-600 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
+                              }`}
+                            >
+                              {item.shortLabel}
+                            </button>
+                          );
+                        })}
+                      </div>
                       <select
-                        className="input-field text-sm"
+                        className="input-field text-sm sm:max-w-xs"
                         value={selectedAngle ?? ""}
                         onChange={(e) =>
                           onAssignAngle(index, (e.target.value || null) as VehicleMediaAngleKey | null)
                         }
+                        aria-label={`Şəkil ${index + 1} rakursu`}
                       >
-                        <option value="">Rakurs seçin…</option>
+                        <option value="">və ya siyahıdan seçin…</option>
                         {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
                           const usedBy = takenAngles.get(item.key);
                           const usedElsewhere = usedBy !== undefined && usedBy !== index;
@@ -227,7 +253,7 @@ export function PublishImageAngleTagger({
                           );
                         })}
                       </select>
-                    </label>
+                    </div>
 
                     {selectedAngle ? (
                       <p className="text-[11px] text-slate-500">

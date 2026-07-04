@@ -22,6 +22,8 @@ import type {
   PartBulkProductSuggestion,
   PartAiSuggestion,
   ServiceAiSuggestion,
+  VehicleAiImageAngleKey,
+  VehicleAiImageTag,
   VehicleAiSuggestion
 } from "@/lib/ai/listing-vision-types";
 import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
@@ -72,6 +74,37 @@ function pickEnum<T extends string>(value: unknown, allowed: readonly T[]): T | 
   return exact;
 }
 
+const VEHICLE_ANGLE_KEYS = new Set<VehicleAiImageAngleKey>([
+  "hasFrontAngle",
+  "hasRearAngle",
+  "hasLeftSide",
+  "hasRightSide",
+  "hasDashboard",
+  "hasInterior",
+  "hasOdometer",
+  "hasTrunk"
+]);
+
+function sanitizeImageTags(raw: unknown): VehicleAiImageTag[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const tags: VehicleAiImageTag[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const item = entry as Record<string, unknown>;
+    const index = typeof item.index === "number" ? Math.max(0, Math.floor(item.index)) : -1;
+    const angleRaw = item.angle;
+    const angle =
+      typeof angleRaw === "string" && VEHICLE_ANGLE_KEYS.has(angleRaw as VehicleAiImageAngleKey)
+        ? (angleRaw as VehicleAiImageAngleKey)
+        : angleRaw === null
+          ? null
+          : undefined;
+    if (index < 0 || angle === undefined) continue;
+    tags.push({ index, angle });
+  }
+  return tags.length > 0 ? tags : undefined;
+}
+
 function sanitizeVehicle(raw: Record<string, unknown>): VehicleAiSuggestion {
   const make = typeof raw.make === "string" ? raw.make.trim() : undefined;
   const model = typeof raw.model === "string" ? raw.model.trim() : undefined;
@@ -98,6 +131,7 @@ function sanitizeVehicle(raw: Record<string, unknown>): VehicleAiSuggestion {
     vin: typeof raw.vin === "string" ? raw.vin.trim().toUpperCase().slice(0, 17) : undefined,
     description: typeof raw.description === "string" ? raw.description.trim() : undefined,
     priceAzn: typeof raw.priceAzn === "number" ? Math.max(0, Math.round(raw.priceAzn)) : undefined,
+    imageTags: sanitizeImageTags(raw.imageTags),
     mediaAngles: {
       hasFrontAngle: media.hasFrontAngle === true,
       hasRearAngle: media.hasRearAngle === true,
@@ -208,8 +242,9 @@ Nümunə: "Hyundai Tucson 2019 — Benzin — 84 000 km — Ağ"
 Yalnız şəkildə görünən və ya etiket/salon ekranında oxunan məlumatları yaz. Təxmin etdiyin hər sahə üçün fieldConfidence 0-1 ver.
 Kateqoriyalar: make markalarından (${CAR_MAKES.slice(0, 20).join(", ")}...), fuelType: ${FUEL_TYPES.join(", ")}, bodyType: ${BODY_TYPES.join(", ")}.
 mediaAngles: hansı rakursların şəkildə olduğunu boolean olaraq qeyd et.
+imageTags: HƏR şəkil üçün (0-based index) rakurs təyin et — [{"index":0,"angle":"hasFrontAngle"},...]. angle: hasFrontAngle|hasRearAngle|hasLeftSide|hasRightSide|hasDashboard|hasInterior|hasOdometer|hasTrunk və ya əlavə detal şəkli üçün null.
 Cavab YALNIZ JSON:
-{"title":"","make":"","model":"","year":2020,"color":"","bodyType":"","fuelType":"","transmission":"","driveType":"","vehicleCondition":"","declaredMileageKm":null,"vin":"","description":"","priceAzn":null,"mediaAngles":{"hasFrontAngle":false,"hasRearAngle":false,"hasLeftSide":false,"hasRightSide":false,"hasDashboard":false,"hasInterior":false,"hasOdometer":false,"hasTrunk":false},"fieldConfidence":{},"notes":""}`;
+{"title":"","make":"","model":"","year":2020,"color":"","bodyType":"","fuelType":"","transmission":"","driveType":"","vehicleCondition":"","declaredMileageKm":null,"vin":"","description":"","priceAzn":null,"imageTags":[],"mediaAngles":{"hasFrontAngle":false,"hasRearAngle":false,"hasLeftSide":false,"hasRightSide":false,"hasDashboard":false,"hasInterior":false,"hasOdometer":false,"hasTrunk":false},"fieldConfidence":{},"notes":""}`;
 
 const STANDARD_PART_NAMING = `
 STANDART ADLANDIRMA (axtarış/filter üçün vacibdir):

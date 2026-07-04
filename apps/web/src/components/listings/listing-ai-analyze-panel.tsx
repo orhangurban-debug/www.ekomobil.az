@@ -41,6 +41,7 @@ interface ListingAiAnalyzePanelProps {
   bulkMode?: boolean;
   maxImages?: number;
   optional?: boolean;
+  autoApply?: boolean;
   planType?: PlanType;
   servicePlanGroup?: ServicePlanGroup;
   servicePlanId?: string;
@@ -65,6 +66,7 @@ export function ListingAiAnalyzePanel({
   bulkMode = false,
   maxImages: maxImagesProp,
   optional = false,
+  autoApply = false,
   planType,
   servicePlanGroup,
   servicePlanId,
@@ -175,10 +177,24 @@ export function ListingAiAnalyzePanel({
         quota?: QuotaInfo & { dailyLimit: number };
       };
       if (!response.ok || !payload.ok || !payload.result) {
-        setErrors([payload.error ?? "Analiz uğursuz oldu."]);
+        if (payload.requiresAuth) {
+          setErrors([
+            payload.error ??
+              "Bu analiz üçün hesaba daxil olun — qonaq rejimində avtomobil analizi mövcuddur."
+          ]);
+        } else {
+          setErrors([payload.error ?? "Analiz uğursuz oldu."]);
+        }
         return;
       }
       setResult(payload.result);
+      if (autoApply) {
+        if (payload.result.vehicle && onApplyVehicle) onApplyVehicle(payload.result.vehicle);
+        if (payload.result.part && onApplyPart) onApplyPart(payload.result.part);
+        if (payload.result.bulkProducts && onApplyBulkParts) onApplyBulkParts(payload.result.bulkProducts);
+        if (payload.result.service && onApplyService) onApplyService(payload.result.service);
+        setApplied(true);
+      }
       if (payload.quota) {
         setQuota({
           remaining: payload.quota.remaining,
@@ -218,9 +234,16 @@ export function ListingAiAnalyzePanel({
               ? `${effectiveMaxImages} şəkilə qədər — AI fərqli məhsulları qruplaşdıracaq.`
               : analysisContext === "service"
                 ? "Emalatxana/servis şəkillərindən profil sahələrini təklif edir."
-                : "Bütün şəkillər eyni elana (tək avtomobil/məhsul) aiddir — AI sahələri avtomatik dolduracaq."}
+                : autoApply
+                  ? "Şəkilləri analiz edib sahələri və rakursları avtomatik dolduracaq — siz yalnız yoxlayın."
+                  : "Bütün şəkillər eyni elana (tək avtomobil/məhsul) aiddir — AI sahələri avtomatik dolduracaq."}
             {optional ? " Bu addım istəyə bağlıdır." : ""}
           </p>
+          {quota?.planLabel === "Qonaq" && (
+            <p className="mt-1 text-[11px] font-medium text-amber-700">
+              Qonaq rejimi: gündə {quota.dailyLimit} AI analiz · daxil olanda limit artır
+            </p>
+          )}
           {quota?.planLabel && (
             <p className="mt-1 text-[11px] font-medium text-violet-600">
               Plan: {quota.planLabel} · gündə {quota.dailyLimit} analiz · elan başına {effectiveMaxImages} şəkil
@@ -301,13 +324,18 @@ export function ListingAiAnalyzePanel({
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={analyzing || images.length === 0}
+          disabled={analyzing || images.length === 0 || quota?.requiresAuth}
           onClick={() => void runAnalysis()}
           className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-50"
         >
-          {analyzing ? "Analiz edilir…" : "AI ilə analiz et"}
+          {analyzing ? "Analiz edilir…" : autoApply ? "AI ilə doldur" : "AI ilə analiz et"}
         </button>
-        {optional && (
+        {quota?.requiresAuth && (
+          <Link href="/login?next=/publish" className="rounded-lg border border-violet-300 px-4 py-2 text-sm font-medium text-violet-800 hover:bg-violet-50">
+            Daxil ol
+          </Link>
+        )}
+        {optional && !autoApply && (
           <button
             type="button"
             onClick={() => setSkipped(true)}
@@ -316,7 +344,7 @@ export function ListingAiAnalyzePanel({
             Keç (manual doldur)
           </button>
         )}
-        {result && (
+        {result && !autoApply && (
           <button
             type="button"
             onClick={applyResult}
@@ -329,7 +357,9 @@ export function ListingAiAnalyzePanel({
 
       {applied && (
         <p className="mt-3 text-xs font-medium text-emerald-700">
-          Təklif formaya tətbiq olundu — sahələri yoxlayın və lazım gələrsə redaktə edin.
+          {autoApply
+            ? "AI təklifi avtomatik tətbiq olundu — sahələri və rakursları yoxlayın."
+            : "Təklif formaya tətbiq olundu — sahələri yoxlayın və lazım gələrsə redaktə edin."}
         </p>
       )}
 
