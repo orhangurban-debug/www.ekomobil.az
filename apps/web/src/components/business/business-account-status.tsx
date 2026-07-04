@@ -2,6 +2,34 @@ import Link from "next/link";
 import type { BusinessAccountSnapshot } from "@/server/business-plan-store";
 import { magazaStatusLabel, salonStatusLabel } from "@/lib/business-account";
 
+function daysLeft(iso?: string): number | null {
+  if (!iso) return null;
+  const d = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+  return d;
+}
+
+function ExpiryBadge({ expiresAt, isTrial }: { expiresAt?: string; isTrial?: boolean }) {
+  const days = daysLeft(expiresAt);
+  if (days === null) return null;
+  const label = expiresAt
+    ? new Date(expiresAt).toLocaleDateString("az-AZ", { day: "numeric", month: "short" })
+    : null;
+  const isExpiringSoon = days <= 7;
+  return (
+    <div className={`mt-2 rounded-lg px-2.5 py-1.5 text-xs ${
+      isExpiringSoon
+        ? "border border-amber-200 bg-amber-50 text-amber-700"
+        : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+    }`}>
+      {isTrial && <span className="mr-1 font-semibold">Sınaq planı —</span>}
+      {days > 0
+        ? <>{label} tarixinə qədər (<span className="font-semibold">{days} gün qalıb</span>)</>
+        : <span className="font-semibold">Müddəti bitib</span>
+      }
+    </div>
+  );
+}
+
 export function BusinessAccountStatus({
   snapshot,
   compact = false
@@ -21,6 +49,8 @@ export function BusinessAccountStatus({
           active={salonActive}
           href={salonActive ? "/dealer" : "/dealer/apply"}
           actionLabel={salonActive ? "Panel" : "Müraciət"}
+          expiresAt={snapshot.salonSubscriptionExpiresAt}
+          isTrial={snapshot.salonIsTrial}
         />
         <StatusTile
           title="Mağaza"
@@ -28,6 +58,8 @@ export function BusinessAccountStatus({
           active={magazaActive}
           href={magazaActive ? "/parts/publish" : "/parts/apply"}
           actionLabel={magazaActive ? "Elan ver" : "Aktiv et"}
+          expiresAt={snapshot.magazaSubscriptionExpiresAt}
+          isTrial={snapshot.magazaIsTrial}
         />
       </div>
     );
@@ -55,8 +87,10 @@ export function BusinessAccountStatus({
           active={salonActive}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
           primaryLabel={salonActive ? "Salon paneli" : "Salon müraciəti"}
-          secondaryHref="/pricing#business"
+          secondaryHref="/pricing#dealer"
           secondaryLabel="Salon planları"
+          expiresAt={snapshot.salonSubscriptionExpiresAt}
+          isTrial={snapshot.salonIsTrial}
         />
         <VerticalCard
           emoji="📦"
@@ -68,6 +102,8 @@ export function BusinessAccountStatus({
           primaryLabel={magazaActive ? "Hissə elanı" : "Mağaza müraciəti"}
           secondaryHref="/pricing#parts-store"
           secondaryLabel="Mağaza planları"
+          expiresAt={snapshot.magazaSubscriptionExpiresAt}
+          isTrial={snapshot.magazaIsTrial}
         />
       </div>
     </section>
@@ -79,18 +115,23 @@ function StatusTile({
   status,
   active,
   href,
-  actionLabel
+  actionLabel,
+  expiresAt,
+  isTrial
 }: {
   title: string;
   status: string;
   active: boolean;
   href: string;
   actionLabel: string;
+  expiresAt?: string;
+  isTrial?: boolean;
 }) {
   return (
     <div className={`rounded-xl border p-4 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
       <div className="text-sm font-medium text-slate-900">{title}</div>
       <div className={`mt-1 text-xs ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</div>
+      {active && <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />}
       <Link href={href} className="mt-2 inline-block text-xs font-medium text-[#0057FF] hover:underline">
         {actionLabel} →
       </Link>
@@ -107,7 +148,9 @@ function VerticalCard({
   primaryHref,
   primaryLabel,
   secondaryHref,
-  secondaryLabel
+  secondaryLabel,
+  expiresAt,
+  isTrial
 }: {
   emoji: string;
   title: string;
@@ -118,6 +161,8 @@ function VerticalCard({
   primaryLabel: string;
   secondaryHref: string;
   secondaryLabel: string;
+  expiresAt?: string;
+  isTrial?: boolean;
 }) {
   return (
     <div className={`rounded-2xl border p-5 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
@@ -127,6 +172,7 @@ function VerticalCard({
           <h3 className="font-semibold text-slate-900">{title}</h3>
           <p className="mt-1 text-xs text-slate-500">{description}</p>
           <p className={`mt-2 text-xs font-medium ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</p>
+          {active && <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />}
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">

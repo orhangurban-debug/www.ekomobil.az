@@ -40,7 +40,9 @@ export async function POST(req: Request) {
       ok: true,
       paymentId: result.payment.id,
       checkoutUrl: result.payment.checkoutUrl,
-      status: result.payment.status
+      status: result.payment.status,
+      isTrial: result.isTrial ?? false,
+      expiresAt: result.payment.expiresAt ?? null
     });
   } catch {
     return NextResponse.json({ ok: false, error: "Biznes plan ödənişi yaradıla bilmədi." }, { status: 500 });

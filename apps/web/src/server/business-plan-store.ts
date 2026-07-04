@@ -126,8 +126,12 @@ export interface BusinessAccountSnapshot {
   salonRoleApproved: boolean;
   salonSubscriptionActive: boolean;
   salonPlanName?: string;
+  salonSubscriptionExpiresAt?: string;
+  salonIsTrial?: boolean;
   magazaSubscriptionActive: boolean;
   magazaPlanName?: string;
+  magazaSubscriptionExpiresAt?: string;
+  magazaIsTrial?: boolean;
 }
 
 export async function getBusinessAccountSnapshot(
@@ -145,8 +149,12 @@ export async function getBusinessAccountSnapshot(
     salonRoleApproved: role === "dealer" || role === "admin",
     salonSubscriptionActive: dealerSub !== null,
     salonPlanName: dealerSub ? dealerPlan.nameAz : undefined,
+    salonSubscriptionExpiresAt: dealerSub?.expires_at?.toISOString() ?? undefined,
+    salonIsTrial: dealerSub?.trial_granted_at != null,
     magazaSubscriptionActive: partsSub !== null,
-    magazaPlanName: partsSub ? partsPlan.nameAz : undefined
+    magazaPlanName: partsSub ? partsPlan.nameAz : undefined,
+    magazaSubscriptionExpiresAt: partsSub?.expires_at?.toISOString() ?? undefined,
+    magazaIsTrial: partsSub?.trial_granted_at != null
   };
 }
 
@@ -155,7 +163,7 @@ async function getActiveSubscription(userId: string, businessType: BusinessType)
     const pool = getPgPool();
     const result = await pool.query<SubscriptionRow>(
       `
-        SELECT business_type, plan_id, status, starts_at, expires_at
+        SELECT business_type, plan_id, status, starts_at, expires_at, trial_granted_at
         FROM business_plan_subscriptions
         WHERE owner_user_id = $1
           AND business_type = $2

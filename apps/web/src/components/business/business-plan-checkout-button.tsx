@@ -12,7 +12,10 @@ export function BusinessPlanCheckoutButton(props: {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activated, setActivated] = useState(false);
+  const [activationResult, setActivationResult] = useState<{
+    isTrial: boolean;
+    expiresAt: string | null;
+  } | null>(null);
 
   async function onCheckout() {
     setLoading(true);
@@ -31,14 +34,19 @@ export function BusinessPlanCheckoutButton(props: {
         error?: string;
         checkoutUrl?: string;
         status?: string;
+        isTrial?: boolean;
+        expiresAt?: string | null;
       };
       if (!response.ok || !payload.ok) {
         setError(payload.error ?? "Ödəniş başlatmaq mümkün olmadı.");
         return;
       }
-      // Açılış kampaniyası aktivdirsə plan bank ödənişi olmadan dərhal aktivləşir.
+      // Plan bank ödənişi olmadan dərhal aktivləşdi (trial və ya $0 promo)
       if (!payload.checkoutUrl || payload.status === "succeeded") {
-        setActivated(true);
+        setActivationResult({
+          isTrial: payload.isTrial ?? false,
+          expiresAt: payload.expiresAt ?? null
+        });
         router.refresh();
         return;
       }
@@ -51,20 +59,42 @@ export function BusinessPlanCheckoutButton(props: {
     }
   }
 
+  const expiryLabel = activationResult?.expiresAt
+    ? new Date(activationResult.expiresAt).toLocaleDateString("az-AZ", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      })
+    : null;
+
   return (
     <div className="space-y-2">
       <button
         type="button"
         className={props.className ?? "btn-primary"}
         onClick={onCheckout}
-        disabled={loading || activated}
+        disabled={loading || Boolean(activationResult)}
       >
-        {activated ? "Aktivləşdirildi ✓" : loading ? "Göndərilir..." : (props.label ?? "Planı aktiv et")}
+        {activationResult
+          ? "Aktivləşdirildi ✓"
+          : loading
+          ? "Göndərilir..."
+          : (props.label ?? "Planı aktiv et")}
       </button>
-      {activated && (
-        <p className="text-xs font-medium text-emerald-700">
-          Açılış kampaniyası ilə plan pulsuz aktivləşdirildi.
-        </p>
+      {activationResult && (
+        <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5 text-xs text-emerald-800">
+          {activationResult.isTrial ? (
+            <>
+              <p className="font-semibold">30 günlük pulsuz sınaq başladı!</p>
+              {expiryLabel && (
+                <p className="mt-0.5">Sınaq müddəti: <span className="font-medium">{expiryLabel}</span> tarixinə qədər.</p>
+              )}
+              <p className="mt-1 text-emerald-700">Müddət bitdikdən sonra abunəni davam etdirmək üçün ödəniş tələb olunacaq.</p>
+            </>
+          ) : (
+            <p className="font-semibold">Plan uğurla aktivləşdirildi.</p>
+          )}
+        </div>
       )}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

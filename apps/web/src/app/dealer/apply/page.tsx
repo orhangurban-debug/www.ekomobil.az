@@ -59,9 +59,12 @@ export default function DealerApplyPage() {
           Komandamız 1–2 iş günü ərzində e-poçt vasitəsilə əlaqə saxlayacaq. 
           VÖEN arayışı tələb oluna bilər.
         </p>
-        <div className="mt-8 flex justify-center gap-3">
+        <div className="mx-auto mt-5 max-w-sm rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
+          Müraciətiniz təsdiqləndikdən sonra <strong>ilk 30 gün pulsuz</strong> salon planından istifadə edə bilərsiniz.
+        </div>
+        <div className="mt-6 flex justify-center gap-3">
           <Link href="/me" className="btn-primary">Profil səhifəsinə qayıt</Link>
-          <Link href="/pricing#business" className="btn-secondary">Biznes planları</Link>
+          <Link href="/pricing#dealer" className="btn-secondary">Salon planları</Link>
         </div>
       </div>
     );
@@ -82,6 +85,22 @@ export default function DealerApplyPage() {
         <p className="mt-2 text-slate-500">
           Salon müraciətini göndərin — admin təsdiqindən sonra salon planını aktivləşdirin.
         </p>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
+        <div className="flex items-start gap-2.5">
+          <svg className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-emerald-800">İlk 30 gün pulsuz sınaq</p>
+            <p className="mt-0.5 text-xs text-emerald-700">
+              Müraciətiniz təsdiqləndikdən sonra salon planını ilk dəfə aktivləşdirəndə 30 günlük pulsuz sınaq müddəti verilir.
+              Sınaq bitdikdən sonra aylıq abunə ödənişinə keçilir.{" "}
+              <Link href="/pricing#dealer" className="font-semibold underline">Qiymətlərə bax →</Link>
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
