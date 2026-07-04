@@ -709,12 +709,6 @@ export default async function PricingPage() {
             </div>
           </div>
 
-          <div className="mb-8 rounded-2xl border border-slate-900/10 bg-white/60 px-5 py-4 text-xs text-slate-600">
-            <p className="font-semibold text-slate-900">Niyə bu limitlər var?</p>
-            <p className="mt-1 leading-relaxed">
-              Limitlər real xərclərə görə hesablanır: şəkil saxlanması ({economics.storageCostPerImageAzn.toFixed(4)} ₼/şəkil), görüntü trafiki ({economics.egressCostPerImageViewAzn.toFixed(4)} ₼/görüntü), moderasiya ({economics.moderationCostPerListingAzn.toFixed(2)} ₼/elan) və dəstək ({economics.supportCostPerListingAzn.toFixed(2)} ₼/elan). Hədəf maya dəyəri nisbəti {economics.targetCogsRatioPct}% və risk buffer {economics.riskBufferPct}% saxlanır.
-            </p>
-          </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
             {dealerPlans.map((plan) => (
