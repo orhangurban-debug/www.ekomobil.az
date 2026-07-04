@@ -66,6 +66,7 @@ export interface ListingRecord {
   partCompatibility?: string;
   planType?: PlanType;
   planExpiresAt?: string;
+  rejectionNote?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -3,6 +3,7 @@ import type { ListingStatus } from "@/lib/marketplace-types";
 type ListingOwnerStatusBannerProps = {
   status: ListingStatus;
   paymentSuccess?: boolean;
+  rejectionNote?: string;
 };
 
 const statusCopy: Partial<Record<ListingStatus, { title: string; body: string; cls: string }>> = {
@@ -27,13 +28,13 @@ const statusCopy: Partial<Record<ListingStatus, { title: string; body: string; c
     cls: "border-slate-900/10 bg-white/63 text-slate-600"
   },
   inactive: {
-    title: "Deaktiv",
-    body: "Elan hazırda ictimai axtarışda görünmür.",
-    cls: "border-slate-900/10 bg-white/63 text-slate-600"
+    title: "Elan bloklanıb",
+    body: "Elan hazırda ictimai axtarışda görünmür. Ətraflı məlumat üçün dəstək ilə əlaqə saxlayın.",
+    cls: "border-violet-500/25 bg-violet-500/10 text-violet-800"
   }
 };
 
-export function ListingOwnerStatusBanner({ status, paymentSuccess }: ListingOwnerStatusBannerProps) {
+export function ListingOwnerStatusBanner({ status, paymentSuccess, rejectionNote }: ListingOwnerStatusBannerProps) {
   const copy = statusCopy[status];
   if (!copy && !paymentSuccess) return null;
 
@@ -48,6 +49,18 @@ export function ListingOwnerStatusBanner({ status, paymentSuccess }: ListingOwne
         <div className={`rounded-xl border px-4 py-3 text-sm ${copy.cls}`}>
           <p className="font-semibold">{copy.title}</p>
           <p className="mt-1">{copy.body}</p>
+          {status === "rejected" && rejectionNote && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-white/70 px-3 py-2 text-xs">
+              <p className="font-semibold text-red-700">Admin qeydi:</p>
+              <p className="mt-0.5 text-red-800">{rejectionNote}</p>
+            </div>
+          )}
+          {status === "inactive" && rejectionNote && (
+            <div className="mt-3 rounded-lg border border-violet-200 bg-white/70 px-3 py-2 text-xs">
+              <p className="font-semibold text-violet-700">Blok səbəbi:</p>
+              <p className="mt-0.5 text-violet-800">{rejectionNote}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

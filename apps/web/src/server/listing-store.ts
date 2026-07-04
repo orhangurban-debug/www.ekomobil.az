@@ -61,6 +61,7 @@ interface ListingRow {
   updated_at: Date;
   plan_type?: string | null;
   plan_expires_at?: Date | null;
+  rejection_note?: string | null;
   image_url?: string | null;
   trust_score?: number | null;
   vin_verified?: boolean | null;
@@ -289,6 +290,7 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     whatsappPhone: row.whatsapp_phone ?? undefined,
     planType: (row.plan_type as PlanType) ?? "free",
     planExpiresAt: row.plan_expires_at?.toISOString(),
+    rejectionNote: row.rejection_note ?? undefined,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
     imageUrl: row.image_url ?? undefined,
@@ -542,7 +544,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
-          l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
+          l.plan_type, l.plan_expires_at, l.rejection_note, l.created_at, l.updated_at,
           (
             SELECT lm.url
             FROM listing_media lm
@@ -605,7 +607,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
-          l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
+          l.plan_type, l.plan_expires_at, l.rejection_note, l.created_at, l.updated_at,
           (
             SELECT lm.url
             FROM listing_media lm
@@ -949,7 +951,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
-          l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
+          l.plan_type, l.plan_expires_at, l.rejection_note, l.created_at, l.updated_at,
           (
             SELECT lm.url
             FROM listing_media lm
@@ -988,7 +990,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           l.vin_info_url, l.vin_document_ref, l.service_history_url, l.service_history_document_ref,
           l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility,
-          l.plan_type, l.plan_expires_at, l.created_at, l.updated_at,
+          l.plan_type, l.plan_expires_at, l.rejection_note, l.created_at, l.updated_at,
           (
             SELECT lm.url
             FROM listing_media lm

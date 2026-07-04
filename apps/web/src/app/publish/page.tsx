@@ -1160,10 +1160,12 @@ export default function PublishPage() {
                   </div>
                   <div>
                     <label className="label">Salon materialı</label>
-                    <select value={interiorMaterial} onChange={(e) => setInteriorMaterial(e.target.value)} className="input-field">
-                      <option value="">Seçilməyib</option>
-                      {INTERIOR_MATERIALS.map((item) => <option key={item}>{item}</option>)}
-                    </select>
+                    <ComboboxInput
+                      value={interiorMaterial}
+                      options={INTERIOR_MATERIALS}
+                      onChange={setInteriorMaterial}
+                      placeholder="Seçin və ya yazın"
+                    />
                   </div>
                 </div>
 
@@ -1449,36 +1451,45 @@ export default function PublishPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Elan qəbul edildi!</h2>
+              <h2 className="text-xl font-bold text-slate-900">
+                {result.pendingReview ? "Elan yoxlamaya göndərildi!" : "Elan qəbul edildi!"}
+              </h2>
               <p className="mt-2 text-slate-500">
                 {result.pendingReview
-                  ? "Elanınız yoxlamaya göndərildi. Təsdiqdən sonra saytda görünəcək."
+                  ? "Admin yoxlamasından sonra saytda görünəcək. Bu adətən 24 saat ərzində baş verir."
                   : "Elanınız uğurla yayımlandı."}
               </p>
               {typeof result.trustScore === "number" && (
-                <p className="mt-2 text-slate-500">
+                <p className="mt-3 text-slate-500">
                   Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong>
                 </p>
               )}
             </div>
+
+            {result.signals?.mileageFlag && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800">
+                <div className="flex gap-2">
+                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold">Yürüş məlumatı haqqında qeyd</p>
+                    <p className="mt-0.5 text-amber-700">{result.signals.mileageFlag.message}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Link href="/me" className="btn-primary justify-center">
                 Elanlarım
               </Link>
-              {result.listingId && (
+              {result.listingId && !result.pendingReview && (
                 <Link href={`/listings/${result.listingId}`} className="btn-secondary justify-center">
                   Elana bax
                 </Link>
               )}
             </div>
-            {result.signals?.mileageFlag && (
-              <div className="rounded-xl alert-warning border p-4 text-sm text-amber-700 text-left">
-                <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
-              </div>
-            )}
-            <button onClick={() => { setResult(null); goToStep("Şəkillər"); }} className="btn-secondary">
-              Yenidən cəhd et
-            </button>
           </div>
         )}
       </div>

@@ -153,11 +153,16 @@ export default async function ListingDetailPage({
           listingId={listing.id}
           currentStatus={listing.status}
           listingTitle={listing.title}
+          ownerUserId={listing.ownerUserId}
         />
       )}
 
       {isOwner && (
-        <ListingOwnerStatusBanner status={listing.status} paymentSuccess={paymentSuccess} />
+        <ListingOwnerStatusBanner
+          status={listing.status}
+          paymentSuccess={paymentSuccess}
+          rejectionNote={listing.rejectionNote}
+        />
       )}
 
       {isOwner && listing.status === "active" && listing.planExpiresAt && (

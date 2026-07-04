@@ -253,6 +253,8 @@ export interface AdminListingRow {
   city: string;
   year: number;
   planType?: string;
+  imageUrl?: string;
+  trustScore?: number;
   createdAt: string;
 }
 
@@ -1500,10 +1502,15 @@ export async function listAdminListingsPaged(input: {
     city: string;
     year: number;
     plan_type: string | null;
+    image_url: string | null;
+    trust_score: number | null;
     created_at: Date;
   }>(
-    `SELECT id, title, status, seller_type, listing_kind, price_azn, city, year, plan_type, created_at
-     FROM listings
+    `SELECT l.id, l.title, l.status, l.seller_type, l.listing_kind, l.price_azn, l.city, l.year, l.plan_type, l.created_at,
+       (SELECT m.url FROM listing_media m WHERE m.listing_id = l.id ORDER BY m.sort_order ASC LIMIT 1) AS image_url,
+       lt.trust_score
+     FROM listings l
+     LEFT JOIN listing_trust lt ON lt.listing_id = l.id
      ${whereSql}
      ORDER BY ${sortBy} ${sortDir}
      LIMIT $${values.length - 1} OFFSET $${values.length}`,
@@ -1521,6 +1528,8 @@ export async function listAdminListingsPaged(input: {
       city: row.city,
       year: row.year,
       planType: row.plan_type ?? undefined,
+      imageUrl: row.image_url ?? undefined,
+      trustScore: row.trust_score ?? undefined,
       createdAt: row.created_at.toISOString()
     })),
     total,
@@ -1630,10 +1639,11 @@ export async function updateSingleAdminListing(id: string, updates: {
   priceAzn?: number;
   title?: string;
   city?: string;
+  rejectionNote?: string | null;
 }): Promise<boolean> {
   const pool = getPgPool();
   const sets: string[] = ["updated_at = NOW()"];
-  const values: (string | number)[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.status !== undefined) {
     values.push(updates.status);
@@ -1644,7 +1654,21 @@ export async function updateSingleAdminListing(id: string, updates: {
         WHEN 'standard' THEN NOW() + INTERVAL '60 days'
         ELSE NOW() + INTERVAL '30 days'
       END`);
+      // Clear rejection note when activating
+      sets.push(`rejection_note = NULL`);
     }
+    if (updates.status === "rejected") {
+      const note = updates.rejectionNote?.trim() || null;
+      values.push(note);
+      sets.push(`rejection_note = $${values.length}`);
+    }
+    if (updates.status === "pending_review") {
+      // Keep rejection note so user can see it even after re-review
+      sets.push(`rejection_note = NULL`);
+    }
+  } else if (updates.rejectionNote !== undefined) {
+    values.push(updates.rejectionNote ?? null);
+    sets.push(`rejection_note = $${values.length}`);
   }
   if (updates.priceAzn !== undefined) {
     values.push(updates.priceAzn);

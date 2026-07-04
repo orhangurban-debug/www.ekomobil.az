@@ -32,6 +32,7 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     priceAzn?: number;
     title?: string;
     city?: string;
+    rejectionNote?: string;
   };
 
   // Elan müddətinin uzadılması ayrıca əməliyyatdır (status dəyişmədən müddəti plan qədər artırır).
@@ -46,7 +47,13 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     return NextResponse.json({ ok: false, error: "Yanlış status." }, { status: 400 });
   }
 
-  const updated = await updateSingleAdminListing(id, body);
+  const updated = await updateSingleAdminListing(id, {
+    status: body.status,
+    priceAzn: body.priceAzn,
+    title: body.title,
+    city: body.city,
+    rejectionNote: body.rejectionNote
+  });
   if (!updated) return NextResponse.json({ ok: false, error: "Elan tapılmadı və ya dəyişiklik yoxdur." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
