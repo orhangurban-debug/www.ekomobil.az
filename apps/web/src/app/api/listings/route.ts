@@ -629,9 +629,13 @@ async function handleCreateListing(req: Request): Promise<Response> {
     });
   } catch (error) {
     console.error("Failed to persist vehicle listing", error);
+    const message = error instanceof Error ? error.message : "";
+    const isSchemaError = /photo_tag|column/i.test(message);
     return NextResponse.json({
       ok: false,
-      error: "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+      error: isSchemaError
+        ? "Elan şəkilləri saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+        : "Elan yadda saxlanmadı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
     }, { status: 500 });
   }
 }

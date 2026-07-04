@@ -236,6 +236,49 @@ export function daysRemaining(planExpiresAt: string | Date): number {
   return Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+export type PlanExpiryDisplayState = "active" | "expiring_soon" | "expired";
+
+export interface PlanExpiryDisplay {
+  state: PlanExpiryDisplayState;
+  daysLeft: number;
+  durationDays: number;
+  progressPercent: number;
+  expiresLabel: string;
+}
+
+/** Aktiv elanlar üçün plan müddəti sayğacı (yalnız plan_expires_at olduqda). */
+export function getPlanExpiryDisplay(
+  planExpiresAt: string | Date,
+  planType: PlanType
+): PlanExpiryDisplay {
+  const plan = getPlanById(planType);
+  const durationDays = plan?.durationDays ?? 30;
+  const expiry = new Date(planExpiresAt);
+  const start = new Date(expiry);
+  start.setDate(start.getDate() - durationDays);
+
+  const now = Date.now();
+  const totalMs = Math.max(expiry.getTime() - start.getTime(), 1);
+  const elapsedMs = Math.min(Math.max(now - start.getTime(), 0), totalMs);
+  const progressPercent = Math.round((elapsedMs / totalMs) * 100);
+  const daysLeft = daysRemaining(planExpiresAt);
+
+  const expiresLabel = expiry.toLocaleDateString("az-AZ", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+  let state: PlanExpiryDisplayState = "active";
+  if (daysLeft <= 0) {
+    state = "expired";
+  } else if (daysLeft <= 3) {
+    state = "expiring_soon";
+  }
+
+  return { state, daysLeft, durationDays, progressPercent, expiresLabel };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Dinamik qiymət cədvəli (avtomobil qiymətinə görə)
 // Turbo.az modelindən ilham alınıb: qiymət nə qədər yüksəkdirsə,

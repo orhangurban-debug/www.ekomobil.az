@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
+import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 import { PrivacyControls } from "@/components/user/privacy-controls";
 import { getServerSessionUser } from "@/lib/auth";
@@ -13,6 +14,7 @@ import { listInvoicesForUser, countInvoicesForUser } from "@/server/invoice-stor
 import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 import { loadBusinessAccountSnapshot } from "@/server/business-access";
 import { formatAccountTypeLabel } from "@/lib/business-account";
+import type { PlanType } from "@/lib/listing-plans";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
 
 export default async function ProfilePage({
@@ -306,6 +308,15 @@ export default async function ProfilePage({
                           </span>
                         </div>
                         <div className="mt-1 text-xs text-slate-500">{item.city} • {item.year}</div>
+                        {item.status === "active" && item.planExpiresAt && (
+                          <div className="mt-2">
+                            <ListingPlanExpiryCounter
+                              planExpiresAt={item.planExpiresAt}
+                              planType={(item.planType ?? "free") as PlanType}
+                              variant="compact"
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className="flex shrink-0 items-center gap-4">
                         <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />

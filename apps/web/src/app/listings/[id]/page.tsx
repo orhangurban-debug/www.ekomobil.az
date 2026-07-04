@@ -10,6 +10,8 @@ import { ListingStatsPanel } from "@/components/listings/listing-stats-panel";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingGallery } from "@/components/listings/listing-gallery";
 import { ListingFloatingCta } from "@/components/listings/listing-floating-cta";
+import { ListingOwnerStatusBanner } from "@/components/listings/listing-owner-status-banner";
+import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
 import { ListingSpecShowcase } from "@/components/listings/listing-spec-showcase";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
@@ -19,6 +21,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
 import { getListingStats } from "@/server/listing-stats-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
+import type { PlanType } from "@/lib/listing-plans";
 
 const priceInsightMap = {
   below_market: { label: "Bazar qiymətindən aşağı", cls: "badge-verified" },
@@ -79,8 +82,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ListingDetailPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
+  const paymentSuccess = query.payment === "success";
   const [listing, user, stats] = await Promise.all([
     getListingDetailCached(id),
     getServerSessionUser(),
@@ -143,6 +154,19 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           currentStatus={listing.status}
           listingTitle={listing.title}
         />
+      )}
+
+      {isOwner && (
+        <ListingOwnerStatusBanner status={listing.status} paymentSuccess={paymentSuccess} />
+      )}
+
+      {isOwner && listing.status === "active" && listing.planExpiresAt && (
+        <div className="mb-6">
+          <ListingPlanExpiryCounter
+            planExpiresAt={listing.planExpiresAt}
+            planType={(listing.planType ?? "free") as PlanType}
+          />
+        </div>
       )}
 
       <div className="grid gap-8 lg:grid-cols-3">

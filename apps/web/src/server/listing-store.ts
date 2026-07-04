@@ -123,6 +123,11 @@ async function hasTableColumn(tableName: string, columnName: string): Promise<bo
   }
 }
 
+async function listingMediaOrderSql(): Promise<string> {
+  const hasPhotoTag = await hasTableColumn("listing_media", "photo_tag");
+  return hasPhotoTag ? LISTING_MEDIA_DISPLAY_ORDER_SQL : "lm.sort_order ASC";
+}
+
 async function ensureListingBoostActivationsTable(): Promise<void> {
   try {
     const pool = getPgPool();
@@ -321,6 +326,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
     await ensureSeedData();
     await ensureListingBoostActivationsTable();
     const boostTableExists = await hasListingBoostActivationsTable();
+    const mediaOrderSql = await listingMediaOrderSql();
     const pool = getPgPool();
     const values: unknown[] = [];
     const where: string[] = ["l.status = 'active'"];
@@ -541,7 +547,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
+            ORDER BY ${mediaOrderSql}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -577,6 +583,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
   try {
     await ensureSeedData();
     const pool = getPgPool();
+    const mediaOrderSql = await listingMediaOrderSql();
     const [hasPhoneNormalized, hasDealerShowWhatsapp, hasDealerWhatsappPhone] = await Promise.all([
       hasTableColumn("users", "phone_normalized"),
       hasTableColumn("dealer_profiles", "show_whatsapp"),
@@ -603,7 +610,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
+            ORDER BY ${mediaOrderSql}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -649,7 +656,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
           SELECT id, url
           FROM listing_media lm
           WHERE lm.listing_id = $1 AND lm.media_type = 'image'
-          ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
+          ORDER BY ${mediaOrderSql}
           LIMIT 24
         `,
           [id]
@@ -778,7 +785,7 @@ export async function createListingRecord(input: {
   const pool = getPgPool();
   const client = await pool.connect();
 
-  const status = input.status ?? "active";
+  const status = input.status ?? "pending_review";
   const planType = input.planType ?? "free";
   const planExpiresAt =
     input.planExpiresAt !== undefined
@@ -889,17 +896,28 @@ export async function createListingRecord(input: {
     const imageUrls = ordered.imageUrls;
     const imageHashes = ordered.imageHashes;
     const photoTags = ordered.photoTags;
+    const hasPhotoTagColumn = await hasTableColumn("listing_media", "photo_tag");
     if (imageUrls.length > 0) {
       for (let index = 0; index < imageUrls.length; index += 1) {
         const perceptualHash = imageHashes[index];
         const photoTag = photoTags[index];
-        await client.query(
-          `
-            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash, photo_tag)
-            VALUES ($1, $2, 'image', $3, $4, $5, $6)
-          `,
-          [randomUUID(), id, imageUrls[index], index, perceptualHash || null, photoTag]
-        );
+        if (hasPhotoTagColumn) {
+          await client.query(
+            `
+              INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash, photo_tag)
+              VALUES ($1, $2, 'image', $3, $4, $5, $6)
+            `,
+            [randomUUID(), id, imageUrls[index], index, perceptualHash || null, photoTag]
+          );
+        } else {
+          await client.query(
+            `
+              INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash)
+              VALUES ($1, $2, 'image', $3, $4, $5)
+            `,
+            [randomUUID(), id, imageUrls[index], index, perceptualHash || null]
+          );
+        }
       }
     }
 
@@ -918,6 +936,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
   try {
     await ensureSeedData();
     const pool = getPgPool();
+    const mediaOrderSql = await listingMediaOrderSql();
     const result = await pool.query<ListingRow>(
       `
         SELECT
@@ -935,7 +954,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
+            ORDER BY ${mediaOrderSql}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -956,6 +975,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
   try {
     await ensureSeedData();
     const pool = getPgPool();
+    const mediaOrderSql = await listingMediaOrderSql();
     const result = await pool.query<ListingRow>(
       `
         SELECT
@@ -973,7 +993,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
+            ORDER BY ${mediaOrderSql}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   BODY_TYPES,
@@ -173,6 +174,8 @@ interface TrustApiResponse {
   error?: string;
   trustScore?: number;
   errors?: string[];
+  listingId?: string;
+  pendingReview?: boolean;
   signals?: {
     vinVerification: { status: string };
     mileageFlag?: { message: string; severity: string };
@@ -673,6 +676,7 @@ export default function PublishPage() {
         id?: string;
         error?: string;
         errors?: string[];
+        trustScore?: number;
         paymentRequired?: boolean;
       };
       if (createResponse.status === 401) {
@@ -702,8 +706,13 @@ export default function PublishPage() {
             return;
           }
           if (paymentPayload.ok && paymentPayload.status === "succeeded") {
-            router.push(`/listings/${createPayload.id}`);
-            router.refresh();
+            setResult({
+              ok: true,
+              trustScore: createPayload.trustScore ?? payload.trustScore ?? 50,
+              listingId: createPayload.id,
+              pendingReview: true,
+              signals: payload.signals
+            });
             return;
           }
           showPublishErrors([paymentPayload.error || "Ödəniş axını başladılmadı."]);
@@ -711,8 +720,13 @@ export default function PublishPage() {
           return;
         }
 
-        router.push(`/listings/${createPayload.id}`);
-        router.refresh();
+        setResult({
+          ok: true,
+          trustScore: createPayload.trustScore ?? payload.trustScore ?? 50,
+          listingId: createPayload.id,
+          pendingReview: true,
+          signals: payload.signals
+        });
         return;
       }
       showPublishErrors(collectApiErrors(createPayload, "Elan yaradıla bilmədi."));
@@ -1435,7 +1449,26 @@ export default function PublishPage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900">Elan qəbul edildi!</h2>
-              <p className="mt-2 text-slate-500">Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong></p>
+              <p className="mt-2 text-slate-500">
+                {result.pendingReview
+                  ? "Elanınız yoxlamaya göndərildi. Təsdiqdən sonra saytda görünəcək."
+                  : "Elanınız uğurla yayımlandı."}
+              </p>
+              {typeof result.trustScore === "number" && (
+                <p className="mt-2 text-slate-500">
+                  Etibar xalınız: <strong className="text-[#0057FF]">{result.trustScore}/100</strong>
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/me" className="btn-primary justify-center">
+                Elanlarım
+              </Link>
+              {result.listingId && (
+                <Link href={`/listings/${result.listingId}`} className="btn-secondary justify-center">
+                  Elana bax
+                </Link>
+              )}
             </div>
             {result.signals?.mileageFlag && (
               <div className="rounded-xl alert-warning border p-4 text-sm text-amber-700 text-left">

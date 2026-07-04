@@ -315,6 +315,7 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
         transmission: get("transmission"),
         vin,
         sellerType: "dealer",
+        status: "pending_review",
         bodyType: getOptional("bodyType"),
         driveType: getOptional("driveType"),
         color: getOptional("color"),
