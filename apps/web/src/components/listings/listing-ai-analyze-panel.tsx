@@ -150,11 +150,16 @@ export function ListingAiAnalyzePanel({
       setErrors(["Əvvəlcə ən az bir şəkil əlavə edin."]);
       return;
     }
+    if (quota?.requiresAuth) {
+      setErrors(["AI analiz üçün hesaba daxil olun."]);
+      return;
+    }
     setAnalyzing(true);
     setErrors([]);
     setResult(null);
     try {
-      const imageUrls = await Promise.all(images.map(async (img) => await fileToDataUrl(img.file)));
+      const capped = images.slice(0, effectiveMaxImages);
+      const imageUrls = await Promise.all(capped.map(async (img) => await fileToDataUrl(img.file)));
       const response = await fetch("/api/ai/analyze-listing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,10 +183,7 @@ export function ListingAiAnalyzePanel({
       };
       if (!response.ok || !payload.ok || !payload.result) {
         if (payload.requiresAuth) {
-          setErrors([
-            payload.error ??
-              "Bu analiz üçün hesaba daxil olun — qonaq rejimində avtomobil analizi mövcuddur."
-          ]);
+          setErrors([payload.error ?? "AI analiz üçün hesaba daxil olun."]);
         } else {
           setErrors([payload.error ?? "Analiz uğursuz oldu."]);
         }
@@ -225,47 +227,26 @@ export function ListingAiAnalyzePanel({
   if (skipped && optional) return null;
 
   return (
-    <div className={`rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50/80 to-white p-5 ${className}`}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className={`rounded-2xl border border-violet-200/80 bg-violet-50/50 p-4 sm:p-5 ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-violet-900">{title}</p>
-          <p className="mt-1 text-xs text-violet-700/80">
-            {bulkMode || analysisContext === "part_bulk"
-              ? `${effectiveMaxImages} şəkilə qədər — AI fərqli məhsulları qruplaşdıracaq.`
-              : analysisContext === "service"
-                ? "Emalatxana/servis şəkillərindən profil sahələrini təklif edir."
-                : autoApply
-                  ? "Şəkilləri analiz edib sahələri və rakursları avtomatik dolduracaq — siz yalnız yoxlayın."
-                  : "Bütün şəkillər eyni elana (tək avtomobil/məhsul) aiddir — AI sahələri avtomatik dolduracaq."}
-            {optional ? " Bu addım istəyə bağlıdır." : ""}
-          </p>
-          {quota?.planLabel === "Qonaq" && (
-            <p className="mt-1 text-[11px] font-medium text-amber-700">
-              Qonaq rejimi: gündə {quota.dailyLimit} AI analiz · daxil olanda limit artır
-            </p>
-          )}
           {quota?.planLabel && (
-            <p className="mt-1 text-[11px] font-medium text-violet-600">
-              Plan: {quota.planLabel} · gündə {quota.dailyLimit} analiz · elan başına {effectiveMaxImages} şəkil
+            <p className="mt-0.5 text-[11px] text-violet-700">
+              {effectiveMaxImages} şəkilə qədər · gündə {quota.dailyLimit} analiz
+              {images.length > effectiveMaxImages ? ` · ilk ${effectiveMaxImages} şəkil analiz olunacaq` : ""}
             </p>
           )}
         </div>
-        {quota && (
+        {quota && !quota.requiresAuth && (
           <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-medium text-violet-800">
-            Qalan: {quota.remaining}/{quota.dailyLimit}
+            {quota.remaining}/{quota.dailyLimit}
           </span>
         )}
       </div>
 
-      {quota?.singleListingOnly && analysisContext === "vehicle" && (
-        <div className="mt-3 rounded-xl alert-warning border px-3 py-2.5 text-xs text-amber-700">
-          <strong>Salon / avtomobil qaydası:</strong> Yalnız <em>bir avtomobilin</em> şəkillərini yükləyin.
-          Bir neçə avtomobil üçün ayrı-ayrı elan yaradın və ya{" "}
-          <Link href="/dealer/import" className="font-semibold underline">
-            CSV idxalı
-          </Link>{" "}
-          istifadə edin.
-        </div>
+      {quota?.singleListingOnly && analysisContext === "vehicle" && managesOwnUploads && (
+        <p className="mt-2 text-[11px] text-amber-700">Yalnız bir avtomobilin şəkillərini yükləyin.</p>
       )}
 
       {managesOwnUploads && (
@@ -316,8 +297,8 @@ export function ListingAiAnalyzePanel({
       )}
 
       {!managesOwnUploads && images.length > 0 && (
-        <p className="mt-3 text-xs text-violet-700">
-          {images.length} şəkil seçilib — AI analiz üçün hazırdır (plan limiti: {effectiveMaxImages}).
+        <p className="mt-2 text-xs text-violet-700">
+          {images.length} şəkil · analiz limiti {effectiveMaxImages}
         </p>
       )}
 
@@ -355,12 +336,12 @@ export function ListingAiAnalyzePanel({
         )}
       </div>
 
-      {applied && (
-        <p className="mt-3 text-xs font-medium text-emerald-700">
-          {autoApply
-            ? "AI təklifi avtomatik tətbiq olundu — sahələri və rakursları yoxlayın."
-            : "Təklif formaya tətbiq olundu — sahələri yoxlayın və lazım gələrsə redaktə edin."}
-        </p>
+      {applied && autoApply && (
+        <p className="mt-3 text-xs font-medium text-emerald-700">AI məlumatları doldurdu — yoxlayın.</p>
+      )}
+
+      {applied && !autoApply && (
+        <p className="mt-3 text-xs font-medium text-emerald-700">Təklif formaya tətbiq olundu.</p>
       )}
 
       {errors.length > 0 && (
@@ -373,7 +354,7 @@ export function ListingAiAnalyzePanel({
         </div>
       )}
 
-      {result && (
+      {result && !autoApply && (
         <div className="mt-4 rounded-xl border border-violet-100 bg-white p-4 text-sm">
           <p className="font-semibold text-slate-800">AI təklifi</p>
           <p className="mt-1 text-xs text-slate-500">{result.disclaimer}</p>

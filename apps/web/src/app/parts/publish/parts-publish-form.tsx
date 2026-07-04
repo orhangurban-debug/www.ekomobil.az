@@ -4,9 +4,8 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
-import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
-import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
-import { useAuthSession } from "@/hooks/use-auth-session";
+import { PublishAuthGate, PublishLoginRequired } from "@/components/listings/publish-auth-notice";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { PartAiSuggestion } from "@/lib/ai/listing-vision-types";
 import {
   PART_AUTHENTICITY_OPTIONS,
@@ -33,7 +32,7 @@ async function fileToDataUrl(file: File): Promise<string> {
 
 export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
   const router = useRouter();
-  const { isLoggedIn, loading: authLoading } = useAuthSession();
+  const { loading: authLoading, ready: authReady } = useRequireAuth("/parts/publish");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -228,6 +227,13 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
   return (
     <div className="mx-auto min-w-0 max-w-3xl overflow-x-hidden px-4 py-10 sm:px-6 lg:px-8">
+      {!authReady ? (
+        <>
+          <PublishAuthGate loading={authLoading} />
+          {!authLoading && <PublishLoginRequired returnPath="/parts/publish" />}
+        </>
+      ) : (
+        <>
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
@@ -237,12 +243,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
       </nav>
 
       <h1 className="text-3xl font-bold text-slate-900">Hissə sat</h1>
-      <p className="mt-2 text-slate-600">
-        Şəkil yükləyin, AI kömək edəcək — siz yalnız yoxlayın.
-      </p>
-
-      <ListingPublishEaseTip variant="part" className="mt-4" />
-      <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mt-4" />
+      <p className="mt-2 text-sm text-slate-600">Şəkil yükləyin, məlumatları doldurun və yayımlayın.</p>
 
       {!storeAccessEnabled && (
         <p className="mt-3 text-xs text-slate-500">
@@ -314,6 +315,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
         <ListingAiAnalyzePanel
           analysisContext="part"
+          maxImages={maxImages}
           externalImages={uploadedImages}
           autoApply
           onApplyPart={applyPartAiSuggestion}
@@ -486,6 +488,8 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           {submitting ? "Yüklənir..." : "Hissə elanını yerləşdir"}
         </button>
       </form>
+        </>
+      )}
     </div>
   );
 }

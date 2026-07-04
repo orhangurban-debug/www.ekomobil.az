@@ -4,9 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
-import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
-import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
-import { useAuthSession } from "@/hooks/use-auth-session";
+import { PublishAuthGate, PublishLoginRequired } from "@/components/listings/publish-auth-notice";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { PartBulkProductSuggestion } from "@/lib/ai/listing-vision-types";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
@@ -71,7 +70,7 @@ function toDraft(product: PartBulkProductSuggestion, index: number): DraftProduc
 
 export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
   const router = useRouter();
-  const { isLoggedIn, loading: authLoading } = useAuthSession();
+  const { loading: authLoading, ready: authReady } = useRequireAuth("/parts/publish/bulk");
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [drafts, setDrafts] = useState<DraftProduct[]>([]);
   const [city, setCity] = useState("Bakı");
@@ -196,6 +195,13 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
 
   return (
     <div className="mx-auto min-w-0 max-w-4xl overflow-x-hidden px-4 py-10 sm:px-6 lg:px-8">
+      {!authReady ? (
+        <>
+          <PublishAuthGate loading={authLoading} />
+          {!authLoading && <PublishLoginRequired returnPath="/parts/publish/bulk" />}
+        </>
+      ) : (
+        <>
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
@@ -209,16 +215,12 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
       </nav>
 
       <h1 className="text-3xl font-bold text-slate-900">Çox məhsul sat</h1>
-      <p className="mt-2 text-slate-600">
-        Bütün şəkilləri yükləyin — AI hər məhsulu ayrıca tanıyacaq.
-      </p>
-
-      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
-      <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mt-4" />
+      <p className="mt-2 text-sm text-slate-600">Şəkilləri yükləyin — AI məhsulları ayıracaq.</p>
 
       <ListingAiAnalyzePanel
         analysisContext="part_bulk"
         bulkMode
+        maxImages={15}
         autoApply
         onImagesChange={setImages}
         onApplyBulkParts={applyBulkParts}
@@ -371,6 +373,8 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
             {submitting ? "Yerləşdirilir…" : `${drafts.length} elanı yerləşdir`}
           </button>
         </div>
+      )}
+        </>
       )}
     </div>
   );

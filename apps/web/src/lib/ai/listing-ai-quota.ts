@@ -87,18 +87,6 @@ function serviceLimits(group: "official" | "inspection" | "mechanic", planId?: s
   };
 }
 
-function anonymousLimits(context: AiAnalysisContext) {
-  if (context === "part_bulk" || context === "service") {
-    return null;
-  }
-  return {
-    dailyLimit: 3,
-    maxImages: context === "vehicle" ? 8 : 6,
-    maxBulkImages: 0,
-    planLabel: "Qonaq",
-    singleListingOnly: context === "vehicle"
-  };
-}
 
 export async function resolveListingAiQuota(input: ResolveQuotaInput): Promise<ListingAiQuota> {
   let limits: {
@@ -111,14 +99,14 @@ export async function resolveListingAiQuota(input: ResolveQuotaInput): Promise<L
   let requiresAuth = false;
 
   if (!input.userId) {
-    const anon = anonymousLimits(input.context);
-    if (!anon) {
-      requiresAuth = true;
-      limits = privatePartsLimits();
-      limits.dailyLimit = 0;
-    } else {
-      limits = anon;
-    }
+    requiresAuth = true;
+    const fallback =
+      input.context === "vehicle"
+        ? privateVehicleLimits(input.planType ?? "free")
+        : input.context === "service"
+          ? serviceLimits(input.servicePlanGroup ?? "mechanic", input.servicePlanId)
+          : privatePartsLimits();
+    limits = { ...fallback, dailyLimit: 0 };
   } else if (input.context === "service") {
     const group = input.servicePlanGroup ?? "mechanic";
     limits = serviceLimits(group, input.servicePlanId);

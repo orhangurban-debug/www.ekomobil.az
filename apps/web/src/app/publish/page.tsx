@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   BODY_TYPES,
   CAR_MAKES,
@@ -24,10 +23,9 @@ import {
   type ProcessedImage
 } from "@/lib/image-processor";
 import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-panel";
-import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
-import { VehiclePhotoGuide } from "@/components/listings/vehicle-photo-guide";
+import { PublishAuthGate, PublishLoginRequired } from "@/components/listings/publish-auth-notice";
 import { PublishImageAngleTagger } from "@/components/listings/publish-image-angle-tagger";
-import { PublishAuthNotice } from "@/components/listings/publish-auth-notice";
+import { VehiclePhotoGuide } from "@/components/listings/vehicle-photo-guide";
 import {
   photoGuideCategoryFromBodyType,
   type VehiclePhotoGuideCategory
@@ -38,7 +36,7 @@ import {
   type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
-import { useAuthSession } from "@/hooks/use-auth-session";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 const STEPS = ["Şəkillər", "Məlumatlar", "Plan", "Yayımla"] as const;
 type Step = (typeof STEPS)[number];
@@ -130,7 +128,7 @@ function StepIndicator({ current }: { current: Step }) {
 
 export default function PublishPage() {
   const router = useRouter();
-  const { user, loading: authLoading, isLoggedIn } = useAuthSession();
+  const { loading: authLoading, ready: authReady } = useRequireAuth("/publish");
   const [step, setStep] = useState<Step>("Şəkillər");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -234,23 +232,28 @@ export default function PublishPage() {
   const availableTransmissions = useMemo(() => getCompatibleTransmissions(fuelType), [fuelType]);
   const isElectricPowertrain = fuelType === "Elektrik";
 
+  const goToStep = useCallback((next: Step) => {
+    setStep(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   function handleVehicleNext() {
     setVehicleValidationVisible(true);
     if (vehicleStepErrors.length > 0) return;
     setReviewErrors([]);
-    setStep("Plan");
+    goToStep("Plan");
   }
 
   function handleMediaNext() {
     setMediaValidationVisible(true);
     if (!mediaCheck.isComplete) return;
     setReviewErrors([]);
-    setStep("Məlumatlar");
+    goToStep("Məlumatlar");
   }
 
   function handlePlanNext() {
     setReviewErrors([]);
-    setStep("Yayımla");
+    goToStep("Yayımla");
   }
 
   const applyVehicleAiSuggestion = useCallback((suggestion: VehicleAiSuggestion) => {
@@ -359,12 +362,12 @@ export default function PublishPage() {
     setMediaValidationVisible(true);
 
     if (!mediaCheck.isComplete) {
-      setStep("Şəkillər");
+      goToStep("Şəkillər");
       return;
     }
 
     if (vehicleStepErrors.length > 0) {
-      setStep("Məlumatlar");
+      goToStep("Məlumatlar");
       return;
     }
 
@@ -503,32 +506,24 @@ export default function PublishPage() {
     }
   }
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-white/60 py-10">
+        <div className="mx-auto max-w-2xl px-4">
+          <PublishAuthGate loading={authLoading} />
+          {!authLoading && <PublishLoginRequired returnPath="/publish" />}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-white/60 py-6 sm:py-10">
       <div className="mx-auto min-w-0 max-w-2xl px-4">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Maşını sat</h1>
-          <p className="mt-2 text-slate-500">
-            Şəkil yükləyin, AI kömək edəcək — siz yalnız yoxlayın.
-          </p>
+        <div className="mb-6 text-center sm:mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Maşını sat</h1>
+          <p className="mt-1.5 text-sm text-slate-500">4 addım — şəkil, məlumat, plan, yayımla</p>
         </div>
-
-        <ListingPublishEaseTip variant="vehicle" className="mb-6" />
-
-        <PublishAuthNotice isLoggedIn={isLoggedIn} loading={authLoading} className="mb-6" />
-
-        {isLoggedIn && user && (
-          <div className="mb-6 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-2.5 text-xs text-emerald-800">
-            Daxil olmusunuz — elanı yayımlaya bilərsiniz.
-          </div>
-        )}
-
-        <p className="mb-6 text-center text-xs text-slate-500">
-          Hərracda satmaq istəyirsiniz?{" "}
-          <Link href="/auction/sell" className="font-medium text-[#0057FF] hover:underline">
-            Auksion lotu yaradın
-          </Link>
-        </p>
 
         <StepIndicator current={step} />
 
@@ -542,19 +537,6 @@ export default function PublishPage() {
                 <div>
                   <label className="label">Elan başlığı</label>
                   <input value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="məs: Toyota Corolla 2019" required />
-                </div>
-
-                <div>
-                  <label className="label">Təsvir</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="input-field min-h-[120px]"
-                    placeholder="Maşının vəziyyəti, nə var, nə yox — AI doldurubsa redaktə edin."
-                  />
-                  <p className="mt-1 text-xs text-slate-400">
-                    Xarici link, telefon və ya mesajlaşma tətbiqi əlaqələri əlavə etməyin — belə elanlar avtomatik rədd edilir.
-                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -594,6 +576,78 @@ export default function PublishPage() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="label">İl</label>
+                    <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="input-field" min={1990} max={2026} required />
+                  </div>
+                  <div>
+                    <label className="label">Yürüş (km)</label>
+                    <input type="number" value={declaredMileageKm || ""} onChange={(e) => setDeclaredMileageKm(Number(e.target.value))} className="input-field" placeholder="72000" required />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="label">Qiymət (₼)</label>
+                    <input type="number" value={priceAzn || ""} onChange={(e) => setPriceAzn(Number(e.target.value))} className="input-field" placeholder="19800" required />
+                  </div>
+                  <div>
+                    <label className="label">Şəhər</label>
+                    <select value={city} onChange={(e) => setCity(e.target.value)} className="input-field">
+                      {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Mingəçevir", "Digər"].map((c) => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="label">Yanacaq</label>
+                    <select
+                      value={fuelType}
+                      onChange={(e) => {
+                        const nextFuelType = e.target.value;
+                        setFuelType(nextFuelType);
+                        const nextCompatibleEngines = getCompatibleEngineTypes(nextFuelType);
+                        const nextCompatibleTransmissions = getCompatibleTransmissions(nextFuelType);
+                        setEngineType(nextCompatibleEngines[0] ?? "");
+                        setTransmission(nextCompatibleTransmissions[0] ?? "");
+                        if (nextFuelType === "Elektrik") setEngineVolumeCc("");
+                      }}
+                      className="input-field"
+                    >
+                      {FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Mühərrik</label>
+                    <select value={engineType} onChange={(e) => setEngineType(e.target.value)} className="input-field">
+                      {availableEngineTypes.map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Ötürücü</label>
+                    <select value={transmission} onChange={(e) => setTransmission(e.target.value)} className="input-field">
+                      {availableTransmissions.map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <details className="rounded-xl border border-slate-900/10 bg-white/50">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
+                    Əlavə məlumat (istəyə bağlı)
+                  </summary>
+                  <div className="space-y-4 border-t border-slate-900/10 px-4 pb-4 pt-3">
+                <div>
+                  <label className="label">Təsvir</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="input-field min-h-[90px]"
+                    placeholder="Maşının vəziyyəti və avadanlığı"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -693,17 +747,6 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="label">İl</label>
-                    <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="input-field" min={1990} max={2026} required />
-                  </div>
-                  <div>
-                    <label className="label">Yürüş (km)</label>
-                    <input type="number" value={declaredMileageKm || ""} onChange={(e) => setDeclaredMileageKm(Number(e.target.value))} className="input-field" placeholder="72000" required />
-                  </div>
-                </div>
-
                 <div>
                   <label className="label">VIN kodu</label>
                   <input
@@ -713,117 +756,27 @@ export default function PublishPage() {
                       setVin(normalized);
                     }}
                     className="input-field font-mono tracking-widest uppercase"
-                    placeholder="17 simvol"
+                    placeholder="17 simvol (istəyə bağlı)"
                     maxLength={17}
                   />
-                  <p className="mt-1 text-xs text-slate-400">VIN kodu 17 simvol olmalıdır (I/O/Q hərfləri istifadə edilmir).</p>
-                  <p className="mt-1 text-xs text-[#0057FF]">
-                    VIN məcburi deyil, amma əlavə edildikdə elan alıcı üçün daha etibarlı görünür.
-                  </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-900/10 bg-white/60 p-4">
-                  <p className="text-sm font-medium text-slate-900">Etibarı artıran məlumatlar (tövsiyə olunur)</p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    VIN və servis tarixçəsini açıq link və ya sənəd istinadı kimi paylaşa bilərsiniz. Bu məlumatlar alıcı üçün
-                    daha şəffaf təqdimat yaradır.
-                  </p>
-                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="label">VIN məlumat formatı</label>
-                      <select
-                        value={vinInfoType}
-                        onChange={(e) => setVinInfoType(e.target.value as "link" | "document")}
-                        className="input-field"
-                      >
-                        <option value="link">Açıq link</option>
-                        <option value="document">Sənəd istinadı</option>
-                      </select>
-                      {vinInfoType === "link" ? (
-                        <input
-                          type="url"
-                          value={vinInfoUrl}
-                          onChange={(e) => setVinInfoUrl(e.target.value)}
-                          className="input-field mt-2"
-                          placeholder="https://..."
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={vinDocumentRef}
-                          onChange={(e) => setVinDocumentRef(e.target.value)}
-                          className="input-field mt-2"
-                          placeholder="Məs: vin-report.pdf və ya sənəd ID"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <label className="label">Servis tarixçə formatı</label>
-                      <select
-                        value={serviceHistoryType}
-                        onChange={(e) => setServiceHistoryType(e.target.value as "link" | "document")}
-                        className="input-field"
-                      >
-                        <option value="link">Açıq link</option>
-                        <option value="document">Sənəd istinadı</option>
-                      </select>
-                      {serviceHistoryType === "link" ? (
-                        <input
-                          type="url"
-                          value={serviceHistoryUrl}
-                          onChange={(e) => setServiceHistoryUrl(e.target.value)}
-                          className="input-field mt-2"
-                          placeholder="https://..."
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={serviceHistoryDocumentRef}
-                          onChange={(e) => setServiceHistoryDocumentRef(e.target.value)}
-                          className="input-field mt-2"
-                          placeholder="Məs: service-history.pdf və ya sənəd ID"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="label">Qiymət (₼)</label>
-                    <input type="number" value={priceAzn || ""} onChange={(e) => setPriceAzn(Number(e.target.value))} className="input-field" placeholder="19800" required />
+                    <label className="label">VIN məlumatı</label>
+                    {vinInfoType === "link" ? (
+                      <input type="url" value={vinInfoUrl} onChange={(e) => setVinInfoUrl(e.target.value)} className="input-field" placeholder="Link" />
+                    ) : (
+                      <input type="text" value={vinDocumentRef} onChange={(e) => setVinDocumentRef(e.target.value)} className="input-field" placeholder="Sənəd" />
+                    )}
                   </div>
                   <div>
-                    <label className="label">Yanacaq</label>
-                    <select
-                      value={fuelType}
-                      onChange={(e) => {
-                        const nextFuelType = e.target.value;
-                        setFuelType(nextFuelType);
-                        const nextCompatibleEngines = getCompatibleEngineTypes(nextFuelType);
-                        const nextCompatibleTransmissions = getCompatibleTransmissions(nextFuelType);
-                        setEngineType(nextCompatibleEngines[0] ?? "");
-                        setTransmission(nextCompatibleTransmissions[0] ?? "");
-                        if (nextFuelType === "Elektrik") {
-                          setEngineVolumeCc("");
-                        }
-                      }}
-                      className="input-field"
-                    >
-                      {FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">Mühərrik növü</label>
-                    <select value={engineType} onChange={(e) => setEngineType(e.target.value)} className="input-field">
-                      {availableEngineTypes.map((t) => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">Ötürücü</label>
-                    <select value={transmission} onChange={(e) => setTransmission(e.target.value)} className="input-field">
-                      {availableTransmissions.map((t) => <option key={t}>{t}</option>)}
-                    </select>
+                    <label className="label">Servis tarixçəsi</label>
+                    {serviceHistoryType === "link" ? (
+                      <input type="url" value={serviceHistoryUrl} onChange={(e) => setServiceHistoryUrl(e.target.value)} className="input-field" placeholder="Link" />
+                    ) : (
+                      <input type="text" value={serviceHistoryDocumentRef} onChange={(e) => setServiceHistoryDocumentRef(e.target.value)} className="input-field" placeholder="Sənəd" />
+                    )}
                   </div>
                 </div>
 
@@ -916,13 +869,8 @@ export default function PublishPage() {
                     Barter mümkündür
                   </label>
                 </div>
-
-                <div>
-                  <label className="label">Şəhər</label>
-                  <select value={city} onChange={(e) => setCity(e.target.value)} className="input-field">
-                    {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Mingəçevir", "Digər"].map((c) => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
+                  </div>
+                </details>
 
                 {vehicleValidationVisible && vehicleStepErrors.length > 0 && (
                   <div className="rounded-xl alert-warning border p-4">
@@ -938,7 +886,7 @@ export default function PublishPage() {
                 )}
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={() => setStep("Şəkillər")} className="btn-secondary flex-1 justify-center py-3">
+                <button type="button" onClick={() => goToStep("Şəkillər")} className="btn-secondary flex-1 justify-center py-3">
                   Geri
                 </button>
                 <button type="button" onClick={handleVehicleNext} className="btn-primary flex-1 justify-center py-3">
@@ -950,13 +898,8 @@ export default function PublishPage() {
 
             {/* Step 2: Vehicle info */}
             {step === "Şəkillər" && (
-              <div className="card space-y-6 p-4 sm:p-8">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Şəkilləri yükləyin</h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Maşını müxtəlif tərəfdən çəkin — sonra «AI ilə doldur» basın.
-                  </p>
-                </div>
+              <div className="card space-y-5 p-4 sm:p-8">
+                <h2 className="text-lg font-semibold text-slate-900">Şəkillər</h2>
 
                 <PublishImageAngleTagger
                   uploadedImages={uploadedImages}
@@ -976,6 +919,7 @@ export default function PublishPage() {
                 <ListingAiAnalyzePanel
                   analysisContext="vehicle"
                   planType={planType}
+                  maxImages={currentPlan.maxImages}
                   externalImages={uploadedImages}
                   autoApply
                   onApplyVehicle={applyVehicleAiSuggestion}
@@ -1027,36 +971,22 @@ export default function PublishPage() {
 
             {/* Step 3: Plan selection */}
             {step === "Plan" && (
-              <div className="card space-y-6 p-4 sm:p-8">
-                <h2 className="text-lg font-semibold text-slate-900">Elan planı</h2>
-                <p className="text-sm text-slate-500">Elanınızın necə görünməsini seçin</p>
-
-                {/* Free plan limit note */}
-                <div className="rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-xs text-slate-600 space-y-1">
-                  <p>
-                    <span className="font-semibold text-slate-700">Pulsuz plan:</span>{" "}
-                    eyni anda yalnız <strong>{FREE_LISTING_CONCURRENT_LIMIT} aktiv pulsuz elan</strong> yerləşdirə bilərsiniz.
-                    İkinci elan üçün ilk elanın müddəti bitməli, yaxud Standart/VIP plan seçilməlidir.
-                  </p>
-                  <p>
-                    <span className="font-semibold text-slate-700">Şəkil limiti:</span> Pulsuz plan üçün də indi {LISTING_PLANS[0].maxImages} şəkil əlavə etmək olar.
-                  </p>
-                  <p>
-                    <span className="font-semibold text-slate-700">Salon iseniz</span> — aylıq abunəliyi olan <a href="/pricing#dealer" className="text-[#0057FF] underline">Salon planına</a> keçin: toplu CSV yükləmə + CRM.
-                  </p>
-                </div>
+              <div className="card space-y-5 p-4 sm:p-8">
+                <h2 className="text-lg font-semibold text-slate-900">Plan seçin</h2>
 
                 {launchPromo.active && (
                   <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {launchPromo.badge ?? "Açılış kampaniyası — bütün planlar hazırda pulsuzdur"}
+                    {launchPromo.badge ?? "Açılış kampaniyası — planlar hazırda pulsuzdur"}
                   </div>
                 )}
 
-                {planType !== "free" && !launchPromo.active && (
-                  <div className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/5 px-4 py-3 text-sm text-[#0057FF]">
-                    Ödənişli plan seçiləndə elan əvvəlcə qaralama kimi yaradılır, Kapital Bank ödənişi tamamlanandan sonra aktivləşir.
+                <details className="rounded-xl border border-slate-900/10 bg-white/50 text-xs text-slate-600">
+                  <summary className="cursor-pointer px-4 py-2.5 font-medium text-slate-700">Plan qaydaları</summary>
+                  <div className="space-y-1 border-t border-slate-900/10 px-4 py-3">
+                    <p>Pulsuz: eyni anda {FREE_LISTING_CONCURRENT_LIMIT} aktiv elan.</p>
+                    <p>Ödənişli planlar limitsiz sayda eyni vaxtda aktiv ola bilər.</p>
                   </div>
-                )}
+                </details>
 
                 <div className="grid gap-3">
                   {LISTING_PLANS.map((plan) => (
@@ -1116,7 +1046,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Məlumatlar")} className="btn-secondary flex-1 justify-center py-3">
+                  <button type="button" onClick={() => goToStep("Məlumatlar")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
                   <button type="button" onClick={handlePlanNext} className="btn-primary flex-1 justify-center py-3">
@@ -1128,32 +1058,18 @@ export default function PublishPage() {
 
             {/* Step 4: Review & Submit */}
             {step === "Yayımla" && (
-              <div className="card space-y-6 p-4 sm:p-8">
-                <h2 className="text-lg font-semibold text-slate-900">Hazırdır — yoxlayın</h2>
+              <div className="card space-y-5 p-4 sm:p-8">
+                <h2 className="text-lg font-semibold text-slate-900">Yoxlayın və yayımlayın</h2>
 
                 <div className="rounded-xl bg-white/60 divide-y divide-slate-900/10">
                   {[
-                    ["Elan başlığı", title],
-                    ["Marka / Model", `${make} ${model}`],
-                    ["İl / Yürüş", `${year} / ${declaredMileageKm.toLocaleString()} km`],
-                    ["Yanacaq / Mühərrik / Ötürücü", `${fuelType} / ${engineType} / ${transmission}`],
-                    ["Ban / Ötürmə", `${bodyType || "—"} / ${driveType || "—"}`],
-                    ["Rəng / Vəziyyət", `${color || "—"} / ${vehicleCondition || "—"}`],
-                    ["Mühərrik / Salon", `${engineVolumeCc === "" ? "—" : `${engineVolumeCc} cc`} / ${interiorMaterial || "—"}`],
-                    ["Lyuk", hasSunroof ? "Var" : "Yox"],
-                    ["Kredit / Barter", `${creditAvailable ? "Var" : "Yox"} / ${barterAvailable ? "Var" : "Yox"}`],
-                    ["Komfort paket", `${seatHeating ? "Isitmə" : "—"}, ${seatCooling ? "Soyutma" : "—"}, ${camera360 ? "360 kamera" : "—"}, ${parkingSensors ? "Park sensoru" : "—"}`],
-                    ["Sürücü asistentləri", `${adaptiveCruise ? "ACC" : "—"} / ${laneAssist ? "Lane assist" : "—"}`],
-                    ["Sahib / Tarixçə", `${ownersCount === "" ? "—" : ownersCount} / ${hasServiceBook ? "Servis kitabçası" : "—"} / ${hasRepairHistory ? "Təmir tarixçəsi" : "—"}`],
+                    ["Başlıq", title],
+                    ["Avtomobil", `${make} ${model} · ${year}`],
+                    ["Yürüş", `${declaredMileageKm.toLocaleString()} km`],
                     ["Qiymət", `${priceAzn.toLocaleString()} ₼`],
                     ["Şəhər", city],
-                    ["VIN", vin || "—"],
-                    ["VIN məlumatı", vinInfoType === "link" ? vinInfoUrl || "—" : vinDocumentRef || "—"],
-                    [
-                      "Servis tarixçəsi",
-                      serviceHistoryType === "link" ? serviceHistoryUrl || "—" : serviceHistoryDocumentRef || "—"
-                    ],
-                    ["Şəkillər", mediaCheck.isComplete ? "Tam ✓" : `Çatışmayan: ${mediaCheck.missingRequirements.length}`],
+                    ["Yanacaq", `${fuelType} · ${transmission}`],
+                    ["Şəkillər", `${uploadedImages.length} şəkil`],
                     ["Plan", `${LISTING_PLANS.find((p) => p.id === planType)?.nameAz ?? planType} (${planPriceLabel(planType)})`]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
@@ -1176,19 +1092,10 @@ export default function PublishPage() {
                   </div>
                 )}
 
-                {!isLoggedIn && !authLoading && (
-                  <PublishAuthNotice isLoggedIn={false} className="!mb-0" />
-                )}
-
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Plan")} className="btn-secondary flex-1 justify-center py-3">
+                  <button type="button" onClick={() => goToStep("Plan")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
-                  {!isLoggedIn ? (
-                    <Link href="/login?next=/publish" className="btn-primary flex-1 justify-center py-3">
-                      Daxil ol və yayımla
-                    </Link>
-                  ) : (
                   <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center py-3">
                     {submitting ? (
                       <>
@@ -1200,7 +1107,6 @@ export default function PublishPage() {
                       </>
                     ) : planType === "free" || launchPromo.active ? "Elan yerləşdir" : "Ödənişə keç"}
                   </button>
-                  )}
                 </div>
               </div>
             )}
@@ -1222,7 +1128,7 @@ export default function PublishPage() {
                 <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
               </div>
             )}
-            <button onClick={() => { setResult(null); setStep("Şəkillər"); }} className="btn-secondary">
+            <button onClick={() => { setResult(null); goToStep("Şəkillər"); }} className="btn-secondary">
               Yenidən cəhd et
             </button>
           </div>

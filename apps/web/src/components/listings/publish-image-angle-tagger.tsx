@@ -55,10 +55,10 @@ export function PublishImageAngleTagger({
           </span>
         </div>
         <p className="text-sm text-slate-600">
-          Telefondan şəkil yükləyin və hər birinin növünü seçin. Eyni növdən bir neçə şəkil əlavə edə bilərsiniz.
+          Şəkil yükləyin və növünü seçin.
           {planNameAz ? (
             <span className="mt-1 block text-xs text-slate-500">
-              «{planNameAz}» planı: maksimum {maxImages} şəkil · yayımlandıqdan sonra şəkillərin üzərinə EkoMobil loqosu əlavə olunur.
+              Limit: {maxImages} şəkil ({planNameAz} planı)
             </span>
           ) : null}
         </p>
@@ -226,48 +226,10 @@ export function PublishImageAngleTagger({
                           </optgroup>
                         ))}
                       </select>
-
-                      <div className="space-y-2">
-                        {PHOTO_TAG_GROUPS.map((group) => {
-                          const groupOptions = IMAGE_PHOTO_TAG_OPTIONS.filter((item) => item.group === group.id);
-                          return (
-                            <div key={group.id}>
-                              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                {group.label}
-                              </p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {groupOptions.map((item) => {
-                                  const active = selectedTag === item.id;
-                                  return (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      title={item.hint}
-                                      onClick={() => onAssignAngle(index, active ? null : item.id)}
-                                      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                                        active
-                                          ? "border-[#0057FF] bg-[#0057FF] text-white"
-                                          : "border-slate-200 bg-white text-slate-600 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
-                                      }`}
-                                    >
-                                      {item.shortLabel}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {selectedTag && (
+                        <p className="text-[11px] text-slate-500">{photoTagOption(selectedTag)?.hint}</p>
+                      )}
                     </div>
-
-                    {selectedTag ? (
-                      <p className="text-[11px] text-slate-500">{photoTagOption(selectedTag)?.hint}</p>
-                    ) : (
-                      <p className="text-[11px] text-slate-500">
-                        Salonun fərli yerlərindən, zədədən və ya təkərdən bir neçə şəkil əlavə edə bilərsiniz.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>

@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 
   if (quota.requiresAuth && !sessionUser) {
     return NextResponse.json(
-      { ok: false, error: "Bu AI analiz növü üçün hesaba daxil olmalısınız.", requiresAuth: true },
+      { ok: false, error: "AI analiz və elan yayımlamaq üçün hesaba daxil olmalısınız.", requiresAuth: true },
       { status: 401 }
     );
   }
