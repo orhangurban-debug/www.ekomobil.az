@@ -30,7 +30,6 @@ import {
   type VehiclePhotoGuideCategory
 } from "@/lib/vehicle-photo-guide";
 import {
-  applyAiImageTagsToAngleList,
   buildMediaAnglesFromTags,
   type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
@@ -39,6 +38,43 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 
 const STEPS = ["Şəkillər", "Məlumatlar", "Plan", "Yayımla"] as const;
 type Step = (typeof STEPS)[number];
+
+interface PublishErrorGuide {
+  step: Step;
+  messages: string[];
+}
+
+function resolvePublishErrorStep(messages: string[]): Step {
+  const text = messages.join(" ").toLocaleLowerCase("az");
+  if (/şəkil|rakurs|tərəf|panel|salon|baqaj|video|odometr|sayğac|cihazlar|ən azı \d+ şəkil/.test(text)) {
+    return "Şəkillər";
+  }
+  if (/plan limiti|pulsuz plan|ödəniş|checkout|payment/.test(text)) {
+    return "Plan";
+  }
+  if (/başlıq|qiymət|şəhər|vin|yürüş|avtomobil ili|mətn|link|kontakt|marka|model|məlumat/.test(text)) {
+    return "Məlumatlar";
+  }
+  return "Yayımla";
+}
+
+function PublishStepErrorAlert({ guide }: { guide: PublishErrorGuide | null }) {
+  if (!guide || guide.messages.length === 0) return null;
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+      <p className="text-sm font-medium text-amber-800">
+        Yayımlama dayandırıldı — «{guide.step}» addımında düzəldin:
+      </p>
+      <ul className="mt-2 space-y-1">
+        {guide.messages.map((error) => (
+          <li key={error} className="text-sm text-amber-700">
+            • {error}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 interface TrustApiResponse {
   ok: boolean;
@@ -180,6 +216,7 @@ export default function PublishPage() {
   const [vehicleValidationVisible, setVehicleValidationVisible] = useState(false);
   const [mediaValidationVisible, setMediaValidationVisible] = useState(false);
   const [reviewErrors, setReviewErrors] = useState<string[]>([]);
+  const [publishGuide, setPublishGuide] = useState<PublishErrorGuide | null>(null);
 
   // ── Image upload state ──────────────────────────────────────────────────
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -202,9 +239,13 @@ export default function PublishPage() {
     [planType]
   );
   const minimumRequiredImages = useMemo(() => Math.min(currentPlan.maxImages, 8), [currentPlan.maxImages]);
+  const resolvedMedia = useMemo(
+    () => buildMediaAnglesFromTags(imageAngleTags, uploadedImages.length, media),
+    [imageAngleTags, uploadedImages.length, media]
+  );
   const mediaCheck = useMemo(
-    () => validateMediaProtocol(media, { minimumImageCount: minimumRequiredImages, requireVideo: false }),
-    [media, minimumRequiredImages]
+    () => validateMediaProtocol(resolvedMedia, { minimumImageCount: minimumRequiredImages, requireVideo: false }),
+    [resolvedMedia, minimumRequiredImages]
   );
   const vehicleStepErrors = useMemo(() => {
     const errors: string[] = [];
@@ -243,6 +284,19 @@ export default function PublishPage() {
     }
     setStep(next);
   }, []);
+
+  const showPublishErrors = useCallback(
+    (messages: string[]) => {
+      const normalized = messages.length > 0 ? messages : ["Elan yayımlana bilmədi. Zəhmət olmasa yenidən cəhd edin."];
+      const step = resolvePublishErrorStep(normalized);
+      setReviewErrors(normalized);
+      setPublishGuide({ step, messages: normalized });
+      if (step === "Şəkillər") setMediaValidationVisible(true);
+      if (step === "Məlumatlar") setVehicleValidationVisible(true);
+      goToStep(step);
+    },
+    [goToStep]
+  );
 
   useLayoutEffect(() => {
     const scrollToTop = () => {
@@ -297,23 +351,7 @@ export default function PublishPage() {
       const category = photoGuideCategoryFromBodyType(suggestion.bodyType);
       if (category) setPhotoGuideCategory(category);
     }
-
-    const nextTags = applyAiImageTagsToAngleList(
-      uploadedImages.length,
-      suggestion.imageTags,
-      suggestion.mediaAngles
-    );
-    if (nextTags.some(Boolean)) {
-      setImageAngleTags(nextTags);
-      setMedia((mediaPrev) => buildMediaAnglesFromTags(nextTags, uploadedImages.length, mediaPrev));
-    } else if (suggestion.mediaAngles) {
-      setImageAngleTags((prev) => {
-        const filled = applyAiImageTagsToAngleList(uploadedImages.length, undefined, suggestion.mediaAngles);
-        setMedia((mediaPrev) => buildMediaAnglesFromTags(filled, uploadedImages.length, mediaPrev));
-        return filled;
-      });
-    }
-  }, [uploadedImages.length]);
+  }, []);
 
   const handleImageFiles = useCallback(
     async (files: FileList | null) => {
@@ -379,16 +417,17 @@ export default function PublishPage() {
     event.preventDefault();
     setResult(null);
     setReviewErrors([]);
+    setPublishGuide(null);
     setVehicleValidationVisible(true);
     setMediaValidationVisible(true);
 
     if (!mediaCheck.isComplete) {
-      goToStep("Şəkillər");
+      showPublishErrors(mediaCheck.missingRequirements);
       return;
     }
 
     if (vehicleStepErrors.length > 0) {
-      goToStep("Məlumatlar");
+      showPublishErrors(vehicleStepErrors);
       return;
     }
 
@@ -407,7 +446,7 @@ export default function PublishPage() {
         vehicle: { vin, make, model, year, declaredMileageKm },
         vinVerified,
         sellerVerified,
-        mediaProtocol: media
+        mediaProtocol: resolvedMedia
       })
     });
 
@@ -460,7 +499,7 @@ export default function PublishPage() {
           vehicle: { vin: vin.trim().toUpperCase(), make, model, year, declaredMileageKm },
           vinVerified,
           sellerVerified,
-          mediaProtocol: media,
+          mediaProtocol: resolvedMedia,
           imageUrls,
           imageHashes,
           planType
@@ -505,7 +544,7 @@ export default function PublishPage() {
             router.refresh();
             return;
           }
-          setReviewErrors([paymentPayload.error || "Ödəniş axını başladılmadı."]);
+          showPublishErrors([paymentPayload.error || "Ödəniş axını başladılmadı."]);
           setSubmitting(false);
           return;
         }
@@ -514,13 +553,13 @@ export default function PublishPage() {
         router.refresh();
         return;
       }
-      setReviewErrors(createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]);
+      showPublishErrors(createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]);
       return;
     }
-    setReviewErrors(payload.errors ?? ["Məlumatlarda düzəliş lazımdır."]);
+    showPublishErrors(payload.errors ?? ["Məlumatlarda düzəliş lazımdır."]);
     } catch (error) {
       console.error("publish submit error:", error);
-      setReviewErrors(["Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin."]);
+      showPublishErrors(["Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin."]);
     } finally {
       setSubmitting(false);
     }
@@ -553,6 +592,8 @@ export default function PublishPage() {
             {step === "Məlumatlar" && (
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Maşın haqqında</h2>
+
+                {publishGuide?.step === "Məlumatlar" && <PublishStepErrorAlert guide={publishGuide} />}
 
                 <ListingAiAnalyzePanel
                   analysisContext="vehicle"
@@ -933,6 +974,8 @@ export default function PublishPage() {
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Şəkillər</h2>
 
+                {publishGuide?.step === "Şəkillər" && <PublishStepErrorAlert guide={publishGuide} />}
+
                 <PublishImageAngleTagger
                   uploadedImages={uploadedImages}
                   imageAngleTags={imageAngleTags}
@@ -996,6 +1039,8 @@ export default function PublishPage() {
             {step === "Plan" && (
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Plan seçin</h2>
+
+                {publishGuide?.step === "Plan" && <PublishStepErrorAlert guide={publishGuide} />}
 
                 <details className="rounded-xl border border-slate-900/10 bg-white/50 text-xs text-slate-600">
                   <summary className="cursor-pointer px-4 py-2.5 font-medium text-slate-700">Plan qaydaları</summary>
@@ -1088,6 +1133,8 @@ export default function PublishPage() {
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Yoxlayın və yayımlayın</h2>
 
+                {publishGuide?.step === "Yayımla" && <PublishStepErrorAlert guide={publishGuide} />}
+
                 <div className="rounded-xl bg-white/60 divide-y divide-slate-900/10">
                   {[
                     ["Başlıq", title],
@@ -1106,13 +1153,13 @@ export default function PublishPage() {
                   ))}
                 </div>
 
-                {reviewErrors.length > 0 && (
+                {publishGuide?.step === "Yayımla" && reviewErrors.length > 0 && (
                   <div className="rounded-xl alert-warning border p-4">
-                    <p className="text-sm font-medium text-amber-700">Dərc etməzdən əvvəl bunları düzəldin:</p>
+                    <p className="text-sm font-medium text-amber-700">Elan yayımlanmadı:</p>
                     <ul className="mt-2 space-y-1">
                       {reviewErrors.map((error) => (
                         <li key={error} className="text-sm text-amber-700">
-                          - {error}
+                          • {error}
                         </li>
                       ))}
                     </ul>
