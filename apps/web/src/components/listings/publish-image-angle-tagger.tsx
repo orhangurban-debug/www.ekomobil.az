@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { formatFileSize, type ProcessedImage } from "@/lib/image-processor";
 import type { MediaProtocolInput } from "@/lib/media-protocol";
 import {
@@ -41,6 +42,7 @@ export function PublishImageAngleTagger({
   onAssignAngle,
   compact = false
 }: PublishImageAngleTaggerProps) {
+  const [isDragging, setIsDragging] = useState(false);
   const taggedCount = imageAngleTags.filter(Boolean).length;
   const untaggedCount = uploadedImages.length - taggedCount;
   const completedRequirements = PROTOCOL_REQUIREMENT_OPTIONS.filter((item) => media[item.key]).length;
@@ -110,17 +112,30 @@ export function PublishImageAngleTagger({
       )}
 
       <div
-        className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition ${
-          compact ? "min-h-[100px] p-4" : "min-h-[120px] p-5"
+        className={`group relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all duration-200 ${
+          compact ? "min-h-[112px] p-4" : "min-h-[148px] p-6"
         } ${
           uploadProcessing
-            ? "border-[#0057FF]/40 bg-[#0057FF]/5"
-            : "border-slate-900/15 bg-white/60 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
+            ? "border-[#0057FF]/50 bg-[#0057FF]/8 shadow-inner"
+            : isDragging
+              ? "scale-[1.01] border-[#0057FF] bg-[#0057FF]/12 shadow-lg shadow-[#0057FF]/20"
+              : "border-[#0057FF]/40 bg-gradient-to-b from-[#0057FF]/[0.07] via-white/70 to-white/80 hover:border-[#0057FF] hover:bg-[#0057FF]/10 hover:shadow-md hover:shadow-[#0057FF]/15 active:scale-[0.99]"
         }`}
         onClick={() => fileInputRef.current?.click()}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsDragging(false);
+          }
+        }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
+          setIsDragging(false);
           onSelectFiles(e.dataTransfer.files);
         }}
       >
@@ -133,20 +148,38 @@ export function PublishImageAngleTagger({
           onChange={(e) => onSelectFiles(e.target.files)}
         />
         {uploadProcessing ? (
-          <div className="flex items-center gap-2 text-sm text-[#0057FF]">
-            <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Şəkillər sıxılır…
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0057FF]/15">
+              <svg className="h-5 w-5 animate-spin text-[#0057FF]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-[#0057FF]">Şəkillər sıxılır…</p>
           </div>
         ) : (
           <>
-            <svg className={`text-slate-400 ${compact ? "h-7 w-7" : "h-8 w-8"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-            </svg>
-            <p className="text-sm text-slate-500">
-              <span className="font-semibold text-[#0057FF]">Fayl seçin</span> və ya bura sürükləyin
+            <div
+              className={`flex items-center justify-center rounded-full bg-[#0057FF] text-white shadow-lg shadow-[#0057FF]/30 transition-transform duration-200 group-hover:scale-105 ${
+                compact ? "h-11 w-11" : "h-14 w-14"
+              }`}
+            >
+              <svg className={compact ? "h-5 w-5" : "h-6 w-6"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <span className="btn-primary pointer-events-none px-5 py-2.5 text-sm shadow-[0_6px_20px_rgba(0,87,255,0.35)] group-hover:shadow-[0_8px_24px_rgba(0,87,255,0.45)]">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Şəkil yüklə
+            </span>
+            <p className="text-sm text-slate-600">
+              {isDragging ? (
+                <span className="font-semibold text-[#0057FF]">Buraxın — şəkillər əlavə olunacaq</span>
+              ) : (
+                <>və ya faylları bura <span className="font-medium text-slate-700">sürükləyin</span></>
+              )}
             </p>
             <p className="text-xs text-slate-400">JPEG · PNG · WebP · HEIC — sistem avtomatik sıxır</p>
           </>
