@@ -41,28 +41,53 @@ function parsePenaltyAmounts(raw: unknown, defaults: PenaltyAmountsJson): Penalt
 
 export async function getSystemSettings(): Promise<SystemSettingsRow> {
   const pool = getPgPool();
-  const result = await pool.query<SystemSettingsDbRow>(
-    `SELECT id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at
-     FROM system_settings WHERE id = 1 LIMIT 1`
-  );
-  const row = result.rows[0];
-  if (!row) {
-    return {
-      id: 1,
-      auctionMode: "BETA_FIN_ONLY",
-      penaltyAmounts: { ...DEFAULT_PENALTY_AMOUNTS },
-      sellerBreachAmounts: { ...DEFAULT_SELLER_BREACH_AMOUNTS },
-      updatedAt: new Date().toISOString()
-    };
-  }
-  const mode = row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY";
-  return {
-    id: row.id,
-    auctionMode: mode as AuctionPaymentMode,
-    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
-    sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
-    updatedAt: row.updated_at.toISOString()
+  const defaults: SystemSettingsRow = {
+    id: 1,
+    auctionMode: "BETA_FIN_ONLY",
+    penaltyAmounts: { ...DEFAULT_PENALTY_AMOUNTS },
+    sellerBreachAmounts: { ...DEFAULT_SELLER_BREACH_AMOUNTS },
+    updatedAt: new Date().toISOString()
   };
+
+  // İlk cəhd: seller_breach_amounts sütunu ilə (migration 055 işlədildikdən sonra)
+  try {
+    const result = await pool.query<SystemSettingsDbRow>(
+      `SELECT id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at
+       FROM system_settings WHERE id = 1 LIMIT 1`
+    );
+    const row = result.rows[0];
+    if (!row) return defaults;
+    const mode = row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY";
+    return {
+      id: row.id,
+      auctionMode: mode as AuctionPaymentMode,
+      penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+      sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
+      updatedAt: row.updated_at.toISOString()
+    };
+  } catch {
+    // seller_breach_amounts sütunu hələ mövcud deyil (migration gözlənir) —
+    // köhnə sütunlarla sorğunu yenidən cəhd et
+  }
+
+  try {
+    const result = await pool.query<SystemSettingsDbRow>(
+      `SELECT id, auction_mode, penalty_amounts, updated_at
+       FROM system_settings WHERE id = 1 LIMIT 1`
+    );
+    const row = result.rows[0];
+    if (!row) return defaults;
+    const mode = row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY";
+    return {
+      id: row.id,
+      auctionMode: mode as AuctionPaymentMode,
+      penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+      sellerBreachAmounts: { ...DEFAULT_SELLER_BREACH_AMOUNTS },
+      updatedAt: row.updated_at.toISOString()
+    };
+  } catch {
+    return defaults;
+  }
 }
 
 export async function updateSystemSettings(input: {
@@ -71,25 +96,47 @@ export async function updateSystemSettings(input: {
   sellerBreachAmounts: PenaltyAmountsJson;
 }): Promise<SystemSettingsRow> {
   const pool = getPgPool();
-  const result = await pool.query<SystemSettingsDbRow>(
-    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at)
-     VALUES (1, $1, $2::jsonb, $3::jsonb, NOW())
-     ON CONFLICT (id) DO UPDATE SET
-       auction_mode = EXCLUDED.auction_mode,
-       penalty_amounts = EXCLUDED.penalty_amounts,
-       seller_breach_amounts = EXCLUDED.seller_breach_amounts,
-       updated_at = NOW()
-     RETURNING id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at`,
-    [input.auctionMode, JSON.stringify(input.penaltyAmounts), JSON.stringify(input.sellerBreachAmounts)]
-  );
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    auctionMode: (row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY"),
-    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
-    sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
-    updatedAt: row.updated_at.toISOString()
-  };
+  try {
+    const result = await pool.query<SystemSettingsDbRow>(
+      `INSERT INTO system_settings (id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at)
+       VALUES (1, $1, $2::jsonb, $3::jsonb, NOW())
+       ON CONFLICT (id) DO UPDATE SET
+         auction_mode = EXCLUDED.auction_mode,
+         penalty_amounts = EXCLUDED.penalty_amounts,
+         seller_breach_amounts = EXCLUDED.seller_breach_amounts,
+         updated_at = NOW()
+       RETURNING id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at`,
+      [input.auctionMode, JSON.stringify(input.penaltyAmounts), JSON.stringify(input.sellerBreachAmounts)]
+    );
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      auctionMode: (row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY"),
+      penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+      sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
+      updatedAt: row.updated_at.toISOString()
+    };
+  } catch {
+    // seller_breach_amounts sütunu yoxdursa köhnə sütunlarla yenilə
+    const result = await pool.query<SystemSettingsDbRow>(
+      `INSERT INTO system_settings (id, auction_mode, penalty_amounts, updated_at)
+       VALUES (1, $1, $2::jsonb, NOW())
+       ON CONFLICT (id) DO UPDATE SET
+         auction_mode = EXCLUDED.auction_mode,
+         penalty_amounts = EXCLUDED.penalty_amounts,
+         updated_at = NOW()
+       RETURNING id, auction_mode, penalty_amounts, updated_at`,
+      [input.auctionMode, JSON.stringify(input.penaltyAmounts)]
+    );
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      auctionMode: (row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY"),
+      penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+      sellerBreachAmounts: input.sellerBreachAmounts,
+      updatedAt: row.updated_at.toISOString()
+    };
+  }
 }
 
 export async function getBrandSettings(): Promise<BrandSettings> {
