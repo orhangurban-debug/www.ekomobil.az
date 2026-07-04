@@ -192,7 +192,7 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto min-w-0 max-w-4xl overflow-x-hidden px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
@@ -210,8 +210,6 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
         Çox sayda məhsul şəklini bir dəfəyə yükləyin — AI ayrı elanlar yaradacaq, siz yoxlayacaqsınız.
       </p>
 
-      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
-
       <ListingAiAnalyzePanel
         analysisContext="part_bulk"
         bulkMode
@@ -219,6 +217,8 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
         onApplyBulkParts={applyBulkParts}
         className="mt-6"
       />
+
+      <ListingPublishEaseTip variant="part_bulk" className="mt-4" />
 
       {drafts.length > 0 && (
         <div className="mt-8 space-y-4">

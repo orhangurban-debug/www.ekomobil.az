@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useMemo, useRef, useState, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -28,7 +28,7 @@ import { ListingAiAnalyzePanel } from "@/components/listings/listing-ai-analyze-
 import { ListingPublishEaseTip } from "@/components/listings/listing-publish-ease-tip";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 
-const STEPS = ["Avtomobil", "Mediya", "Plan", "Yoxlama"] as const;
+const STEPS = ["Mediya", "Avtomobil", "Plan", "Yoxlama"] as const;
 type Step = (typeof STEPS)[number];
 
 interface TrustApiResponse {
@@ -87,35 +87,176 @@ async function fileToDataUrl(file: File): Promise<string> {
 function StepIndicator({ current }: { current: Step }) {
   const idx = STEPS.indexOf(current);
   return (
-    <div className="flex items-center justify-center gap-0 mb-10">
-      {STEPS.map((step, i) => (
-        <div key={step} className="flex items-center">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition ${
-            i < idx ? "bg-brand-600 text-slate-900" :
-            i === idx ? "bg-brand-600 text-slate-900 ring-4 ring-brand-100" :
-            "bg-white/63 text-slate-400"
-          }`}>
-            {i < idx ? (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : i + 1}
+    <div className="mb-8 sm:mb-10">
+      <div className="flex w-full max-w-full items-center justify-between gap-1 sm:justify-center sm:gap-0">
+        {STEPS.map((step, i) => (
+          <div key={step} className="flex min-w-0 flex-1 items-center sm:flex-none">
+            <div className="flex min-w-0 flex-1 flex-col items-center sm:flex-row sm:flex-none">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition sm:h-9 sm:w-9 sm:text-sm ${
+                  i < idx
+                    ? "bg-brand-600 text-slate-900"
+                    : i === idx
+                      ? "bg-brand-600 text-slate-900 ring-4 ring-brand-100"
+                      : "bg-white/63 text-slate-400"
+                }`}
+              >
+                {i < idx ? (
+                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  i + 1
+                )}
+              </div>
+              <span
+                className={`mt-1 max-w-full truncate px-0.5 text-center text-[10px] font-medium leading-tight sm:mt-0 sm:ml-2 sm:px-0 sm:text-sm sm:mr-6 ${
+                  i === idx ? "text-[#0057FF]" : "text-slate-400"
+                }`}
+              >
+                {step}
+              </span>
+            </div>
+            {i < STEPS.length - 1 && (
+              <div className={`mx-1 h-px min-w-2 flex-1 sm:mx-0 sm:mr-6 sm:h-px sm:w-8 sm:flex-none ${i < idx ? "bg-brand-600" : "bg-slate-200"}`} />
+            )}
           </div>
-          <span className={`ml-2 text-sm font-medium mr-6 ${i === idx ? "text-[#0057FF]" : "text-slate-400"}`}>
-            {step}
-          </span>
-          {i < STEPS.length - 1 && (
-            <div className={`mr-6 h-px w-8 ${i < idx ? "bg-brand-600" : "bg-slate-200"}`} />
-          )}
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PublishImageUploadZone({
+  uploadedImages,
+  maxImages,
+  minimumRequiredImages,
+  uploadProcessing,
+  uploadErrors,
+  fileInputRef,
+  onSelectFiles,
+  onRemoveImage,
+  compact = false
+}: {
+  uploadedImages: ProcessedImage[];
+  maxImages: number;
+  minimumRequiredImages: number;
+  uploadProcessing: boolean;
+  uploadErrors: string[];
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onSelectFiles: (files: FileList | null) => void;
+  onRemoveImage: (index: number) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <label className="label mb-0">Şəkillər</label>
+        <span className="text-xs text-slate-400">
+          {uploadedImages.length} / {maxImages} şəkil
+        </span>
+      </div>
+      <p className="mb-2 text-xs text-slate-500">
+        Minimum <strong>{minimumRequiredImages} əsas şəkil</strong> əlavə edin. Daha çox şəkil elanın keyfiyyətini artırır.
+      </p>
+
+      <div
+        className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition ${
+          compact ? "min-h-[100px] p-4" : "min-h-[120px] p-5"
+        } ${
+          uploadProcessing
+            ? "border-[#0057FF]/40 bg-[#0057FF]/5"
+            : "border-slate-900/15 bg-white/60 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
+        }`}
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          onSelectFiles(e.dataTransfer.files);
+        }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,.heic,.heif"
+          multiple
+          className="hidden"
+          onChange={(e) => onSelectFiles(e.target.files)}
+        />
+        {uploadProcessing ? (
+          <div className="flex items-center gap-2 text-sm text-[#0057FF]">
+            <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Şəkillər sıxılır…
+          </div>
+        ) : (
+          <>
+            <svg className={`text-slate-400 ${compact ? "h-7 w-7" : "h-8 w-8"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            <p className="text-sm text-slate-500">
+              <span className="font-semibold text-[#0057FF]">Fayl seçin</span> və ya bura sürükləyin
+            </p>
+            <p className="text-xs text-slate-400">
+              JPEG · PNG · WebP · HEIC — istənilən ölçü qəbul olunur, sistem avtomatik sıxır
+            </p>
+          </>
+        )}
+      </div>
+
+      {uploadErrors.length > 0 && (
+        <div className="mt-2 rounded-xl alert-danger border p-3">
+          {uploadErrors.map((e, i) => (
+            <p key={i} className="text-xs text-red-700">{e}</p>
+          ))}
         </div>
-      ))}
+      )}
+
+      {uploadedImages.length > 0 && (
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {uploadedImages.map((img, i) => (
+            <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-900/10 bg-white/63">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={URL.createObjectURL(img.file)}
+                alt={`Şəkil ${i + 1}`}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-center text-[9px] text-white">
+                {formatFileSize(img.compressedSizeBytes)}
+                {img.wasResized && " · sıxıldı"}
+              </div>
+              <button
+                type="button"
+                className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-white group-hover:flex"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveImage(i);
+                }}
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {uploadedImages.length > 0 && (
+        <p className="mt-2 text-[11px] text-slate-400">
+          💾 Cəmi: {formatFileSize(uploadedImages.reduce((s, img) => s + img.compressedSizeBytes, 0))} · Sistem avtomatik JPEG 85%-ə çevirmişdir
+        </p>
+      )}
     </div>
   );
 }
 
 export default function PublishPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("Avtomobil");
+  const [step, setStep] = useState<Step>("Mediya");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceAzn, setPriceAzn] = useState(0);
@@ -224,14 +365,14 @@ export default function PublishPage() {
     setVehicleValidationVisible(true);
     if (vehicleStepErrors.length > 0) return;
     setReviewErrors([]);
-    setStep("Mediya");
+    setStep("Plan");
   }
 
   function handleMediaNext() {
     setMediaValidationVisible(true);
     if (!mediaCheck.isComplete) return;
     setReviewErrors([]);
-    setStep("Plan");
+    setStep("Avtomobil");
   }
 
   function handlePlanNext() {
@@ -306,6 +447,14 @@ export default function PublishPage() {
     [planType, uploadedImages]
   );
 
+  const removeUploadedImage = useCallback((index: number) => {
+    setUploadedImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setMedia((m) => ({ ...m, imageCount: next.length }));
+      return next;
+    });
+  }, []);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setResult(null);
@@ -313,13 +462,13 @@ export default function PublishPage() {
     setVehicleValidationVisible(true);
     setMediaValidationVisible(true);
 
-    if (vehicleStepErrors.length > 0) {
-      setStep("Avtomobil");
+    if (!mediaCheck.isComplete) {
+      setStep("Mediya");
       return;
     }
 
-    if (!mediaCheck.isComplete) {
-      setStep("Mediya");
+    if (vehicleStepErrors.length > 0) {
+      setStep("Avtomobil");
       return;
     }
 
@@ -455,8 +604,8 @@ export default function PublishPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white/60 py-10">
-      <div className="mx-auto max-w-2xl px-4">
+    <div className="min-h-screen overflow-x-hidden bg-white/60 py-6 sm:py-10">
+      <div className="mx-auto min-w-0 max-w-2xl px-4">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-slate-900">Elan yerləşdir</h1>
           <p className="mt-2 text-slate-500">
@@ -481,9 +630,9 @@ export default function PublishPage() {
 
         {!result ? (
           <form onSubmit={onSubmit} className="space-y-6">
-            {/* Step 1: Vehicle info */}
+            {/* Step 1: Media */}
             {step === "Avtomobil" && (
-              <div className="card p-8 space-y-5">
+              <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Avtomobil məlumatları</h2>
 
                 <div>
@@ -504,7 +653,7 @@ export default function PublishPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Marka</label>
                     <select
@@ -543,7 +692,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
@@ -564,7 +713,7 @@ export default function PublishPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
@@ -585,7 +734,7 @@ export default function PublishPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
@@ -606,7 +755,7 @@ export default function PublishPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Sahib sayı</label>
                     <input
@@ -640,7 +789,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">İl</label>
                     <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="input-field" min={1990} max={2026} required />
@@ -735,7 +884,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className="label">Qiymət (₼)</label>
                     <input type="number" value={priceAzn || ""} onChange={(e) => setPriceAzn(Number(e.target.value))} className="input-field" placeholder="19800" required />
@@ -774,7 +923,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Ban növü</label>
                     <select value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="input-field">
@@ -791,7 +940,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Rəng</label>
                     <select value={color} onChange={(e) => setColor(e.target.value)} className="input-field">
@@ -808,7 +957,7 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="label">Mühərrik həcmi (cc)</label>
                     <input
@@ -843,7 +992,7 @@ export default function PublishPage() {
                   Lyuku var
                 </label>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
@@ -884,15 +1033,20 @@ export default function PublishPage() {
                   </div>
                 )}
 
-                <button type="button" onClick={handleVehicleNext} className="btn-primary w-full justify-center py-3">
-                  Növbəti: Mediya
+                <div className="flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={() => setStep("Mediya")} className="btn-secondary flex-1 justify-center py-3">
+                  Geri
                 </button>
+                <button type="button" onClick={handleVehicleNext} className="btn-primary flex-1 justify-center py-3">
+                  Növbəti: Plan
+                </button>
+                </div>
               </div>
             )}
 
-            {/* Step 2: Media */}
+            {/* Step 2: Vehicle info */}
             {step === "Mediya" && (
-              <div className="card p-8 space-y-6">
+              <div className="card space-y-6 p-4 sm:p-8">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">Mediya protokolu</h2>
                   <p className="mt-1 text-sm text-slate-500">
@@ -1049,112 +1203,16 @@ export default function PublishPage() {
                 </div>
 
                 {/* ── Real image upload ───────────────────────────────────── */}
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <label className="label mb-0">Şəkillər</label>
-                    <span className="text-xs text-slate-400">
-                      {uploadedImages.length} / {currentPlan.maxImages} şəkil
-                    </span>
-                  </div>
-                  <p className="mb-2 text-xs text-slate-500">
-                    Minimum <strong>{minimumRequiredImages} əsas şəkil</strong> əlavə edin. Daha çox şəkil elanın keyfiyyətini artırır.
-                  </p>
-
-                  {/* Drop zone */}
-                  <div
-                    className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 transition ${
-                      uploadProcessing
-                        ? "border-[#0057FF]/40 bg-[#0057FF]/5"
-                        : "border-slate-900/15 bg-white/60 hover:border-[#0057FF]/60 hover:bg-[#0057FF]/5"
-                    }`}
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      void handleImageFiles(e.dataTransfer.files);
-                    }}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,.heic,.heif"
-                      multiple
-                      className="hidden"
-                      onChange={(e) => void handleImageFiles(e.target.files)}
-                    />
-                    {uploadProcessing ? (
-                      <div className="flex items-center gap-2 text-sm text-[#0057FF]">
-                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                        </svg>
-                        Şəkillər sıxılır…
-                      </div>
-                    ) : (
-                      <>
-                        <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
-                        <p className="text-sm text-slate-500">
-                          <span className="font-semibold text-[#0057FF]">Fayl seçin</span> və ya bura sürükləyin
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          JPEG · PNG · WebP · HEIC — istənilən ölçü qəbul olunur, sistem avtomatik sıxır
-                        </p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Upload errors */}
-                  {uploadErrors.length > 0 && (
-                    <div className="mt-2 rounded-xl alert-danger border p-3">
-                      {uploadErrors.map((e, i) => (
-                        <p key={i} className="text-xs text-red-700">{e}</p>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Image previews */}
-                  {uploadedImages.length > 0 && (
-                    <div className="mt-3 grid grid-cols-4 gap-2">
-                      {uploadedImages.map((img, i) => (
-                        <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-900/10 bg-white/63">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={URL.createObjectURL(img.file)}
-                            alt={`Şəkil ${i + 1}`}
-                            className="h-full w-full object-cover"
-                          />
-                          {/* Compression badge */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-center text-[9px] text-slate-900">
-                            {formatFileSize(img.compressedSizeBytes)}
-                            {img.wasResized && " · sıxıldı"}
-                          </div>
-                          {/* Remove button */}
-                          <button
-                            type="button"
-                            className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-slate-900 group-hover:flex"
-                            onClick={() => {
-                              setUploadedImages((prev) => prev.filter((_, idx) => idx !== i));
-                              setMedia((prev) => ({ ...prev, imageCount: uploadedImages.length - 1 }));
-                            }}
-                          >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Compression info note */}
-                  {uploadedImages.length > 0 && (
-                    <p className="mt-2 text-[11px] text-slate-400">
-                      💾 Cəmi: {formatFileSize(uploadedImages.reduce((s, img) => s + img.compressedSizeBytes, 0))} · Sistem avtomatik JPEG 85%-ə çevirmişdir
-                    </p>
-                  )}
-                </div>
+                <PublishImageUploadZone
+                  uploadedImages={uploadedImages}
+                  maxImages={currentPlan.maxImages}
+                  minimumRequiredImages={minimumRequiredImages}
+                  uploadProcessing={uploadProcessing}
+                  uploadErrors={uploadErrors}
+                  fileInputRef={fileInputRef}
+                  onSelectFiles={(files) => void handleImageFiles(files)}
+                  onRemoveImage={removeUploadedImage}
+                />
 
                 <ListingAiAnalyzePanel
                   analysisContext="vehicle"
@@ -1169,7 +1227,7 @@ export default function PublishPage() {
                   <p className="mb-3 text-xs text-slate-500">
                     &quot;Ön panel&quot; dedikdə sükan, cihazlar paneli və mərkəzi ekranın göründüyü ön salon şəkli nəzərdə tutulur.
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {mediaAngles.map(({ key, label }) => (
                       <label key={key} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
                         media[key] ? "border-[#0057FF]/40 bg-[#0057FF]/5" : "glass-panel border-slate-900/10 hover:border-slate-900/15"
@@ -1222,11 +1280,8 @@ export default function PublishPage() {
                 )}
 
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Avtomobil")} className="btn-secondary flex-1 justify-center py-3">
-                    Geri
-                  </button>
-                  <button type="button" onClick={handleMediaNext} className="btn-primary flex-1 justify-center py-3">
-                    Növbəti: Plan
+                  <button type="button" onClick={handleMediaNext} className="btn-primary w-full justify-center py-3 sm:flex-1">
+                    Növbəti: Avtomobil
                   </button>
                 </div>
               </div>
@@ -1234,7 +1289,7 @@ export default function PublishPage() {
 
             {/* Step 3: Plan selection */}
             {step === "Plan" && (
-              <div className="card p-8 space-y-6">
+              <div className="card space-y-6 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Elan planı</h2>
                 <p className="text-sm text-slate-500">Elanınızın necə görünməsini seçin</p>
 
@@ -1323,7 +1378,7 @@ export default function PublishPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep("Mediya")} className="btn-secondary flex-1 justify-center py-3">
+                  <button type="button" onClick={() => setStep("Avtomobil")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
                   </button>
                   <button type="button" onClick={handlePlanNext} className="btn-primary flex-1 justify-center py-3">
@@ -1335,7 +1390,7 @@ export default function PublishPage() {
 
             {/* Step 4: Review & Submit */}
             {step === "Yoxlama" && (
-              <div className="card p-8 space-y-6">
+              <div className="card space-y-6 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Məlumatları yoxlayın</h2>
 
                 <div className="rounded-xl bg-white/60 divide-y divide-slate-900/10">
@@ -1404,7 +1459,7 @@ export default function PublishPage() {
           </form>
         ) : (
           /* Result screen */
-          <div className="card p-8 text-center space-y-6">
+          <div className="card space-y-6 p-4 text-center sm:p-8">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
               <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -1419,7 +1474,7 @@ export default function PublishPage() {
                 <strong>Yürüş xəbərdarlığı:</strong> {result.signals.mileageFlag.message}
               </div>
             )}
-            <button onClick={() => { setResult(null); setStep("Avtomobil"); }} className="btn-secondary">
+            <button onClick={() => { setResult(null); setStep("Mediya"); }} className="btn-secondary">
               Yenidən cəhd et
             </button>
           </div>

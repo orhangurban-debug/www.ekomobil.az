@@ -224,7 +224,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto min-w-0 max-w-3xl overflow-x-hidden px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/parts" className="hover:text-[#0057FF]">
           Mağaza elanları
@@ -250,25 +250,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         </div>
       )}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border-2 border-[#0057FF] bg-[#0057FF]/5 p-4">
-          <p className="text-sm font-semibold text-slate-900">Tək məhsul rejimi</p>
-          <p className="mt-1 text-xs text-slate-600">
-            Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
-          </p>
-        </div>
-        <Link
-          href="/parts/publish/bulk"
-          className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 transition hover:border-violet-300 hover:bg-violet-50"
-        >
-          <p className="text-sm font-semibold text-violet-900">Toplu yükləmə rejimi</p>
-          <p className="mt-1 text-xs text-violet-700">
-            Plan limitinizə qədər fərqli məhsul şəkli — AI avtomatik qruplaşdırır.
-          </p>
-        </Link>
-      </div>
-
-      <form onSubmit={onSubmit} className="mt-8 space-y-5 card p-6">
+      <div className="card mt-6 space-y-4 p-4 sm:p-6">
         <div>
           <label className="label">Şəkillər</label>
           <div
@@ -309,7 +291,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
             </div>
           )}
           {uploadedImages.length > 0 && (
-            <div className="mt-2 grid grid-cols-4 gap-2">
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {uploadedImages.map((img, i) => (
                 <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-slate-900/10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -329,7 +311,27 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           externalImages={uploadedImages}
           onApplyPart={applyPartAiSuggestion}
         />
+      </div>
 
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border-2 border-[#0057FF] bg-[#0057FF]/5 p-4">
+          <p className="text-sm font-semibold text-slate-900">Tək məhsul rejimi</p>
+          <p className="mt-1 text-xs text-slate-600">
+            Eyni SKU-nun bir neçə şəkli (qutu, etiket, detal). AI bütün şəkilləri bir məhsul kimi analiz edir.
+          </p>
+        </div>
+        <Link
+          href="/parts/publish/bulk"
+          className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 transition hover:border-violet-300 hover:bg-violet-50"
+        >
+          <p className="text-sm font-semibold text-violet-900">Toplu yükləmə rejimi</p>
+          <p className="mt-1 text-xs text-violet-700">
+            Plan limitinizə qədər fərqli məhsul şəkli — AI avtomatik qruplaşdırır.
+          </p>
+        </Link>
+      </div>
+
+      <form onSubmit={onSubmit} className="card mt-8 space-y-5 p-4 sm:p-6">
         <div>
           <label className="label">Elan başlığı</label>
           <input className="input-field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Məs: BOSCH Yağ filtri Toyota Corolla 2018+" required />
