@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
+import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
+import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 import { PrivacyControls } from "@/components/user/privacy-controls";
 import { getServerSessionUser } from "@/lib/auth";
@@ -296,18 +298,36 @@ export default async function ProfilePage({
             ) : (
               <div className="space-y-3">
                 {myListings.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-slate-900/10 p-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div key={item.id} className="overflow-hidden rounded-xl border border-slate-900/10 bg-white/60">
+                    <div className="flex items-start gap-4 p-4">
+                      {/* Cover image */}
+                      {item.imageUrl && (
+                        <Link href={`/listings/${item.id}`} className="shrink-0">
+                          <div className="h-20 w-28 overflow-hidden rounded-lg bg-slate-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        </Link>
+                      )}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/listings/${item.id}`} className="font-medium text-slate-900 hover:text-[#0057FF]">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link href={`/listings/${item.id}`} className="font-semibold text-slate-900 hover:text-[#0057FF]">
                             {item.title}
                           </Link>
-                          <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusMeta[item.status]?.cls ?? "bg-white/63 text-slate-600 border-slate-900/10"}`}>
+                          <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusMeta[item.status]?.cls ?? "bg-white/63 text-slate-600 border-slate-900/10"}`}>
                             {statusMeta[item.status]?.label ?? item.status}
                           </span>
                         </div>
-                        <div className="mt-1 text-xs text-slate-500">{item.city} • {item.year}</div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {item.city} · {item.year} · {item.priceAzn.toLocaleString()} ₼
+                        </div>
+                        <div className="mt-1.5 text-xs text-slate-400">
+                          Etibar xalı: <span className="font-medium text-slate-600">{item.trustScore}/100</span>
+                        </div>
                         {item.status === "active" && item.planExpiresAt && (
                           <div className="mt-2">
                             <ListingPlanExpiryCounter
@@ -317,17 +337,87 @@ export default async function ProfilePage({
                             />
                           </div>
                         )}
+                        {item.status === "rejected" && item.rejectionNote && (
+                          <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                            <span className="font-semibold">Rədd səbəbi: </span>{item.rejectionNote}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex shrink-0 items-center gap-4">
+                      <div className="shrink-0">
                         <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />
-                        <div className="text-right">
-                          <div className="text-sm font-semibold text-[#0057FF]">{item.priceAzn.toLocaleString()} ₼</div>
-                          <div className="mt-1 text-xs text-slate-500">Trust {item.trustScore}/100</div>
-                        </div>
                       </div>
                     </div>
-                    <div className="mt-3 h-2 rounded-full bg-white/63">
-                      <div className="h-2 rounded-full bg-brand-600" style={{ width: `${Math.min(item.trustScore, 100)}%` }} />
+                    {/* Trust progress bar */}
+                    <div className="h-1 bg-slate-100">
+                      <div className="h-1 bg-[#0057FF]/50 transition-all" style={{ width: `${Math.min(item.trustScore, 100)}%` }} />
+                    </div>
+                    {/* Action row */}
+                    <div className="flex flex-wrap items-center gap-2 border-t border-slate-900/5 bg-white/40 px-4 py-2.5">
+                      <Link
+                        href={`/listings/${item.id}`}
+                        className="text-xs font-medium text-[#0057FF] hover:underline"
+                      >
+                        Elana bax →
+                      </Link>
+                      <span className="text-slate-300">|</span>
+                      {item.listingKind === "part" ? (
+                        <OwnerEditPartListingButton
+                          variant="inline"
+                          listingId={item.id}
+                          title={item.title}
+                          description={item.description}
+                          city={item.city}
+                          priceAzn={item.priceAzn}
+                          partCategory={item.partCategory}
+                          partSubcategory={item.partSubcategory}
+                          partBrand={item.partBrand}
+                          partCondition={item.partCondition}
+                          partAuthenticity={item.partAuthenticity}
+                          partOemCode={item.partOemCode}
+                          partSku={item.partSku}
+                          partQuantity={item.partQuantity}
+                          partCompatibility={item.partCompatibility}
+                        />
+                      ) : (
+                        <OwnerEditListingButton
+                          variant="inline"
+                          listingId={item.id}
+                          title={item.title}
+                          description={item.description}
+                          make={item.make}
+                          model={item.model}
+                          year={item.year}
+                          mileageKm={item.mileageKm}
+                          city={item.city}
+                          priceAzn={item.priceAzn}
+                          vin={item.vin}
+                          fuelType={item.fuelType}
+                          engineType={item.engineType}
+                          transmission={item.transmission}
+                          bodyType={item.bodyType}
+                          driveType={item.driveType}
+                          color={item.color}
+                          condition={item.condition}
+                          engineVolumeCc={item.engineVolumeCc}
+                          interiorMaterial={item.interiorMaterial}
+                          hasSunroof={item.hasSunroof}
+                          creditAvailable={item.creditAvailable}
+                          barterAvailable={item.barterAvailable}
+                          seatHeating={item.seatHeating}
+                          seatCooling={item.seatCooling}
+                          camera360={item.camera360}
+                          parkingSensors={item.parkingSensors}
+                          adaptiveCruise={item.adaptiveCruise}
+                          laneAssist={item.laneAssist}
+                          ownersCount={item.ownersCount}
+                          hasServiceBook={item.hasServiceBook}
+                          hasRepairHistory={item.hasRepairHistory}
+                          vinInfoUrl={item.vinInfoUrl}
+                          vinDocumentRef={item.vinDocumentRef}
+                          serviceHistoryUrl={item.serviceHistoryUrl}
+                          serviceHistoryDocumentRef={item.serviceHistoryDocumentRef}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}

@@ -26,6 +26,7 @@ export function OwnerEditPartListingButton(props: {
   partSku?: string;
   partQuantity?: number;
   partCompatibility?: string;
+  variant?: "default" | "inline";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -98,10 +99,12 @@ export function OwnerEditPartListingButton(props: {
     <>
       <button
         type="button"
-        className="btn-secondary w-full justify-center py-3"
+        className={props.variant === "inline"
+          ? "text-xs font-medium text-slate-600 hover:text-[#0057FF] hover:underline"
+          : "btn-secondary w-full justify-center py-3"}
         onClick={() => setOpen(true)}
       >
-        Elanı redaktə et
+        {props.variant === "inline" ? "Redaktə et" : "Elanı redaktə et"}
       </button>
 
       {open && (
