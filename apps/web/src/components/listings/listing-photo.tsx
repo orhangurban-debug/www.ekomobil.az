@@ -17,8 +17,14 @@ export function ListingPhoto({ alt, className, showWatermark = true, fill, ...pr
   const unoptimized = src.startsWith("data:") || src.startsWith("/api/");
 
   return (
-    <div className={`relative ${fill ? "h-full w-full" : ""}`}>
-      <Image alt={alt} className={className} fill={fill} unoptimized={unoptimized} {...props} />
+    <div className={fill ? "absolute inset-0" : "relative"}>
+      <Image
+        alt={alt}
+        className={fill ? `h-full w-full object-cover object-center ${className ?? ""}`.trim() : className}
+        fill={fill}
+        unoptimized={unoptimized}
+        {...props}
+      />
       {showWatermark && (
         <div
           className="pointer-events-none absolute bottom-1.5 right-1.5 flex items-center justify-center rounded-md bg-black/35 px-1 py-0.5 backdrop-blur-[1px] sm:bottom-2 sm:right-2"

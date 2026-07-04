@@ -193,14 +193,15 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
             }`
       }`}
     >
-      {/* Image — 16:9 aspect ratio */}
-      <div className="relative aspect-video overflow-hidden bg-slate-100">
+      {/* Image — vahid 4:3 üzlük, mərkəzdən kəsilir */}
+      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-slate-200">
         {listing.imageUrl ? (
           <ListingPhoto
             src={listing.imageUrl}
             alt={listing.title}
             fill
-            className="object-cover transition duration-300 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 320px"
+            className="object-cover object-center transition duration-300 group-hover:scale-[1.02]"
           />
         ) : (
           <CarPlaceholder title={listing.title} year={listing.year} fuelType={listing.fuelType} />

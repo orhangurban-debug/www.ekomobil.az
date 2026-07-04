@@ -275,3 +275,71 @@ export function applyAiImageTagsToAngleList(
 
   return next;
 }
+
+/** Elan kartı və qalereya üçün şəkil sıralaması — ön xarici görüntü həmişə birinci */
+export const LISTING_IMAGE_TAG_DISPLAY_ORDER: ImagePhotoTag[] = [
+  "exterior_front",
+  "exterior_left",
+  "exterior_right",
+  "exterior_rear",
+  "wheel",
+  "engine",
+  "interior_dashboard",
+  "interior_front_seats",
+  "interior_rear_seats",
+  "interior_ceiling",
+  "odometer",
+  "trunk",
+  "detail_damage",
+  "other"
+];
+
+export function listingPhotoTagSortRank(tag: ImagePhotoTag | null | undefined): number {
+  if (!tag) return 100;
+  const index = LISTING_IMAGE_TAG_DISPLAY_ORDER.indexOf(tag);
+  return index >= 0 ? index : 90;
+}
+
+/** SQL: listing_media üzrə üzlük şəkli və qalereya sıralaması */
+export const LISTING_MEDIA_DISPLAY_ORDER_SQL = `
+  CASE COALESCE(lm.photo_tag, '')
+    WHEN 'exterior_front' THEN 0
+    WHEN 'exterior_left' THEN 1
+    WHEN 'exterior_right' THEN 2
+    WHEN 'exterior_rear' THEN 3
+    WHEN 'wheel' THEN 4
+    WHEN 'engine' THEN 5
+    WHEN 'interior_dashboard' THEN 20
+    WHEN 'interior_front_seats' THEN 21
+    WHEN 'interior_rear_seats' THEN 22
+    WHEN 'interior_ceiling' THEN 23
+    WHEN 'odometer' THEN 24
+    WHEN 'trunk' THEN 25
+    WHEN 'detail_damage' THEN 30
+    WHEN 'other' THEN 31
+    ELSE 40
+  END,
+  lm.sort_order ASC
+`;
+
+export function reorderListingImageArrays(
+  imageUrls: string[],
+  imageHashes: string[],
+  tags: Array<ImagePhotoTag | null | undefined>
+): { imageUrls: string[]; imageHashes: string[]; photoTags: Array<ImagePhotoTag | null> } {
+  const items = imageUrls.map((url, index) => ({
+    url,
+    hash: imageHashes[index] ?? "",
+    tag: tags[index] ?? null,
+    index
+  }));
+  items.sort(
+    (a, b) =>
+      listingPhotoTagSortRank(a.tag) - listingPhotoTagSortRank(b.tag) || a.index - b.index
+  );
+  return {
+    imageUrls: items.map((item) => item.url),
+    imageHashes: items.map((item) => item.hash),
+    photoTags: items.map((item) => item.tag)
+  };
+}

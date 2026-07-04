@@ -14,6 +14,7 @@ import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { getBoostOrderSql } from "@/server/listing-boost-store";
 import { persistSupportUploadFile } from "@/server/support-upload-storage";
+import { LISTING_MEDIA_DISPLAY_ORDER_SQL, reorderListingImageArrays, type ImagePhotoTag } from "@/lib/vehicle-media-angles";
 
 interface ListingRow {
   id: string;
@@ -540,7 +541,7 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY lm.sort_order ASC
+            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -602,7 +603,7 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY lm.sort_order ASC
+            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -646,9 +647,9 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
         .query<{ id: string; url: string }>(
           `
           SELECT id, url
-          FROM listing_media
-          WHERE listing_id = $1 AND media_type = 'image'
-          ORDER BY sort_order ASC
+          FROM listing_media lm
+          WHERE lm.listing_id = $1 AND lm.media_type = 'image'
+          ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
           LIMIT 24
         `,
           [id]
@@ -761,6 +762,7 @@ export async function createListingRecord(input: {
   partCompatibility?: string;
   imageUrls?: string[];
   imageHashes?: string[];
+  imagePhotoTags?: Array<ImagePhotoTag | null>;
   trust: {
     trustScore: number;
     vinVerified: boolean;
@@ -880,17 +882,23 @@ export async function createListingRecord(input: {
     const normalizedImageUrls = await Promise.all(
       (input.imageUrls ?? []).map(async (entry) => await normalizeAndPersistImageUrl(entry))
     );
-    const imageUrls = normalizedImageUrls.filter((entry): entry is string => Boolean(entry)).slice(0, 24);
-    const imageHashes = (input.imageHashes ?? []).map((entry) => entry.trim().toLowerCase()).slice(0, 24);
+    const filteredUrls = normalizedImageUrls.filter((entry): entry is string => Boolean(entry)).slice(0, 24);
+    const filteredHashes = (input.imageHashes ?? []).map((entry) => entry.trim().toLowerCase()).slice(0, 24);
+    const filteredTags = (input.imagePhotoTags ?? []).slice(0, 24);
+    const ordered = reorderListingImageArrays(filteredUrls, filteredHashes, filteredTags);
+    const imageUrls = ordered.imageUrls;
+    const imageHashes = ordered.imageHashes;
+    const photoTags = ordered.photoTags;
     if (imageUrls.length > 0) {
       for (let index = 0; index < imageUrls.length; index += 1) {
         const perceptualHash = imageHashes[index];
+        const photoTag = photoTags[index];
         await client.query(
           `
-            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash)
-            VALUES ($1, $2, 'image', $3, $4, $5)
+            INSERT INTO listing_media (id, listing_id, media_type, url, sort_order, perceptual_hash, photo_tag)
+            VALUES ($1, $2, 'image', $3, $4, $5, $6)
           `,
-          [randomUUID(), id, imageUrls[index], index, perceptualHash ?? null]
+          [randomUUID(), id, imageUrls[index], index, perceptualHash || null, photoTag]
         );
       }
     }
@@ -927,7 +935,7 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY lm.sort_order ASC
+            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
@@ -965,7 +973,7 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
             SELECT lm.url
             FROM listing_media lm
             WHERE lm.listing_id = l.id AND lm.media_type = 'image'
-            ORDER BY lm.sort_order ASC
+            ORDER BY ${LISTING_MEDIA_DISPLAY_ORDER_SQL}
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,

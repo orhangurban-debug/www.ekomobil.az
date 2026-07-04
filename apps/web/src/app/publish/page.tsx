@@ -31,6 +31,7 @@ import {
 } from "@/lib/vehicle-photo-guide";
 import {
   buildMediaAnglesFromTags,
+  reorderListingImageArrays,
   type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
@@ -38,6 +39,8 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 
 const STEPS = ["Şəkillər", "Məlumatlar", "Plan", "Yayımla"] as const;
 type Step = (typeof STEPS)[number];
+
+const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 interface PublishErrorGuide {
   step: Step;
@@ -76,8 +79,98 @@ function PublishStepErrorAlert({ guide }: { guide: PublishErrorGuide | null }) {
   );
 }
 
+type PublishFieldKey =
+  | "title"
+  | "make"
+  | "model"
+  | "year"
+  | "declaredMileageKm"
+  | "priceAzn"
+  | "city"
+  | "vin"
+  | "engineVolumeCc"
+  | "ownersCount"
+  | "description";
+
+type PublishFieldErrors = Partial<Record<PublishFieldKey, string>>;
+
+const PUBLISH_FIELD_INVALID_INPUT = "border-red-500 ring-1 ring-red-500/40 focus:border-red-500";
+const PUBLISH_FIELD_INVALID_LABEL = "text-red-600";
+
+const PUBLISH_FIELD_MATCHERS: Array<{ field: PublishFieldKey; test: (message: string) => boolean }> = [
+  { field: "title", test: (m) => /başlıq/i.test(m) },
+  { field: "make", test: (m) => /marka/i.test(m) },
+  { field: "model", test: (m) => /model/i.test(m) },
+  { field: "priceAzn", test: (m) => /qiymət/i.test(m) },
+  { field: "city", test: (m) => /şəhər/i.test(m) },
+  { field: "vin", test: (m) => /vin/i.test(m) },
+  { field: "declaredMileageKm", test: (m) => /yürüş/i.test(m) },
+  { field: "year", test: (m) => /avtomobil ili|icazə verilən aralıqda/i.test(m) },
+  { field: "engineVolumeCc", test: (m) => /mühərrik həcmi/i.test(m) },
+  { field: "ownersCount", test: (m) => /sahib/i.test(m) },
+  { field: "description", test: (m) => /mətn|açıqlama|link|kontakt/i.test(m) }
+];
+
+function mapMessagesToFieldErrors(messages: string[]): PublishFieldErrors {
+  const mapped: PublishFieldErrors = {};
+  for (const message of messages) {
+    for (const matcher of PUBLISH_FIELD_MATCHERS) {
+      if (matcher.test(message) && !mapped[matcher.field]) {
+        mapped[matcher.field] = message;
+        break;
+      }
+    }
+  }
+  return mapped;
+}
+
+function collectApiErrors(payload: { error?: string; errors?: string[] }, fallback: string): string[] {
+  if (payload.errors?.length) return payload.errors;
+  if (payload.error?.trim()) return [payload.error];
+  return [fallback];
+}
+
+function buildClientFieldErrors(values: {
+  title: string;
+  make: string;
+  model: string;
+  priceAzn: number;
+  city: string;
+  vin: string;
+  declaredMileageKm: number;
+  engineVolumeCc: number | "";
+  ownersCount: number | "";
+  year: number;
+}): PublishFieldErrors {
+  const mapped: PublishFieldErrors = {};
+  if (!values.title.trim()) mapped.title = "Elan başlığını daxil edin.";
+  if (!values.make.trim()) mapped.make = "Markanı daxil edin.";
+  if (!values.model.trim()) mapped.model = "Modeli daxil edin.";
+  if (!values.priceAzn || values.priceAzn <= 0) mapped.priceAzn = "Qiyməti 0-dan böyük daxil edin.";
+  if (!values.city.trim()) mapped.city = "Şəhəri seçin.";
+  if (values.vin.trim() && !VIN_PATTERN.test(values.vin.trim().toUpperCase())) {
+    mapped.vin = "VIN kodu 17 simvol olmalı və I/O/Q hərflərini içerməməlidir.";
+  }
+  if (!values.declaredMileageKm && values.declaredMileageKm !== 0) {
+    mapped.declaredMileageKm = "Yürüş məlumatını daxil edin.";
+  } else if (values.declaredMileageKm < 0) {
+    mapped.declaredMileageKm = "Yürüş mənfi ola bilməz.";
+  }
+  if (values.engineVolumeCc !== "" && values.engineVolumeCc < 0) {
+    mapped.engineVolumeCc = "Mühərrik həcmi mənfi ola bilməz.";
+  }
+  if (values.ownersCount !== "" && values.ownersCount < 1) {
+    mapped.ownersCount = "Sahib sayı 1 və ya daha çox olmalıdır.";
+  }
+  if (values.year < 1950 || values.year > 2026) {
+    mapped.year = "Avtomobil ilini düzgün daxil edin.";
+  }
+  return mapped;
+}
+
 interface TrustApiResponse {
   ok: boolean;
+  error?: string;
   trustScore?: number;
   errors?: string[];
   signals?: {
@@ -100,8 +193,6 @@ const initialMedia: MediaProtocolInput = {
   hasOdometer: false,
   hasTrunk: false
 };
-
-const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 async function fileToDataUrl(file: File): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -217,6 +308,8 @@ export default function PublishPage() {
   const [mediaValidationVisible, setMediaValidationVisible] = useState(false);
   const [reviewErrors, setReviewErrors] = useState<string[]>([]);
   const [publishGuide, setPublishGuide] = useState<PublishErrorGuide | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<PublishFieldErrors>({});
+  const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
 
   // ── Image upload state ──────────────────────────────────────────────────
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -278,6 +371,42 @@ export default function PublishPage() {
   const availableTransmissions = useMemo(() => getCompatibleTransmissions(fuelType), [fuelType]);
   const isElectricPowertrain = fuelType === "Elektrik";
 
+  const clientFieldErrors = useMemo(
+    () =>
+      buildClientFieldErrors({
+        title,
+        make,
+        model,
+        priceAzn,
+        city,
+        vin,
+        declaredMileageKm,
+        engineVolumeCc,
+        ownersCount,
+        year
+      }),
+    [city, declaredMileageKm, engineVolumeCc, make, model, ownersCount, priceAzn, title, vin, year]
+  );
+
+  const displayFieldErrors = useMemo(() => {
+    const merged: PublishFieldErrors = { ...fieldErrors };
+    if (vehicleValidationVisible || publishGuide?.step === "Məlumatlar") {
+      for (const [field, message] of Object.entries(clientFieldErrors) as Array<[PublishFieldKey, string]>) {
+        if (!merged[field]) merged[field] = message;
+      }
+    }
+    return merged;
+  }, [clientFieldErrors, fieldErrors, publishGuide?.step, vehicleValidationVisible]);
+
+  const clearFieldError = useCallback((field: PublishFieldKey) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
+
   const goToStep = useCallback((next: Step) => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
@@ -289,13 +418,38 @@ export default function PublishPage() {
     (messages: string[]) => {
       const normalized = messages.length > 0 ? messages : ["Elan yayımlana bilmədi. Zəhmət olmasa yenidən cəhd edin."];
       const step = resolvePublishErrorStep(normalized);
+      const mappedFields = mapMessagesToFieldErrors(normalized);
       setReviewErrors(normalized);
       setPublishGuide({ step, messages: normalized });
+      setFieldErrors(mappedFields);
+      if (Object.keys(mappedFields).some((key) => ["vin", "description", "ownersCount", "engineVolumeCc"].includes(key))) {
+        setOptionalDetailsOpen(true);
+      }
       if (step === "Şəkillər") setMediaValidationVisible(true);
       if (step === "Məlumatlar") setVehicleValidationVisible(true);
       goToStep(step);
     },
     [goToStep]
+  );
+
+  const fieldLabelClass = useCallback(
+    (field: PublishFieldKey) => `label${displayFieldErrors[field] ? ` ${PUBLISH_FIELD_INVALID_LABEL}` : ""}`,
+    [displayFieldErrors]
+  );
+
+  const fieldInputClass = useCallback(
+    (field: PublishFieldKey, extra = "") =>
+      `input-field${displayFieldErrors[field] ? ` ${PUBLISH_FIELD_INVALID_INPUT}` : ""}${extra ? ` ${extra}` : ""}`,
+    [displayFieldErrors]
+  );
+
+  const renderFieldError = useCallback(
+    (field: PublishFieldKey) => {
+      const message = displayFieldErrors[field];
+      if (!message) return null;
+      return <p className="mt-1 text-xs font-medium text-red-600">{message}</p>;
+    },
+    [displayFieldErrors]
   );
 
   useLayoutEffect(() => {
@@ -418,6 +572,7 @@ export default function PublishPage() {
     setResult(null);
     setReviewErrors([]);
     setPublishGuide(null);
+    setFieldErrors({});
     setVehicleValidationVisible(true);
     setMediaValidationVisible(true);
 
@@ -456,10 +611,16 @@ export default function PublishPage() {
     }
 
     const payload = (await response.json()) as TrustApiResponse;
+    if (!payload.ok) {
+      showPublishErrors(collectApiErrors(payload, "Məlumatlarda düzəliş lazımdır."));
+      return;
+    }
+
     if (payload.ok) {
       await trackEvent("listing_published", { vin, city, trustScore: payload.trustScore ?? null });
       const imageUrls = await Promise.all(uploadedImages.map(async (entry) => await fileToDataUrl(entry.file)));
       const imageHashes = uploadedImages.map((entry) => entry.perceptualHash);
+      const orderedImages = reorderListingImageArrays(imageUrls, imageHashes, imageAngleTags);
 
       const createResponse = await fetch("/api/listings", {
         method: "POST",
@@ -500,8 +661,9 @@ export default function PublishPage() {
           vinVerified,
           sellerVerified,
           mediaProtocol: resolvedMedia,
-          imageUrls,
-          imageHashes,
+          imageUrls: orderedImages.imageUrls,
+          imageHashes: orderedImages.imageHashes,
+          imagePhotoTags: orderedImages.photoTags,
           planType
         })
       });
@@ -553,10 +715,9 @@ export default function PublishPage() {
         router.refresh();
         return;
       }
-      showPublishErrors(createPayload.errors ?? [createPayload.error || "Elan yaradıla bilmədi."]);
+      showPublishErrors(collectApiErrors(createPayload, "Elan yaradıla bilmədi."));
       return;
     }
-    showPublishErrors(payload.errors ?? ["Məlumatlarda düzəliş lazımdır."]);
     } catch (error) {
       console.error("publish submit error:", error);
       showPublishErrors(["Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin."]);
@@ -605,21 +766,33 @@ export default function PublishPage() {
                 />
 
                 <div>
-                  <label className="label">Elan başlığı</label>
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="məs: Toyota Corolla 2019" required />
+                  <label className={fieldLabelClass("title")}>Elan başlığı</label>
+                  <input
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      clearFieldError("title");
+                    }}
+                    className={fieldInputClass("title")}
+                    placeholder="məs: Toyota Corolla 2019"
+                    required
+                  />
+                  {renderFieldError("title")}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="label">Marka</label>
+                    <label className={fieldLabelClass("make")}>Marka</label>
                     <input
                       list="publish-car-makes"
                       value={make}
                       onChange={(e) => {
                         setMake(e.target.value);
                         setModel("");
+                        clearFieldError("make");
+                        clearFieldError("model");
                       }}
-                      className="input-field"
+                      className={fieldInputClass("make")}
                       placeholder="Marka seçin və ya yazın"
                       required
                     />
@@ -628,15 +801,21 @@ export default function PublishPage() {
                         <option key={item} value={item} />
                       ))}
                     </datalist>
-                    <p className="mt-1 text-xs text-slate-400">Siyahıda yoxdursa əl ilə yaza bilərsiniz.</p>
+                    {!displayFieldErrors.make && (
+                      <p className="mt-1 text-xs text-slate-400">Siyahıda yoxdursa əl ilə yaza bilərsiniz.</p>
+                    )}
+                    {renderFieldError("make")}
                   </div>
                   <div>
-                    <label className="label">Model</label>
+                    <label className={fieldLabelClass("model")}>Model</label>
                     <input
                       list={availableModels.length > 0 ? "publish-car-models" : undefined}
                       value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                      className="input-field"
+                      onChange={(e) => {
+                        setModel(e.target.value);
+                        clearFieldError("model");
+                      }}
+                      className={fieldInputClass("model")}
                       placeholder={make.trim() ? "Model seçin və ya yazın" : "Əvvəl marka daxil edin"}
                       disabled={!make.trim()}
                       required
@@ -648,30 +827,73 @@ export default function PublishPage() {
                         ))}
                       </datalist>
                     )}
+                    {renderFieldError("model")}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="label">İl</label>
-                    <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="input-field" min={1990} max={2026} required />
+                    <label className={fieldLabelClass("year")}>İl</label>
+                    <input
+                      type="number"
+                      value={year}
+                      onChange={(e) => {
+                        setYear(Number(e.target.value));
+                        clearFieldError("year");
+                      }}
+                      className={fieldInputClass("year")}
+                      min={1990}
+                      max={2026}
+                      required
+                    />
+                    {renderFieldError("year")}
                   </div>
                   <div>
-                    <label className="label">Yürüş (km)</label>
-                    <input type="number" value={declaredMileageKm || ""} onChange={(e) => setDeclaredMileageKm(Number(e.target.value))} className="input-field" placeholder="72000" required />
+                    <label className={fieldLabelClass("declaredMileageKm")}>Yürüş (km)</label>
+                    <input
+                      type="number"
+                      value={declaredMileageKm || ""}
+                      onChange={(e) => {
+                        setDeclaredMileageKm(Number(e.target.value));
+                        clearFieldError("declaredMileageKm");
+                      }}
+                      className={fieldInputClass("declaredMileageKm")}
+                      placeholder="72000"
+                      required
+                    />
+                    {renderFieldError("declaredMileageKm")}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="label">Qiymət (₼)</label>
-                    <input type="number" value={priceAzn || ""} onChange={(e) => setPriceAzn(Number(e.target.value))} className="input-field" placeholder="19800" required />
+                    <label className={fieldLabelClass("priceAzn")}>Qiymət (₼)</label>
+                    <input
+                      type="number"
+                      value={priceAzn || ""}
+                      onChange={(e) => {
+                        setPriceAzn(Number(e.target.value));
+                        clearFieldError("priceAzn");
+                      }}
+                      className={fieldInputClass("priceAzn")}
+                      placeholder="19800"
+                      required
+                    />
+                    {renderFieldError("priceAzn")}
                   </div>
                   <div>
-                    <label className="label">Şəhər</label>
-                    <select value={city} onChange={(e) => setCity(e.target.value)} className="input-field">
+                    <label className={fieldLabelClass("city")}>Şəhər</label>
+                    <select
+                      value={city}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        clearFieldError("city");
+                      }}
+                      className={fieldInputClass("city")}
+                    >
                       {["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Mingəçevir", "Digər"].map((c) => <option key={c}>{c}</option>)}
                     </select>
+                    {renderFieldError("city")}
                   </div>
                 </div>
 
@@ -708,19 +930,27 @@ export default function PublishPage() {
                   </div>
                 </div>
 
-                <details className="rounded-xl border border-slate-900/10 bg-white/50">
+                <details
+                  className="rounded-xl border border-slate-900/10 bg-white/50"
+                  open={optionalDetailsOpen}
+                  onToggle={(e) => setOptionalDetailsOpen(e.currentTarget.open)}
+                >
                   <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
                     Əlavə məlumat (istəyə bağlı)
                   </summary>
                   <div className="space-y-4 border-t border-slate-900/10 px-4 pb-4 pt-3">
                 <div>
-                  <label className="label">Təsvir</label>
+                  <label className={fieldLabelClass("description")}>Təsvir</label>
                   <textarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="input-field min-h-[90px]"
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      clearFieldError("description");
+                    }}
+                    className={fieldInputClass("description", "min-h-[90px]")}
                     placeholder="Maşının vəziyyəti və avadanlığı"
                   />
+                  {renderFieldError("description")}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -788,15 +1018,19 @@ export default function PublishPage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="label">Sahib sayı</label>
+                    <label className={fieldLabelClass("ownersCount")}>Sahib sayı</label>
                     <input
                       type="number"
                       value={ownersCount}
-                      onChange={(e) => setOwnersCount(e.target.value ? Number(e.target.value) : "")}
-                      className="input-field"
+                      onChange={(e) => {
+                        setOwnersCount(e.target.value ? Number(e.target.value) : "");
+                        clearFieldError("ownersCount");
+                      }}
+                      className={fieldInputClass("ownersCount")}
                       min={1}
                       placeholder="məs: 2"
                     />
+                    {renderFieldError("ownersCount")}
                   </div>
                   <div className="grid grid-cols-1 gap-2">
                     <label className="flex items-center gap-2 rounded-xl border border-slate-900/10 bg-white/60 px-3 py-2 text-sm text-slate-700">
@@ -821,17 +1055,19 @@ export default function PublishPage() {
                 </div>
 
                 <div>
-                  <label className="label">VIN kodu</label>
+                  <label className={fieldLabelClass("vin")}>VIN kodu</label>
                   <input
                     value={vin}
                     onChange={(e) => {
                       const normalized = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "");
                       setVin(normalized);
+                      clearFieldError("vin");
                     }}
-                    className="input-field font-mono tracking-widest uppercase"
+                    className={fieldInputClass("vin", "font-mono tracking-widest uppercase")}
                     placeholder="17 simvol (istəyə bağlı)"
                     maxLength={17}
                   />
+                  {renderFieldError("vin")}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -889,12 +1125,15 @@ export default function PublishPage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="label">Mühərrik həcmi (cc)</label>
+                    <label className={fieldLabelClass("engineVolumeCc")}>Mühərrik həcmi (cc)</label>
                     <input
                       type="number"
                       value={engineVolumeCc}
-                      onChange={(e) => setEngineVolumeCc(e.target.value ? Number(e.target.value) : "")}
-                      className="input-field"
+                      onChange={(e) => {
+                        setEngineVolumeCc(e.target.value ? Number(e.target.value) : "");
+                        clearFieldError("engineVolumeCc");
+                      }}
+                      className={fieldInputClass("engineVolumeCc")}
                       placeholder="məs: 2000"
                       min={0}
                       disabled={isElectricPowertrain}
@@ -902,6 +1141,7 @@ export default function PublishPage() {
                     {isElectricPowertrain && (
                       <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillərdə mühərrik həcmi tətbiq edilmir.</p>
                     )}
+                    {renderFieldError("engineVolumeCc")}
                   </div>
                   <div>
                     <label className="label">Salon materialı</label>
@@ -946,12 +1186,12 @@ export default function PublishPage() {
                 </details>
 
                 {vehicleValidationVisible && vehicleStepErrors.length > 0 && (
-                  <div className="rounded-xl alert-warning border p-4">
-                    <p className="text-sm font-medium text-amber-700">Növbəti mərhələyə keçmək üçün bunları tamamlayın:</p>
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                    <p className="text-sm font-medium text-red-700">Qırmızı ilə işarələnmiş sahələri düzəldin:</p>
                     <ul className="mt-2 space-y-1">
                       {vehicleStepErrors.map((error) => (
-                        <li key={error} className="text-sm text-amber-700">
-                          - {error}
+                        <li key={error} className="text-sm text-red-700">
+                          • {error}
                         </li>
                       ))}
                     </ul>

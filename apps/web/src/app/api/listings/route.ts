@@ -7,6 +7,7 @@ import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-
 import { FREE_LISTING_CONCURRENT_LIMIT, getPlanById, isPaidPlan, validateListingImageCount } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription } from "@/server/business-plan-store";
+import type { ImagePhotoTag } from "@/lib/vehicle-media-angles";
 import {
   countDealerListingsForUserByKind,
   countConcurrentFreePartListingsForUser,
@@ -426,6 +427,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     serviceHistoryDocumentRef?: string;
     imageUrls?: string[];
     imageHashes?: string[];
+    imagePhotoTags?: Array<string | null>;
     sellerType?: "private" | "dealer";
     planType?: "free" | "standard" | "vip";
   };
@@ -603,6 +605,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     listingKind: "vehicle" as const,
     imageUrls: vehiclePayload.imageUrls,
     imageHashes: vehiclePayload.imageHashes,
+    imagePhotoTags: vehiclePayload.imagePhotoTags as Array<ImagePhotoTag | null> | undefined,
     trust: {
       trustScore,
       vinVerified: trustSignals.vinVerification.status === "verified",
