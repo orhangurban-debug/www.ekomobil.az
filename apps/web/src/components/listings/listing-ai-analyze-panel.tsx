@@ -87,11 +87,19 @@ export function ListingAiAnalyzePanel({
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [skipped, setSkipped] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [limitNotice, setLimitNotice] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const images = externalImages ?? ownImages;
   const managesOwnUploads = externalImages === undefined;
-  const effectiveMaxImages = maxImagesProp ?? quota?.maxImages ?? (bulkMode ? quota?.maxBulkImages ?? 30 : 8);
+  const effectiveMaxImages = useMemo(() => {
+    const quotaCap = bulkMode ? quota?.maxBulkImages || quota?.maxImages : quota?.maxImages;
+    const fallback = bulkMode ? 30 : 8;
+    const candidates = [maxImagesProp, quotaCap, fallback].filter(
+      (value): value is number => typeof value === "number" && value > 0
+    );
+    return Math.min(...candidates);
+  }, [bulkMode, maxImagesProp, quota?.maxBulkImages, quota?.maxImages]);
 
   const quotaQuery = useMemo(() => {
     const params = new URLSearchParams({ context: analysisContext });
@@ -156,6 +164,7 @@ export function ListingAiAnalyzePanel({
     }
     setAnalyzing(true);
     setErrors([]);
+    setLimitNotice(null);
     setResult(null);
     try {
       const capped = images.slice(0, effectiveMaxImages);
@@ -177,6 +186,7 @@ export function ListingAiAnalyzePanel({
       const payload = (await response.json()) as {
         ok: boolean;
         error?: string;
+        warning?: string;
         requiresAuth?: boolean;
         result?: ListingAiAnalyzeResult;
         quota?: QuotaInfo & { dailyLimit: number };
@@ -190,6 +200,7 @@ export function ListingAiAnalyzePanel({
         return;
       }
       setResult(payload.result);
+      setLimitNotice(payload.warning ?? null);
       if (autoApply) {
         if (payload.result.vehicle && onApplyVehicle) onApplyVehicle(payload.result.vehicle);
         if (payload.result.part && onApplyPart) onApplyPart(payload.result.part);
@@ -335,6 +346,10 @@ export function ListingAiAnalyzePanel({
           </button>
         )}
       </div>
+
+      {limitNotice && (
+        <p className="mt-3 text-xs text-amber-700">{limitNotice}</p>
+      )}
 
       {applied && autoApply && (
         <p className="mt-3 text-xs font-medium text-emerald-700">AI məlumatları doldurdu — yoxlayın.</p>

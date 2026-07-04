@@ -111,12 +111,18 @@ export async function resolveListingAiQuota(input: ResolveQuotaInput): Promise<L
     const group = input.servicePlanGroup ?? "mechanic";
     limits = serviceLimits(group, input.servicePlanId);
   } else if (input.context === "vehicle") {
-    const isDealer = input.userRole === "dealer" || input.userRole === "admin";
-    if (isDealer) {
-      const plan = await getEffectiveDealerPlan(input.userId);
-      limits = dealerVehicleLimits(plan);
+    // /publish axınında seçilmiş elan planı (free/standard/vip) şəkil limitini müəyyən edir.
+    // Salon abunəliyinin perListingMaxImages limiti yalnız planType göndərilməyəndə tətbiq olunur.
+    if (input.planType) {
+      limits = privateVehicleLimits(input.planType);
     } else {
-      limits = privateVehicleLimits(input.planType ?? "free");
+      const isDealer = input.userRole === "dealer" || input.userRole === "admin";
+      if (isDealer) {
+        const plan = await getEffectiveDealerPlan(input.userId!);
+        limits = dealerVehicleLimits(plan);
+      } else {
+        limits = privateVehicleLimits("free");
+      }
     }
   } else if (input.context === "part" || input.context === "part_bulk") {
     const isDealer = input.userRole === "dealer" || input.userRole === "admin";

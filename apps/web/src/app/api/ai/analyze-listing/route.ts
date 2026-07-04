@@ -136,21 +136,14 @@ export async function POST(req: Request) {
   }
 
   const imageCap = maxImagesForRequest(quota, effectiveBulk);
-  if (parsed.data.imageUrls.length > imageCap) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: `Plan limitiniz üzrə bu analizdə maksimum ${imageCap} şəkil göndərilə bilər (${quota.planLabel}).`
-      },
-      { status: 400 }
-    );
-  }
+  const imageUrls = parsed.data.imageUrls.slice(0, imageCap);
+  const truncatedCount = parsed.data.imageUrls.length - imageUrls.length;
 
   const listingKind = parsed.data.listingKind ?? listingKindFromContext(analysisContext);
   const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
   const result = await analyzeListingImages({
     listingKind,
-    imageUrls: parsed.data.imageUrls,
+    imageUrls,
     bulkMode: effectiveBulk,
     maxImages: quota.maxImages,
     maxBulkImages: quota.maxBulkImages,
@@ -170,6 +163,11 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     result,
+    ...(truncatedCount > 0
+      ? {
+          warning: `Plan limitinə görə ${imageUrls.length} şəkil analiz olundu (${truncatedCount} şəkil kənar qaldı).`
+        }
+      : {}),
     quota: {
       remaining: Math.max(0, quota.remaining - 1),
       dailyLimit: quota.dailyLimit,
