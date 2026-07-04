@@ -106,6 +106,22 @@ export function getSellerBreachPenaltyAzn(kind?: ListingKind): number {
 }
 
 /**
+ * Satıcı öhdəlik pozuntusu haqqı — admin paneldəki `sellerBreachAmounts` dəyəri
+ * varsa ona üstünlük verilir, əks halda default AUCTION_FEES istifadə olunur.
+ */
+export function getEffectiveSellerBreachPenaltyAzn(
+  kind: ListingKind | undefined,
+  sellerBreachAmounts?: Partial<Record<ListingKind, number>>
+): number {
+  const normalized = normalizeKind(kind);
+  const configured = sellerBreachAmounts?.[normalized];
+  if (typeof configured === "number" && Number.isFinite(configured) && configured > 0) {
+    return Math.round(configured);
+  }
+  return getSellerBreachPenaltyAzn(normalized);
+}
+
+/**
  * Bid öncəsi kart hold (pre-auth) üçün daha yumşaq məbləğ.
  * Məqsəd: istifadəçi friction-u azaltmaq, amma öhdəlik niyyətini təsdiqləmək.
  * Bu məbləğ öhdəlik haqqının özü DEYİL.

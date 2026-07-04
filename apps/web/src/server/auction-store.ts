@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { AUCTION_FEES, calcSellerPerformanceBond, getNoShowPenaltyAzn, getSellerBreachPenaltyAzn } from "@/lib/auction-fees";
+import { AUCTION_FEES, calcSellerPerformanceBond, getEffectiveNoShowPenaltyAzn, getEffectiveSellerBreachPenaltyAzn } from "@/lib/auction-fees";
+import { getSystemSettings } from "@/server/system-settings-store";
 import {
   type AuctionListingRecord,
   type AuctionOutcomeRecord,
@@ -785,7 +786,8 @@ export async function confirmAuctionSale(input: {
     });
 
     // Öhdəlik haqqı müvafiq istifadəçinin balansına əlavə edilir.
-    // Bu məbləği bid preflight (getUserBidGate) yoxlayır — tənzimlənən qədər bidding bloklanır.
+    // Admin paneldəki konfiqurasiya ödəniş məbləği ilə uyğun olsun deyə
+    // getEffective* funksiyaları istifadə olunur — sabit dəyər əvəzinə.
     if (nextStatus === "no_show" && winnerUserId) {
       const kindRow = await pool.query<{ listing_kind: string }>(
         `SELECT l.listing_kind FROM auction_listings a
@@ -794,9 +796,11 @@ export async function confirmAuctionSale(input: {
         [auction.id]
       );
       const kind = kindRow.rows[0]?.listing_kind === "part" ? "part" as const : "vehicle" as const;
+      const settings = await getSystemSettings();
+      const penaltyAzn = getEffectiveNoShowPenaltyAzn(kind, settings.penaltyAmounts);
       await pool.query(
         `UPDATE users SET penalty_balance_azn = penalty_balance_azn + $1 WHERE id = $2`,
-        [getNoShowPenaltyAzn(kind), winnerUserId]
+        [penaltyAzn, winnerUserId]
       );
     }
     if (nextStatus === "seller_breach" && auction.sellerUserId) {
@@ -807,9 +811,11 @@ export async function confirmAuctionSale(input: {
         [auction.id]
       );
       const kind = kindRow.rows[0]?.listing_kind === "part" ? "part" as const : "vehicle" as const;
+      const settings = await getSystemSettings();
+      const breachAzn = getEffectiveSellerBreachPenaltyAzn(kind, settings.sellerBreachAmounts);
       await pool.query(
         `UPDATE users SET penalty_balance_azn = penalty_balance_azn + $1 WHERE id = $2`,
-        [getSellerBreachPenaltyAzn(kind), auction.sellerUserId]
+        [breachAzn, auction.sellerUserId]
       );
     }
 

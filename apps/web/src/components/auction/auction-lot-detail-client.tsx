@@ -343,6 +343,11 @@ export function AuctionLotDetailClient({ auctionId }: { auctionId: string }) {
                     <h3 className="font-semibold text-slate-900">Təklif ver</h3>
                     {bidderRulesAck && <AuctionTermsAcceptedBadge />}
                   </div>
+                  <div className="mt-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                    Auksionda iştirak üçün <strong>balansa pul qoymaq tələb edilmir</strong>.
+                    Şərtlər qəbul edildikdən sonra birbaşa təklif verə bilərsiniz.
+                    Qalib gəlib öhdəliyi yerinə yetirməsəniz, kiçik öhdəlik haqqı tətbiq olunur.
+                  </div>
                   <div className="mt-3 flex rounded-xl bg-white/65 p-1">
                     {(["bid", "auto"] as const).map((tab) => (
                       <button

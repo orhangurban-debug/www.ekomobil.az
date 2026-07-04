@@ -3,7 +3,7 @@ import {
   calcSellerCommission,
   getLotListingFeeAzn,
   getEffectiveNoShowPenaltyAzn,
-  getSellerBreachPenaltyAzn
+  getEffectiveSellerBreachPenaltyAzn
 } from "@/lib/auction-fees";
 import type { PenaltyAmountsJson } from "@/lib/auction-system-settings";
 import { getSystemSettings } from "@/server/system-settings-store";
@@ -108,7 +108,8 @@ function getServicePaymentAmount(
   eventType: AuctionFinancialEventRecord["eventType"],
   feeProfile: ListingKind,
   hammerPriceAzn?: number,
-  penaltyAmounts?: PenaltyAmountsJson
+  penaltyAmounts?: PenaltyAmountsJson,
+  sellerBreachAmounts?: PenaltyAmountsJson
 ): number {
   switch (eventType) {
     case "lot_fee":
@@ -116,7 +117,7 @@ function getServicePaymentAmount(
     case "no_show_penalty":
       return getEffectiveNoShowPenaltyAzn(feeProfile, penaltyAmounts);
     case "seller_breach_penalty":
-      return getSellerBreachPenaltyAzn(feeProfile);
+      return getEffectiveSellerBreachPenaltyAzn(feeProfile, sellerBreachAmounts);
     case "seller_success_fee":
       return calcSellerCommission(hammerPriceAzn ?? 0, feeProfile);
     case "seller_performance_bond":
@@ -179,9 +180,12 @@ export async function createAuctionServicePayment(input: {
   }
 
   let penaltyAmounts: PenaltyAmountsJson | undefined;
-  if (input.eventType === "no_show_penalty") {
+  let sellerBreachAmounts: PenaltyAmountsJson | undefined;
+  if (input.eventType === "no_show_penalty" || input.eventType === "seller_breach_penalty") {
     try {
-      penaltyAmounts = (await getSystemSettings()).penaltyAmounts;
+      const settings = await getSystemSettings();
+      penaltyAmounts = settings.penaltyAmounts;
+      sellerBreachAmounts = settings.sellerBreachAmounts;
     } catch {
       // Admin tənzimləməsi əlçatmazdırsa default AUCTION_FEES istifadə olunur.
     }
@@ -191,7 +195,8 @@ export async function createAuctionServicePayment(input: {
     input.eventType,
     feeProfile,
     auction.currentBidAzn ?? auction.startingBidAzn,
-    penaltyAmounts
+    penaltyAmounts,
+    sellerBreachAmounts
   );
   const resolvedAmountAzn =
     input.eventType === "seller_performance_bond" ? (auction.sellerBondAmountAzn ?? 0) : amountAzn;

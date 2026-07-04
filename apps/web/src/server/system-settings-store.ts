@@ -1,5 +1,5 @@
 import type { SystemSettingsRow, PenaltyAmountsJson, AuctionPaymentMode } from "@/lib/auction-system-settings";
-import { DEFAULT_PENALTY_AMOUNTS } from "@/lib/auction-system-settings";
+import { DEFAULT_PENALTY_AMOUNTS, DEFAULT_SELLER_BREACH_AMOUNTS } from "@/lib/auction-system-settings";
 import type { BrandSettings } from "@/lib/brand-settings";
 import { DEFAULT_BRAND_SETTINGS, parseBrandSettings } from "@/lib/brand-settings";
 import {
@@ -23,25 +23,27 @@ interface SystemSettingsDbRow {
   id: number;
   auction_mode: string;
   penalty_amounts: PenaltyAmountsJson;
+  seller_breach_amounts?: unknown;
   brand_settings?: unknown;
   pricing_plan_config?: unknown;
   pricing_economics_config?: unknown;
   updated_at: Date;
 }
 
-function parsePenaltyAmounts(raw: unknown): PenaltyAmountsJson {
-  if (!raw || typeof raw !== "object") return { ...DEFAULT_PENALTY_AMOUNTS };
+function parsePenaltyAmounts(raw: unknown, defaults: PenaltyAmountsJson): PenaltyAmountsJson {
+  if (!raw || typeof raw !== "object") return { ...defaults };
   const o = raw as Record<string, number>;
   return {
-    vehicle: typeof o.vehicle === "number" ? o.vehicle : DEFAULT_PENALTY_AMOUNTS.vehicle,
-    part: typeof o.part === "number" ? o.part : DEFAULT_PENALTY_AMOUNTS.part
+    vehicle: typeof o.vehicle === "number" && o.vehicle > 0 ? o.vehicle : defaults.vehicle,
+    part: typeof o.part === "number" && o.part > 0 ? o.part : defaults.part
   };
 }
 
 export async function getSystemSettings(): Promise<SystemSettingsRow> {
   const pool = getPgPool();
   const result = await pool.query<SystemSettingsDbRow>(
-    `SELECT id, auction_mode, penalty_amounts, updated_at FROM system_settings WHERE id = 1 LIMIT 1`
+    `SELECT id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at
+     FROM system_settings WHERE id = 1 LIMIT 1`
   );
   const row = result.rows[0];
   if (!row) {
@@ -49,6 +51,7 @@ export async function getSystemSettings(): Promise<SystemSettingsRow> {
       id: 1,
       auctionMode: "BETA_FIN_ONLY",
       penaltyAmounts: { ...DEFAULT_PENALTY_AMOUNTS },
+      sellerBreachAmounts: { ...DEFAULT_SELLER_BREACH_AMOUNTS },
       updatedAt: new Date().toISOString()
     };
   }
@@ -56,7 +59,8 @@ export async function getSystemSettings(): Promise<SystemSettingsRow> {
   return {
     id: row.id,
     auctionMode: mode as AuctionPaymentMode,
-    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts),
+    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+    sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
     updatedAt: row.updated_at.toISOString()
   };
 }
@@ -64,23 +68,26 @@ export async function getSystemSettings(): Promise<SystemSettingsRow> {
 export async function updateSystemSettings(input: {
   auctionMode: AuctionPaymentMode;
   penaltyAmounts: PenaltyAmountsJson;
+  sellerBreachAmounts: PenaltyAmountsJson;
 }): Promise<SystemSettingsRow> {
   const pool = getPgPool();
   const result = await pool.query<SystemSettingsDbRow>(
-    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, updated_at)
-     VALUES (1, $1, $2::jsonb, NOW())
+    `INSERT INTO system_settings (id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at)
+     VALUES (1, $1, $2::jsonb, $3::jsonb, NOW())
      ON CONFLICT (id) DO UPDATE SET
        auction_mode = EXCLUDED.auction_mode,
        penalty_amounts = EXCLUDED.penalty_amounts,
+       seller_breach_amounts = EXCLUDED.seller_breach_amounts,
        updated_at = NOW()
-     RETURNING id, auction_mode, penalty_amounts, updated_at`,
-    [input.auctionMode, JSON.stringify(input.penaltyAmounts)]
+     RETURNING id, auction_mode, penalty_amounts, seller_breach_amounts, updated_at`,
+    [input.auctionMode, JSON.stringify(input.penaltyAmounts), JSON.stringify(input.sellerBreachAmounts)]
   );
   const row = result.rows[0];
   return {
     id: row.id,
     auctionMode: (row.auction_mode === "STRICT_PRE_AUTH" ? "STRICT_PRE_AUTH" : "BETA_FIN_ONLY"),
-    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts),
+    penaltyAmounts: parsePenaltyAmounts(row.penalty_amounts, DEFAULT_PENALTY_AMOUNTS),
+    sellerBreachAmounts: parsePenaltyAmounts(row.seller_breach_amounts, DEFAULT_SELLER_BREACH_AMOUNTS),
     updatedAt: row.updated_at.toISOString()
   };
 }

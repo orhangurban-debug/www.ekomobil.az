@@ -19,6 +19,8 @@ export default async function AdminSettingsPage() {
         auctionMode={settings.auctionMode}
         vehiclePenalty={settings.penaltyAmounts.vehicle}
         partPenalty={settings.penaltyAmounts.part}
+        vehicleBreachPenalty={settings.sellerBreachAmounts.vehicle}
+        partBreachPenalty={settings.sellerBreachAmounts.part}
         readOnly={!canEdit}
       />
       <PricingPlanConfigManager initialConfig={pricingConfig} readOnly={!canEdit} />
