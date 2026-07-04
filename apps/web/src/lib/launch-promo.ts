@@ -19,11 +19,12 @@ export interface LaunchPromoConfig {
 }
 
 /**
- * Defolt: kampaniya aktiv, bitmə tarixi təyin olunmayıb (admin istənilən vaxt
- * bitmə tarixi qoya və ya kampaniyanı bağlaya bilər).
+ * Defolt: kampaniya deaktivdir. Admin panelindən (Ayarlar → Qiymət planları)
+ * aktivləşdirilir — yalnız salon/mağaza/servis abunəliklərini əhatə edir,
+ * fərdi elan Standart/VIP planlarına tətbiq edilmir.
  */
 export const DEFAULT_LAUNCH_PROMO_CONFIG: LaunchPromoConfig = {
-  enabled: true,
+  enabled: false,
   endsAt: null
 };
 

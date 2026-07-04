@@ -313,7 +313,7 @@ export default async function PricingPage() {
           </div>
           {promoActive && (
             <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-700">
-              {promoBadge ?? "Açılış kampaniyası — bütün elan, salon, mağaza və servis planları hazırda pulsuzdur"}
+              {promoBadge ?? "Açılış kampaniyası — salon, mağaza və servis abunəlikləri hazırda pulsuzdur"}
             </div>
           )}
         </div>
@@ -399,10 +399,10 @@ export default async function PricingPage() {
                       <td className="py-3 pl-5 pr-3 font-medium text-slate-700">{tier.labelAz}</td>
                       <td className="px-3 py-3 text-center text-slate-400">0 ₼</td>
                       <td className="px-3 py-3 text-center font-semibold text-slate-900">
-                        {promoActive ? "Pulsuz" : `${tier.standardPriceAzn} ₼`}
+                        {tier.standardPriceAzn} ₼
                       </td>
                       <td className="px-3 py-3 text-center font-bold text-[#0057FF]">
-                        {promoActive ? "Pulsuz" : `${tier.vipPriceAzn} ₼`}
+                        {tier.vipPriceAzn} ₼
                       </td>
                     </tr>
                   ))}
@@ -463,18 +463,18 @@ export default async function PricingPage() {
             <div className="mb-4">
                     <h3 className="text-base font-semibold text-slate-900">{plan.nameAz}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
-                      {plan.priceAzn === 0 || promoActive ? (
+                      {plan.priceAzn === 0 ? (
                         <span className="text-3xl font-bold text-slate-900">Pulsuz</span>
                       ) : (
                         <>
                           <span className="text-xs text-slate-400 font-medium">-dən</span>
                           <span className={`text-3xl font-bold ${isVip ? "text-[#0057FF]" : "text-slate-900"}`}>
                             {isStandard ? listingPlanMinFee("standard") : listingPlanMinFee("vip")} ₼
-                </span>
+                          </span>
                           <span className="text-sm text-slate-400">/ elan</span>
                         </>
-                )}
-              </div>
+                      )}
+                    </div>
                     <p className="mt-1 text-xs text-slate-400">{plan.durationDays} gün aktiv</p>
                   </div>
 
@@ -524,12 +524,12 @@ export default async function PricingPage() {
             <Link
               href="/publish"
                     className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition ${
-                      plan.priceAzn === 0 || promoActive
+                      plan.priceAzn === 0
                   ? "bg-white/63 text-slate-700 hover:bg-slate-900/10"
                   : "bg-[#0057FF] text-white hover:bg-[#0046CC]"
               }`}
             >
-                    {plan.priceAzn === 0 || promoActive ? "Pulsuz yerləşdir" : "Elan ver"}
+                    {plan.priceAzn === 0 ? "Pulsuz yerləşdir" : "Elan ver"}
             </Link>
                 </div>
               );
