@@ -1508,9 +1508,9 @@ export async function listAdminListingsPaged(input: {
   }>(
     `SELECT l.id, l.title, l.status, l.seller_type, l.listing_kind, l.price_azn, l.city, l.year, l.plan_type, l.created_at,
        (SELECT m.url FROM listing_media m WHERE m.listing_id = l.id ORDER BY m.sort_order ASC LIMIT 1) AS image_url,
-       lt.trust_score
+       lts.trust_score
      FROM listings l
-     LEFT JOIN listing_trust lt ON lt.listing_id = l.id
+     LEFT JOIN listing_trust_signals lts ON lts.listing_id = l.id
      ${whereSql}
      ORDER BY ${sortBy} ${sortDir}
      LIMIT $${values.length - 1} OFFSET $${values.length}`,
