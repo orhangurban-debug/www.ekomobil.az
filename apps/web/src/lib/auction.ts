@@ -174,6 +174,7 @@ export function getAuctionStatusLabel(status: AuctionStatus): string {
     scheduled: "Planlaşdırılıb",
     live: "Canlı",
     extended: "Uzatma",
+    ended_pending_inspection: "Müayinə müddəti (24 saat)",
     ended_pending_confirmation: "Təsdiq gözlənir",
     buyer_confirmed: "Alıcı təsdiqlədi",
     seller_confirmed: "Satıcı təsdiqlədi",
