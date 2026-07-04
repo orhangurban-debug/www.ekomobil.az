@@ -20,7 +20,7 @@ export const CAR_MAKES = [
 
 export const BODY_TYPES = [
   "Sedan", "Hatchback", "Universal", "SUV", "Crossover", "Coupe", "Cabrio", "Minivan",
-  "Pickup", "Van", "Limuzin", "Roadster"
+  "Pickup", "Van", "Limuzin", "Roadster", "Motosiklet", "Skuter", "Moped"
 ] as const;
 
 export const FUEL_TYPES = [
