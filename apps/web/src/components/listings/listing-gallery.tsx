@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { ListingPhoto } from "@/components/listings/listing-photo";
 
 interface Props {
   urls: string[];
@@ -30,12 +30,11 @@ export function ListingGallery({ urls, title }: Props) {
       {/* Main image */}
       <div className="card overflow-hidden">
         <div className="relative h-80 bg-white/60">
-          <Image
+          <ListingPhoto
             key={mainUrl}
             src={mainUrl}
             alt={title}
             fill
-            unoptimized={mainUrl.startsWith("data:")}
             className="object-cover transition-opacity duration-200"
             sizes="(max-width: 1024px) 100vw, 66vw"
             priority
@@ -85,11 +84,11 @@ export function ListingGallery({ urls, title }: Props) {
                 i === active ? "border-[#0057FF]" : "border-slate-900/10 hover:border-slate-900/25"
               }`}
             >
-              <Image
+              <ListingPhoto
                 src={url}
                 alt={`${title} — ${i + 1}`}
                 fill
-                unoptimized={url.startsWith("data:")}
+                showWatermark={false}
                 className="object-cover"
                 sizes="112px"
               />

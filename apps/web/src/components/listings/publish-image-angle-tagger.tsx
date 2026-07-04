@@ -1,27 +1,29 @@
 "use client";
 
-import { useMemo } from "react";
-import type { RefObject } from "react";
 import { formatFileSize, type ProcessedImage } from "@/lib/image-processor";
 import type { MediaProtocolInput } from "@/lib/media-protocol";
 import {
-  VEHICLE_MEDIA_ANGLE_OPTIONS,
-  mediaAngleLabel,
-  type VehicleMediaAngleKey
+  IMAGE_PHOTO_TAG_OPTIONS,
+  PHOTO_TAG_GROUPS,
+  PROTOCOL_REQUIREMENT_OPTIONS,
+  photoTagLabel,
+  photoTagOption,
+  type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
 
 interface PublishImageAngleTaggerProps {
   uploadedImages: ProcessedImage[];
-  imageAngleTags: Array<VehicleMediaAngleKey | null>;
+  imageAngleTags: Array<ImagePhotoTag | null>;
   media: MediaProtocolInput;
   maxImages: number;
+  planNameAz?: string;
   minimumRequiredImages: number;
   uploadProcessing: boolean;
   uploadErrors: string[];
-  fileInputRef: RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onSelectFiles: (files: FileList | null) => void;
   onRemoveImage: (index: number) => void;
-  onAssignAngle: (index: number, angle: VehicleMediaAngleKey | null) => void;
+  onAssignAngle: (index: number, angle: ImagePhotoTag | null) => void;
   compact?: boolean;
 }
 
@@ -30,7 +32,7 @@ export function PublishImageAngleTagger({
   imageAngleTags,
   media,
   maxImages,
-  minimumRequiredImages,
+  planNameAz,
   uploadProcessing,
   uploadErrors,
   fileInputRef,
@@ -41,15 +43,7 @@ export function PublishImageAngleTagger({
 }: PublishImageAngleTaggerProps) {
   const taggedCount = imageAngleTags.filter(Boolean).length;
   const untaggedCount = uploadedImages.length - taggedCount;
-  const completedAngles = VEHICLE_MEDIA_ANGLE_OPTIONS.filter((item) => media[item.key]).length;
-
-  const takenAngles = useMemo(() => {
-    const map = new Map<VehicleMediaAngleKey, number>();
-    imageAngleTags.forEach((tag, index) => {
-      if (tag) map.set(tag, index);
-    });
-    return map;
-  }, [imageAngleTags]);
+  const completedRequirements = PROTOCOL_REQUIREMENT_OPTIONS.filter((item) => media[item.key]).length;
 
   return (
     <div className="space-y-4">
@@ -61,20 +55,25 @@ export function PublishImageAngleTagger({
           </span>
         </div>
         <p className="text-sm text-slate-600">
-          Telefondan şəkil yükləyin. AI kömək edəcək — siz yalnız yoxlayın.
+          Telefondan şəkil yükləyin və hər birinin növünü seçin. Eyni növdən bir neçə şəkil əlavə edə bilərsiniz.
+          {planNameAz ? (
+            <span className="mt-1 block text-xs text-slate-500">
+              «{planNameAz}» planı: maksimum {maxImages} şəkil · yayımlandıqdan sonra şəkillərin üzərinə EkoMobil loqosu əlavə olunur.
+            </span>
+          ) : null}
         </p>
       </div>
 
       {uploadedImages.length > 0 && (
         <div className="rounded-2xl border border-slate-900/10 bg-white/70 p-3 sm:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-slate-800">Hansı şəkillər var?</p>
+            <p className="text-sm font-semibold text-slate-800">Əsas şəkil növləri</p>
             <span className="rounded-full bg-[#0057FF]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0057FF]">
-              {completedAngles} / {VEHICLE_MEDIA_ANGLE_OPTIONS.length}
+              {completedRequirements} / {PROTOCOL_REQUIREMENT_OPTIONS.length}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
+            {PROTOCOL_REQUIREMENT_OPTIONS.map((item) => {
               const done = media[item.key];
               return (
                 <span
@@ -104,7 +103,7 @@ export function PublishImageAngleTagger({
           </div>
           {untaggedCount > 0 && (
             <p className="mt-2 text-xs text-amber-700">
-              {untaggedCount} şəkil üçün «bu nədir?» seçin — və ya AI ilə doldurun.
+              {untaggedCount} şəkil üçün «bu şəkil nədir?» seçin.
             </p>
           )}
         </div>
@@ -167,13 +166,13 @@ export function PublishImageAngleTagger({
       {uploadedImages.length > 0 && (
         <div className="space-y-3">
           {uploadedImages.map((img, index) => {
-            const selectedAngle = imageAngleTags[index] ?? null;
+            const selectedTag = imageAngleTags[index] ?? null;
 
             return (
               <div
                 key={`${img.file.name}-${index}`}
                 className={`rounded-2xl border p-3 transition sm:p-4 ${
-                  selectedAngle
+                  selectedTag
                     ? "border-[#0057FF]/25 bg-[#0057FF]/[0.03]"
                     : "border-amber-200/80 bg-amber-50/40"
                 }`}
@@ -182,9 +181,9 @@ export function PublishImageAngleTagger({
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-slate-900/10 bg-white sm:h-28 sm:w-28">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={URL.createObjectURL(img.file)} alt={`Şəkil ${index + 1}`} className="h-full w-full object-cover" />
-                    {selectedAngle && (
+                    {selectedTag && (
                       <span className="absolute left-1.5 top-1.5 rounded-full bg-[#0057FF] px-2 py-0.5 text-[10px] font-bold text-white shadow">
-                        {mediaAngleLabel(selectedAngle)}
+                        {photoTagLabel(selectedTag)}
                       </span>
                     )}
                     <button
@@ -207,60 +206,66 @@ export function PublishImageAngleTagger({
 
                     <div className="space-y-2">
                       <span className="text-xs font-medium text-slate-600">Bu şəkil nədir?</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
-                          const usedBy = takenAngles.get(item.key);
-                          const usedElsewhere = usedBy !== undefined && usedBy !== index;
-                          const active = selectedAngle === item.key;
+
+                      <select
+                        className="input-field text-sm"
+                        value={selectedTag ?? ""}
+                        onChange={(e) =>
+                          onAssignAngle(index, (e.target.value || null) as ImagePhotoTag | null)
+                        }
+                        aria-label={`Şəkil ${index + 1} növü`}
+                      >
+                        <option value="">Siyahıdan seçin…</option>
+                        {PHOTO_TAG_GROUPS.map((group) => (
+                          <optgroup key={group.id} label={group.label}>
+                            {IMAGE_PHOTO_TAG_OPTIONS.filter((item) => item.group === group.id).map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+
+                      <div className="space-y-2">
+                        {PHOTO_TAG_GROUPS.map((group) => {
+                          const groupOptions = IMAGE_PHOTO_TAG_OPTIONS.filter((item) => item.group === group.id);
                           return (
-                            <button
-                              key={item.key}
-                              type="button"
-                              disabled={usedElsewhere}
-                              title={item.hint}
-                              onClick={() => onAssignAngle(index, active ? null : item.key)}
-                              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                                active
-                                  ? "border-[#0057FF] bg-[#0057FF] text-white"
-                                  : usedElsewhere
-                                    ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                                    : "border-slate-200 bg-white text-slate-600 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
-                              }`}
-                            >
-                              {item.shortLabel}
-                            </button>
+                            <div key={group.id}>
+                              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                {group.label}
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {groupOptions.map((item) => {
+                                  const active = selectedTag === item.id;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      title={item.hint}
+                                      onClick={() => onAssignAngle(index, active ? null : item.id)}
+                                      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                                        active
+                                          ? "border-[#0057FF] bg-[#0057FF] text-white"
+                                          : "border-slate-200 bg-white text-slate-600 hover:border-[#0057FF]/40 hover:text-[#0057FF]"
+                                      }`}
+                                    >
+                                      {item.shortLabel}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           );
                         })}
                       </div>
-                      <select
-                        className="input-field text-sm sm:max-w-xs"
-                        value={selectedAngle ?? ""}
-                        onChange={(e) =>
-                          onAssignAngle(index, (e.target.value || null) as VehicleMediaAngleKey | null)
-                        }
-                        aria-label={`Şəkil ${index + 1} rakursu`}
-                      >
-                        <option value="">və ya siyahıdan seçin…</option>
-                        {VEHICLE_MEDIA_ANGLE_OPTIONS.map((item) => {
-                          const usedBy = takenAngles.get(item.key);
-                          const usedElsewhere = usedBy !== undefined && usedBy !== index;
-                          return (
-                            <option key={item.key} value={item.key} disabled={usedElsewhere}>
-                              {item.label}
-                              {usedElsewhere ? " (artıq seçilib)" : ""}
-                            </option>
-                          );
-                        })}
-                      </select>
                     </div>
 
-                    {selectedAngle ? (
-                      <p className="text-[11px] text-slate-500">
-                        {VEHICLE_MEDIA_ANGLE_OPTIONS.find((item) => item.key === selectedAngle)?.hint}
-                      </p>
+                    {selectedTag ? (
+                      <p className="text-[11px] text-slate-500">{photoTagOption(selectedTag)?.hint}</p>
                     ) : (
                       <p className="text-[11px] text-slate-500">
-                        Əlavə şəkildirsə boş buraxa bilərsiniz — AI də kömək edə bilər.
+                        Salonun fərli yerlərindən, zədədən və ya təkərdən bir neçə şəkil əlavə edə bilərsiniz.
                       </p>
                     )}
                   </div>

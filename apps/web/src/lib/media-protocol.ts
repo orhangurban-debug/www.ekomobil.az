@@ -44,8 +44,12 @@ export function validateMediaProtocol(
   if (!input.hasRearAngle) missingRequirements.push("Arxa tərəfin şəkli seçilməyib.");
   if (!input.hasLeftSide) missingRequirements.push("Sol tərəfin şəkli seçilməyib.");
   if (!input.hasRightSide) missingRequirements.push("Sağ tərəfin şəkli seçilməyib.");
-  if (!input.hasDashboard) missingRequirements.push("Sükan panelinin şəkli seçilməyib.");
-  if (!input.hasInterior) missingRequirements.push("Salonun şəkli seçilməyib.");
+  if (!input.hasDashboard) {
+    missingRequirements.push("Sükan və cihazlar panelinin şəkli seçilməyib.");
+  }
+  if (!input.hasInterior) {
+    missingRequirements.push("Salon şəkli seçilməyib (ön oturacaq, arxa oturacaq və ya tavan).");
+  }
   if (!input.hasOdometer) missingRequirements.push("Yürüş sayğacının şəkli seçilməyib.");
   if (!input.hasTrunk) missingRequirements.push("Baqajın şəkli seçilməyib.");
 

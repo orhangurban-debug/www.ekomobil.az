@@ -35,7 +35,7 @@ import {
 import {
   applyAiImageTagsToAngleList,
   buildMediaAnglesFromTags,
-  type VehicleMediaAngleKey
+  type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -189,7 +189,7 @@ export default function PublishPage() {
 
   // ── Image upload state ──────────────────────────────────────────────────
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
-  const [imageAngleTags, setImageAngleTags] = useState<Array<VehicleMediaAngleKey | null>>([]);
+  const [imageAngleTags, setImageAngleTags] = useState<Array<ImagePhotoTag | null>>([]);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -330,7 +330,7 @@ export default function PublishPage() {
     [planType, uploadedImages.length]
   );
 
-  const assignImageAngle = useCallback((index: number, angle: VehicleMediaAngleKey | null) => {
+  const assignImageAngle = useCallback((index: number, angle: ImagePhotoTag | null) => {
     setImageAngleTags((prevTags) => {
       const nextTags = [...prevTags];
       nextTags[index] = angle;
@@ -963,6 +963,7 @@ export default function PublishPage() {
                   imageAngleTags={imageAngleTags}
                   media={media}
                   maxImages={currentPlan.maxImages}
+                  planNameAz={currentPlan.nameAz}
                   minimumRequiredImages={minimumRequiredImages}
                   uploadProcessing={uploadProcessing}
                   uploadErrors={uploadErrors}

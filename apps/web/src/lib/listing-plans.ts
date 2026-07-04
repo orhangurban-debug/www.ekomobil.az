@@ -190,6 +190,24 @@ export function validateImageForPlan(
   return { ok: true };
 }
 
+/** Elan yayımlanarkən şəkil sayının plan limitinə uyğunluğu */
+export function validateListingImageCount(
+  planType: PlanType,
+  imageCount: number
+): { ok: boolean; error?: string } {
+  const plan = getPlanById(planType);
+  if (!plan) return { ok: false, error: "Plan tapılmadı" };
+
+  if (imageCount > plan.maxImages) {
+    return {
+      ok: false,
+      error: `«${plan.nameAz}» planı üçün maksimum ${plan.maxImages} şəkil əlavə etmək olar.`
+    };
+  }
+
+  return { ok: true };
+}
+
 /** Planın ümumi saxlama həcmi limiti (bytes) */
 export function getPlanStorageLimitBytes(planType: PlanType): number {
   const plan = getPlanById(planType);

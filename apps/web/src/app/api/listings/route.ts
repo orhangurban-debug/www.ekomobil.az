@@ -4,7 +4,7 @@ import { ListingInput, validateListingInput, validatePartListingInput, type Part
 import { getServerSessionUser } from "@/lib/auth";
 import { getUserAccountStatus, isActiveAccountStatus } from "@/server/user-store";
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
-import { FREE_LISTING_CONCURRENT_LIMIT, isPaidPlan } from "@/lib/listing-plans";
+import { FREE_LISTING_CONCURRENT_LIMIT, getPlanById, isPaidPlan, validateListingImageCount } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import {
@@ -431,6 +431,16 @@ async function handleCreateListing(req: Request): Promise<Response> {
   };
 
   withServerAuthoritativeImageCount(vehiclePayload);
+
+  const vehicleImageUrls = (vehiclePayload.imageUrls ?? []).filter(
+    (url) => typeof url === "string" && url.trim().length > 0
+  );
+  const imageCountCheck = validateListingImageCount(requestedPlanType, vehicleImageUrls.length);
+  if (!imageCountCheck.ok) {
+    return NextResponse.json({ ok: false, error: imageCountCheck.error }, { status: 400 });
+  }
+  const planMaxImages = getPlanById(requestedPlanType)?.maxImages ?? 15;
+  vehiclePayload.imageUrls = vehicleImageUrls.slice(0, planMaxImages);
 
   const validation = validateListingInput(vehiclePayload);
   if (!validation.isValid) {

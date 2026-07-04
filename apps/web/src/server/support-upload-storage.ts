@@ -2,6 +2,7 @@ import { mkdirSync, createReadStream } from "node:fs";
 import { access, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { applyListingImageWatermark } from "@/lib/listing-image-watermark";
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -130,6 +131,14 @@ export async function persistSupportUploadFile(input: {
   const safeName = sanitizeFilename(input.originalFilename);
   const pathname = `${input.folder}/${input.fileId}-${safeName}`;
 
+  let buffer = input.buffer;
+  let mimeType = input.mimeType;
+  if (input.folder === "listing-images" && mimeType.startsWith("image/")) {
+    const watermarked = await applyListingImageWatermark(buffer, mimeType);
+    buffer = watermarked.buffer;
+    mimeType = watermarked.mimeType;
+  }
+
   if (mode === "vercel_blob") {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
     if (!token) {
@@ -139,10 +148,10 @@ export async function persistSupportUploadFile(input: {
     }
     try {
       const { put } = await import("@vercel/blob");
-      const result = await put(pathname, input.buffer, {
+      const result = await put(pathname, buffer, {
         access: "private",
         token,
-        contentType: input.mimeType,
+        contentType: mimeType,
         addRandomSuffix: false
       });
       // Embed the real blob URL so the proxy never has to guess it.
@@ -162,7 +171,7 @@ export async function persistSupportUploadFile(input: {
     const dir = path.join(root, input.folder);
     mkdirSync(dir, { recursive: true });
     const full = path.join(root, pathname);
-    await writeFile(full, input.buffer);
+    await writeFile(full, buffer);
     return { storageBackend: "local", url: `${PROXY_ORIGIN_PREFIX}${pathname}` };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Lokal fayl yazıla bilmədi.";

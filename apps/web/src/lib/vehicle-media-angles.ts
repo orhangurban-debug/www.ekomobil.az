@@ -5,58 +5,249 @@ export type VehicleMediaAngleKey = Exclude<
   "imageCount" | "engineVideoDurationSec"
 >;
 
-export const VEHICLE_MEDIA_ANGLE_OPTIONS: {
-  key: VehicleMediaAngleKey;
+/** İstifadəçinin seçdiyi şəkil növü — protokol bayraqlarından daha ətraflı */
+export type ImagePhotoTag =
+  | "exterior_front"
+  | "exterior_rear"
+  | "exterior_left"
+  | "exterior_right"
+  | "interior_dashboard"
+  | "interior_front_seats"
+  | "interior_rear_seats"
+  | "interior_ceiling"
+  | "odometer"
+  | "trunk"
+  | "engine"
+  | "wheel"
+  | "detail_damage"
+  | "other";
+
+export type PhotoTagGroupId = "xarici" | "salon" | "texniki" | "elave";
+
+export interface PhotoTagOption {
+  id: ImagePhotoTag;
   label: string;
   shortLabel: string;
   hint: string;
-}[] = [
-  { key: "hasFrontAngle", label: "Ön görünüş", shortLabel: "Ön", hint: "Ön 3/4 və ya düz ön rakurs" },
-  { key: "hasRearAngle", label: "Arxa görünüş", shortLabel: "Arxa", hint: "Arxa 3/4 və ya düz arxa rakurs" },
-  { key: "hasLeftSide", label: "Sol profil", shortLabel: "Sol", hint: "Tam sol tərəf, düz müstəvi" },
-  { key: "hasRightSide", label: "Sağ profil", shortLabel: "Sağ", hint: "Tam sağ tərəf, düz müstəvi" },
-  { key: "hasDashboard", label: "Ön panel / sükan", shortLabel: "Panel", hint: "Sükan, cihazlar paneli və ekranlar" },
-  { key: "hasInterior", label: "Salon", shortLabel: "Salon", hint: "Ön və ya arxa oturacaqlar" },
-  { key: "hasOdometer", label: "Yürüş sayğacı", shortLabel: "Yürüş", hint: "Odometr rəqəmləri oxunaqlı" },
-  { key: "hasTrunk", label: "Baqaj / yük yeri", shortLabel: "Baqaj", hint: "Baqaj və ya yük sahəsi açıq" }
+  group: PhotoTagGroupId;
+  protocolKey?: VehicleMediaAngleKey;
+}
+
+export const PHOTO_TAG_GROUPS: { id: PhotoTagGroupId; label: string }[] = [
+  { id: "xarici", label: "Avtomobil tərəfləri" },
+  { id: "salon", label: "Salon" },
+  { id: "texniki", label: "Texniki" },
+  { id: "elave", label: "Əlavə şəkillər" }
 ];
 
+export const IMAGE_PHOTO_TAG_OPTIONS: PhotoTagOption[] = [
+  {
+    id: "exterior_front",
+    label: "Ön tərəf",
+    shortLabel: "Ön tərəf",
+    hint: "Düz ön və ya ön 3/4 rakurs",
+    group: "xarici",
+    protocolKey: "hasFrontAngle"
+  },
+  {
+    id: "exterior_rear",
+    label: "Arxa tərəf",
+    shortLabel: "Arxa tərəf",
+    hint: "Düz arxa və ya arxa 3/4 rakurs",
+    group: "xarici",
+    protocolKey: "hasRearAngle"
+  },
+  {
+    id: "exterior_left",
+    label: "Sol tərəf (profil)",
+    shortLabel: "Sol profil",
+    hint: "Tam sol tərəf, düz müstəvi",
+    group: "xarici",
+    protocolKey: "hasLeftSide"
+  },
+  {
+    id: "exterior_right",
+    label: "Sağ tərəf (profil)",
+    shortLabel: "Sağ profil",
+    hint: "Tam sağ tərəf, düz müstəvi",
+    group: "xarici",
+    protocolKey: "hasRightSide"
+  },
+  {
+    id: "interior_dashboard",
+    label: "Sükan və cihazlar paneli",
+    shortLabel: "Sükan paneli",
+    hint: "Sükan, tablo, ekran və düymələr — ön panel deyil, daxili idarəetmə sahəsi",
+    group: "salon",
+    protocolKey: "hasDashboard"
+  },
+  {
+    id: "interior_front_seats",
+    label: "Ön oturacaqlar",
+    shortLabel: "Ön oturacaq",
+    hint: "Ön oturacaqlar və torpedo ətrafı",
+    group: "salon",
+    protocolKey: "hasInterior"
+  },
+  {
+    id: "interior_rear_seats",
+    label: "Arxa oturacaqlar",
+    shortLabel: "Arxa oturacaq",
+    hint: "Arxa oturacaqlar və arxa salon sahəsi",
+    group: "salon",
+    protocolKey: "hasInterior"
+  },
+  {
+    id: "interior_ceiling",
+    label: "Tavan / lyuk",
+    shortLabel: "Tavan",
+    hint: "Tavan, lyuk və ya arxa baxış güzgüsü",
+    group: "salon",
+    protocolKey: "hasInterior"
+  },
+  {
+    id: "odometer",
+    label: "Yürüş sayğacı",
+    shortLabel: "Yürüş",
+    hint: "Odometr rəqəmləri oxunaqlı",
+    group: "texniki",
+    protocolKey: "hasOdometer"
+  },
+  {
+    id: "trunk",
+    label: "Baqaj / yük yeri",
+    shortLabel: "Baqaj",
+    hint: "Baqaj və ya yük sahəsi açıq",
+    group: "texniki",
+    protocolKey: "hasTrunk"
+  },
+  {
+    id: "engine",
+    label: "Mühərrik bölməsi",
+    shortLabel: "Mühərrik",
+    hint: "Kapot açıq, mühərrik görünüşü",
+    group: "texniki"
+  },
+  {
+    id: "wheel",
+    label: "Təkər / disk",
+    shortLabel: "Təkər",
+    hint: "Təkər, disk və ya təkər profili",
+    group: "elave"
+  },
+  {
+    id: "detail_damage",
+    label: "Detal / zədə",
+    shortLabel: "Zədə",
+    hint: "Cızıq, əzik, zədə və ya xüsusi detal",
+    group: "elave"
+  },
+  {
+    id: "other",
+    label: "Digər şəkil",
+    shortLabel: "Digər",
+    hint: "Yuxarıdakı növlərə uyğun gəlmirsə",
+    group: "elave"
+  }
+];
+
+/** Media protokolunun 8 əsas tələbi — irəliləyiş göstəricisi üçün */
+export const PROTOCOL_REQUIREMENT_OPTIONS: {
+  key: VehicleMediaAngleKey;
+  shortLabel: string;
+  hint: string;
+}[] = [
+  { key: "hasFrontAngle", shortLabel: "Ön tərəf", hint: "Ön tərəfin şəkli" },
+  { key: "hasRearAngle", shortLabel: "Arxa tərəf", hint: "Arxa tərəfin şəkli" },
+  { key: "hasLeftSide", shortLabel: "Sol profil", hint: "Sol tərəfin şəkli" },
+  { key: "hasRightSide", shortLabel: "Sağ profil", hint: "Sağ tərəfin şəkli" },
+  {
+    key: "hasDashboard",
+    shortLabel: "Sükan paneli",
+    hint: "Sükan və cihazlar panelinin şəkli"
+  },
+  {
+    key: "hasInterior",
+    shortLabel: "Salon",
+    hint: "Ön oturacaq, arxa oturacaq və ya tavan"
+  },
+  { key: "hasOdometer", shortLabel: "Yürüş", hint: "Yürüş sayğacının şəkli" },
+  { key: "hasTrunk", shortLabel: "Baqaj", hint: "Baqajın şəkli" }
+];
+
+/** @deprecated Köhnə API uyğunluğu — yeni kod IMAGE_PHOTO_TAG_OPTIONS istifadə etsin */
+export const VEHICLE_MEDIA_ANGLE_OPTIONS = PROTOCOL_REQUIREMENT_OPTIONS.map((item) => ({
+  key: item.key,
+  label: item.hint,
+  shortLabel: item.shortLabel,
+  hint: item.hint
+}));
+
+const LEGACY_ANGLE_TO_PHOTO_TAG: Record<VehicleMediaAngleKey, ImagePhotoTag> = {
+  hasFrontAngle: "exterior_front",
+  hasRearAngle: "exterior_rear",
+  hasLeftSide: "exterior_left",
+  hasRightSide: "exterior_right",
+  hasDashboard: "interior_dashboard",
+  hasInterior: "interior_front_seats",
+  hasOdometer: "odometer",
+  hasTrunk: "trunk"
+};
+
+export function legacyAngleToPhotoTag(key: VehicleMediaAngleKey): ImagePhotoTag {
+  return LEGACY_ANGLE_TO_PHOTO_TAG[key];
+}
+
+export function photoTagOption(tag: ImagePhotoTag): PhotoTagOption | undefined {
+  return IMAGE_PHOTO_TAG_OPTIONS.find((item) => item.id === tag);
+}
+
+export function photoTagLabel(tag: ImagePhotoTag): string {
+  return photoTagOption(tag)?.shortLabel ?? tag;
+}
+
 export function buildMediaAnglesFromTags(
-  tags: Array<VehicleMediaAngleKey | null>,
+  tags: Array<ImagePhotoTag | null>,
   imageCount: number,
   prev: MediaProtocolInput
 ): MediaProtocolInput {
-  const assigned = new Set(tags.filter((tag): tag is VehicleMediaAngleKey => Boolean(tag)));
+  const protocolKeys = new Set<VehicleMediaAngleKey>();
+  for (const tag of tags) {
+    if (!tag) continue;
+    const option = photoTagOption(tag);
+    if (option?.protocolKey) protocolKeys.add(option.protocolKey);
+  }
+
   return {
     ...prev,
     imageCount,
-    hasFrontAngle: assigned.has("hasFrontAngle"),
-    hasRearAngle: assigned.has("hasRearAngle"),
-    hasLeftSide: assigned.has("hasLeftSide"),
-    hasRightSide: assigned.has("hasRightSide"),
-    hasDashboard: assigned.has("hasDashboard"),
-    hasInterior: assigned.has("hasInterior"),
-    hasOdometer: assigned.has("hasOdometer"),
-    hasTrunk: assigned.has("hasTrunk")
+    hasFrontAngle: protocolKeys.has("hasFrontAngle"),
+    hasRearAngle: protocolKeys.has("hasRearAngle"),
+    hasLeftSide: protocolKeys.has("hasLeftSide"),
+    hasRightSide: protocolKeys.has("hasRightSide"),
+    hasDashboard: protocolKeys.has("hasDashboard"),
+    hasInterior: protocolKeys.has("hasInterior"),
+    hasOdometer: protocolKeys.has("hasOdometer"),
+    hasTrunk: protocolKeys.has("hasTrunk")
   };
 }
 
+/** @deprecated photoTagLabel istifadə edin */
 export function mediaAngleLabel(key: VehicleMediaAngleKey): string {
-  return VEHICLE_MEDIA_ANGLE_OPTIONS.find((item) => item.key === key)?.shortLabel ?? key;
+  return PROTOCOL_REQUIREMENT_OPTIONS.find((item) => item.key === key)?.shortLabel ?? key;
 }
 
 export function applyAiImageTagsToAngleList(
   imageCount: number,
   imageTags: Array<{ index: number; angle: VehicleMediaAngleKey | null }> | undefined,
   fallbackAngles?: Partial<Record<VehicleMediaAngleKey, boolean>>
-): Array<VehicleMediaAngleKey | null> {
-  const next = Array.from({ length: imageCount }, () => null as VehicleMediaAngleKey | null);
+): Array<ImagePhotoTag | null> {
+  const next = Array.from({ length: imageCount }, () => null as ImagePhotoTag | null);
 
   if (imageTags?.length) {
     for (const tag of imageTags) {
       if (tag.index < 0 || tag.index >= imageCount || !tag.angle) continue;
-      if (next.includes(tag.angle)) continue;
-      next[tag.index] = tag.angle;
+      next[tag.index] = legacyAngleToPhotoTag(tag.angle);
     }
     return next;
   }
@@ -77,7 +268,7 @@ export function applyAiImageTagsToAngleList(
       if (!fallbackAngles[key]) continue;
       while (cursor < next.length && next[cursor]) cursor += 1;
       if (cursor >= next.length) break;
-      next[cursor] = key;
+      next[cursor] = legacyAngleToPhotoTag(key);
       cursor += 1;
     }
   }

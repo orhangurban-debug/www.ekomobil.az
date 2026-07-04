@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { ListingPhoto } from "@/components/listings/listing-photo";
 import { AddToCompareButton } from "@/components/compare/add-to-compare-button";
 import { FavoriteButton } from "@/components/user/favorite-button";
 
@@ -196,14 +196,10 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
       {/* Image — 16:9 aspect ratio */}
       <div className="relative aspect-video overflow-hidden bg-slate-100">
         {listing.imageUrl ? (
-          <Image
+          <ListingPhoto
             src={listing.imageUrl}
             alt={listing.title}
             fill
-            unoptimized={
-              listing.imageUrl.startsWith("data:") ||
-              listing.imageUrl.startsWith("/api/")
-            }
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
