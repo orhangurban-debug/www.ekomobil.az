@@ -33,13 +33,14 @@ export function Footer({ logoUrl }: { logoUrl: string }) {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Etibar</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Alıcı üçün</h4>
             <ul className="mt-3 space-y-2">
               {[
-                { href: "/trust#vin-yoxlama", label: "VIN Məlumatı" },
-                { href: "/trust#servis-tarixcesi", label: "Servis Tarixçəsi" },
-                { href: "/trust#yurus-tesdigi", label: "Yürüş Təsdiqi" },
-                { href: "/trust#qeza-arxivi", label: "Qəza Arxivi" }
+                { href: "/trust#vin-yoxlama", label: "VIN yoxlaması" },
+                { href: "/trust#servis-tarixcesi", label: "Servis tarixçəsi" },
+                { href: "/trust#yurus-tesdigi", label: "Yürüş təsdiqi" },
+                { href: "/trust#qeza-arxivi", label: "Qəza arxivi" },
+                { href: "/rules/auction", label: "Auksion qaydaları" }
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-slate-500 transition hover:text-[#0057FF]">
