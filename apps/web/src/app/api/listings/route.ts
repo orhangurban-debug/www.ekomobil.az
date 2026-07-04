@@ -450,6 +450,21 @@ async function handleCreateListing(req: Request): Promise<Response> {
   if (!validation.isValid) {
     return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
   }
+
+  const phone = vehiclePayload.contactPhone?.trim() ?? "";
+  if (!phone) {
+    return NextResponse.json(
+      { ok: false, errors: ["Əlaqə telefon nömrəsi tələb olunur."] },
+      { status: 400 }
+    );
+  }
+  const phoneDigits = phone.replace(/[^\d]/g, "");
+  if (phoneDigits.length < 7) {
+    return NextResponse.json(
+      { ok: false, errors: ["Telefon nömrəsi düzgün formatda deyil (məs: +994501234567)."] },
+      { status: 400 }
+    );
+  }
   if (containsSuspiciousText(vehiclePayload.title) || containsSuspiciousText(vehiclePayload.description)) {
     return NextResponse.json(
       {

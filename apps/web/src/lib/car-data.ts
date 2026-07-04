@@ -60,7 +60,12 @@ export const COLORS = [
 ] as const;
 
 export const CONDITIONS = [
-  "Qəzasız", "Rənglənmiş", "Qəzalı"
+  "Qəzasız, rənglənməmiş",
+  "Qəzasız",
+  "Rənglənmiş",
+  "Qəzalı",
+  "Su altında qalmış",
+  "Kuzov zərərli"
 ] as const;
 
 export const INTERIOR_MATERIALS = [
