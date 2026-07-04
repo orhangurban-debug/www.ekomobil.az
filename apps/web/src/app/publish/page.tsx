@@ -554,6 +554,15 @@ export default function PublishPage() {
               <div className="card space-y-5 p-4 sm:p-8">
                 <h2 className="text-lg font-semibold text-slate-900">Maşın haqqında</h2>
 
+                <ListingAiAnalyzePanel
+                  analysisContext="vehicle"
+                  planType={planType}
+                  maxImages={currentPlan.maxImages}
+                  externalImages={uploadedImages}
+                  autoApply
+                  onApplyVehicle={applyVehicleAiSuggestion}
+                />
+
                 <div>
                   <label className="label">Elan başlığı</label>
                   <input value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="məs: Toyota Corolla 2019" required />
@@ -937,15 +946,6 @@ export default function PublishPage() {
                   onSelectFiles={(files) => void handleImageFiles(files)}
                   onRemoveImage={removeUploadedImage}
                   onAssignAngle={assignImageAngle}
-                />
-
-                <ListingAiAnalyzePanel
-                  analysisContext="vehicle"
-                  planType={planType}
-                  maxImages={currentPlan.maxImages}
-                  externalImages={uploadedImages}
-                  autoApply
-                  onApplyVehicle={applyVehicleAiSuggestion}
                 />
 
                 <VehiclePhotoGuide

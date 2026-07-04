@@ -307,9 +307,13 @@ export function ListingAiAnalyzePanel({
         </div>
       )}
 
+      {!managesOwnUploads && images.length === 0 && (
+        <p className="mt-2 text-xs text-amber-700">Əvvəl şəkil addımında ən azı bir şəkil yükləyin.</p>
+      )}
+
       {!managesOwnUploads && images.length > 0 && (
         <p className="mt-2 text-xs text-violet-700">
-          {images.length} şəkil · analiz limiti {effectiveMaxImages}
+          {images.length} şəkil (şəkil addımı) · analiz limiti {effectiveMaxImages}
         </p>
       )}
 
