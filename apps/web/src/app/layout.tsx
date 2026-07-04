@@ -11,6 +11,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getServerSessionUser } from "@/lib/auth";
 import { getBrandSettings } from "@/server/system-settings-store";
+import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
@@ -91,6 +92,9 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const [user, brand] = await Promise.all([getServerSessionUser(), getBrandSettings()]);
+  const hasStorePlan = user
+    ? user.role === "admin" || (await hasActiveBusinessSubscription(user.id, "parts_store"))
+    : false;
   const logoPath = toSameOriginBrandAssetPath(brand.logoUrl);
   const faviconPath = toSameOriginBrandAssetPath(brand.faviconUrl);
   const absoluteLogoUrl = logoPath.startsWith("http")
@@ -144,7 +148,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ToastProvider>
           <ConfirmDialogProvider>
             <CompareProvider>
-              <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} />
+              <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} hasStorePlan={hasStorePlan} />
               <main className="flex-1 pb-20">{children}</main>
               <Footer logoUrl={logoPath} />
               <CompareBar />

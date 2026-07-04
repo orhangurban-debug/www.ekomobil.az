@@ -355,7 +355,9 @@ async function handleCreateListing(req: Request): Promise<Response> {
       sellerType: partPayload.sellerType || "private",
       planType: partPaidPlan ? "free" : partPlanType,
       planExpiresAt: isDealerPartSeller ? null : undefined,
-      status: (partPaidPlan ? "draft" : "pending_review") as "draft" | "pending_review",
+      // Tap.az modeli: aktiv mağaza abunəliyi olan satıcıların elanları dərhal aktiv olur.
+      // Fərdi satıcılar üçün: ödənişli plan → draft (ödəniş gözlənilir), pulsuz → pending_review.
+      status: (isDealerPartSeller ? "active" : partPaidPlan ? "draft" : "pending_review") as "active" | "draft" | "pending_review",
       listingKind: "part" as const,
       partCategory: category,
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,

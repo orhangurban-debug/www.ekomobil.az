@@ -123,13 +123,9 @@ export default async function PartsPage({
     <div>
       <PageHero
         icon={Package}
-        title="Mağaza elanları"
-        subtitle={`${result.total} hissə və aksesuar elanı tapıldı`}
+        title="Hissə və aksesuarlar"
+        subtitle={`${result.total} ehtiyat hissə, aksesuar və avtomal elanı`}
         actions={
-          // Qeyd: bu ictimai baxış (browse) səhifəsidir — "Toplu yükləmə" alıcılara
-          // deyil, yalnız aktiv mağaza abunəliyi olan satıcılara (və ya admin-ə) aiddir.
-          // Əvvəllər düymə hamıya (giriş etməmiş ziyarətçilər daxil) göstərilirdi ki, bu da
-          // məntiqsiz idi və istifadəçini icazəsi olmayan səhifəyə yönləndirirdi.
           hasStorePlan ? (
             <>
               {canSeePartsAnalytics && (
@@ -140,12 +136,20 @@ export default async function PartsPage({
               <Link href="/parts/publish/bulk" className="btn-secondary text-sm">
                 Toplu yükləmə
               </Link>
+              <Link href="/parts/publish" className="btn-primary text-sm">
+                + Hissə elanı
+              </Link>
             </>
-          ) : undefined
+          ) : (
+            <Link href="/parts/setup" className="btn-primary text-sm">
+              Mağaza aç
+            </Link>
+          )
         }
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+      {/* Active store plan banner */}
       {currentPartsPlan && (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
           <div>
@@ -158,6 +162,50 @@ export default async function PartsPage({
           </div>
           <Link href="/pricing#parts-store" className="shrink-0 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-4 py-2 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10">
             Planları gör →
+          </Link>
+        </div>
+      )}
+
+      {/* Sell section — shown only when user has no store plan */}
+      {!hasStorePlan && (
+        <div className="mb-8 grid gap-4 sm:grid-cols-2">
+          {/* Private seller path */}
+          <Link
+            href="/parts/publish"
+            className="group flex flex-col gap-3 rounded-2xl border border-slate-900/10 bg-white/70 p-5 transition hover:border-[#0057FF]/40 hover:shadow-md"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl group-hover:bg-[#0057FF]/10">
+              👤
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">Fərdi satıcı kimi sat</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Tək elan yerləşdir. Qeydiyyat gözləmədən dərhal başla.
+              </p>
+            </div>
+            <span className="mt-auto text-sm font-medium text-[#0057FF]">Elan yerləşdir →</span>
+          </Link>
+
+          {/* Store path */}
+          <Link
+            href="/parts/setup"
+            className="group flex flex-col gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-50/60 p-5 transition hover:border-emerald-500/60 hover:shadow-md"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-xl">
+              🏪
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">
+                Mağaza aç{" "}
+                <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  30 gün pulsuz
+                </span>
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Brend profili, toplu yükləmə, stok idarəetməsi. Admin gözləmədən anında aktiv.
+              </p>
+            </div>
+            <span className="mt-auto text-sm font-medium text-emerald-700">Mağaza aç →</span>
           </Link>
         </div>
       )}

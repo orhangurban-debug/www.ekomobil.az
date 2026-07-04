@@ -30,11 +30,13 @@ const navIdle = "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900";
 export function Header({
   userEmail,
   userRole,
-  logoUrl
+  logoUrl,
+  hasStorePlan
 }: {
   userEmail?: string;
   userRole?: UserRole;
   logoUrl: string;
+  hasStorePlan?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -47,7 +49,7 @@ export function Header({
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const primaryCta = resolvePrimaryHeaderCta(pathname, userRole);
+  const primaryCta = resolvePrimaryHeaderCta(pathname, userRole, hasStorePlan);
 
   function hideNotice() {
     setNoticeVisible(false);
