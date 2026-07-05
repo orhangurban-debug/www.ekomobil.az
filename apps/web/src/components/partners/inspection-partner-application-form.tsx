@@ -384,6 +384,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
   const [limitFeedback, setLimitFeedback] = useState<string | null>(null);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [createdName, setCreatedName] = useState<string>("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const launchPromo = useLaunchPromo();
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
@@ -513,9 +514,22 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!providerType || !providerName.trim() || !city || !contactName.trim() || !phone.trim()) {
+
+    const errors: Record<string, string> = {};
+    if (!providerType)           errors.providerType  = "Servis növü seçilməyib";
+    if (!providerName.trim())    errors.providerName  = "Ad / Şirkət adı boşdur";
+    if (!city)                   errors.city          = "Şəhər seçilməyib";
+    if (!phone.trim())           errors.phone         = "Telefon nömrəsi boşdur";
+    // contactName is optional — fall back to providerName if empty
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
       setIsError(true);
-      setFeedback("Servis tipi, ad, şəhər, əlaqə şəxsi və telefon mütləqdir.");
+      const labels = Object.values(errors).join(" · ");
+      setFeedback(labels);
+      // Scroll to first error field
+      const firstKey = Object.keys(errors)[0];
+      document.getElementById(`field-${firstKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -554,6 +568,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
       if (uploadedCertificates.length > 0) {
         message.push(`Certificate files: ${uploadedCertificates.map((file) => `${file.name} → ${file.url}`).join(" | ")}`);
       }
+      const effectiveContactName = contactName.trim() || providerName.trim();
       const about = [experience.trim(), notes.trim()].filter(Boolean).join("\n\n");
       const response = await fetch("/api/support/requests", {
         method: "POST",
@@ -562,7 +577,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
           requestType: "inspection_partner",
           subject,
           message: message.join("\n"),
-          name: contactName.trim(),
+          name: effectiveContactName,
           email: email.trim() || "info@ekomobil.az",
           phone: phone.trim(),
           servicePartner: {
@@ -712,12 +727,15 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
       </div>
 
       {/* ── 2. Servis tipi ──────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-900/10 bg-white p-4 shadow-sm sm:p-6">
+      <div id="field-providerType" className={`rounded-2xl border p-4 shadow-sm sm:p-6 ${fieldErrors.providerType ? "border-rose-300 bg-rose-50/40" : "border-slate-900/10 bg-white"}`}>
         <h2 className="text-base font-semibold text-slate-900">
           <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0057FF]/10 text-xs font-bold text-[#0057FF]">2</span>
           Servis növünü seçin
+          <span className="ml-1 text-rose-500">*</span>
         </h2>
-        <p className="mt-1 text-sm text-slate-500">Hansı xidmət göstərdiyinizi seçin.</p>
+        <p className={`mt-1 text-sm ${fieldErrors.providerType ? "text-rose-600 font-medium" : "text-slate-500"}`}>
+          {fieldErrors.providerType ?? "Hansı xidmət göstərdiyinizi seçin."}
+        </p>
 
         <div className="mt-4 space-y-4">
           {PROVIDER_GROUPS.map((group) => (
@@ -738,6 +756,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
                       setCertificateFiles([]);
                       setLimitFeedback(null);
                       setSelectedPlan(buildPartnerApplicationPlanOptions(nextPlanGroup)[0]?.value ?? "");
+                      setFieldErrors(p => ({ ...p, providerType: "" }));
                     }}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
                       providerType === t.value
@@ -810,7 +829,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
           </h2>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="space-y-1 md:col-span-2">
+            <label id="field-providerName" className="space-y-1 md:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {providerType === "mechanic" || providerType === "auto_electrician" || providerType === "body_shop" || providerType === "painting" || providerType === "ev_hybrid" || providerType === "ecu_programmer" || providerType === "adas_specialist" || providerType === "ac_specialist" || providerType === "audio_media" || providerType === "glass_sunroof" || providerType === "tire_wheel"
                   ? "Ad / Usta adı"
@@ -818,21 +837,22 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
                 <span className="ml-1 text-rose-500">*</span>
               </span>
               <input
-                className="input-field"
+                className={`input-field ${fieldErrors.providerName ? "border-rose-400 bg-rose-50 focus:ring-rose-300" : ""}`}
                 value={providerName}
-                onChange={(e) => setProviderName(e.target.value)}
+                onChange={(e) => { setProviderName(e.target.value); if (e.target.value.trim()) setFieldErrors(p => ({ ...p, providerName: "" })); }}
                 placeholder={
                   providerType === "mechanic" ? "Məs: Usta Ramin, AutoMech Servisi"
                   : "Məs: AutoCheck MMC, Toyota Bakı Servis"
                 }
               />
+              {fieldErrors.providerName && <p className="text-xs text-rose-600">{fieldErrors.providerName}</p>}
             </label>
 
-            <label className="space-y-1">
+            <label id="field-city" className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Şəhər <span className="text-rose-500">*</span>
               </span>
-              <select className="input-field" value={city} onChange={(e) => setCity(e.target.value)}>
+              <select className={`input-field ${fieldErrors.city ? "border-rose-400 bg-rose-50" : ""}`} value={city} onChange={(e) => { setCity(e.target.value); if (e.target.value) setFieldErrors(p => ({ ...p, city: "" })); }}>
                 <option value="">Şəhər seçin</option>
                 {AZ_CITIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -947,12 +967,14 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
                 Telefon <span className="text-rose-500">*</span>
               </span>
               <input
-                className="input-field"
+                id="field-phone"
+                className={`input-field ${fieldErrors.phone ? "border-rose-400 bg-rose-50 focus:ring-rose-300" : ""}`}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => { setPhone(e.target.value); if (e.target.value.trim()) setFieldErrors(p => ({ ...p, phone: "" })); }}
                 placeholder="+994..."
                 type="tel"
               />
+              {fieldErrors.phone && <p className="text-xs text-rose-600">{fieldErrors.phone}</p>}
             </label>
 
             <label className="space-y-1">
