@@ -360,16 +360,6 @@ export default async function ProfilePage({
                 <BusinessAccountStatus snapshot={businessSnapshot} sidebar />
               </div>
 
-              {user.role === "viewer" && (
-                <div className="border-t border-slate-100 px-5 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Digər seçimlər</p>
-                  <div className="mt-3 rounded-xl border border-slate-100 p-3">
-                    <p className="text-sm font-medium text-slate-800">🔧 Servis / Usta profili</p>
-                    <p className="mt-0.5 text-xs text-slate-500">Bu hesabla həm elan yerləşdirə, həm servis profili aça bilərsiniz</p>
-                    <ContactActionButton intent="service" variant="link" className="mt-2 inline-block text-xs font-medium text-[#0057FF] hover:underline" />
-                  </div>
-                </div>
-              )}
             </section>
 
             {/* Yadda saxlanmış axtarışlar */}

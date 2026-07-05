@@ -77,23 +77,7 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
           ))}
         </div>
 
-        {/* Business panel quick links */}
-        {(hasStore || hasSalon) && (
-          <div className="flex items-center gap-1.5">
-            {hasSalon && (
-              <a href="/dealer" className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-[#0057FF]/30 hover:text-[#0057FF]">
-                🚗 Salon paneli
-              </a>
-            )}
-            {hasStore && (
-              <a href="/parts/store" className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-medium text-violet-700 transition hover:bg-violet-100">
-                📦 Mağaza paneli
-              </a>
-            )}
-          </div>
-        )}
-
-      {/* View switcher */}
+        {/* View switcher */}
         <div className="ml-auto flex items-center gap-1 rounded-xl border border-slate-100 bg-slate-50 p-1">
           <button
             onClick={() => setView("list")}
@@ -134,11 +118,18 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
           </div>
           <div>
             <p className="font-medium text-slate-700">Bu kateqoriyada elan yoxdur</p>
-            <p className="mt-1 text-sm text-slate-400">İlk elanınızı dəqiqələr ərzində yerləşdirin</p>
+            <p className="mt-1 text-sm text-slate-400">Elan vermək üçün yuxarıdakı "Elan ver" menyusundan istifadə edin</p>
           </div>
-          <Link href="/publish" className="rounded-xl bg-[#0057FF] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF]">
-            Elan yerlə
-          </Link>
+          {tab === "part" && hasStore && (
+            <Link href="/parts/store" className="rounded-xl border border-violet-200 bg-violet-50 px-5 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100">
+              📦 Mağaza panelinə keç
+            </Link>
+          )}
+          {tab === "car" && hasSalon && (
+            <Link href="/dealer" className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/5 px-5 py-2 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10">
+              🚗 Salon panelinə keç
+            </Link>
+          )}
         </div>
       ) : view === "grid" ? (
         /* Grid view */
@@ -265,6 +256,22 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Business panel footer link — yalnız aktiv biznes tabı olan zaman */}
+      {tab === "part" && hasStore && shown.length > 0 && (
+        <div className="border-t border-slate-100 px-5 py-3">
+          <Link href="/parts/store" className="flex items-center justify-center gap-1.5 text-xs font-medium text-violet-700 hover:underline">
+            📦 Mağaza panelinə keç →
+          </Link>
+        </div>
+      )}
+      {tab === "car" && hasSalon && shown.length > 0 && (
+        <div className="border-t border-slate-100 px-5 py-3">
+          <Link href="/dealer" className="flex items-center justify-center gap-1.5 text-xs font-medium text-[#0057FF] hover:underline">
+            🚗 Salon panelinə keç →
+          </Link>
         </div>
       )}
     </section>
