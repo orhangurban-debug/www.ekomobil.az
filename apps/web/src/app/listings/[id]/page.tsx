@@ -21,6 +21,7 @@ import { getServerSessionUser } from "@/lib/auth";
 import { getListingDetail, getRelatedListings } from "@/server/listing-store";
 import { getListingStats } from "@/server/listing-stats-store";
 import { getLatestPendingPaymentForListing } from "@/server/payment-store";
+import { getPublicSellerProfile } from "@/server/user-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
 import type { PlanType } from "@/lib/listing-plans";
 
@@ -98,9 +99,12 @@ export default async function ListingDetailPage({
     getServerSessionUser(),
     getListingStats(id)
   ]);
+  // Fetch seller profile in parallel with related listings (non-blocking)
+  const sellerUserId = listing?.ownerUserId;
   if (!listing) notFound();
-  const [related] = await Promise.all([
+  const [related, sellerProfile] = await Promise.all([
     getRelatedListings(listing.relatedIds),
+    sellerUserId ? getPublicSellerProfile(sellerUserId).catch(() => null) : Promise.resolve(null)
   ]);
   const isOwner = user ? await isListingOwner(listing, user.id) : false;
   const pendingPayment =
@@ -427,6 +431,43 @@ export default async function ListingDetailPage({
               )}
             </div>
           </div>
+
+          {/* Seller profile card */}
+          {sellerProfile && !isOwner && (
+            <div className="card p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-900">Satıcı haqqında</h2>
+                {sellerProfile.isStore && (
+                  <span className="rounded-full bg-[#0057FF]/10 px-2 py-0.5 text-xs font-semibold text-[#0057FF]">
+                    Mağaza
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0057FF] to-[#0046CC] text-sm font-bold text-white">
+                  {sellerProfile.displayName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() || "EK"}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">{sellerProfile.displayName}</p>
+                  <p className="text-xs text-slate-400">
+                    {sellerProfile.activeListingCount} aktiv elan
+                    {sellerProfile.city ? ` • ${sellerProfile.city}` : ""}
+                  </p>
+                </div>
+              </div>
+              {(sellerProfile.bio ?? sellerProfile.storeDescription) && (
+                <p className="mt-3 line-clamp-2 text-xs text-slate-500">
+                  {sellerProfile.storeDescription ?? sellerProfile.bio}
+                </p>
+              )}
+              <Link
+                href={`/sellers/${sellerProfile.userId}`}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-900/10 bg-white/60 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+              >
+                Bu satıcının bütün elanları →
+              </Link>
+            </div>
+          )}
 
           <ListingStatsPanel listingId={listing.id} initialStats={stats} />
 

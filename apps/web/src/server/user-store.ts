@@ -20,6 +20,10 @@ export interface UserProfileRecord {
   city?: string;
   avatarUrl?: string;
   bio?: string;
+  storeName?: string;
+  storeLogoUrl?: string;
+  storeCoverUrl?: string;
+  storeDescription?: string;
 }
 
 export interface GoogleOAuthIdentity {
@@ -417,11 +421,16 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       city: string | null;
       avatar_url: string | null;
       bio: string | null;
+      store_name: string | null;
+      store_logo_url: string | null;
+      store_cover_url: string | null;
+      store_description: string | null;
     }>(
       `
         SELECT
           u.id, u.email, u.role, u.email_verified, u.phone,
-          p.full_name, p.city, p.avatar_url, p.bio
+          p.full_name, p.city, p.avatar_url, p.bio,
+          p.store_name, p.store_logo_url, p.store_cover_url, p.store_description
         FROM users u
         LEFT JOIN user_profiles p ON p.user_id = u.id
         WHERE u.id = $1
@@ -437,7 +446,11 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       fullName: row.full_name ?? undefined,
       city: row.city ?? undefined,
       avatarUrl: row.avatar_url ?? undefined,
-      bio: row.bio ?? undefined
+      bio: row.bio ?? undefined,
+      storeName: row.store_name ?? undefined,
+      storeLogoUrl: row.store_logo_url ?? undefined,
+      storeCoverUrl: row.store_cover_url ?? undefined,
+      storeDescription: row.store_description ?? undefined
     };
   } catch {
     return null;
@@ -523,6 +536,14 @@ export interface PublicSellerProfile {
   memberSince: string | null;
   activeListingCount: number;
   sellerVerified: boolean;
+  avatarUrl: string | null;
+  bio: string | null;
+  // Store (mağaza) fields — populated when user has parts_store subscription
+  isStore: boolean;
+  storeName: string | null;
+  storeLogoUrl: string | null;
+  storeCoverUrl: string | null;
+  storeDescription: string | null;
 }
 
 export async function getPublicSellerProfile(
@@ -537,8 +558,16 @@ export async function getPublicSellerProfile(
       city: string | null;
       created_at: Date | null;
       email_verified: boolean;
+      avatar_url: string | null;
+      bio: string | null;
+      store_name: string | null;
+      store_logo_url: string | null;
+      store_cover_url: string | null;
+      store_description: string | null;
     }>(
-      `SELECT up.full_name, up.city, u.created_at, u.email_verified
+      `SELECT up.full_name, up.city, u.created_at, u.email_verified,
+              up.avatar_url, up.bio,
+              up.store_name, up.store_logo_url, up.store_cover_url, up.store_description
        FROM users u
        LEFT JOIN user_profiles up ON up.user_id = u.id
        WHERE u.id = $1 LIMIT 1`,
@@ -547,20 +576,37 @@ export async function getPublicSellerProfile(
     const user = userResult.rows[0];
     if (!user) return null;
 
-    const countResult = await pool.query<{ count: string }>(
-      `SELECT COUNT(*)::text as count FROM listings
-       WHERE owner_user_id = $1 AND status = 'active'`,
-      [userId]
-    );
+    const [countResult, storeResult] = await Promise.all([
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text as count FROM listings
+         WHERE owner_user_id = $1 AND status = 'active'`,
+        [userId]
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text as count FROM business_plan_subscriptions
+         WHERE owner_user_id = $1 AND business_type = 'parts_store' AND status = 'active'
+           AND (expires_at IS NULL OR expires_at > NOW())`,
+        [userId]
+      )
+    ]);
+
     const activeListingCount = Number(countResult.rows[0]?.count ?? 0);
+    const isStore = Number(storeResult.rows[0]?.count ?? 0) > 0;
 
     return {
       userId,
-      displayName: user.full_name ?? "EkoMobil İstifadəçisi",
+      displayName: user.store_name ?? user.full_name ?? "EkoMobil İstifadəçisi",
       city: user.city,
       memberSince: user.created_at?.toISOString() ?? null,
       activeListingCount,
-      sellerVerified: user.email_verified
+      sellerVerified: user.email_verified,
+      avatarUrl: user.avatar_url,
+      bio: user.bio,
+      isStore,
+      storeName: user.store_name,
+      storeLogoUrl: user.store_logo_url,
+      storeCoverUrl: user.store_cover_url,
+      storeDescription: user.store_description
     };
   } catch (error) {
     console.error("getPublicSellerProfile failed:", error);

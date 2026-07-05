@@ -94,6 +94,8 @@ export interface ListingMediaRecord {
 export interface ListingSummary extends ListingRecord, ListingTrustRecord {
   imageUrl?: string;
   priceInsight?: PriceInsight;
+  /** Satıcının görünən adı — kartlarda göstərmək üçün */
+  sellerDisplayName?: string;
 }
 
 export interface ListingDetail extends ListingSummary {

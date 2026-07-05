@@ -31,6 +31,9 @@ export interface ListingCardData {
   partSku?: string;
   creditAvailable?: boolean;
   barterAvailable?: boolean;
+  ownerUserId?: string;
+  sellerDisplayName?: string;
+  sellerType?: "private" | "dealer";
 }
 
 // Marka adına görə gradient xəritəsi
@@ -282,30 +285,45 @@ export function ListingCard({ listing, variant = "premium" }: { listing: Listing
           </div>
         )}
 
-        {/* Trust badges — yalnız kritik siqnallar */}
-        <div className={`flex flex-wrap items-center gap-1.5 border-t pt-3 ${isPremium ? "border-slate-900/10" : "border-slate-100"}`}>
-          {(listing.vinProvided || listing.vinVerified) && (
-            <span className="badge-verified" title="VIN nömrəsi satıcı tərəfindən daxil edilib">
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        {/* Trust badges + seller row */}
+        <div className={`flex flex-col gap-2 border-t pt-3 ${isPremium ? "border-slate-900/10" : "border-slate-100"}`}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {(listing.vinProvided || listing.vinVerified) && (
+              <span className="badge-verified" title="VIN nömrəsi satıcı tərəfindən daxil edilib">
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                VIN
+              </span>
+            )}
+            {listing.sellerVerified && (
+              <span className="badge-verified">
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Satıcı
+              </span>
+            )}
+            {listing.mileageFlagSeverity === "high_risk" && (
+              <span className="badge-danger">Yürüş riski</span>
+            )}
+            {!isPart && (
+              <div className="ml-auto">
+                <AddToCompareButton listingId={listing.id} />
+              </div>
+            )}
+          </div>
+
+          {/* Seller name row — shows who posted the listing */}
+          {listing.sellerDisplayName && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
-              VIN
-            </span>
-          )}
-          {listing.sellerVerified && (
-            <span className="badge-verified">
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Satıcı
-            </span>
-          )}
-          {listing.mileageFlagSeverity === "high_risk" && (
-            <span className="badge-danger">Yürüş riski</span>
-          )}
-          {!isPart && (
-            <div className="ml-auto">
-              <AddToCompareButton listingId={listing.id} />
+              <span className="line-clamp-1 text-slate-500">
+                {listing.sellerType === "dealer" ? "🏪 " : ""}
+                {listing.sellerDisplayName}
+              </span>
             </div>
           )}
         </div>

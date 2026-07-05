@@ -7,6 +7,7 @@ import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 import { PrivacyControls } from "@/components/user/privacy-controls";
+import { ProfileEditForm } from "@/components/user/profile-edit-form";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
 import { getLatestPendingPaymentForListing } from "@/server/payment-store";
@@ -18,6 +19,7 @@ import { listInvoicesForUser, countInvoicesForUser } from "@/server/invoice-stor
 import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 import { loadBusinessAccountSnapshot } from "@/server/business-access";
 import { formatAccountTypeLabel } from "@/lib/business-account";
+import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import type { PlanType } from "@/lib/listing-plans";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
 
@@ -32,7 +34,7 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot] =
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot, isStore] =
     await Promise.all([
     getUserProfile(user.id),
     listUserFavorites(user.id),
@@ -43,7 +45,8 @@ export default async function ProfilePage({
     listInvoicesForUser(user.id, 10),
     countInvoicesForUser(user.id),
     listPendingDefenseReportsForUser(user.id),
-    loadBusinessAccountSnapshot(user)
+    loadBusinessAccountSnapshot(user),
+    hasActiveBusinessSubscription(user.id, "parts_store")
   ]);
   const hasNonActiveListings = myListings.some((item) => item.status !== "active");
 
@@ -152,12 +155,30 @@ export default async function ProfilePage({
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
           <section className="card p-6">
-            <h2 className="font-semibold text-slate-900">Profil məlumatları</h2>
-            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-slate-400">Ad</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-900">{profile?.fullName || "Qeyd olunmayıb"}</dd>
-              </div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Profil məlumatları</h2>
+            </div>
+
+            {/* Editable profile section */}
+            <div className="mb-5 rounded-xl border border-slate-900/8 bg-slate-50/60 p-4">
+              <ProfileEditForm
+                initialData={{
+                  fullName: profile?.fullName,
+                  city: profile?.city,
+                  bio: profile?.bio,
+                  avatarUrl: profile?.avatarUrl,
+                  storeName: profile?.storeName,
+                  storeLogoUrl: profile?.storeLogoUrl,
+                  storeCoverUrl: profile?.storeCoverUrl,
+                  storeDescription: profile?.storeDescription
+                }}
+                userId={user.id}
+                isStore={isStore}
+                publicProfileUrl={`/sellers/${user.id}`}
+              />
+            </div>
+
+            <dl className="grid gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-xs uppercase tracking-wider text-slate-400">Hesab növü</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-900">
