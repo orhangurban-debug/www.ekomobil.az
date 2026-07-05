@@ -1,6 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+
+async function uploadImageFile(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/media/listing-images", { method: "POST", body: form });
+  const data = await res.json() as { ok: boolean; file?: { url: string }; error?: string };
+  if (!data.ok || !data.file?.url) throw new Error(data.error ?? "Yükləmə uğursuz oldu");
+  return data.file.url;
+}
 
 interface ProfileEditFormProps {
   initialData: {
@@ -32,6 +41,38 @@ export function ProfileEditForm({ initialData, isStore, publicProfileUrl }: Prof
   const [storeLogoUrl, setStoreLogoUrl] = useState(initialData.storeLogoUrl ?? "");
   const [storeCoverUrl, setStoreCoverUrl] = useState(initialData.storeCoverUrl ?? "");
   const [storeDescription, setStoreDescription] = useState(initialData.storeDescription ?? "");
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+
+  async function handleAvatarFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try { setAvatarUrl(await uploadImageFile(file)); } catch { setError("Şəkil yüklənmədi."); }
+    setAvatarUploading(false);
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+  }
+  async function handleLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    try { setStoreLogoUrl(await uploadImageFile(file)); } catch { setError("Şəkil yüklənmədi."); }
+    setLogoUploading(false);
+    if (logoInputRef.current) logoInputRef.current.value = "";
+  }
+  async function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverUploading(true);
+    try { setStoreCoverUrl(await uploadImageFile(file)); } catch { setError("Şəkil yüklənmədi."); }
+    setCoverUploading(false);
+    if (coverInputRef.current) coverInputRef.current.value = "";
+  }
 
   const avatarPreview = isStore ? (storeLogoUrl || avatarUrl) : avatarUrl;
 
@@ -161,15 +202,31 @@ export function ProfileEditForm({ initialData, isStore, publicProfileUrl }: Prof
         />
       </div>
 
+      {/* Avatar upload */}
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-600">Profil şəkili URL <span className="text-slate-400">(HTTPS)</span></label>
-        <input
-          type="url"
-          value={avatarUrl}
-          onChange={e => setAvatarUrl(e.target.value)}
-          placeholder="https://..."
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:outline-none focus:ring-1 focus:ring-[#0057FF]/30"
-        />
+        <label className="mb-1.5 block text-xs font-medium text-slate-600">Profil şəkili</label>
+        <div className="flex items-center gap-3">
+          {avatarUrl.startsWith("https://") ? (
+            <div className="relative shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarUrl} alt="Avatar" className="h-12 w-12 rounded-xl object-cover ring-2 ring-slate-100" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+              <button type="button" onClick={() => setAvatarUrl("")} className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px]" title="Sil">×</button>
+            </div>
+          ) : (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0057FF] to-[#0040CC] text-sm font-bold text-white">
+              {(fullName || "EK").split(" ").map((w: string) => w[0] ?? "").slice(0, 2).join("").toUpperCase() || "EK"}
+            </div>
+          )}
+          <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarFile} />
+          <button
+            type="button"
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={avatarUploading}
+            className="flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-xs font-medium text-slate-600 transition hover:border-[#0057FF]/60 hover:bg-blue-50 hover:text-[#0057FF] disabled:opacity-50"
+          >
+            {avatarUploading ? "Yüklənir..." : "Cihazdan seç"}
+          </button>
+        </div>
       </div>
 
       {/* Store-specific fields */}
@@ -189,24 +246,32 @@ export function ProfileEditForm({ initialData, isStore, publicProfileUrl }: Prof
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Loqo URL</label>
-              <input
-                type="url"
-                value={storeLogoUrl}
-                onChange={e => setStoreLogoUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:outline-none focus:ring-1 focus:ring-[#0057FF]/30"
-              />
+              <label className="mb-1 block text-xs font-medium text-slate-600">Mağaza loqosu</label>
+              <div className="flex items-center gap-2">
+                {storeLogoUrl.startsWith("https://") && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={storeLogoUrl} alt="Logo" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-slate-200" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+                )}
+                <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoFile} />
+                <button type="button" onClick={() => logoInputRef.current?.click()} disabled={logoUploading}
+                  className="flex-1 rounded-lg border border-dashed border-slate-300 bg-white py-2 text-xs text-slate-600 transition hover:border-[#0057FF]/60 hover:text-[#0057FF] disabled:opacity-50">
+                  {logoUploading ? "Yüklənir..." : "Şəkil seç"}
+                </button>
+              </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Arxa plan şəkili URL</label>
-              <input
-                type="url"
-                value={storeCoverUrl}
-                onChange={e => setStoreCoverUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:outline-none focus:ring-1 focus:ring-[#0057FF]/30"
-              />
+              <label className="mb-1 block text-xs font-medium text-slate-600">Arxa plan (cover)</label>
+              <div className="flex items-center gap-2">
+                {storeCoverUrl.startsWith("https://") && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={storeCoverUrl} alt="Cover" className="h-10 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-200" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+                )}
+                <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverFile} />
+                <button type="button" onClick={() => coverInputRef.current?.click()} disabled={coverUploading}
+                  className="flex-1 rounded-lg border border-dashed border-slate-300 bg-white py-2 text-xs text-slate-600 transition hover:border-[#0057FF]/60 hover:text-[#0057FF] disabled:opacity-50">
+                  {coverUploading ? "Yüklənir..." : "Şəkil seç"}
+                </button>
+              </div>
             </div>
           </div>
           <div>

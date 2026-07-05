@@ -40,7 +40,8 @@ export default async function StorePortalPage() {
   const pendingCount = partsListings.filter(l => l.status === "pending_review").length;
   const totalCount = partsListings.length;
 
-  const storeName = profile?.storeName || profile?.fullName || "Mağazam";
+  const storeName = profile?.storeName || "Mağazam";
+  const storeNameIsDefault = !profile?.storeName;
   const daysLeft = snapshot.magazaSubscriptionExpiresAt
     ? Math.ceil((new Date(snapshot.magazaSubscriptionExpiresAt).getTime() - Date.now()) / 86400000)
     : null;
@@ -72,7 +73,12 @@ export default async function StorePortalPage() {
                     📦 Mağaza
                   </span>
                 </div>
-                {profile?.city && (
+                {storeNameIsDefault && (
+                  <p className="mt-0.5 text-xs text-amber-600">
+                    ⚠ Mağaza adı təyin olunmayıb — sağ paneldən əlavə edin
+                  </p>
+                )}
+                {profile?.city && !storeNameIsDefault && (
                   <p className="mt-0.5 text-sm text-slate-500">{profile.city}</p>
                 )}
                 {profile?.storeDescription && (
@@ -317,26 +323,6 @@ export default async function StorePortalPage() {
               </div>
             </section>
 
-            {/* Plan info */}
-            <section className="overflow-hidden rounded-2xl border border-violet-200 bg-violet-50 shadow-sm">
-              <div className="px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-violet-500">Aktiv plan</p>
-                    <p className="mt-1 text-base font-bold text-violet-900">{partsPlan.nameAz}</p>
-                    {daysLeft !== null && (
-                      <p className={`mt-0.5 text-xs font-medium ${daysLeft <= 7 ? "text-amber-700" : "text-violet-700"}`}>
-                        {snapshot.magazaIsTrial && "Sınaq — "}
-                        {daysLeft > 0 ? `${daysLeft} gün qalıb` : "Müddəti bitib"}
-                      </p>
-                    )}
-                  </div>
-                  <Link href="/pricing#parts-store" className="rounded-xl border border-violet-300 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-50">
-                    Planları gör
-                  </Link>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
       </div>
