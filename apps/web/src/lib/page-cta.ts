@@ -36,27 +36,32 @@ export function resolvePrimaryHeaderCta(
     return null;
   }
 
+  // /services, /dealers, /parts — primarily BUYER pages.
+  // Seller join CTAs live as sections on the page itself (bottom), not in the header.
+  // Only active business users see a relevant header action.
   if (pathname.startsWith("/services")) {
-    return { label: "Servis qeydiyyatı", href: "/partners/inspection" };
+    // Service providers who are already registered could use a link, but guests/buyers see nothing.
+    return null;
   }
 
   if (pathname.startsWith("/dealers")) {
-    return { label: "Salon ol", href: "/dealer/apply" };
+    return null;
   }
 
-  // Salon panel (dealer dashboard)
+  // Salon panel (dealer dashboard) — only for authenticated dealers
   if (pathname.startsWith("/dealer")) {
     return userRole === "dealer" || userRole === "admin"
       ? { label: "Yeni elan", href: "/publish" }
       : null;
   }
 
-  // Parts / mağaza pages — context-aware based on subscription state
+  // Parts pages — only active store plan holders see a header action
   if (pathname.startsWith("/parts")) {
     if (hasStorePlan) {
       return { label: "Hissə elanı", href: "/parts/publish" };
     }
-    return { label: "Mağaza aç", href: "/parts/setup" };
+    // Buyers and unregistered users: no header CTA — page cards handle the seller onboarding
+    return null;
   }
 
   if (pathname.startsWith("/auction")) {

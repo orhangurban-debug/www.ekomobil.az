@@ -71,11 +71,6 @@ export default async function DealersPage({
         icon={Building2}
         title="Avtomobil salonları"
         subtitle="EkoMobil platformasında təsdiqlənmiş avtomobil satış salonları"
-        actions={
-          <Link href="/dealer/apply" className="btn-primary text-sm">
-            Salon ol →
-          </Link>
-        }
       />
 
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">

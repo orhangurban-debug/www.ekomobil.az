@@ -28,11 +28,6 @@ export default async function ServicesPage({
         icon={Wrench}
         title="Servislər"
         subtitle={`${listings.length} təsdiqlənmiş servis və usta tapıldı`}
-        actions={
-          <Link href="/partners/inspection" className="btn-secondary text-sm">
-            Servis kimi qoşul
-          </Link>
-        }
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
@@ -46,13 +41,7 @@ export default async function ServicesPage({
               <div className="glass-panel flex flex-col items-center gap-3 p-10 text-center">
                 <Wrench className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />
                 <p className="text-sm font-medium text-slate-700">Bu filtrə uyğun təsdiqlənmiş servis tapılmadı.</p>
-                <p className="text-xs text-slate-500">
-                  Siz özünüz servis təminatçısısınızsa,{" "}
-                  <Link href="/partners/inspection" className="text-[#0057FF] hover:underline">
-                    buradan müraciət edin
-                  </Link>
-                  .
-                </p>
+                <p className="text-xs text-slate-500">Filtrləri dəyişərək yenidən axtarın.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -81,6 +70,25 @@ export default async function ServicesPage({
                 ))}
               </div>
             )}
+
+            {/* Provider join — at the bottom, for service providers visiting the page */}
+            <div className="mt-10 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">Siz servis və ya usta sahibisinizsə</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Profilinizi yerləşdirin — müştərilər birbaşa sizinlə əlaqə saxlasın.
+                    Müraciət 1–2 iş günü ərzində nəzərdən keçirilir.
+                  </p>
+                </div>
+                <Link
+                  href="/partners/inspection"
+                  className="shrink-0 rounded-xl border border-[#0057FF]/30 bg-[#0057FF]/5 px-5 py-2.5 text-sm font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
+                >
+                  Servis qeydiyyatı →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
