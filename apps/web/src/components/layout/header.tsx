@@ -57,12 +57,11 @@ function buildSellItems(hasStorePlan: boolean, hasSalonPlan: boolean) {
     ...(hasStorePlan
       ? [{ href: "/parts/store", icon: "📦", label: "Mağaza paneli", desc: "Mağazanızı idarə edin" }]
       : []),
-    // Servis / Ekspertiza — coming soon (future self-service "Yarat" flow)
     {
-      href: null,
+      href: "/partners/inspection",
       icon: "🔧",
-      label: "Servis profili",
-      desc: "Tezliklə — öz-özünə yarat",
+      label: "Servis profili yarat",
+      desc: "Mexanik, elektrik, ekspertiza…",
     },
   ] as { href: string | null; icon: string; label: string; desc: string }[];
 }

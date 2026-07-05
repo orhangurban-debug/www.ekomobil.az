@@ -94,8 +94,8 @@ export function BusinessAccountStatus({
           isTrial={snapshot.magazaIsTrial}
         />
         {/* Service & Expertise — coming soon / contact-based */}
-        <ComingSoonRow emoji="🔧" title="Servis / Usta profili" />
-        <ComingSoonRow emoji="🔍" title="Ekspertiza mərkəzi"   />
+        <ServiceRow emoji="🔧" title="Servis / Usta profili" href="/partners/inspection" />
+        <ServiceRow emoji="🔍" title="Ekspertiza mərkəzi"   href="/partners/inspection?type=inspection_company" />
         <Link href="/pricing" className="mt-1 block text-center text-xs text-slate-400 hover:text-[#0057FF] transition">
           Bütün planları gör →
         </Link>
@@ -148,19 +148,19 @@ export function BusinessAccountStatus({
   );
 }
 
-function ComingSoonRow({ emoji, title }: { emoji: string; title: string }) {
+function ServiceRow({ emoji, title, href }: { emoji: string; title: string; href: string }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/40 px-3.5 py-3 opacity-60">
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
       <div className="flex items-center gap-2.5 min-w-0">
         <span className="text-xl shrink-0">{emoji}</span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-700">{title}</p>
-          <p className="text-xs text-slate-400">Tezliklə — özün-özünə yarat</p>
+          <p className="truncate text-sm font-semibold text-slate-800">{title}</p>
+          <p className="text-xs text-slate-500">Profil yarat · Admin təsdiqləyir</p>
         </div>
       </div>
-      <span className="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-400 cursor-not-allowed">
-        Tezliklə
-      </span>
+      <Link href={href} className="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:border-[#0057FF]/30 hover:text-[#0057FF]">
+        Yarat
+      </Link>
     </div>
   );
 }
