@@ -5,14 +5,11 @@ import { BrandLogo } from "@/components/layout/brand-logo";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCompare } from "@/components/compare/compare-context";
-import { resolvePrimaryHeaderCta } from "@/lib/page-cta";
 import type { UserRole } from "@/lib/auth";
 
 const GLOBAL_NOTICE_VERSION = "v3";
 const GLOBAL_NOTICE_STORAGE_KEY = `ekomobil_global_notice_hidden_${GLOBAL_NOTICE_VERSION}`;
 
-// Beta bildirişi yalnız NEXT_PUBLIC_PLATFORM_BETA=true olduqda göstərilir.
-// Real istifadəyə keçiddə (default) bildiriş bağlıdır.
 const BETA_NOTICE_ENABLED = process.env.NEXT_PUBLIC_PLATFORM_BETA === "true";
 
 const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
@@ -26,6 +23,34 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
 
 const accentBg = "bg-[#0057FF]/12 text-[#0057FF]";
 const navIdle = "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900";
+
+/** "Elan ver" dropdown items — always visible, scroll-independent. */
+const SELL_ITEMS = [
+  {
+    href: "/publish",
+    icon: "🚗",
+    label: "Maşın sat",
+    desc: "Fərdi və ya salon elanı"
+  },
+  {
+    href: "/parts/setup",
+    icon: "📦",
+    label: "Hissə sat",
+    desc: "Fərdi elan və ya mağaza aç"
+  },
+  {
+    href: "/partners/inspection",
+    icon: "🔧",
+    label: "Servis qeydiyyatı",
+    desc: "Mexanik, elektrik, usta…"
+  },
+  {
+    href: "/dealer/apply",
+    icon: "🏢",
+    label: "Salon müraciəti",
+    desc: "Avtomobil satış salonu"
+  },
+];
 
 export function Header({
   userEmail,
@@ -41,6 +66,7 @@ export function Header({
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sellOpen, setSellOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [noticeVisible, setNoticeVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -48,8 +74,14 @@ export function Header({
   const compareHref = compareIds.length > 0 ? `/compare?ids=${compareIds.join(",")}` : "/compare";
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const sellMenuRef = useRef<HTMLDivElement>(null);
 
-  const primaryCta = resolvePrimaryHeaderCta(pathname, userRole, hasStorePlan);
+  // If user already has a store plan, "Hissə sat" goes directly to publish
+  const sellItems = SELL_ITEMS.map((item) =>
+    item.href === "/parts/setup" && hasStorePlan
+      ? { ...item, href: "/parts/publish", desc: "Hissə elanı yerləşdir" }
+      : item
+  );
 
   function hideNotice() {
     setNoticeVisible(false);
@@ -63,26 +95,23 @@ export function Header({
     );
   }, []);
 
-  // Menyu açıq olanda arxa fon skrollu kilidlənsin.
   useEffect(() => {
     if (!menuOpen) return;
-    const previousOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, [menuOpen]);
 
-  // Kənara toxunanda və ya Escape ilə menyu bağlansın.
+  // Close hamburger on outside click / Escape
   useEffect(() => {
     if (!menuOpen) return;
-    function handlePointerDown(event: MouseEvent | TouchEvent) {
-      const target = event.target as Node;
+    function handlePointerDown(e: MouseEvent | TouchEvent) {
+      const target = e.target as Node;
       if (mobileMenuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
       setMenuOpen(false);
     }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
     }
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("touchstart", handlePointerDown);
@@ -94,8 +123,29 @@ export function Header({
     };
   }, [menuOpen]);
 
+  // Close sell dropdown on outside click / Escape
+  useEffect(() => {
+    if (!sellOpen) return;
+    function handleClick(e: MouseEvent | TouchEvent) {
+      if (sellMenuRef.current?.contains(e.target as Node)) return;
+      setSellOpen(false);
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setSellOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("touchstart", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("touchstart", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [sellOpen]);
+
   useEffect(() => {
     setMenuOpen(false);
+    setSellOpen(false);
   }, [pathname]);
 
   async function onLogout() {
@@ -120,13 +170,9 @@ export function Header({
               mərhələli şəkildə təkmilləşdirilir.{" "}
               <span className="font-semibold">Suallarınız üçün dəstək ilə əlaqə saxlayın.</span>{" "}
               Ətraflı üçün{" "}
-              <Link href="/pricing" className="font-semibold underline decoration-dotted underline-offset-2">
-                Qiymətlər
-              </Link>{" "}
+              <Link href="/pricing" className="font-semibold underline decoration-dotted underline-offset-2">Qiymətlər</Link>{" "}
               və{" "}
-              <Link href="/terms" className="font-semibold underline decoration-dotted underline-offset-2">
-                Şərtlər
-              </Link>{" "}
+              <Link href="/terms" className="font-semibold underline decoration-dotted underline-offset-2">Şərtlər</Link>{" "}
               səhifələrini izləyin.
             </p>
             <button
@@ -140,9 +186,11 @@ export function Header({
           </div>
         </div>
       )}
+
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <BrandLogo logoUrl={logoUrl} />
 
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-0.5">
           {navLinks.map((link) => (
             <Link
@@ -160,7 +208,9 @@ export function Header({
           ))}
         </nav>
 
+        {/* Desktop right section */}
         <div className="flex items-center gap-2">
+          {/* Favorites */}
           <Link
             href="/favorites"
             aria-label="Favorilər"
@@ -173,6 +223,7 @@ export function Header({
             </svg>
           </Link>
 
+          {/* Compare */}
           <Link
             href={compareHref}
             aria-label="Müqayisə"
@@ -190,16 +241,15 @@ export function Header({
             )}
           </Link>
 
+          {/* Auth */}
           {userEmail ? (
             <div className="hidden md:flex items-center gap-2">
               <Link href="/me" className={`flex h-9 items-center rounded-lg px-3 text-sm font-medium transition ${navIdle}`}>
                 Profil
               </Link>
-              {userRole === "admin" || userRole === "support" ? (
-                <Link href="/admin" className="btn-secondary text-xs px-3 py-1.5">
-                  Admin
-                </Link>
-              ) : null}
+              {(userRole === "admin" || userRole === "support") && (
+                <Link href="/admin" className="btn-secondary text-xs px-3 py-1.5">Admin</Link>
+              )}
               <button
                 type="button"
                 onClick={() => void onLogout()}
@@ -208,11 +258,6 @@ export function Header({
               >
                 {logoutLoading ? "Çıxılır..." : "Çıxış"}
               </button>
-              {primaryCta && (
-                <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
-                  {primaryCta.label}
-                </Link>
-              )}
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
@@ -222,14 +267,50 @@ export function Header({
               <Link href="/register" className="btn-secondary text-sm px-3 py-1.5">
                 Qeydiyyat
               </Link>
-              {primaryCta && (
-                <Link href={primaryCta.href} className="btn-primary text-sm px-4 py-2">
-                  {primaryCta.label}
-                </Link>
-              )}
             </div>
           )}
 
+          {/* "Elan ver" — permanent dropdown, always visible on desktop */}
+          <div ref={sellMenuRef} className="relative hidden md:block">
+            <button
+              type="button"
+              onClick={() => setSellOpen((v) => !v)}
+              className="btn-primary flex items-center gap-1.5 text-sm px-4 py-2"
+              aria-expanded={sellOpen}
+              aria-haspopup="true"
+            >
+              Elan ver
+              <svg
+                className={`h-3.5 w-3.5 transition-transform ${sellOpen ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {sellOpen && (
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-900/10 bg-white/95 py-2 shadow-xl backdrop-blur-xl">
+                {sellItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50"
+                  >
+                    <span className="mt-0.5 text-lg leading-none">{item.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                      <p className="text-xs text-slate-500">{item.desc}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
           <button
             ref={menuButtonRef}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -249,13 +330,15 @@ export function Header({
         </div>
       </div>
 
+      {/* Mobile menu */}
       {menuOpen && (
         <div
           id="mobile-nav-menu"
           ref={mobileMenuRef}
-          className="border-t border-slate-900/8 bg-white/90 px-4 py-3 backdrop-blur-xl md:hidden"
+          className="border-t border-slate-900/8 bg-white/95 px-4 py-3 backdrop-blur-xl md:hidden"
         >
           <div className="flex flex-col gap-1">
+            {/* Browse nav links */}
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -294,12 +377,29 @@ export function Header({
                 </span>
               )}
             </Link>
-            <div className="mt-2 flex flex-col gap-2 border-t border-slate-900/8 pt-2">
+
+            {/* "Elan ver" section in mobile menu */}
+            <div className="mt-2 border-t border-slate-900/8 pt-3">
+              <p className="mb-1.5 px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Elan ver
+              </p>
+              {sellItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5"
+                >
+                  <span className="text-base">{item.icon}</span>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Auth section */}
+            <div className="mt-2 flex flex-col gap-2 border-t border-slate-900/8 pt-3">
               {userEmail ? (
                 <>
-                  {primaryCta && (
-                    <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
-                  )}
                   <Link href="/me" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Profil</Link>
                   {(userRole === "admin" || userRole === "support") && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Admin paneli</Link>
@@ -315,11 +415,8 @@ export function Header({
                 </>
               ) : (
                 <>
-                  <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Qeydiyyat</Link>
+                  <Link href="/register" onClick={() => setMenuOpen(false)} className="btn-primary text-center">Qeydiyyat</Link>
                   <Link href="/login" onClick={() => setMenuOpen(false)} className="btn-secondary text-center">Daxil ol</Link>
-                  {primaryCta && (
-                    <Link href={primaryCta.href} onClick={() => setMenuOpen(false)} className="btn-primary text-center">{primaryCta.label}</Link>
-                  )}
                 </>
               )}
             </div>
