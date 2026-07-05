@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
-import { createListingRecord } from "@/server/listing-store";
+import { createListingRecord, inferPriceInsight } from "@/server/listing-store";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 
 interface DealerProfileRow {
@@ -58,7 +58,7 @@ function mapLead(row: LeadRow): LeadRecord {
 }
 
 export async function getDealerDashboard(userId: string): Promise<{
-  dealerName: string;
+  dealerName: string | null;
   city: string;
   verified: boolean;
   inventory: ListingSummary[];
@@ -78,7 +78,8 @@ export async function getDealerDashboard(userId: string): Promise<{
     );
     const dealer = dealerResult.rows[0];
     if (!dealer) {
-      return { dealerName: "Dealer hesabı tapılmadı", city: "Bakı", verified: false, inventory: [], leads: [] };
+      // Profile not yet created — happens for dealers who existed before B-1 fix
+      return { dealerName: null, city: "Bakı", verified: false, inventory: [], leads: [] };
     }
 
     const inventoryResult = await pool.query<{
@@ -179,16 +180,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         vinVerified: row.vin_verified ?? false,
         sellerVerified: row.seller_verified ?? false,
         mediaComplete: row.media_complete ?? false,
-        // Bazar-qiyməti aralığı yalnız avtomobil elanları üçün mənalıdır — hissə elanları
-        // (adətən 5-5000 ₼) bu aralıqla müqayisə olunanda yanlış olaraq həmişə "Bazar altı" alır.
-        priceInsight:
-          row.listing_kind === "part"
-            ? undefined
-            : row.price_azn < 25000
-              ? "below_market"
-              : row.price_azn > 35000
-                ? "above_market"
-                : "market_rate"
+        priceInsight: row.listing_kind === "part" ? undefined : inferPriceInsight(row.price_azn)
       })),
       leads: leadsResult.rows.map(mapLead)
     };
@@ -493,14 +485,7 @@ export async function getPublicDealerProfile(
       vinVerified: r.vin_verified ?? false,
       sellerVerified: r.seller_verified ?? false,
       mediaComplete: r.media_complete ?? false,
-      priceInsight:
-        r.listing_kind === "part"
-          ? undefined
-          : r.price_azn < 22000
-            ? "below_market"
-            : r.price_azn > 50000
-              ? "above_market"
-              : "market_rate"
+      priceInsight: r.listing_kind === "part" ? undefined : inferPriceInsight(r.price_azn)
     }));
 
     return {

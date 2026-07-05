@@ -172,7 +172,7 @@ async function hasListingBoostActivationsTable(): Promise<boolean> {
  * aralığında) bu funksiyaya ötürülməməlidir — əks halda demək olar ki, HƏR hissə elanı
  * yanlış olaraq "Bazar altı" nişanı alır (bax: çağıran yer — `listingKind === "vehicle"` yoxlaması).
  */
-function inferPriceInsight(priceAzn: number): PriceInsight {
+export function inferPriceInsight(priceAzn: number): PriceInsight {
   if (priceAzn < 22000) return "below_market";
   if (priceAzn > 33000) return "above_market";
   return "market_rate";

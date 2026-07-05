@@ -36,6 +36,7 @@ export async function PATCH(req: Request) {
   const body = (await req.json()) as {
     listingIds?: string[];
     status?: string;
+    rejectionNote?: string;
     reason?: string;
   };
   const listingIds = Array.isArray(body.listingIds) ? body.listingIds.filter(Boolean) : [];
@@ -46,7 +47,7 @@ export async function PATCH(req: Request) {
   if (!allowed.has(body.status)) {
     return NextResponse.json({ ok: false, error: "Elan statusu yanlışdır." }, { status: 400 });
   }
-  const updated = await bulkUpdateListingStatus(listingIds, body.status);
+  const updated = await bulkUpdateListingStatus(listingIds, body.status, body.rejectionNote);
   await createAdminAuditLog({
     actorUserId: auth.user.id,
     actorRole: auth.user.role,

@@ -6,7 +6,7 @@ import { getUserAccountStatus, isActiveAccountStatus } from "@/server/user-store
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { FREE_LISTING_CONCURRENT_LIMIT, getPlanById, isPaidPlan, validateListingImageCount } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
-import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription } from "@/server/business-plan-store";
+import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription, getPartsStoreSubscriptionExpiry } from "@/server/business-plan-store";
 import type { ImagePhotoTag } from "@/lib/vehicle-media-angles";
 import {
   countDealerListingsForUserByKind,
@@ -275,6 +275,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     }
 
     let partDealerProfileId: string | null = null;
+    let partStoreSubscriptionExpiry: Date | null = null;
     if (isDealerPartSeller) {
       const dealerPartListingCount = await countDealerListingsForUserByKind(sessionUser.id, "part");
       if (dealerPartListingCount >= maxPartListings) {
@@ -288,6 +289,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
       }
       // Resolve dealer_profile_id so parts listings appear in dealer inventory
       partDealerProfileId = await getDealerProfileIdByOwner(sessionUser.id);
+      // Set plan_expires_at to subscription end so cron can auto-deactivate listings
+      partStoreSubscriptionExpiry = await getPartsStoreSubscriptionExpiry(sessionUser.id);
     }
 
     const validation = validatePartListingInput(partPayload, {
@@ -359,7 +362,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
       vin: "PARTS-NOVIN",
       sellerType: partPayload.sellerType || "private",
       planType: partPaidPlan ? "free" : partPlanType,
-      planExpiresAt: isDealerPartSeller ? null : undefined,
+      planExpiresAt: isDealerPartSeller ? partStoreSubscriptionExpiry : undefined,
       // Tap.az modeli: aktiv mağaza abunəliyi olan satıcıların elanları dərhal aktiv olur.
       // Fərdi satıcılar üçün: ödənişli plan → draft (ödəniş gözlənilir), pulsuz → pending_review.
       status: (isDealerPartSeller ? "active" : partPaidPlan ? "draft" : "pending_review") as "active" | "draft" | "pending_review",

@@ -14,6 +14,14 @@ export async function requireSalonPanelAccess() {
   if (user.role !== "dealer" && user.role !== "admin") {
     return { ok: false as const, reason: "forbidden" as const, user };
   }
+  // Admin always has access; dealers need an active subscription
+  if (user.role === "admin") {
+    return { ok: true as const, user };
+  }
+  const active = await hasActiveBusinessSubscription(user.id, "dealer");
+  if (!active) {
+    return { ok: false as const, reason: "no_active_subscription" as const, user };
+  }
   return { ok: true as const, user };
 }
 

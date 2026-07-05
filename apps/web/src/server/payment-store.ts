@@ -198,9 +198,7 @@ export async function getListingPlanPayment(paymentId: string): Promise<ListingP
       `SELECT * FROM listing_plan_payments WHERE id = $1 LIMIT 1`,
       [paymentId]
     );
-    if (result.rows[0]) return mapRow(result.rows[0]);
-    const existing = await pool.query<PaymentRow>(`SELECT * FROM listing_plan_payments WHERE id = $1 LIMIT 1`, [paymentId]);
-    return existing.rows[0] ? mapRow(existing.rows[0]) : null;
+    return result.rows[0] ? mapRow(result.rows[0]) : null;
   } catch {
     return getCreatedPayments().find((item) => item.id === paymentId) ?? null;
   }

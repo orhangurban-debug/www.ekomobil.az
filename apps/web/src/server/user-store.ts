@@ -62,7 +62,9 @@ function mapUser(row: {
 
 /** Aktiv olmayan hesab statusları — giriş və həssas əməliyyatlar bloklanır. */
 export function isActiveAccountStatus(status: string | null | undefined): boolean {
-  return (status ?? "active") === "active";
+  // "review" is not fully active — users under review cannot publish listings
+  const s = status ?? "active";
+  return s === "active";
 }
 
 /**

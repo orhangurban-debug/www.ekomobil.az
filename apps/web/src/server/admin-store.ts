@@ -1598,15 +1598,25 @@ export async function listAdminListingsPaged(input: {
   };
 }
 
-export async function bulkUpdateListingStatus(listingIds: string[], status: string): Promise<number> {
+export async function bulkUpdateListingStatus(
+  listingIds: string[],
+  status: string,
+  rejectionNote?: string | null
+): Promise<number> {
   if (listingIds.length === 0) return 0;
   const pool = getPgPool();
+  const note = (status === "rejected" || status === "inactive") ? (rejectionNote?.trim() ?? null) : null;
   const result = await pool.query(
     `
       UPDATE listings l
       SET
         status = $2,
         updated_at = NOW(),
+        rejection_note = CASE
+          WHEN $2 IN ('rejected','inactive') THEN $3
+          WHEN $2 = 'active' THEN NULL
+          ELSE l.rejection_note
+        END,
         plan_expires_at = CASE
           WHEN $2 = 'active' THEN
             CASE COALESCE(l.plan_type, 'free')
@@ -1631,7 +1641,7 @@ export async function bulkUpdateListingStatus(listingIds: string[], status: stri
           ) = 0
         )
     `,
-    [listingIds, status]
+    [listingIds, status, note]
   );
   return result.rowCount ?? 0;
 }
@@ -1701,6 +1711,27 @@ export async function updateSingleAdminListing(id: string, updates: {
   rejectionNote?: string | null;
 }): Promise<boolean> {
   const pool = getPgPool();
+
+  // Free listing concurrency check on single approve (mirrors bulk approve logic)
+  if (updates.status === "active") {
+    const listingMeta = await pool.query<{
+      plan_type: string | null;
+      owner_user_id: string | null;
+    }>(`SELECT plan_type, owner_user_id FROM listings WHERE id = $1 LIMIT 1`, [id]);
+    const meta = listingMeta.rows[0];
+    if (meta && (meta.plan_type === "free" || !meta.plan_type) && meta.owner_user_id) {
+      const existing = await pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM listings
+         WHERE owner_user_id = $1 AND id <> $2
+           AND COALESCE(plan_type,'free') = 'free' AND status = 'active'`,
+        [meta.owner_user_id, id]
+      );
+      if (Number(existing.rows[0]?.count ?? 0) > 0) {
+        return false;
+      }
+    }
+  }
+
   const sets: string[] = ["updated_at = NOW()"];
   const values: (string | number | null)[] = [];
 

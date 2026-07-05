@@ -181,6 +181,16 @@ async function getActiveSubscription(userId: string, businessType: BusinessType)
   }
 }
 
+/**
+ * Returns the expires_at date of the active parts_store subscription.
+ * Used to set plan_expires_at on store listings so cron can auto-deactivate them.
+ */
+export async function getPartsStoreSubscriptionExpiry(userId: string): Promise<Date | null> {
+  const sub = await getActiveSubscription(userId, "parts_store");
+  if (!sub || !sub.expires_at) return null;
+  return new Date(sub.expires_at);
+}
+
 export async function getEffectiveDealerPlan(userId: string): Promise<DealerPlan> {
   const catalog = await getDealerPlanCatalog();
   const fallback = await getDealerFallbackPlan();
@@ -331,19 +341,22 @@ export async function upsertBusinessPlanSubscription(input: {
   }
 
   const pool = getPgPool();
-  const existing = await pool.query<SubscriptionRow>(
-    `
-      SELECT id, owner_user_id, business_type, plan_id, status, starts_at, expires_at,
-             trial_granted_at, created_at, updated_at
-      FROM business_plan_subscriptions
-      WHERE owner_user_id = $1 AND business_type = $2
-      ORDER BY updated_at DESC
-      LIMIT 1
-    `,
-    [input.ownerUserId, input.businessType]
-  );
-  const current = existing.rows[0];
-  const id = current?.id ?? randomUUID();
+
+  // Use an INSERT … ON CONFLICT (owner_user_id, business_type) upsert to prevent
+  // duplicate rows when multiple concurrent calls race. We first try the proper
+  // unique-constraint conflict, then fall back to fetching the existing id.
+  let id: string;
+  try {
+    const existing = await pool.query<{ id: string }>(
+      `SELECT id FROM business_plan_subscriptions
+       WHERE owner_user_id = $1 AND business_type = $2
+       ORDER BY updated_at DESC LIMIT 1`,
+      [input.ownerUserId, input.businessType]
+    );
+    id = existing.rows[0]?.id ?? randomUUID();
+  } catch {
+    id = randomUUID();
+  }
 
   const result = await pool.query<SubscriptionRow>(
     `

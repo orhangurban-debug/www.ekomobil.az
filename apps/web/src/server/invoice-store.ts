@@ -176,7 +176,8 @@ export async function createInvoice(input: {
       ]
     );
     return result.rows[0] ? mapRow(result.rows[0]) : null;
-  } catch {
+  } catch (err) {
+    console.error("[invoice-store] createInvoice failed:", err);
     return null;
   }
 }

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
 import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
 import { RoleAccessGate } from "@/components/ui/role-access-gate";
+import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
 
 function TrustScorePill({ score }: { score: number }) {
   const cls =
@@ -44,6 +45,26 @@ export default async function DealerPortalPage() {
   if (!auth.ok) {
     return <RoleAccessGate reason={auth.reason} preset="dealer-panel" />;
   }
+  // Dealers need an active subscription; admins bypass this check
+  if (auth.user.role === "dealer") {
+    const hasSub = await hasActiveBusinessSubscription(auth.user.id, "dealer");
+    if (!hasSub) {
+      return (
+        <div className="mx-auto max-w-xl px-4 py-20 text-center">
+          <div className="mb-4 text-4xl">⏳</div>
+          <h1 className="text-2xl font-bold text-slate-900">Aktiv salon planı tapılmadı</h1>
+          <p className="mt-3 text-slate-500">
+            Salon panelinə daxil olmaq üçün aktiv plan lazımdır.
+            Müraciətiniz hələ gözləmədə ola bilər.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link href="/pricing#dealer" className="btn-primary">Salon planları</Link>
+            <Link href="/me" className="btn-secondary">Profil</Link>
+          </div>
+        </div>
+      );
+    }
+  }
 
   const [dashboard, dealerPlan, profileSettings, profileEntitlements] = await Promise.all([
     getDealerDashboard(auth.user.id),
@@ -51,6 +72,22 @@ export default async function DealerPortalPage() {
     getDealerProfileSettingsForOwner(auth.user.id),
     getEffectiveBusinessProfileEntitlements(auth.user.id)
   ]);
+
+  // B-8: If dealer profile row doesn't exist yet, show setup prompt
+  if (dashboard.dealerName === null) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-20 text-center">
+        <div className="mb-4 text-4xl">🏗️</div>
+        <h1 className="text-2xl font-bold text-slate-900">Salon profili hazırlanır</h1>
+        <p className="mt-3 text-slate-500">
+          Salon profiliniz hələ sistemdə tam yaradılmayıb. Dəstək komandası
+          sizinlə əlaqə saxlayacaq və ya administrator paneliylə tamamlayacaq.
+        </p>
+        <Link href="/me" className="mt-6 inline-flex btn-secondary">Profilə qayıt</Link>
+      </div>
+    );
+  }
+
   const totalActive = dashboard.inventory.filter((i) => i.status === "active").length;
   const totalLeads = dashboard.leads.length;
   const newLeads = dashboard.leads.filter((l) => l.stage === "new").length;

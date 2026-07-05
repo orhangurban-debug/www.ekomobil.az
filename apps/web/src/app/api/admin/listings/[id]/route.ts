@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSessionUser } from "@/lib/auth";
+import { requireApiRoles } from "@/lib/rbac";
 import {
   deleteAdminListing,
   extendListingPlanExpiry,
@@ -9,11 +9,9 @@ import {
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, ctx: RouteContext) {
-  const user = await getServerSessionUser();
-  if (!user || !["admin", "support"].includes(user.role)) {
-    return NextResponse.json({ ok: false, error: "Giriş yoxdur." }, { status: 403 });
-  }
+export async function GET(req: Request, ctx: RouteContext) {
+  const auth = requireApiRoles(req, ["admin", "support"]);
+  if (!auth.ok) return auth.response;
   const { id } = await ctx.params;
   const listing = await getAdminListing(id);
   if (!listing) return NextResponse.json({ ok: false, error: "Elan tapılmadı." }, { status: 404 });
@@ -21,10 +19,8 @@ export async function GET(_req: Request, ctx: RouteContext) {
 }
 
 export async function PATCH(req: Request, ctx: RouteContext) {
-  const user = await getServerSessionUser();
-  if (!user || !["admin", "support"].includes(user.role)) {
-    return NextResponse.json({ ok: false, error: "Giriş yoxdur." }, { status: 403 });
-  }
+  const auth = requireApiRoles(req, ["admin", "support"]);
+  if (!auth.ok) return auth.response;
   const { id } = await ctx.params;
   const body = (await req.json()) as {
     action?: string;
@@ -58,11 +54,9 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, ctx: RouteContext) {
-  const user = await getServerSessionUser();
-  if (!user || user.role !== "admin") {
-    return NextResponse.json({ ok: false, error: "Yalnız admin silə bilər." }, { status: 403 });
-  }
+export async function DELETE(req: Request, ctx: RouteContext) {
+  const auth = requireApiRoles(req, ["admin"]);
+  if (!auth.ok) return auth.response;
   const { id } = await ctx.params;
   const deleted = await deleteAdminListing(id);
   if (!deleted) return NextResponse.json({ ok: false, error: "Elan tapılmadı." }, { status: 404 });
