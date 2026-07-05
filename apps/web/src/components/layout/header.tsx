@@ -24,44 +24,61 @@ const navLinks: Array<{ href: string; label: string; live?: boolean }> = [
 const accentBg = "bg-[#0057FF]/12 text-[#0057FF]";
 const navIdle = "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900";
 
-/** "Elan ver" dropdown items — always visible, scroll-independent. */
-const SELL_ITEMS = [
-  {
-    href: "/publish",
-    icon: "🚗",
-    label: "Maşın sat",
-    desc: "Fərdi və ya salon elanı"
-  },
-  {
-    href: "/parts/setup",
-    icon: "📦",
-    label: "Hissə sat",
-    desc: "Fərdi elan və ya mağaza aç"
-  },
-  {
-    href: "/partners/inspection",
-    icon: "🔧",
-    label: "Servis qeydiyyatı",
-    desc: "Mexanik, elektrik, usta…"
-  },
-  {
-    href: "/dealer/apply",
-    icon: "🏢",
-    label: "Salon müraciəti",
-    desc: "Avtomobil satış salonu"
-  },
-];
+/** Build context-aware "Elan ver" dropdown items based on active subscriptions. */
+function buildSellItems(hasStorePlan: boolean, hasSalonPlan: boolean) {
+  return [
+    {
+      href: "/publish",
+      icon: "🚗",
+      label: hasSalonPlan ? "Salon elanı yerləşdir" : "Maşın sat",
+      desc: hasSalonPlan ? "Salon inventarına əlavə et" : "Fərdi avtomobil elanı",
+    },
+    {
+      href: hasStorePlan ? "/parts/publish" : "/parts/setup",
+      icon: "📦",
+      label: hasStorePlan ? "Hissə elanı yerləşdir" : "Hissə sat",
+      desc: hasStorePlan ? "Mağaza inventarına əlavə et" : "Fərdi elan və ya mağaza aç",
+    },
+    // Salon row — show panel if active, else apply
+    hasSalonPlan
+      ? {
+          href: "/dealer",
+          icon: "🏢",
+          label: "Salon paneli",
+          desc: "Salonunuzu idarə edin",
+        }
+      : {
+          href: "/dealer/apply",
+          icon: "🏢",
+          label: "Salon müraciəti",
+          desc: "Avtomobil satış salonu",
+        },
+    // Store panel — only show if active (otherwise it's already in parts row above)
+    ...(hasStorePlan
+      ? [{ href: "/parts/store", icon: "📦", label: "Mağaza paneli", desc: "Mağazanızı idarə edin" }]
+      : []),
+    // Servis / Ekspertiza — coming soon (future self-service "Yarat" flow)
+    {
+      href: null,
+      icon: "🔧",
+      label: "Servis profili",
+      desc: "Tezliklə — öz-özünə yarat",
+    },
+  ] as { href: string | null; icon: string; label: string; desc: string }[];
+}
 
 export function Header({
   userEmail,
   userRole,
   logoUrl,
-  hasStorePlan
+  hasStorePlan,
+  hasSalonPlan,
 }: {
   userEmail?: string;
   userRole?: UserRole;
   logoUrl: string;
   hasStorePlan?: boolean;
+  hasSalonPlan?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -76,12 +93,7 @@ export function Header({
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const sellMenuRef = useRef<HTMLDivElement>(null);
 
-  // If user already has a store plan, "Hissə sat" goes directly to publish
-  const sellItems = SELL_ITEMS.map((item) =>
-    item.href === "/parts/setup" && hasStorePlan
-      ? { ...item, href: "/parts/publish", desc: "Hissə elanı yerləşdir" }
-      : item
-  );
+  const sellItems = buildSellItems(!!hasStorePlan, !!hasSalonPlan);
 
   function hideNotice() {
     setNoticeVisible(false);
@@ -293,19 +305,30 @@ export function Header({
 
             {sellOpen && (
               <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-900/10 bg-white/95 py-2 shadow-xl backdrop-blur-xl">
-                {sellItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50"
-                  >
-                    <span className="mt-0.5 text-lg leading-none">{item.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                      <p className="text-xs text-slate-500">{item.desc}</p>
+                {sellItems.map((item) =>
+                  item.href ? (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50"
+                      onClick={() => setSellOpen(false)}
+                    >
+                      <span className="mt-0.5 text-lg leading-none">{item.icon}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                        <p className="text-xs text-slate-500">{item.desc}</p>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div key={item.label} className="flex items-start gap-3 px-4 py-3 opacity-40 cursor-not-allowed select-none">
+                      <span className="mt-0.5 text-lg leading-none">{item.icon}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                        <p className="text-xs text-slate-500">{item.desc}</p>
+                      </div>
                     </div>
-                  </Link>
-                ))}
+                  )
+                )}
               </div>
             )}
           </div>
@@ -383,17 +406,25 @@ export function Header({
               <p className="mb-1.5 px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                 Elan ver
               </p>
-              {sellItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5"
-                >
-                  <span className="text-base">{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))}
+              {sellItems.map((item) =>
+                item.href ? (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5"
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ) : (
+                  <div key={item.label} className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-400 opacity-50 cursor-not-allowed">
+                    <span className="text-base">{item.icon}</span>
+                    {item.label}
+                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide">Tezliklə</span>
+                  </div>
+                )
+              )}
             </div>
 
             {/* Auth section */}

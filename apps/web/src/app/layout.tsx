@@ -92,9 +92,14 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const [user, brand] = await Promise.all([getServerSessionUser(), getBrandSettings()]);
-  const hasStorePlan = user
-    ? user.role === "admin" || (await hasActiveBusinessSubscription(user.id, "parts_store"))
-    : false;
+  const [hasStorePlan, hasSalonPlan] = user
+    ? await Promise.all([
+        user.role === "admin" ? Promise.resolve(true) : hasActiveBusinessSubscription(user.id, "parts_store"),
+        user.role === "admin" || user.role === "dealer"
+          ? Promise.resolve(true)
+          : hasActiveBusinessSubscription(user.id, "dealer"),
+      ])
+    : [false, false];
   const logoPath = toSameOriginBrandAssetPath(brand.logoUrl);
   const faviconPath = toSameOriginBrandAssetPath(brand.faviconUrl);
   const absoluteLogoUrl = logoPath.startsWith("http")
@@ -148,7 +153,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ToastProvider>
           <ConfirmDialogProvider>
             <CompareProvider>
-              <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} hasStorePlan={hasStorePlan} />
+              <Header userEmail={user?.email} userRole={user?.role} logoUrl={logoPath} hasStorePlan={hasStorePlan} hasSalonPlan={hasSalonPlan} />
               <main className="flex-1 pb-20">{children}</main>
               <Footer logoUrl={logoPath} />
               <CompareBar />
