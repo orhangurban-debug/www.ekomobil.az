@@ -380,6 +380,8 @@ export function InspectionPartnerApplicationForm() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
   const [limitFeedback, setLimitFeedback] = useState<string | null>(null);
+  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
+  const [createdName, setCreatedName] = useState<string>("");
 
   const launchPromo = useLaunchPromo();
   const availableTags = providerType ? SERVICE_TAGS[providerType] : [];
@@ -576,40 +578,59 @@ export function InspectionPartnerApplicationForm() {
           }
         })
       });
-      const payload = (await response.json()) as { ok: boolean; error?: string };
+      const payload = (await response.json()) as { ok: boolean; error?: string; serviceSlug?: string };
       if (!response.ok || !payload.ok) {
         setIsError(true);
         setFeedback(payload.error ?? "Müraciət göndərilə bilmədi.");
         return;
       }
       setIsError(false);
-      setFeedback("Müraciət qəbul edildi! Tərəfdaşlıq komandamız 1-3 iş günü ərzində sizinlə əlaqə saxlayacaq.");
-      // reset
-      setProviderType("");
-      setSelectedTags([]);
-      setProviderName("");
-      setCity("");
-      setAddress("");
-      setMapLink("");
-      setWorkingHours("");
-      setExperience("");
-      setLicenseInfo("");
-      setCertifications([]);
-      setContactName("");
-      setEmail("");
-      setPhone("");
-      setWhatsapp("");
-      setWebsite("");
-      setSelectedPlan("");
-      setNotes("");
-      setServiceImages([]);
-      setCertificateFiles([]);
+      setCreatedSlug(payload.serviceSlug ?? null);
+      setCreatedName(providerName.trim());
     } catch {
       setIsError(true);
       setFeedback("Server xətası baş verdi. Yenidən cəhd edin.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  /* ── Success screen ──────────────────────────────────────────────────────── */
+  if (createdSlug) {
+    return (
+      <div className="flex flex-col items-center gap-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-14 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-4xl shadow-lg">
+          ✓
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-emerald-900">Profil yaradıldı!</h2>
+          <p className="mt-2 text-base text-emerald-800">
+            <strong>{createdName}</strong> profili aktiv edildi və indi görünür.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            href={`/services/${createdSlug}`}
+            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          >
+            Profilimə bax →
+          </Link>
+          <Link
+            href="/services"
+            className="rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50"
+          >
+            Bütün servislər
+          </Link>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setCreatedSlug(null); setCreatedName(""); }}
+          className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800"
+        >
+          Yeni profil yarat
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -1045,7 +1066,7 @@ export function InspectionPartnerApplicationForm() {
             className="btn-primary px-8 py-3"
             disabled={submitting}
           >
-            {submitting ? "Göndərilir..." : "Partnyor müraciəti göndər"}
+            {submitting ? "Yaradılır..." : "Profili yarat və aktiv et"}
           </button>
           {feedback && (
             <span className={`text-sm font-medium ${isError ? "text-rose-600" : "text-emerald-700"}`}>

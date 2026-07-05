@@ -146,7 +146,7 @@ export async function createPendingServiceListing(input: {
         id, slug, support_request_id, name, provider_type, city, address, map_url,
         about, services, certifications, image_urls, phone, whatsapp, status
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'pending')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'approved')
     `,
     [
       id,

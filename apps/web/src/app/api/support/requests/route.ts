@@ -149,11 +149,12 @@ export async function POST(req: Request) {
       metadata
     });
 
+    let serviceSlug: string | null = null;
     if (requestType === "inspection_partner" && body.servicePartner) {
       const draft = body.servicePartner;
       if (draft.providerType?.trim() && draft.name?.trim() && draft.city?.trim() && draft.phone?.trim()) {
         try {
-          await createPendingServiceListing({
+          const result = await createPendingServiceListing({
             supportRequestId,
             name: draft.name.trim(),
             providerType: draft.providerType.trim(),
@@ -169,9 +170,9 @@ export async function POST(req: Request) {
             phone: draft.phone.trim(),
             whatsapp: draft.whatsapp?.trim() || undefined
           });
+          serviceSlug = result.slug;
         } catch (error) {
-          // Support ticket already saved — a missed pending listing draft must not fail the whole submission.
-          console.error("Failed to create pending service listing draft", error);
+          console.error("Failed to create service listing", error);
         }
       }
     }
@@ -179,7 +180,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       id: supportRequestId,
-      message: "Müraciətiniz qəbul edildi. Qısa zamanda cavab veriləcək."
+      serviceSlug,
+      message: serviceSlug
+        ? "Profil yaradıldı və aktiv edildi."
+        : "Müraciətiniz qəbul edildi."
     });
   } catch {
     return NextResponse.json({ ok: false, error: "Müraciət göndərilə bilmədi. Yenidən cəhd edin." }, { status: 500 });
