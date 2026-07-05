@@ -538,8 +538,12 @@ export interface PublicSellerProfile {
   sellerVerified: boolean;
   avatarUrl: string | null;
   bio: string | null;
+  phone: string | null;
+  emailVerified: boolean;
+  kycApproved: boolean;
   // Store (mağaza) fields — populated when user has parts_store subscription
   isStore: boolean;
+  isDealer: boolean;
   storeName: string | null;
   storeLogoUrl: string | null;
   storeCoverUrl: string | null;
@@ -558,6 +562,7 @@ export async function getPublicSellerProfile(
       city: string | null;
       created_at: Date | null;
       email_verified: boolean;
+      phone: string | null;
       avatar_url: string | null;
       bio: string | null;
       store_name: string | null;
@@ -565,7 +570,7 @@ export async function getPublicSellerProfile(
       store_cover_url: string | null;
       store_description: string | null;
     }>(
-      `SELECT up.full_name, up.city, u.created_at, u.email_verified,
+      `SELECT up.full_name, up.city, u.created_at, u.email_verified, u.phone,
               up.avatar_url, up.bio,
               up.store_name, up.store_logo_url, up.store_cover_url, up.store_description
        FROM users u
@@ -576,7 +581,7 @@ export async function getPublicSellerProfile(
     const user = userResult.rows[0];
     if (!user) return null;
 
-    const [countResult, storeResult] = await Promise.all([
+    const [countResult, storeResult, dealerResult, kycResult] = await Promise.all([
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text as count FROM listings
          WHERE owner_user_id = $1 AND status = 'active'`,
@@ -587,11 +592,24 @@ export async function getPublicSellerProfile(
          WHERE owner_user_id = $1 AND business_type = 'parts_store' AND status = 'active'
            AND (expires_at IS NULL OR expires_at > NOW())`,
         [userId]
-      )
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text as count FROM business_plan_subscriptions
+         WHERE owner_user_id = $1 AND business_type = 'dealer' AND status = 'active'
+           AND (expires_at IS NULL OR expires_at > NOW())`,
+        [userId]
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text as count FROM kyc_profiles
+         WHERE user_id = $1 AND status = 'approved'`,
+        [userId]
+      ).catch(() => ({ rows: [{ count: "0" }] })),
     ]);
 
     const activeListingCount = Number(countResult.rows[0]?.count ?? 0);
-    const isStore = Number(storeResult.rows[0]?.count ?? 0) > 0;
+    const isStore            = Number(storeResult.rows[0]?.count ?? 0) > 0;
+    const isDealer           = Number(dealerResult.rows[0]?.count ?? 0) > 0;
+    const kycApproved        = Number(kycResult.rows[0]?.count ?? 0) > 0;
 
     return {
       userId,
@@ -600,9 +618,13 @@ export async function getPublicSellerProfile(
       memberSince: user.created_at?.toISOString() ?? null,
       activeListingCount,
       sellerVerified: user.email_verified,
+      emailVerified: user.email_verified,
+      phone: user.phone,
+      kycApproved,
       avatarUrl: user.avatar_url,
       bio: user.bio,
       isStore,
+      isDealer,
       storeName: user.store_name,
       storeLogoUrl: user.store_logo_url,
       storeCoverUrl: user.store_cover_url,

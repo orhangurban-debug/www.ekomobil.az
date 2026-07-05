@@ -410,6 +410,7 @@ export interface PublicDealerProfile {
   workingHours?: string;
   showWhatsapp: boolean;
   showWebsite: boolean;
+  voen?: string | null;
   inventory: ListingSummary[];
 }
 
@@ -427,10 +428,11 @@ export async function getPublicDealerProfile(
       whatsapp_phone: string | null; website_url: string | null;
       address: string | null; working_hours: string | null;
       show_whatsapp: boolean | null; show_website: boolean | null;
+      voen: string | null;
     }>(
       `SELECT id, name, city, verified, response_sla_minutes, created_at,
               logo_url, cover_url, description, whatsapp_phone, website_url,
-              address, working_hours, show_whatsapp, show_website
+              address, working_hours, show_whatsapp, show_website, voen
        FROM dealer_profiles WHERE id = $1 LIMIT 1`,
       [dealerId]
     );
@@ -512,6 +514,7 @@ export async function getPublicDealerProfile(
       whatsappPhone: dealer.whatsapp_phone ?? undefined,
       websiteUrl: dealer.website_url ?? undefined,
       address: dealer.address ?? undefined,
+      voen: dealer.voen,
       workingHours: dealer.working_hours ?? undefined,
       showWhatsapp: dealer.show_whatsapp ?? false,
       showWebsite: dealer.show_website ?? false,

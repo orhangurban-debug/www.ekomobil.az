@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPublicDealerProfile } from "@/server/dealer-store";
 import { ListingCard } from "@/components/listings/listing-card";
+import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
+import { computeTrustBadges } from "@/lib/seller-trust";
 
 function VerifiedBadge() {
   return (
@@ -35,6 +37,17 @@ export default async function PublicDealerPage({
   const { id } = await params;
   const profile = await getPublicDealerProfile(id);
   if (!profile) notFound();
+
+  const trustBadges = computeTrustBadges({
+    dealerVerified:     profile.verified,
+    dealerVoen:         profile.voen,
+    hasSalonPlan:       true,
+    hasAvatar:          !!profile.logoUrl,
+    hasCity:            !!profile.city,
+    hasName:            !!profile.name,
+    memberSince:        profile.memberSince ?? undefined,
+    activeListingCount: profile.activeListingCount,
+  });
 
   return (
     <div className="min-h-screen bg-white/60">
@@ -75,6 +88,11 @@ export default async function PublicDealerPage({
                   </span>
                   <SlaLabel minutes={profile.responseSlaMinutes} />
                 </div>
+                {trustBadges.length > 0 && (
+                  <div className="mt-3">
+                    <TrustBadgeRow badges={trustBadges} max={5} />
+                  </div>
+                )}
                 {profile.description && (
                   <p className="mt-3 max-w-2xl text-sm text-slate-600">{profile.description}</p>
                 )}
@@ -110,7 +128,7 @@ export default async function PublicDealerPage({
             </div>
 
             {/* Stats strip */}
-            <div className="flex gap-6 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
+            <div className="flex flex-wrap gap-4 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
                 <p className="text-xs text-slate-400">Aktiv elan</p>
@@ -125,6 +143,14 @@ export default async function PublicDealerPage({
                 <p className="text-2xl font-bold text-[#0057FF]">≤{profile.responseSlaMinutes}</p>
                 <p className="text-xs text-slate-400">Cavab (dəq)</p>
               </div>
+              {trustBadges.length > 0 && (
+                <>
+                  <div className="border-l border-slate-900/10" />
+                  <div className="flex min-w-[120px] flex-col justify-center gap-1">
+                    <TrustScoreBar badges={trustBadges} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -5,6 +5,8 @@ import { getPublicSellerProfile } from "@/server/user-store";
 import { listListingsForUser } from "@/server/listing-store";
 import { ListingCard } from "@/components/listings/listing-card";
 import type { ListingSummary } from "@/lib/marketplace-types";
+import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
+import { computeTrustBadges } from "@/lib/seller-trust";
 
 function formatMemberSince(iso: string | null): string {
   if (!iso) return "Məlum deyil";
@@ -90,6 +92,20 @@ export default async function PublicSellerPage({
   const groups = groupByCategory(activeListings);
   const coverUrl = profile.storeCoverUrl;
 
+  const trustBadges = computeTrustBadges({
+    phoneSet:           !!profile.phone,
+    emailVerified:      !!profile.emailVerified,
+    kycApproved:        profile.kycApproved,
+    dealerVerified:     !!profile.sellerVerified,
+    hasAvatar:          !!profile.avatarUrl || !!profile.storeLogoUrl,
+    hasCity:            !!profile.city,
+    hasName:            !!profile.displayName,
+    memberSince:        profile.memberSince ?? undefined,
+    activeListingCount: activeListings.length,
+    hasSalonPlan:       profile.isDealer,
+    hasStorePlan:       profile.isStore,
+  });
+
   return (
     <div className="min-h-screen bg-slate-50/60">
       {/* ── Cover band ──────────────────────────────────────────────────────── */}
@@ -153,15 +169,25 @@ export default async function PublicSellerPage({
                   )}
                   <span className="text-slate-400">Üzv: {formatMemberSince(profile.memberSince)}</span>
                 </div>
+                {trustBadges.length > 0 && (
+                  <div className="mt-2">
+                    <TrustBadgeRow badges={trustBadges} max={5} />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3">
+            <div className="flex items-center gap-5 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3">
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
                 <p className="text-xs text-slate-400">Aktiv elan</p>
               </div>
+              {trustBadges.length > 0 && (
+                <div className="w-36 border-l border-slate-200 pl-5">
+                  <TrustScoreBar badges={trustBadges} />
+                </div>
+              )}
             </div>
           </div>
         </div>

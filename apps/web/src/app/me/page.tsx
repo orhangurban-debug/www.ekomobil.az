@@ -17,6 +17,8 @@ import { formatAccountTypeLabel } from "@/lib/business-account";
 import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
 import { MyListingsSection } from "@/components/user/my-listings-section";
+import { TrustCompletenessPanel } from "@/components/seller/trust-badges";
+import { computeTrustBadges, missingTrustItems } from "@/lib/seller-trust";
 
 const STATUS_META: Record<string, { label: string; dot: string; cls: string }> = {
   active:         { label: "Aktiv",      dot: "bg-emerald-500", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -115,6 +117,23 @@ export default async function ProfilePage({
   );
 
   const activeListings = myListings.filter(l => l.status === "active").length;
+
+  const trustInput = {
+    phoneSet:           !!profile?.phone,
+    emailVerified:      !!profile?.emailVerified,
+    kycApproved:        deepKyc?.status === "approved",
+    dealerVerified:     false, // set from dealer_profiles if available
+    dealerVoen:         null,  // populated via dealer profile in future
+    hasSalonPlan:       !!businessSnapshot?.salonSubscriptionActive,
+    hasStorePlan:       isStore,
+    hasAvatar:          !!profile?.avatarUrl,
+    hasCity:            !!profile?.city,
+    hasName:            !!profile?.fullName,
+    memberSince:        undefined,
+    activeListingCount: activeListings,
+  };
+  const trustBadges  = computeTrustBadges(trustInput);
+  const trustMissing = missingTrustItems(trustBadges, trustInput);
   const unreadAuctions = auctionNotifications.filter(n => !n.isRead).length;
   const displayName = profile?.fullName || profile?.email?.split("@")[0] || "İstifadəçi";
 
@@ -361,6 +380,9 @@ export default async function ProfilePage({
               </div>
 
             </section>
+
+            {/* Profil etibarlılığı */}
+            <TrustCompletenessPanel badges={trustBadges} missing={trustMissing} />
 
             {/* Yadda saxlanmış axtarışlar */}
             {savedSearches.length > 0 && (
