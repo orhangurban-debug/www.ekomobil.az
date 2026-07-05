@@ -1650,7 +1650,7 @@ export async function updatePartListingForOwner(
           part_sku = COALESCE($12, part_sku),
           part_quantity = COALESCE($13, part_quantity),
           part_compatibility = COALESCE($14, part_compatibility),
-          status = 'pending_review',
+          status = CASE WHEN status = 'draft' THEN 'draft' ELSE 'pending_review' END,
           updated_at = NOW()
         WHERE id = $15
       `,

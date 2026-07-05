@@ -108,6 +108,7 @@ export interface AdminBusinessProfileRow {
   showWebsite: boolean;
   dealerPlanId?: string;
   partsPlanId?: string;
+  profileType: "dealer" | "store";
   updatedAt: string;
 }
 
@@ -550,16 +551,47 @@ export async function listAdminBusinessProfilesPaged(input: {
       OR LOWER(COALESCE(dp.website_url, '')) LIKE $${values.length}
     )`);
   }
-  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const pool = getPgPool();
+
+  // Dealer profile WHERE clause uses different aliases
+  const dealerWhere = where.length
+    ? `WHERE ${where.join(" AND ")}`
+    : "";
+
+  // For store owners, replicate the search across user_profiles / users
+  const storeWhere = where.length
+    ? `WHERE (LOWER(COALESCE(up.store_name, '')) LIKE $1 OR LOWER(COALESCE(u.email,'')) LIKE $1)`
+    : "";
+
+  const countValues = where.length ? values.slice(0, 1) : [];
+
   const countResult = await pool.query<{ total: string }>(
-    `SELECT COUNT(*)::text AS total
-     FROM dealer_profiles dp
-     LEFT JOIN users u ON u.id = dp.owner_user_id
-     ${whereSql}`,
-    values
+    `
+      SELECT COUNT(*)::text AS total FROM (
+        SELECT dp.id
+        FROM dealer_profiles dp
+        LEFT JOIN users u ON u.id = dp.owner_user_id
+        ${dealerWhere}
+        UNION ALL
+        SELECT u.id
+        FROM users u
+        LEFT JOIN user_profiles up ON up.user_id = u.id
+        WHERE EXISTS (
+          SELECT 1 FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+            AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+        )
+        AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp2 WHERE dp2.owner_user_id = u.id)
+        ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}
+      ) combined
+    `,
+    countValues
   );
+
   values.push(pageSize, offset);
+  const limitIdx = values.length - 1;
+  const offsetIdx = values.length;
+
   const result = await pool.query<{
     dealer_id: string;
     owner_user_id: string | null;
@@ -575,6 +607,7 @@ export async function listAdminBusinessProfilesPaged(input: {
     show_website: boolean | null;
     dealer_plan_id: string | null;
     parts_plan_id: string | null;
+    profile_type: "dealer" | "store";
     updated_at: Date;
   }>(
     `
@@ -584,35 +617,60 @@ export async function listAdminBusinessProfilesPaged(input: {
         u.email AS owner_email,
         dp.name, dp.city, dp.verified, dp.logo_url, dp.cover_url, dp.whatsapp_phone, dp.website_url,
         dp.show_whatsapp, dp.show_website,
+        'dealer' AS profile_type,
         (
-          SELECT s.plan_id
-          FROM business_plan_subscriptions s
-          WHERE s.owner_user_id = dp.owner_user_id
-            AND s.business_type = 'dealer'
-            AND s.status = 'active'
-            AND (s.expires_at IS NULL OR s.expires_at >= NOW())
-          ORDER BY s.updated_at DESC
-          LIMIT 1
+          SELECT s.plan_id FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id AND s.business_type = 'dealer'
+            AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          ORDER BY s.updated_at DESC LIMIT 1
         ) AS dealer_plan_id,
         (
-          SELECT s.plan_id
-          FROM business_plan_subscriptions s
-          WHERE s.owner_user_id = dp.owner_user_id
-            AND s.business_type = 'parts_store'
-            AND s.status = 'active'
-            AND (s.expires_at IS NULL OR s.expires_at >= NOW())
-          ORDER BY s.updated_at DESC
-          LIMIT 1
+          SELECT s.plan_id FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id AND s.business_type = 'parts_store'
+            AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          ORDER BY s.updated_at DESC LIMIT 1
         ) AS parts_plan_id,
-        NOW() AS updated_at
+        dp.created_at AS updated_at
       FROM dealer_profiles dp
       LEFT JOIN users u ON u.id = dp.owner_user_id
-      ${whereSql}
-      ORDER BY dp.created_at DESC
-      LIMIT $${values.length - 1} OFFSET $${values.length}
+      ${dealerWhere}
+      UNION ALL
+      SELECT
+        u.id AS dealer_id,
+        u.id AS owner_user_id,
+        u.email AS owner_email,
+        COALESCE(up.store_name, u.email, 'Mağaza sahibi') AS name,
+        COALESCE(up.city, '—') AS city,
+        FALSE AS verified,
+        up.store_logo_url AS logo_url,
+        up.store_cover_url AS cover_url,
+        NULL AS whatsapp_phone,
+        NULL AS website_url,
+        FALSE AS show_whatsapp,
+        FALSE AS show_website,
+        'store' AS profile_type,
+        NULL AS dealer_plan_id,
+        (
+          SELECT s.plan_id FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+            AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          ORDER BY s.updated_at DESC LIMIT 1
+        ) AS parts_plan_id,
+        u.created_at AS updated_at
+      FROM users u
+      LEFT JOIN user_profiles up ON up.user_id = u.id
+      WHERE EXISTS (
+        SELECT 1 FROM business_plan_subscriptions s
+        WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+          AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+      )
+      AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp3 WHERE dp3.owner_user_id = u.id)
+      ORDER BY updated_at DESC
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `,
     values
   );
+
   const total = n(countResult.rows[0]?.total);
   return {
     items: result.rows.map((row) => ({
@@ -630,6 +688,7 @@ export async function listAdminBusinessProfilesPaged(input: {
       showWebsite: row.show_website ?? false,
       dealerPlanId: row.dealer_plan_id ?? undefined,
       partsPlanId: row.parts_plan_id ?? undefined,
+      profileType: row.profile_type,
       updatedAt: row.updated_at.toISOString()
     })),
     total,
@@ -1657,15 +1716,12 @@ export async function updateSingleAdminListing(id: string, updates: {
       // Clear rejection note when activating
       sets.push(`rejection_note = NULL`);
     }
-    if (updates.status === "rejected") {
+    if (updates.status === "rejected" || updates.status === "inactive") {
       const note = updates.rejectionNote?.trim() || null;
       values.push(note);
       sets.push(`rejection_note = $${values.length}`);
     }
-    if (updates.status === "pending_review") {
-      // Keep rejection note so user can see it even after re-review
-      sets.push(`rejection_note = NULL`);
-    }
+    // pending_review: keep existing rejection note (do NOT clear it — user needs to see reason)
   } else if (updates.rejectionNote !== undefined) {
     values.push(updates.rejectionNote ?? null);
     sets.push(`rejection_note = $${values.length}`);

@@ -11,6 +11,8 @@ const ALLOWED_TYPES = new Set([
   "problem",
   "complaint",
   "partnership",
+  "dealer_apply",
+  "parts_apply",
   "inspection_partner",
   "data_export",
   "data_rectification",
@@ -107,6 +109,16 @@ interface ServicePartnerDraft {
   whatsapp?: string;
 }
 
+interface DealerApplicationDraft {
+  businessType?: "dealer" | "parts_store";
+  businessName?: string;
+  voen?: string | null;
+  city?: string;
+  phone?: string;
+  website?: string | null;
+  description?: string | null;
+}
+
 export async function POST(req: Request) {
   const body = (await req.json()) as {
     requestType?: string;
@@ -117,6 +129,7 @@ export async function POST(req: Request) {
     phone?: string;
     listingId?: string;
     servicePartner?: ServicePartnerDraft;
+    dealerApplication?: DealerApplicationDraft;
   };
   if (!body.subject?.trim() || !body.message?.trim()) {
     return NextResponse.json({ ok: false, error: "Mövzu və müraciət mətni mütləqdir." }, { status: 400 });
@@ -125,12 +138,23 @@ export async function POST(req: Request) {
   const priority = defaultPriorityForRequestType(requestType);
   const reporterIp = getClientIp(req);
   const reporterUserAgent = req.headers.get("user-agent")?.slice(0, 512) ?? null;
-  const metadata = {
+  const metadata: Record<string, unknown> = {
     referer: req.headers.get("referer") ?? null,
     acceptLanguage: req.headers.get("accept-language")?.slice(0, 128) ?? null,
     reporterIp: reporterIp || null,
     reporterUserAgent
   };
+  if (body.dealerApplication) {
+    metadata.dealerApplication = {
+      businessType:  body.dealerApplication.businessType ?? "dealer",
+      businessName:  body.dealerApplication.businessName?.trim() || null,
+      voen:          body.dealerApplication.voen?.trim() || null,
+      city:          body.dealerApplication.city?.trim() || null,
+      phone:         body.dealerApplication.phone?.trim() || null,
+      website:       body.dealerApplication.website?.trim() || null,
+      description:   body.dealerApplication.description?.trim() || null,
+    };
+  }
   const supportRequestId = randomUUID();
   try {
     await insertSupportRequest({

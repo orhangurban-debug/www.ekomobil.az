@@ -717,3 +717,52 @@ export async function updateDealerProfileSettings(input: {
 
   return getDealerProfileSettingsForOwner(input.ownerUserId);
 }
+
+/**
+ * Returns the dealer_profiles.id for a given user.
+ * Used when creating listings to link them to the correct dealer profile.
+ */
+export async function getDealerProfileIdByOwner(userId: string): Promise<string | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{ id: string }>(
+      `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    return result.rows[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Creates a new dealer_profiles row.
+ * Called during partnership approval flow.
+ */
+export async function createDealerProfile(input: {
+  id: string;
+  ownerUserId: string;
+  name: string;
+  city: string;
+  voen?: string | null;
+  phone?: string | null;
+  websiteUrl?: string | null;
+  description?: string | null;
+}): Promise<void> {
+  const pool = getPgPool();
+  await pool.query(
+    `INSERT INTO dealer_profiles
+       (id, owner_user_id, name, city, verified, response_sla_minutes, voen, website_url, description)
+     VALUES ($1, $2, $3, $4, false, 15, $5, $6, $7)
+     ON CONFLICT (id) DO NOTHING`,
+    [
+      input.id,
+      input.ownerUserId,
+      input.name,
+      input.city,
+      input.voen?.trim() || null,
+      input.websiteUrl?.trim() || null,
+      input.description?.trim() || null,
+    ]
+  );
+}

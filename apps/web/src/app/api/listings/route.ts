@@ -19,6 +19,7 @@ import {
   listListings,
   ListingGuardUnavailableError
 } from "@/server/listing-store";
+import { getDealerProfileIdByOwner } from "@/server/dealer-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
 
@@ -273,6 +274,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
       }
     }
 
+    let partDealerProfileId: string | null = null;
     if (isDealerPartSeller) {
       const dealerPartListingCount = await countDealerListingsForUserByKind(sessionUser.id, "part");
       if (dealerPartListingCount >= maxPartListings) {
@@ -284,6 +286,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
           { status: 409 }
         );
       }
+      // Resolve dealer_profile_id so parts listings appear in dealer inventory
+      partDealerProfileId = await getDealerProfileIdByOwner(sessionUser.id);
     }
 
     const validation = validatePartListingInput(partPayload, {
@@ -340,6 +344,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
 
     const createInput = {
       ownerUserId: sessionUser?.id,
+      dealerProfileId: partDealerProfileId ?? undefined,
       title: partPayload.title.trim(),
       description: partPayload.description?.trim() || "",
       make: category,
@@ -527,6 +532,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     }
   }
 
+  let vehicleDealerProfileId: string | null = null;
   if ((vehiclePayload.sellerType ?? "private") === "dealer") {
     if (!["dealer", "admin"].includes(sessionUser.role)) {
       return NextResponse.json(
@@ -548,6 +554,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
         { status: 409 }
       );
     }
+    // Resolve dealer_profile_id so the listing appears in salon dashboard inventory
+    vehicleDealerProfileId = await getDealerProfileIdByOwner(sessionUser.id);
   }
 
   const trustSignals = buildTrustSignals({
@@ -575,6 +583,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
 
   const createInput = {
     ownerUserId: sessionUser?.id,
+    dealerProfileId: vehicleDealerProfileId ?? undefined,
     title: vehiclePayload.title,
     description: vehiclePayload.description?.trim() || "",
     make: vehiclePayload.vehicle.make,

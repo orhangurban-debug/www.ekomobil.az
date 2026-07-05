@@ -18,6 +18,7 @@ interface BusinessProfileItem {
   whatsappPhone?: string;
   dealerPlanId?: string;
   partsPlanId?: string;
+  profileType?: "dealer" | "store";
 }
 
 export function AdminBusinessProfilesTable({
@@ -184,7 +185,14 @@ export function AdminBusinessProfilesTable({
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{item.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{item.name}</span>
+                      {item.profileType === "store" ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">Mağaza</span>
+                      ) : (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Salon</span>
+                      )}
+                    </div>
                     <div className="text-xs text-slate-500">{item.city}</div>
                     <div className="text-xs text-slate-400">ID: {item.dealerId}</div>
                   </td>
@@ -201,7 +209,9 @@ export function AdminBusinessProfilesTable({
                     <div className="text-xs text-slate-600 truncate max-w-[220px]">{item.websiteUrl ?? "Website yoxdur"}</div>
                   </td>
                   <td className="px-4 py-3">
-                    {readOnly ? (
+                    {item.profileType === "store" ? (
+                      <div className="text-xs text-slate-400">Mağaza — admin moderasiyası tətbiq edilmir</div>
+                    ) : readOnly ? (
                       <div className="text-xs text-slate-500">
                         {item.verified ? "Təsdiqlənib" : "Təsdiq gözləyir"} · WA {item.showWhatsapp ? "açıq" : "gizli"} · Web {item.showWebsite ? "açıq" : "gizli"}
                       </div>

@@ -1,9 +1,12 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteArchivedSupportRequests } from "@/server/admin-store";
+import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteArchivedSupportRequests, updateAdminUserRole } from "@/server/admin-store";
 import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
+import { createDealerProfile } from "@/server/dealer-store";
+import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
 const ALLOWED_PRIORITY = new Set(["low", "normal", "high", "urgent"]);
@@ -124,6 +127,74 @@ export async function PATCH(req: Request) {
     riskFlag: body.riskFlag
   });
 
+  // ── Partnership auto-activation ────────────────────────────────────────────
+  // When a dealer_apply or partnership request is marked "resolved",
+  // automatically: create dealer_profiles row, set user role, grant 30-day trial.
+  let partnershipActivated = false;
+  if (effectiveStatus === "resolved") {
+    try {
+      const pool = getPgPool();
+      const reqRow = await pool.query<{
+        request_type: string;
+        reporter_user_id: string | null;
+        metadata: Record<string, unknown> | null;
+      }>(
+        `SELECT request_type, reporter_user_id, metadata FROM support_requests WHERE id = $1 LIMIT 1`,
+        [body.id]
+      );
+      const req = reqRow.rows[0];
+      const isDealerApply = req?.request_type === "dealer_apply" || req?.request_type === "partnership";
+      if (isDealerApply && req.reporter_user_id) {
+        const app = req.metadata?.dealerApplication as Record<string, unknown> | undefined;
+        const businessName = (app?.businessName as string | undefined)?.trim() ||
+          (req.metadata?.referer ? "Dealer" : "Dealer");
+        const city = (app?.city as string | undefined)?.trim() || "Bakı";
+        const voen = (app?.voen as string | undefined)?.trim() || null;
+        const websiteUrl = (app?.website as string | undefined)?.trim() || null;
+        const description = (app?.description as string | undefined)?.trim() || null;
+
+        // 1. Check if dealer_profiles already exists for this user
+        const existingProfile = await pool.query<{ id: string }>(
+          `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
+          [req.reporter_user_id]
+        );
+        if (!existingProfile.rows[0]) {
+          // 2. Create dealer_profiles row
+          const dealerProfileId = randomUUID();
+          await createDealerProfile({
+            id: dealerProfileId,
+            ownerUserId: req.reporter_user_id,
+            name: businessName,
+            city,
+            voen,
+            websiteUrl,
+            description,
+          });
+
+          // 3. Update user role to dealer
+          await updateAdminUserRole(req.reporter_user_id, "dealer");
+
+          // 4. Grant 30-day trial subscription
+          const now = new Date();
+          const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          await upsertBusinessPlanSubscription({
+            ownerUserId: req.reporter_user_id,
+            businessType: "dealer",
+            planId: "dealer_standard",
+            status: "active",
+            startsAt: now.toISOString(),
+            expiresAt: trialEnd.toISOString(),
+            trialGrantedAt: now.toISOString(),
+          });
+
+          partnershipActivated = true;
+        }
+      }
+    } catch (err) {
+      console.error("[support-requests PATCH] Partnership activation failed:", err);
+    }
+  }
+
   await createAdminAuditLog({
     actorUserId: auth.user.id,
     actorRole: auth.user.role,
@@ -136,7 +207,8 @@ export async function PATCH(req: Request) {
       priority: body.priority,
       assignedToUserId: body.assignedToUserId,
       responded: hasNewResponse,
-      riskFlag: body.riskFlag
+      riskFlag: body.riskFlag,
+      partnershipActivated,
     }
   });
 
@@ -168,7 +240,8 @@ export async function PATCH(req: Request) {
     ok: true,
     emailSent,
     emailError,
-    status: effectiveStatus
+    status: effectiveStatus,
+    partnershipActivated,
   });
 }
 

@@ -338,6 +338,13 @@ export async function finalizeListingPlanPayment(input: {
     activate: payment.source === "publish"
   });
   if (!applyResult.ok) {
+    // Plan application failed after payment was marked succeeded.
+    // Roll back payment status so the bank callback can be retried.
+    try {
+      await setListingPlanPaymentStatus(input.paymentId, "pending", input.providerReference);
+    } catch (rollbackErr) {
+      console.error("[payment-store] Rollback after failed plan apply:", rollbackErr);
+    }
     return { ok: false, error: applyResult.error ?? "Plan tətbiq edilə bilmədi" };
   }
 

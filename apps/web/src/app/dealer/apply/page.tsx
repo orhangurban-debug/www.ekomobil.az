@@ -25,10 +25,19 @@ export default function DealerApplyPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          requestType: "partnership",
+          requestType: "dealer_apply",
           subject: `Salon müraciəti: ${form.businessName}`,
-          message: `Biznes növü: Avtomobil salonu\nBiznes adı: ${form.businessName}\nVÖEN: ${form.voen}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`,
-          phone: form.phone
+          message: `Biznes növü: Avtomobil salonu\nBiznes adı: ${form.businessName}\nVÖEN: ${form.voen || "—"}\nŞəhər: ${form.city}\nTelefon: ${form.phone}\nSayt: ${form.website || "—"}\nQeyd: ${form.description || "—"}`,
+          phone: form.phone,
+          dealerApplication: {
+            businessType: "dealer",
+            businessName: form.businessName,
+            voen: form.voen || null,
+            city: form.city,
+            phone: form.phone,
+            website: form.website || null,
+            description: form.description || null
+          }
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
