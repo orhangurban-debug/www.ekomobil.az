@@ -59,8 +59,8 @@ export function BusinessAccountStatus({
           title="Mağaza"
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
-          href={magazaActive ? "/parts/publish" : "/parts/apply"}
-          actionLabel={magazaActive ? "Elan ver" : "Aktiv et"}
+          href={magazaActive ? "/parts/store" : "/parts/apply"}
+          actionLabel={magazaActive ? "Panel" : "Aktiv et"}
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
@@ -87,8 +87,8 @@ export function BusinessAccountStatus({
           title="Ehtiyat hissə mağazası"
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
-          primaryHref={magazaActive ? "/parts/publish" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Hissə elanı" : "Aktiv et"}
+          primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : "Aktiv et"}
           secondaryHref="/pricing#parts-store"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
@@ -133,8 +133,8 @@ export function BusinessAccountStatus({
           description="SKU kataloqu, toplu yükləmə, mağaza analitikası."
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
-          primaryHref={magazaActive ? "/parts/publish" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Hissə elanı" : "Mağaza müraciəti"}
+          primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : "Mağaza müraciəti"}
           secondaryHref="/pricing#parts-store"
           secondaryLabel="Mağaza planları"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
