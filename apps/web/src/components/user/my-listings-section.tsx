@@ -43,11 +43,13 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
     tab === "part" ? partListings :
     listings;
 
-  const tabs: { key: TabKey; label: string; count: number; show: boolean }[] = [
-    { key: "all",  label: "Hamısı",          count: listings.length,  show: true },
-    { key: "car",  label: hasSalon ? "Salon elanları" : "Avtomobil",  count: carListings.length,  show: carListings.length > 0 || hasSalon },
-    { key: "part", label: hasStore ? "Mağaza elanları" : "Hissə",     count: partListings.length, show: partListings.length > 0 || hasStore }
-  ].filter(t => t.show);
+  const tabs = (
+    [
+      { key: "all"  as TabKey, label: "Hamısı",                                         count: listings.length,    show: true },
+      { key: "car"  as TabKey, label: hasSalon ? "Salon elanları" : "Avtomobil",        count: carListings.length, show: carListings.length > 0 || hasSalon },
+      { key: "part" as TabKey, label: hasStore ? "Mağaza elanları" : "Hissə elanları",  count: partListings.length,show: partListings.length > 0 || hasStore }
+    ] satisfies { key: TabKey; label: string; count: number; show: boolean }[]
+  ).filter(t => t.show);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

@@ -206,7 +206,7 @@ export default async function ProfilePage({
               listings={myListings}
               draftPaymentMap={Object.fromEntries(draftPaymentMap)}
               hasStore={isStore}
-              hasSalon={!!businessSnapshot?.salonActive}
+              hasSalon={!!businessSnapshot?.salonSubscriptionActive}
             />
 
             {/* Ödənişlər */}
