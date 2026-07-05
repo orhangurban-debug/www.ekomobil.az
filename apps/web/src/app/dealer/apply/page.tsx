@@ -56,8 +56,7 @@ export default function DealerApplyPage() {
         </div>
         <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
         <p className="mt-3 text-slate-500">
-          Komandamız 1–2 iş günü ərzində e-poçt vasitəsilə əlaqə saxlayacaq. 
-          VÖEN arayışı tələb oluna bilər.
+          Komandamız 1–2 iş günü ərzində telefon və ya e-poçt vasitəsilə əlaqə saxlayacaq.
         </p>
         <div className="mx-auto mt-5 max-w-sm rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
           Müraciətiniz təsdiqləndikdən sonra <strong>ilk 30 gün pulsuz</strong> salon planından istifadə edə bilərsiniz.
@@ -111,31 +110,29 @@ export default function DealerApplyPage() {
         formundan istifadə edin — salon hesabından asılı deyil.
       </div>
 
-      <div className="mb-6 rounded-xl alert-warning border px-4 py-3 text-sm text-amber-700">
-        <strong>Tələb olunan:</strong> VÖEN — müraciətin yoxlanması üçün lazımdır.
-      </div>
-
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
         <div>
-          <label className="label">Biznes adı <span className="text-red-400">*</span></label>
+          <label className="label">Biznes / Salon adı <span className="text-red-400">*</span></label>
           <input
             className="input-field"
             value={form.businessName}
             onChange={(e) => setForm((p) => ({ ...p, businessName: e.target.value }))}
-            placeholder="Salon adı, MMC adı və s."
+            placeholder="Məs: Orion Auto, Premium Cars..."
             required
           />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="label">VÖEN <span className="text-red-400">*</span></label>
+            <label className="label">
+              VÖEN
+              <span className="ml-1.5 text-xs font-normal text-slate-400">(varsa)</span>
+            </label>
             <input
               className="input-field"
               value={form.voen}
               onChange={(e) => setForm((p) => ({ ...p, voen: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
-              placeholder="10 rəqəm"
-              required
+              placeholder="10 rəqəm — şirkətsiz satıcı üçün boş buraxın"
             />
           </div>
           <div>
