@@ -205,7 +205,7 @@ export default async function ProfilePage({
             <MyListingsSection
               listings={myListings}
               draftPaymentMap={Object.fromEntries(draftPaymentMap)}
-              hasStore={isStoreOwner}
+              hasStore={isStore}
               hasSalon={!!businessSnapshot?.salonActive}
             />
 
