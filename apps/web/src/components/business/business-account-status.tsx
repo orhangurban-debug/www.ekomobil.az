@@ -70,7 +70,7 @@ export function BusinessAccountStatus({
 
   if (sidebar) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <SidebarRow
           emoji="🚗"
           title="Avtomobil salonu"
@@ -93,6 +93,9 @@ export function BusinessAccountStatus({
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
+        {/* Service & Expertise — coming soon / contact-based */}
+        <ComingSoonRow emoji="🔧" title="Servis / Usta profili" href="/contact?intent=service" />
+        <ComingSoonRow emoji="🔍" title="Ekspertiza mərkəzi"   href="/contact?intent=expertise" />
         <Link href="/pricing" className="mt-1 block text-center text-xs text-slate-400 hover:text-[#0057FF] transition">
           Bütün planları gör →
         </Link>
@@ -142,6 +145,23 @@ export function BusinessAccountStatus({
         />
       </div>
     </section>
+  );
+}
+
+function ComingSoonRow({ emoji, title, href }: { emoji: string; title: string; href: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-3">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="text-xl shrink-0">{emoji}</span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-slate-800">{title}</p>
+          <p className="text-xs text-slate-400">Tezliklə · Müraciət et</p>
+        </div>
+      </div>
+      <Link href={href} className="shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:border-[#0057FF]/30 hover:text-[#0057FF]">
+        Müraciət
+      </Link>
+    </div>
   );
 }
 

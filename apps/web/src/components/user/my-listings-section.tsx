@@ -77,7 +77,23 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
           ))}
         </div>
 
-        {/* View switcher */}
+        {/* Business panel quick links */}
+        {(hasStore || hasSalon) && (
+          <div className="flex items-center gap-1.5">
+            {hasSalon && (
+              <a href="/dealer" className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-[#0057FF]/30 hover:text-[#0057FF]">
+                🚗 Salon paneli
+              </a>
+            )}
+            {hasStore && (
+              <a href="/parts/store" className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-medium text-violet-700 transition hover:bg-violet-100">
+                📦 Mağaza paneli
+              </a>
+            )}
+          </div>
+        )}
+
+      {/* View switcher */}
         <div className="ml-auto flex items-center gap-1 rounded-xl border border-slate-100 bg-slate-50 p-1">
           <button
             onClick={() => setView("list")}
@@ -99,9 +115,6 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
           </button>
         </div>
 
-        <Link href="/publish" className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100">
-          + Yeni elan
-        </Link>
       </div>
 
       {hasNonActive && (

@@ -177,17 +177,19 @@ export default async function ProfilePage({
                 ))}
               </div>
 
-              {/* Primary actions */}
+              {/* Primary actions — "Elan ver" artıq nav-dadır, bura duplicate olmasın */}
               <div className="flex flex-wrap gap-2">
-                <Link href="/publish" className="rounded-xl bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#004ADF]">
-                  + Yeni elan
-                </Link>
                 <Link href="/favorites" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                   Favorilər
                 </Link>
                 <Link href={`/sellers/${user.id}`} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                   İctimai profil ↗
                 </Link>
+                {invoiceCount > 0 && (
+                  <Link href="/me/payments" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    {invoiceCount} İnvoys
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -209,58 +211,6 @@ export default async function ProfilePage({
               hasSalon={!!businessSnapshot?.salonSubscriptionActive}
             />
 
-            {/* Ödənişlər */}
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-semibold text-slate-900">Ödənişlər</h2>
-                  {invoiceCount > 0 && (
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                      {invoiceCount}
-                    </span>
-                  )}
-                </div>
-                <Link href="/me/payments" className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100">
-                  Hamısı →
-                </Link>
-              </div>
-
-              {invoices.length === 0 ? (
-                <div className="px-5 py-10 text-center">
-                  <p className="text-sm text-slate-500">Hələ ödəniş invoysu yoxdur</p>
-                  <Link href="/pricing" className="mt-2 inline-block text-sm font-medium text-[#0057FF] hover:underline">
-                    Planları kəşf et →
-                  </Link>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {invoices.map((inv) => (
-                    <Link
-                      key={inv.id}
-                      href={`/me/invoices/${inv.id}`}
-                      className="flex items-center justify-between gap-4 px-5 py-3.5 transition hover:bg-slate-50"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-xs font-semibold text-slate-800">{inv.invoiceNumber}</span>
-                          <span className="rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                            {INVOICE_PAYMENT_TYPE_LABELS[inv.paymentType] ?? inv.paymentType}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 truncate text-sm text-slate-500">{inv.description}</p>
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          {new Date(inv.issuedAt).toLocaleDateString("az-AZ", { year: "numeric", month: "short", day: "numeric" })}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="font-bold text-slate-900">{inv.amountAzn.toFixed(2)} ₼</p>
-                        {inv.vatAmountAzn > 0 && <p className="text-[10px] text-slate-400">ƏDV daxil</p>}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
 
             {/* Auksion bildirişləri */}
             {auctionNotifications.length > 0 && (
@@ -353,6 +303,52 @@ export default async function ProfilePage({
                   </Link>
                 </div>
               </div>
+            </section>
+
+            {/* ── Ödənişlər (sidebar, sabit görünür) ─────────────── */}
+            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-semibold text-slate-900">Ödənişlər</h2>
+                  {invoiceCount > 0 && (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                      {invoiceCount}
+                    </span>
+                  )}
+                </div>
+                <Link href="/me/payments" className="text-xs font-medium text-[#0057FF] hover:underline">
+                  Hamısı →
+                </Link>
+              </div>
+              {invoices.length === 0 ? (
+                <div className="px-5 py-6 text-center">
+                  <p className="text-sm text-slate-500">Hələ ödəniş invoysu yoxdur</p>
+                  <Link href="/pricing" className="mt-1.5 inline-block text-xs font-medium text-[#0057FF] hover:underline">
+                    Planları kəşf et →
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {invoices.slice(0, 5).map((inv) => (
+                    <Link
+                      key={inv.id}
+                      href={`/me/invoices/${inv.id}`}
+                      className="flex items-center justify-between gap-3 px-5 py-3 transition hover:bg-slate-50"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-xs font-semibold text-slate-800">{inv.invoiceNumber}</span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
+                            {INVOICE_PAYMENT_TYPE_LABELS[inv.paymentType] ?? inv.paymentType}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 truncate text-xs text-slate-400">{inv.description}</p>
+                      </div>
+                      <p className="shrink-0 text-sm font-bold text-slate-900">{inv.amountAzn.toFixed(2)} ₼</p>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* Biznes hesabları */}
