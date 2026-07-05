@@ -1465,6 +1465,21 @@ export default function PublishPage() {
                   </div>
                 )}
 
+                {/* Accuracy declaration */}
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm text-amber-800">
+                  <div className="flex gap-2.5">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <p>
+                      <strong>Məlumat dəqiqliyi bəyannaməsi:</strong> Yerləşdirdiyim elanda göstərilən yürüş,
+                      qiymət, texniki vəziyyət və digər məlumatlar doğrudur. Saxta və ya yanlış məlumat
+                      yerləşdirmənin hesabımın bloklanmasına və hüquqi məsuliyyətə gətirib çıxara biləcəyini
+                      qəbul edirəm. Hər yeni elan admin tərəfindən yoxlanılır.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex gap-3">
                   <button type="button" onClick={() => goToStep("Plan")} className="btn-secondary flex-1 justify-center py-3">
                     Geri
@@ -1478,7 +1493,7 @@ export default function PublishPage() {
                         </svg>
                         Yoxlanılır...
                       </>
-                    ) : planType === "free" ? "Elan yerləşdir" : "Ödənişə keç"}
+                    ) : planType === "free" ? "Razıyam, elan yerləşdir" : "Razıyam, ödənişə keç"}
                   </button>
                 </div>
               </div>

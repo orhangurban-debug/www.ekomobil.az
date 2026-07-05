@@ -84,6 +84,7 @@ interface ListingRow {
   part_compatibility?: string | null;
   contact_phone?: string | null;
   whatsapp_phone?: string | null;
+  seller_display_name?: string | null;
 }
 
 interface ServiceRecordRow {
@@ -303,7 +304,8 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     serviceHistorySummary: row.service_history_summary ?? undefined,
     riskSummary: row.risk_summary ?? undefined,
     lastVerifiedAt: row.last_verified_at?.toISOString(),
-    priceInsight: row.listing_kind === "part" ? undefined : inferPriceInsight(row.price_azn)
+    priceInsight: row.listing_kind === "part" ? undefined : inferPriceInsight(row.price_azn),
+    sellerDisplayName: row.seller_display_name ?? undefined
   };
 }
 
@@ -553,9 +555,12 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
-          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at
+          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+        LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         ${whereSql}
         ORDER BY ${sortSql}
         LIMIT $${values.length - 1}
@@ -624,12 +629,14 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
             WHEN dp.id IS NOT NULL AND ${dealerShowWhatsappExpr} = TRUE AND ${dealerWhatsappPhoneExpr} IS NOT NULL
               THEN ${dealerWhatsappPhoneExpr}
             ELSE COALESCE(NULLIF(l.contact_phone, ''), NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr})
-          END AS whatsapp_phone
+          END AS whatsapp_phone,
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
         LEFT JOIN users ou ON ou.id = l.owner_user_id
         LEFT JOIN users dpu ON dpu.id = dp.owner_user_id
+        LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         WHERE l.id = $1
         LIMIT 1
       `,
@@ -966,9 +973,12 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
-          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at
+          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+        LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         WHERE l.id = ANY($1::text[])
       `,
       [ids]
@@ -1005,9 +1015,12 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
             LIMIT 1
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
-          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at
+          ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+        LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         WHERE l.owner_user_id = $1 OR l.dealer_profile_id IN (
           SELECT id FROM dealer_profiles WHERE owner_user_id = $1
         )
