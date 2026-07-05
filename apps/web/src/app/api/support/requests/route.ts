@@ -156,6 +156,7 @@ export async function POST(req: Request) {
         try {
           const result = await createPendingServiceListing({
             supportRequestId,
+            ownerUserId: getOptionalUserIdFromCookie(req) ?? undefined,
             name: draft.name.trim(),
             providerType: draft.providerType.trim(),
             city: draft.city.trim(),

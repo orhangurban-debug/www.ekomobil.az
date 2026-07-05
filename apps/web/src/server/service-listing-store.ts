@@ -77,6 +77,11 @@ async function ensureServiceListingsTable(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_service_listings_city ON service_listings (city);
       CREATE INDEX IF NOT EXISTS idx_service_listings_created_at ON service_listings (created_at DESC);
     `);
+    // Incremental: add owner_user_id if not yet present (migration 058)
+    await pool.query(`
+      ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS owner_user_id TEXT;
+      CREATE INDEX IF NOT EXISTS idx_service_listings_owner ON service_listings (owner_user_id);
+    `).catch(() => {});
     serviceListingsTableEnsured = true;
   } catch {
     // Non-blocking safety net — migration 048_service_listings.sql is the source of truth.
@@ -110,6 +115,7 @@ function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
     whatsapp: row.whatsapp ?? row.phone,
     imageUrls: row.image_urls && row.image_urls.length > 0 ? row.image_urls : undefined,
     status: row.status as ServiceListingStatus,
+    ownerUserId: (row as ServiceListingRow & { owner_user_id?: string }).owner_user_id ?? null,
     supportRequestId: row.support_request_id ?? undefined,
     createdAt: row.created_at.toISOString()
   };
@@ -117,6 +123,7 @@ function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
 
 export async function createPendingServiceListing(input: {
   supportRequestId?: string;
+  ownerUserId?: string;
   name: string;
   providerType: string;
   city: string;
@@ -143,15 +150,16 @@ export async function createPendingServiceListing(input: {
   await pool.query(
     `
       INSERT INTO service_listings (
-        id, slug, support_request_id, name, provider_type, city, address, map_url,
+        id, slug, support_request_id, owner_user_id, name, provider_type, city, address, map_url,
         about, services, certifications, image_urls, phone, whatsapp, status
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'approved')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'approved')
     `,
     [
       id,
       slug,
       input.supportRequestId ?? null,
+      input.ownerUserId ?? null,
       input.name,
       input.providerType,
       input.city,
@@ -167,6 +175,20 @@ export async function createPendingServiceListing(input: {
   );
 
   return { id, slug };
+}
+
+export async function listServiceListingsForUser(userId: string): Promise<ServiceListingRecord[]> {
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `SELECT * FROM service_listings WHERE owner_user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    return result.rows.map(mapRow);
+  } catch {
+    return [];
+  }
 }
 
 export async function listApprovedServiceListings(filter?: {

@@ -8,7 +8,13 @@ export const metadata: Metadata = {
     "Rəsmi servis, ekspertiza şirkəti, mexanik, elektrik, EV mütəxəssisi və bütün avtomobil xidmət təminatçılarının EkoMobil platformasına qeydiyyatı."
 };
 
-export default function InspectionPartnersPage() {
+export default async function InspectionPartnersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
+  const initialType = params.type ?? null;
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-slate-500">
@@ -49,7 +55,7 @@ export default function InspectionPartnersPage() {
       </div>
 
       <div className="mt-8">
-        <InspectionPartnerApplicationForm />
+        <InspectionPartnerApplicationForm initialType={initialType} />
       </div>
     </div>
   );

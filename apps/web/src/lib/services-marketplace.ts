@@ -110,6 +110,7 @@ export const SERVICE_PROVIDER_GROUPS: ServiceProviderGroup[] = [
 // ─── Listing record ──────────────────────────────────────────────────────────
 
 export interface ServiceListingRecord {
+  id: string;
   slug: string;
   name: string;
   providerType: ServiceProviderType;
@@ -125,6 +126,8 @@ export interface ServiceListingRecord {
   phone: string;
   whatsapp: string;
   imageUrls?: string[];
+  status: string;
+  ownerUserId?: string | null;
 }
 
 // Actual listing data is fetched from the database (`service_listings` table) via

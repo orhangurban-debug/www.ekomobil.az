@@ -356,8 +356,10 @@ const AZ_CITIES = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function InspectionPartnerApplicationForm() {
-  const [providerType, setProviderType] = useState<ProviderTypeValue | "">("");
+export function InspectionPartnerApplicationForm({ initialType }: { initialType?: string | null }) {
+  const [providerType, setProviderType] = useState<ProviderTypeValue | "">(
+    (initialType as ProviderTypeValue) ?? ""
+  );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [providerName, setProviderName] = useState("");
   const [city, setCity] = useState("");
