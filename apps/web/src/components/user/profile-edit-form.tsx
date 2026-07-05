@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 
 interface ProfileEditFormProps {
   initialData: {
@@ -73,40 +72,38 @@ export function ProfileEditForm({ initialData, isStore, publicProfileUrl }: Prof
   }
 
   if (!open) {
+    const initials = (fullName || "EK").split(" ").map((w: string) => w[0] ?? "").slice(0, 2).join("").toUpperCase() || "EK";
     return (
       <div className="flex items-center gap-3">
-        {/* Avatar preview */}
+        {/* Avatar */}
         {avatarPreview ? (
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl ring-2 ring-slate-900/10">
-            <Image src={avatarPreview} alt="Profil" fill className="object-cover" sizes="40px" />
-          </div>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarPreview}
+            alt={fullName || "Profil"}
+            className="h-11 w-11 shrink-0 rounded-xl object-cover ring-2 ring-slate-100"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
         ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0057FF] to-[#0046CC] text-sm font-bold text-white">
-            {(fullName || "EK").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() || "EK"}
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0057FF] to-[#0040CC] text-sm font-bold text-white">
+            {initials}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-900">{fullName || "Ad qeyd olunmayıb"}</p>
-          <p className="text-xs text-slate-400">{city || "Şəhər qeyd olunmayıb"}</p>
+          <p className="truncate text-sm font-semibold text-slate-900">{fullName || "Ad qeyd olunmayıb"}</p>
+          <p className="truncate text-xs text-slate-400">{city || "Şəhər qeyd olunmayıb"}</p>
+          {initialData.bio && (
+            <p className="mt-0.5 line-clamp-1 text-xs text-slate-400 italic">{initialData.bio}</p>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <a
-            href={publicProfileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 rounded-lg border border-slate-900/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-          >
-            İctimai profil →
-          </a>
-          <button
-            onClick={() => setOpen(true)}
-            className="shrink-0 rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-3 py-1.5 text-xs font-medium text-[#0057FF] transition hover:bg-[#0057FF]/10"
-          >
-            Redaktə et
-          </button>
-        </div>
+        <button
+          onClick={() => setOpen(true)}
+          className="shrink-0 rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-3 py-1.5 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
+        >
+          Redaktə et
+        </button>
       </div>
     );
   }

@@ -202,7 +202,7 @@ export default async function ProfilePage({
 
       {/* ── Main Content ──────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* ── LEFT COLUMN ──────────────────────────────────────────────────── */}
           <div className="space-y-5">
@@ -555,7 +555,7 @@ export default async function ProfilePage({
                 <h2 className="font-semibold text-slate-900">Biznes hesabları</h2>
               </div>
               <div className="p-5">
-                <BusinessAccountStatus snapshot={businessSnapshot} />
+                <BusinessAccountStatus snapshot={businessSnapshot} sidebar />
               </div>
 
               {user.role === "viewer" && (

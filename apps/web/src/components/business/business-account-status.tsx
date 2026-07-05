@@ -32,10 +32,13 @@ function ExpiryBadge({ expiresAt, isTrial }: { expiresAt?: string; isTrial?: boo
 
 export function BusinessAccountStatus({
   snapshot,
-  compact = false
+  compact = false,
+  sidebar = false
 }: {
   snapshot: BusinessAccountSnapshot;
   compact?: boolean;
+  /** sidebar=true: iki item şaquli sıralanır — dar kontekst üçün */
+  sidebar?: boolean;
 }) {
   const salonActive = snapshot.salonRoleApproved && snapshot.salonSubscriptionActive;
   const magazaActive = snapshot.magazaSubscriptionActive;
@@ -61,6 +64,38 @@ export function BusinessAccountStatus({
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
+      </div>
+    );
+  }
+
+  if (sidebar) {
+    return (
+      <div className="space-y-3">
+        <SidebarRow
+          emoji="🚗"
+          title="Avtomobil salonu"
+          status={salonStatusLabel(snapshot)}
+          active={salonActive}
+          primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
+          primaryLabel={salonActive ? "Salon paneli" : "Müraciət et"}
+          secondaryHref="/pricing#dealer"
+          expiresAt={snapshot.salonSubscriptionExpiresAt}
+          isTrial={snapshot.salonIsTrial}
+        />
+        <SidebarRow
+          emoji="📦"
+          title="Ehtiyat hissə mağazası"
+          status={magazaStatusLabel(snapshot)}
+          active={magazaActive}
+          primaryHref={magazaActive ? "/parts/publish" : "/parts/apply"}
+          primaryLabel={magazaActive ? "Hissə elanı" : "Aktiv et"}
+          secondaryHref="/pricing#parts-store"
+          expiresAt={snapshot.magazaSubscriptionExpiresAt}
+          isTrial={snapshot.magazaIsTrial}
+        />
+        <Link href="/pricing" className="mt-1 block text-center text-xs text-slate-400 hover:text-[#0057FF] transition">
+          Bütün planları gör →
+        </Link>
       </div>
     );
   }
@@ -107,6 +142,60 @@ export function BusinessAccountStatus({
         />
       </div>
     </section>
+  );
+}
+
+function SidebarRow({
+  emoji,
+  title,
+  status,
+  active,
+  primaryHref,
+  primaryLabel,
+  secondaryHref,
+  expiresAt,
+  isTrial
+}: {
+  emoji: string;
+  title: string;
+  status: string;
+  active: boolean;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref: string;
+  expiresAt?: string;
+  isTrial?: boolean;
+}) {
+  return (
+    <div className={`rounded-xl border p-3.5 ${active ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-xl shrink-0">{emoji}</span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
+            <p className={`text-xs ${active ? "text-emerald-700 font-medium" : "text-slate-500"}`}>{status}</p>
+          </div>
+        </div>
+        <Link
+          href={primaryHref}
+          className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+            active
+              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+              : "bg-[#0057FF] text-white hover:bg-[#004ADF]"
+          }`}
+        >
+          {primaryLabel}
+        </Link>
+      </div>
+      {active && expiresAt && (
+        <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />
+      )}
+      {!active && (
+        <Link href={secondaryHref} className="mt-2 block text-xs text-slate-400 hover:text-[#0057FF] transition">
+          Planları gör →
+        </Link>
+      )}
+    </div>
   );
 }
 
