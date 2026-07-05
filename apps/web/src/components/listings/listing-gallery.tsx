@@ -6,10 +6,12 @@ import { ListingPhoto } from "@/components/listings/listing-photo";
 interface Props {
   urls: string[];
   title: string;
+  fit?: "cover" | "contain";
 }
 
-export function ListingGallery({ urls, title }: Props) {
+export function ListingGallery({ urls, title, fit = "cover" }: Props) {
   const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
 
   if (urls.length === 0) {
     return (
@@ -27,20 +29,65 @@ export function ListingGallery({ urls, title }: Props) {
 
   return (
     <div className="space-y-2">
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setLightbox(false)}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            onClick={() => setLightbox(false)}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {urls.length > 1 && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); setActive((prev) => (prev - 1 + urls.length) % urls.length); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+          )}
+          <div className="max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={mainUrl} alt={title} className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl" />
+          </div>
+          {urls.length > 1 && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); setActive((prev) => (prev + 1) % urls.length); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          )}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/60">{active + 1} / {urls.length}</div>
+        </div>
+      )}
+
       {/* Main image */}
       <div className="card overflow-hidden">
-        <div className="relative h-80 bg-white/60">
+        <div
+          className={`relative h-80 cursor-zoom-in ${fit === "contain" ? "bg-slate-50" : "bg-white/60"}`}
+          onClick={() => setLightbox(true)}
+          title="Böyüt"
+        >
           <ListingPhoto
             key={mainUrl}
             src={mainUrl}
             alt={title}
             fill
-            className="object-cover transition-opacity duration-200"
+            className={`${fit === "contain" ? "object-contain p-2" : "object-cover"} transition-opacity duration-200`}
             sizes="(max-width: 1024px) 100vw, 66vw"
             priority
           />
+          {/* Expand hint */}
+          <div className="absolute right-3 top-3 rounded-full bg-black/40 p-1.5 text-white opacity-60 hover:opacity-100">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/>
+            </svg>
+          </div>
           {urls.length > 1 && (
-            <div className="absolute bottom-3 right-3 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-slate-900">
+            <div className="absolute bottom-3 right-3 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white">
               {active + 1} / {urls.length}
             </div>
           )}
@@ -50,8 +97,8 @@ export function ListingGallery({ urls, title }: Props) {
               <button
                 type="button"
                 aria-label="Əvvəlki şəkil"
-                onClick={() => setActive((prev) => (prev - 1 + urls.length) % urls.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-slate-900 hover:bg-black/60"
+                onClick={(e) => { e.stopPropagation(); setActive((prev) => (prev - 1 + urls.length) % urls.length); }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -60,8 +107,8 @@ export function ListingGallery({ urls, title }: Props) {
               <button
                 type="button"
                 aria-label="Növbəti şəkil"
-                onClick={() => setActive((prev) => (prev + 1) % urls.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-slate-900 hover:bg-black/60"
+                onClick={(e) => { e.stopPropagation(); setActive((prev) => (prev + 1) % urls.length); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white hover:bg-black/60"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

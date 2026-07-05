@@ -114,7 +114,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
     setUploadProcessing(false);
   }
 
-  const MIN_PART_IMAGES = 4;
+  const MIN_PART_IMAGES = 1;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -296,12 +296,23 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           {uploadedImages.length > 0 && (
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {uploadedImages.map((img, i) => (
-                <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-slate-900/10">
+                <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-slate-900/10 group">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={URL.createObjectURL(img.file)} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-center text-[9px] text-slate-900">
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-center text-[9px] text-white">
                     {formatFileSize(img.compressedSizeBytes)}
                   </span>
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-600"
+                    title="Sil"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>

@@ -100,8 +100,11 @@ export default async function ListingDetailPage({
     getListingStats(id)
   ]);
   if (!listing) notFound();
-  // For dealer listings the seller card links directly to /dealers/[id] — no need to load the user profile.
-  const sellerUserId = listing.sellerType !== "dealer" ? listing.ownerUserId : null;
+  // For auto-salon dealer listings with a dealerProfileId → link to /dealers/[id], no user profile needed.
+  // For parts-store listings (sellerType="dealer" but no dealerProfileId) → load user profile like private sellers.
+  const sellerUserId = (listing.sellerType === "dealer" && listing.dealerProfileId)
+    ? null
+    : listing.ownerUserId;
   const [related, sellerProfile] = await Promise.all([
     getRelatedListings(listing.relatedIds),
     sellerUserId ? getPublicSellerProfile(sellerUserId).catch(() => null) : Promise.resolve(null)
@@ -188,7 +191,7 @@ export default async function ListingDetailPage({
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left — images */}
         <div className="lg:col-span-2 space-y-4">
-          <ListingGallery urls={listing.mediaUrls} title={listing.title} />
+          <ListingGallery urls={listing.mediaUrls} title={listing.title} fit={isPart ? "contain" : "cover"} />
 
           <ListingSpecShowcase specs={showcaseSpecs} />
 
