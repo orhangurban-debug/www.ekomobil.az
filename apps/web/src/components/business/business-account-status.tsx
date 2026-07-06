@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { BusinessAccountSnapshot } from "@/server/business-plan-store";
 import { magazaStatusLabel, salonStatusLabel } from "@/lib/business-account";
+import type { ServiceListingRecord } from "@/lib/services-marketplace";
 
 function daysLeft(iso?: string): number | null {
   if (!iso) return null;
@@ -33,15 +34,23 @@ function ExpiryBadge({ expiresAt, isTrial }: { expiresAt?: string; isTrial?: boo
 export function BusinessAccountStatus({
   snapshot,
   compact = false,
-  sidebar = false
+  sidebar = false,
+  serviceListings = []
 }: {
   snapshot: BusinessAccountSnapshot;
   compact?: boolean;
   /** sidebar=true: iki item şaquli sıralanır — dar kontekst üçün */
   sidebar?: boolean;
+  serviceListings?: ServiceListingRecord[];
 }) {
   const salonActive = snapshot.salonRoleApproved && snapshot.salonSubscriptionActive;
   const magazaActive = snapshot.magazaSubscriptionActive;
+
+  // Partition service listings:
+  // inspection_company → "Ekspertiza mərkəzi"
+  // everything else    → "Servis / Usta profili"
+  const servisListings  = serviceListings.filter((s) => s.providerType !== "inspection_company");
+  const ekspertListings = serviceListings.filter((s) => s.providerType === "inspection_company");
 
   if (compact) {
     return (
@@ -93,9 +102,20 @@ export function BusinessAccountStatus({
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
-        {/* Service & Expertise — coming soon / contact-based */}
-        <ServiceRow emoji="🔧" title="Servis / Usta profili" createHref="/partners/inspection" dashboardHref="/partners/my-services" />
-        <ServiceRow emoji="🔍" title="Ekspertiza mərkəzi"   createHref="/partners/inspection?type=inspection_company" dashboardHref="/partners/my-services" />
+        <ServiceRow
+          emoji="🔧"
+          title="Servis / Usta profili"
+          createHref="/partners/inspection"
+          dashboardHref="/partners/my-services"
+          listings={servisListings}
+        />
+        <ServiceRow
+          emoji="🔍"
+          title="Ekspertiza mərkəzi"
+          createHref="/partners/inspection?type=inspection_company"
+          dashboardHref="/partners/my-services"
+          listings={ekspertListings}
+        />
         <Link href="/pricing" className="mt-1 block text-center text-xs text-slate-400 hover:text-[#0057FF] transition">
           Bütün planları gör →
         </Link>
@@ -148,24 +168,117 @@ export function BusinessAccountStatus({
   );
 }
 
-function ServiceRow({ emoji, title, createHref, dashboardHref }: { emoji: string; title: string; createHref: string; dashboardHref: string }) {
+function ServiceRow({
+  emoji,
+  title,
+  createHref,
+  dashboardHref,
+  listings = []
+}: {
+  emoji: string;
+  title: string;
+  createHref: string;
+  dashboardHref: string;
+  listings?: ServiceListingRecord[];
+}) {
+  const approvedListings = listings.filter((l) => l.status === "approved");
+  const pendingListings  = listings.filter((l) => l.status === "pending");
+  const hasActive = approvedListings.length > 0;
+  const hasPending = pendingListings.length > 0;
+
   return (
-    <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="text-xl shrink-0">{emoji}</span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-800">{title}</p>
-          <p className="text-xs text-slate-500">Profil yarat · Ani aktiv olur</p>
+    <div className={`rounded-xl border px-3.5 py-3 ${
+      hasActive
+        ? "border-emerald-200 bg-emerald-50/40"
+        : hasPending
+        ? "border-amber-200 bg-amber-50/40"
+        : "border-slate-200 bg-slate-50"
+    }`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-xl shrink-0">{emoji}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-semibold text-slate-800">{title}</p>
+              {hasActive && (
+                <span className="shrink-0 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-bold text-white">Aktiv</span>
+              )}
+              {!hasActive && hasPending && (
+                <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Gözləmədə</span>
+              )}
+            </div>
+            {hasActive ? (
+              <p className="text-xs text-emerald-700">{approvedListings.length} aktiv profil</p>
+            ) : hasPending ? (
+              <p className="text-xs text-amber-700">Profil yoxlanılır</p>
+            ) : (
+              <p className="text-xs text-slate-500">Profil yarat · Ani aktiv olur</p>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-1.5">
+          {hasActive ? (
+            <>
+              <Link
+                href={`/services/${approvedListings[0].slug}`}
+                className="rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                Profilə bax
+              </Link>
+              <Link
+                href={dashboardHref}
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:text-[#0057FF]"
+              >
+                İdarə et
+              </Link>
+            </>
+          ) : hasPending ? (
+            <>
+              <Link
+                href={dashboardHref}
+                className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
+              >
+                Profillərim
+              </Link>
+              <Link
+                href={createHref}
+                className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-2.5 py-1 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
+              >
+                + Yeni
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href={dashboardHref}
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:text-[#0057FF]"
+              >
+                Profillərim
+              </Link>
+              <Link
+                href={createHref}
+                className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-2.5 py-1 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
+              >
+                Yarat
+              </Link>
+            </>
+          )}
         </div>
       </div>
-      <div className="flex shrink-0 gap-1.5">
-        <Link href={dashboardHref} className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:text-[#0057FF]">
-          Profillərim
-        </Link>
-        <Link href={createHref} className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-2.5 py-1 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10">
-          Yarat
-        </Link>
-      </div>
+      {/* show multiple active profiles if user has more than one */}
+      {approvedListings.length > 1 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {approvedListings.map((l) => (
+            <Link
+              key={l.id}
+              href={`/services/${l.slug}`}
+              className="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+            >
+              {l.name}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

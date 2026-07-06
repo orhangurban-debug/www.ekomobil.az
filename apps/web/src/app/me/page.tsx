@@ -9,6 +9,7 @@ import { getLatestPendingPaymentForListing } from "@/server/payment-store";
 import { listAuctionNotificationsForUser } from "@/server/auction-notification-store";
 import { getUserProfile, listSavedSearches, listUserFavorites } from "@/server/user-store";
 import { getUserKycProfile } from "@/server/user-kyc-store";
+import { listServiceListingsForUser } from "@/server/service-listing-store";
 import { listPendingDefenseReportsForUser } from "@/server/user-report-store";
 import { listInvoicesForUser, countInvoicesForUser } from "@/server/invoice-store";
 import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
@@ -92,7 +93,7 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot, isStore] =
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot, isStore, myServiceListings] =
     await Promise.all([
       getUserProfile(user.id),
       listUserFavorites(user.id),
@@ -104,7 +105,8 @@ export default async function ProfilePage({
       countInvoicesForUser(user.id),
       listPendingDefenseReportsForUser(user.id),
       loadBusinessAccountSnapshot(user),
-      hasActiveBusinessSubscription(user.id, "parts_store")
+      hasActiveBusinessSubscription(user.id, "parts_store"),
+      listServiceListingsForUser(user.id)
     ]);
 
   const draftListings = myListings.filter((item) => item.status === "draft");
@@ -376,7 +378,7 @@ export default async function ProfilePage({
                 <h2 className="font-semibold text-slate-900">Biznes hesabları</h2>
               </div>
               <div className="p-5">
-                <BusinessAccountStatus snapshot={businessSnapshot} sidebar />
+                <BusinessAccountStatus snapshot={businessSnapshot} sidebar serviceListings={myServiceListings} />
               </div>
 
             </section>
