@@ -752,6 +752,27 @@ ADD COLUMN IF NOT EXISTS pricing_plan_config JSONB NOT NULL DEFAULT '{}'::jsonb;
 ALTER TABLE system_settings
 ADD COLUMN IF NOT EXISTS pricing_economics_config JSONB NOT NULL DEFAULT '{}'::jsonb;
 
+-- 060_support_request_types_business
+-- Add dealer_apply and parts_apply to the support_requests type constraint
+ALTER TABLE support_requests DROP CONSTRAINT IF EXISTS support_requests_type_check;
+
+ALTER TABLE support_requests ADD CONSTRAINT support_requests_type_check CHECK (
+  request_type IN (
+    'question',
+    'problem',
+    'complaint',
+    'partnership',
+    'dealer_apply',
+    'parts_apply',
+    'inspection_partner',
+    'data_export',
+    'data_rectification',
+    'data_deletion',
+    'data_processing_objection',
+    'other'
+  )
+);
+
 -- =============================================================================
 -- SON
 -- =============================================================================
