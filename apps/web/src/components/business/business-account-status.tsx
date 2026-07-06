@@ -44,7 +44,9 @@ export function BusinessAccountStatus({
   serviceListings?: ServiceListingRecord[];
 }) {
   const salonActive = snapshot.salonRoleApproved && snapshot.salonSubscriptionActive;
+  const salonPending = !salonActive && snapshot.salonPendingApplication;
   const magazaActive = snapshot.magazaSubscriptionActive;
+  const magazaPending = !magazaActive && snapshot.magazaPendingApplication;
 
   // Partition service listings:
   // inspection_company → "Ekspertiza mərkəzi"
@@ -59,8 +61,9 @@ export function BusinessAccountStatus({
           title="Salon"
           status={salonStatusLabel(snapshot)}
           active={salonActive}
+          pending={salonPending}
           href={salonActive ? "/dealer" : "/dealer/apply"}
-          actionLabel={salonActive ? "Panel" : "Yarat"}
+          actionLabel={salonActive ? "Panel" : salonPending ? "Gözləyir" : "Yarat"}
           expiresAt={snapshot.salonSubscriptionExpiresAt}
           isTrial={snapshot.salonIsTrial}
         />
@@ -68,8 +71,9 @@ export function BusinessAccountStatus({
           title="Mağaza"
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
+          pending={magazaPending}
           href={magazaActive ? "/parts/store" : "/parts/apply"}
-          actionLabel={magazaActive ? "Panel" : "Yarat"}
+          actionLabel={magazaActive ? "Panel" : magazaPending ? "Gözləyir" : "Yarat"}
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
@@ -85,8 +89,9 @@ export function BusinessAccountStatus({
           title="Avtomobil salonu"
           status={salonStatusLabel(snapshot)}
           active={salonActive}
+          pending={salonPending}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
-          primaryLabel={salonActive ? "Salon paneli" : "Yarat"}
+          primaryLabel={salonActive ? "Salon paneli" : salonPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#dealer"
           expiresAt={snapshot.salonSubscriptionExpiresAt}
           isTrial={snapshot.salonIsTrial}
@@ -96,8 +101,9 @@ export function BusinessAccountStatus({
           title="Ehtiyat hissə mağazası"
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
+          pending={magazaPending}
           primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Mağaza paneli" : "Yarat"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : magazaPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#parts-store"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
@@ -143,8 +149,9 @@ export function BusinessAccountStatus({
           description="Avtomobil inventarı, salon paneli, müştəri sorğuları, CSV idxalı."
           status={salonStatusLabel(snapshot)}
           active={salonActive}
+          pending={salonPending}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
-          primaryLabel={salonActive ? "Salon paneli" : "Yarat"}
+          primaryLabel={salonActive ? "Salon paneli" : salonPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#dealer"
           secondaryLabel="Salon planları"
           expiresAt={snapshot.salonSubscriptionExpiresAt}
@@ -156,8 +163,9 @@ export function BusinessAccountStatus({
           description="SKU kataloqu, toplu yükləmə, mağaza analitikası."
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
+          pending={magazaPending}
           primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Mağaza paneli" : "Yarat"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : magazaPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#parts-store"
           secondaryLabel="Mağaza planları"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
@@ -288,6 +296,7 @@ function SidebarRow({
   title,
   status,
   active,
+  pending = false,
   primaryHref,
   primaryLabel,
   secondaryHref,
@@ -298,29 +307,49 @@ function SidebarRow({
   title: string;
   status: string;
   active: boolean;
+  pending?: boolean;
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
   expiresAt?: string;
   isTrial?: boolean;
 }) {
+  const borderBg = active
+    ? "border-emerald-200 bg-emerald-50"
+    : pending
+    ? "border-amber-200 bg-amber-50/40"
+    : "border-slate-200 bg-slate-50";
+
+  const statusColor = active
+    ? "text-emerald-700 font-medium"
+    : pending
+    ? "text-amber-700 font-medium"
+    : "text-slate-500";
+
+  const btnClass = active
+    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+    : pending
+    ? "border border-amber-300 bg-white text-amber-700 cursor-default"
+    : "bg-[#0057FF] text-white hover:bg-[#004ADF]";
+
   return (
-    <div className={`rounded-xl border p-3.5 ${active ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+    <div className={`rounded-xl border p-3.5 ${borderBg}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-xl shrink-0">{emoji}</span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
-            <p className={`text-xs ${active ? "text-emerald-700 font-medium" : "text-slate-500"}`}>{status}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
+              {pending && !active && (
+                <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Gözləmədə</span>
+              )}
+            </div>
+            <p className={`text-xs ${statusColor}`}>{status}</p>
           </div>
         </div>
         <Link
-          href={primaryHref}
-          className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-            active
-              ? "bg-emerald-600 text-white hover:bg-emerald-700"
-              : "bg-[#0057FF] text-white hover:bg-[#004ADF]"
-          }`}
+          href={pending && !active ? "#" : primaryHref}
+          className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${btnClass}`}
         >
           {primaryLabel}
         </Link>
@@ -328,7 +357,12 @@ function SidebarRow({
       {active && expiresAt && (
         <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />
       )}
-      {!active && (
+      {pending && !active && (
+        <p className="mt-2 text-xs text-amber-600">
+          1–2 iş günü ərzində aktivləşdiriləcək. Bildiriş alacaqsınız.
+        </p>
+      )}
+      {!active && !pending && (
         <Link href={secondaryHref} className="mt-2 block text-xs text-slate-400 hover:text-[#0057FF] transition">
           Planları gör →
         </Link>
@@ -341,6 +375,7 @@ function StatusTile({
   title,
   status,
   active,
+  pending = false,
   href,
   actionLabel,
   expiresAt,
@@ -349,19 +384,37 @@ function StatusTile({
   title: string;
   status: string;
   active: boolean;
+  pending?: boolean;
   href: string;
   actionLabel: string;
   expiresAt?: string;
   isTrial?: boolean;
 }) {
+  const borderBg = active
+    ? "border-emerald-500/25 bg-emerald-500/10"
+    : pending
+    ? "border-amber-200 bg-amber-50/40"
+    : "border-slate-900/10";
+
+  const statusColor = active ? "text-emerald-700" : pending ? "text-amber-700" : "text-slate-500";
+
   return (
-    <div className={`rounded-xl border p-4 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
-      <div className="text-sm font-medium text-slate-900">{title}</div>
-      <div className={`mt-1 text-xs ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</div>
+    <div className={`rounded-xl border p-4 ${borderBg}`}>
+      <div className="flex items-center gap-1.5">
+        <div className="text-sm font-medium text-slate-900">{title}</div>
+        {pending && !active && (
+          <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Gözləmədə</span>
+        )}
+      </div>
+      <div className={`mt-1 text-xs ${statusColor}`}>{status}</div>
       {active && <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />}
-      <Link href={href} className="mt-2 inline-block text-xs font-medium text-[#0057FF] hover:underline">
-        {actionLabel} →
-      </Link>
+      {pending && !active ? (
+        <p className="mt-2 text-xs text-amber-600">1–2 iş günü ərzində aktivləşdiriləcək.</p>
+      ) : (
+        <Link href={href} className="mt-2 inline-block text-xs font-medium text-[#0057FF] hover:underline">
+          {actionLabel} →
+        </Link>
+      )}
     </div>
   );
 }
@@ -372,6 +425,7 @@ function VerticalCard({
   description,
   status,
   active,
+  pending = false,
   primaryHref,
   primaryLabel,
   secondaryHref,
@@ -384,6 +438,7 @@ function VerticalCard({
   description: string;
   status: string;
   active: boolean;
+  pending?: boolean;
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
@@ -391,21 +446,45 @@ function VerticalCard({
   expiresAt?: string;
   isTrial?: boolean;
 }) {
+  const borderBg = active
+    ? "border-emerald-500/25 bg-emerald-500/10"
+    : pending
+    ? "border-amber-200 bg-amber-50/40"
+    : "border-slate-900/10";
+
+  const statusColor = active ? "text-emerald-700" : pending ? "text-amber-700" : "text-slate-500";
+
   return (
-    <div className={`rounded-2xl border p-5 ${active ? "border-emerald-500/25 bg-emerald-500/10" : "border-slate-900/10"}`}>
+    <div className={`rounded-2xl border p-5 ${borderBg}`}>
       <div className="flex items-start gap-3">
         <span className="text-2xl" aria-hidden="true">{emoji}</span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-slate-900">{title}</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-slate-900">{title}</h3>
+            {pending && !active && (
+              <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Gözləmədə</span>
+            )}
+          </div>
           <p className="mt-1 text-xs text-slate-500">{description}</p>
-          <p className={`mt-2 text-xs font-medium ${active ? "text-emerald-700" : "text-slate-500"}`}>{status}</p>
+          <p className={`mt-2 text-xs font-medium ${statusColor}`}>{status}</p>
           {active && <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />}
+          {pending && !active && (
+            <p className="mt-1.5 text-xs text-amber-600">
+              1–2 iş günü ərzində aktivləşdiriləcək. Bildiriş alacaqsınız.
+            </p>
+          )}
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link href={primaryHref} className="btn-primary text-xs">
-          {primaryLabel}
-        </Link>
+        {pending && !active ? (
+          <span className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 cursor-default">
+            Gözlənilir...
+          </span>
+        ) : (
+          <Link href={primaryHref} className="btn-primary text-xs">
+            {primaryLabel}
+          </Link>
+        )}
         <Link href={secondaryHref} className="btn-secondary text-xs">
           {secondaryLabel}
         </Link>

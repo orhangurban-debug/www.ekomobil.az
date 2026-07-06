@@ -25,6 +25,7 @@ export function salonStatusLabel(snapshot: BusinessAccountSnapshot): string {
     return snapshot.salonPlanName ? `Aktiv (${snapshot.salonPlanName})` : "Aktiv";
   }
   if (snapshot.salonRoleApproved) return "Təsdiqlənib — plan gözləyir";
+  if (snapshot.salonPendingApplication) return "Müraciət yoxlanılır";
   return "Aktiv deyil";
 }
 
@@ -32,5 +33,6 @@ export function magazaStatusLabel(snapshot: BusinessAccountSnapshot): string {
   if (snapshot.magazaSubscriptionActive) {
     return snapshot.magazaPlanName ? `Aktiv (${snapshot.magazaPlanName})` : "Aktiv";
   }
+  if (snapshot.magazaPendingApplication) return "Müraciət yoxlanılır";
   return "Aktiv deyil";
 }

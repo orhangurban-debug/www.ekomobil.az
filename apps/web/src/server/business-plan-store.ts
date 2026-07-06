@@ -128,22 +128,58 @@ export interface BusinessAccountSnapshot {
   salonPlanName?: string;
   salonSubscriptionExpiresAt?: string;
   salonIsTrial?: boolean;
+  /** true when user submitted dealer_apply but admin hasn't activated yet */
+  salonPendingApplication: boolean;
   magazaSubscriptionActive: boolean;
   magazaPlanName?: string;
   magazaSubscriptionExpiresAt?: string;
   magazaIsTrial?: boolean;
+  /** true when user submitted parts_apply but admin hasn't activated yet */
+  magazaPendingApplication: boolean;
+}
+
+/**
+ * Checks whether the user has an open (non-resolved, non-closed) support
+ * request of the given type(s).  Used to show "Gözləmədə" on the /me page
+ * instead of the misleading "Aktiv deyil" + "Yarat" when an application is
+ * already under review.
+ */
+async function getPendingBusinessApplication(
+  userId: string,
+  requestTypes: string[]
+): Promise<boolean> {
+  try {
+    const pool = getPgPool();
+    const placeholders = requestTypes.map((_, i) => `$${i + 2}`).join(", ");
+    const result = await pool.query<{ id: string }>(
+      `SELECT id FROM support_requests
+       WHERE reporter_user_id = $1
+         AND request_type IN (${placeholders})
+         AND status NOT IN ('resolved', 'closed', 'archived')
+       LIMIT 1`,
+      [userId, ...requestTypes]
+    );
+    return result.rows.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 export async function getBusinessAccountSnapshot(
   userId: string,
   role: "admin" | "support" | "dealer" | "viewer"
 ): Promise<BusinessAccountSnapshot> {
-  const [dealerSub, partsSub, dealerPlan, partsPlan] = await Promise.all([
-    getActiveSubscription(userId, "dealer"),
-    getActiveSubscription(userId, "parts_store"),
-    getEffectiveDealerPlan(userId),
-    getEffectivePartsPlan(userId)
-  ]);
+  const [dealerSub, partsSub, dealerPlan, partsPlan, salonPending, magazaPending] =
+    await Promise.all([
+      getActiveSubscription(userId, "dealer"),
+      getActiveSubscription(userId, "parts_store"),
+      getEffectiveDealerPlan(userId),
+      getEffectivePartsPlan(userId),
+      getPendingBusinessApplication(userId, ["dealer_apply", "partnership"]),
+      getPendingBusinessApplication(userId, ["parts_apply"])
+    ]);
+
+  const salonActive = (role === "dealer" || role === "admin") && dealerSub !== null;
 
   return {
     salonRoleApproved: role === "dealer" || role === "admin",
@@ -151,10 +187,13 @@ export async function getBusinessAccountSnapshot(
     salonPlanName: dealerSub ? dealerPlan.nameAz : undefined,
     salonSubscriptionExpiresAt: dealerSub?.expires_at?.toISOString() ?? undefined,
     salonIsTrial: dealerSub?.trial_granted_at != null,
+    // Only show "pending" when there is no active subscription yet
+    salonPendingApplication: !salonActive && salonPending,
     magazaSubscriptionActive: partsSub !== null,
     magazaPlanName: partsSub ? partsPlan.nameAz : undefined,
     magazaSubscriptionExpiresAt: partsSub?.expires_at?.toISOString() ?? undefined,
-    magazaIsTrial: partsSub?.trial_granted_at != null
+    magazaIsTrial: partsSub?.trial_granted_at != null,
+    magazaPendingApplication: !partsSub && magazaPending
   };
 }
 
