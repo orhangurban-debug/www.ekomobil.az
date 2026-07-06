@@ -121,7 +121,18 @@ function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
   };
 }
 
-export async function createPendingServiceListing(input: {
+/**
+ * Creates a new service listing with status 'approved'.
+ * Service profiles are self-serve and go live immediately by design —
+ * they are low-risk (no financial transaction, no vehicle data) and
+ * benefit from fast onboarding. Admins can reject post-facto via the
+ * /admin/service-listings panel if needed.
+ *
+ * @deprecated alias: previously called createPendingServiceListing (misleading name)
+ */
+export const createPendingServiceListing = createServiceListing;
+
+export async function createServiceListing(input: {
   supportRequestId?: string;
   ownerUserId?: string;
   name: string;

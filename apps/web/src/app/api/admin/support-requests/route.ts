@@ -127,9 +127,10 @@ export async function PATCH(req: Request) {
     riskFlag: body.riskFlag
   });
 
-  // ── Partnership auto-activation ────────────────────────────────────────────
-  // When a dealer_apply or partnership request is marked "resolved",
-  // automatically: create dealer_profiles row, set user role, grant 30-day trial.
+  // ── Business account auto-activation ──────────────────────────────────────
+  // When a dealer_apply / partnership / parts_apply request is marked "resolved",
+  // automatically grant the appropriate 30-day trial subscription (and for
+  // dealer_apply, also create the dealer_profiles row and set the user role).
   let partnershipActivated = false;
   if (effectiveStatus === "resolved") {
     try {
@@ -144,22 +145,22 @@ export async function PATCH(req: Request) {
       );
       const req = reqRow.rows[0];
       const isDealerApply = req?.request_type === "dealer_apply" || req?.request_type === "partnership";
+      const isPartsApply  = req?.request_type === "parts_apply";
+
+      // ── Salon / dealer activation ──────────────────────────────────────────
       if (isDealerApply && req.reporter_user_id) {
         const app = req.metadata?.dealerApplication as Record<string, unknown> | undefined;
-        const businessName = (app?.businessName as string | undefined)?.trim() ||
-          (req.metadata?.referer ? "Dealer" : "Dealer");
+        const businessName = (app?.businessName as string | undefined)?.trim() || "Dealer";
         const city = (app?.city as string | undefined)?.trim() || "Bakı";
         const voen = (app?.voen as string | undefined)?.trim() || null;
         const websiteUrl = (app?.website as string | undefined)?.trim() || null;
         const description = (app?.description as string | undefined)?.trim() || null;
 
-        // 1. Check if dealer_profiles already exists for this user
         const existingProfile = await pool.query<{ id: string }>(
           `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
           [req.reporter_user_id]
         );
         if (!existingProfile.rows[0]) {
-          // 2. Create dealer_profiles row
           const dealerProfileId = randomUUID();
           await createDealerProfile({
             id: dealerProfileId,
@@ -170,11 +171,7 @@ export async function PATCH(req: Request) {
             websiteUrl,
             description,
           });
-
-          // 3. Update user role to dealer
           await updateAdminUserRole(req.reporter_user_id, "dealer");
-
-          // 4. Grant 30-day trial subscription
           const now = new Date();
           const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           await upsertBusinessPlanSubscription({
@@ -186,12 +183,36 @@ export async function PATCH(req: Request) {
             expiresAt: trialEnd.toISOString(),
             trialGrantedAt: now.toISOString(),
           });
+          partnershipActivated = true;
+        }
+      }
 
+      // ── Parts store activation ─────────────────────────────────────────────
+      if (isPartsApply && req.reporter_user_id) {
+        const existingSub = await pool.query<{ id: string }>(
+          `SELECT id FROM business_plan_subscriptions
+           WHERE owner_user_id = $1 AND business_type = 'parts_store'
+             AND status = 'active' AND (expires_at IS NULL OR expires_at >= NOW())
+           LIMIT 1`,
+          [req.reporter_user_id]
+        );
+        if (!existingSub.rows[0]) {
+          const now = new Date();
+          const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          await upsertBusinessPlanSubscription({
+            ownerUserId: req.reporter_user_id,
+            businessType: "parts_store",
+            planId: "parts_store_standard",
+            status: "active",
+            startsAt: now.toISOString(),
+            expiresAt: trialEnd.toISOString(),
+            trialGrantedAt: now.toISOString(),
+          });
           partnershipActivated = true;
         }
       }
     } catch (err) {
-      console.error("[support-requests PATCH] Partnership activation failed:", err);
+      console.error("[support-requests PATCH] Business activation failed:", err);
     }
   }
 

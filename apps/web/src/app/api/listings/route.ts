@@ -363,9 +363,10 @@ async function handleCreateListing(req: Request): Promise<Response> {
       sellerType: partPayload.sellerType || "private",
       planType: partPaidPlan ? "free" : partPlanType,
       planExpiresAt: isDealerPartSeller ? partStoreSubscriptionExpiry : undefined,
-      // Tap.az modeli: aktiv mağaza abunəliyi olan satıcıların elanları dərhal aktiv olur.
-      // Fərdi satıcılar üçün: ödənişli plan → draft (ödəniş gözlənilir), pulsuz → pending_review.
-      status: (isDealerPartSeller ? "active" : partPaidPlan ? "draft" : "pending_review") as "active" | "draft" | "pending_review",
+      // All listings go through pending_review before going public, regardless of seller type.
+      // Dealer store listings were previously bypassing moderation (set to "active" immediately)
+      // which allowed spam/fraudulent listings. Now they follow the same review flow.
+      status: (partPaidPlan ? "draft" : "pending_review") as "draft" | "pending_review",
       listingKind: "part" as const,
       partCategory: category,
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,
@@ -396,7 +397,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
         id: created.id,
         trustScore,
         listingKind: "part",
-        paymentRequired: !isDealerPartSeller && partPaidPlan,
+        paymentRequired: partPaidPlan,
         requestedPlanType: partPlanType
       });
     } catch (error) {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { requirePageRoles } from "@/lib/rbac";
+import { getAdminPendingCounts } from "@/server/admin-counts-store";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const auth = await requirePageRoles(["admin", "support"]);
@@ -45,7 +46,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
-          <AdminSidebar />
+          <AdminSidebar counts={await getAdminPendingCounts()} />
           <section>{children}</section>
         </div>
       </div>
