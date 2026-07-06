@@ -36,11 +36,11 @@ const INTENT_INFO: Record<AccountIntent, { title: string; body: string; cta?: st
   },
   business: {
     title: "Biznes satıcı hesabı",
-    body: "Eyni hesabla salon və mağaza ayrıca aktivləşir. Qeydiyyatdan sonra uyğun müraciət göndərin və biznes planını seçin."
+    body: "Eyni hesabla salon və mağaza ayrıca yaradılır. Qeydiyyatdan sonra salon yarat və ya mağaza yarat səhifəsindən biznes hesabınızı açın."
   },
   service: {
     title: "Servis / Usta profili",
-    body: "Hesab yaradın, sonra servis profili üçün müraciət edin. Fərdi hesabla eyni zamanda elan yerləşdirə bilərsiniz — iki funksiya bir hesabda birləşir.",
+    body: "Hesab yaradın, sonra servis profilinizi birbaşa yaradın. Fərdi hesabla eyni zamanda elan yerləşdirə bilərsiniz — iki funksiya bir hesabda birləşir.",
     cta: CONTACT_INTENTS.service.label,
     href: CONTACT_INTENTS.service.href
   }

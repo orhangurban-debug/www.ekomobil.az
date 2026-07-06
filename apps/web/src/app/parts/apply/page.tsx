@@ -63,12 +63,12 @@ export default function PartsApplyPage() {
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Mağaza hesabı yaradıldı!</h1>
         <p className="mt-3 text-slate-500">
-          Komandamız 1–2 iş günü ərzində əlaqə saxlayacaq. Təsdiqdən sonra mağaza planını aktivləşdirə bilərsiniz.
+          Komandamız 1–2 iş günü ərzində yoxlayıb mağaza panelinizi aktivləşdirəcək.
         </p>
         <div className="mx-auto mt-5 max-w-sm rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
-          Plan aktivləşdiriləndə <strong>ilk 30 gün pulsuz</strong> sınaq müddəti tətbiq olunur.
+          Mağaza aktivləşdiriləndən sonra <strong>ilk 30 gün pulsuz</strong> sınaq müddəti verilir.
         </div>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/me" className="btn-primary">Profil səhifəsinə qayıt</Link>
@@ -85,13 +85,13 @@ export default function PartsApplyPage() {
         <span className="mx-2">/</span>
         <Link href="/pricing#parts-store" className="hover:text-slate-900">Mağaza planları</Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-900">Mağaza müraciəti</span>
+        <span className="text-slate-900">Mağaza yarat</span>
       </nav>
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Ehtiyat hissə mağazası</h1>
         <p className="mt-2 text-slate-500">
-          SKU kataloqu, toplu elan və mağaza analitikası üçün müraciət göndərin. Salon hesabından asılı deyil.
+          SKU kataloqu, toplu elan və mağaza analitikası — salon hesabından asılı deyil.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function PartsApplyPage() {
           <div>
             <p className="text-sm font-semibold text-emerald-800">İlk 30 gün pulsuz sınaq</p>
             <p className="mt-0.5 text-xs text-emerald-700">
-              Müraciətiniz qəbul ediləndə mağaza planını ilk dəfə aktivləşdirərkən 30 günlük pulsuz sınaq müddəti verilir.
+              Mağaza aktivləşdiriləndən sonra ilk 30 gün pulsuz sınaq müddəti verilir.
               Sınaq bitdikdən sonra aylıq abunəyə keçilir.{" "}
               <Link href="/pricing#parts-store" className="font-semibold underline">Qiymətlərə bax →</Link>
             </p>
@@ -114,9 +114,9 @@ export default function PartsApplyPage() {
       <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
         <strong>Qeyd:</strong> Avtomobil salonu açmaq istəyirsinizsə{" "}
         <Link href="/dealer/apply" className="font-medium text-[#0057FF] hover:underline">
-          salon müraciəti
+          salon yarat
         </Link>{" "}
-        formundan istifadə edin.
+        səhifəsindən istifadə edin.
       </div>
 
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
@@ -193,7 +193,7 @@ export default function PartsApplyPage() {
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">
-          {loading ? "Göndərilir..." : "Müraciəti göndər"}
+          {loading ? "Yaradılır..." : "Mağazanı yarat"}
         </button>
       </form>
     </div>

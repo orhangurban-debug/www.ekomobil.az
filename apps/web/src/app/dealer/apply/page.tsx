@@ -63,12 +63,12 @@ export default function DealerApplyPage() {
             </svg>
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900">Müraciətiniz qəbul edildi</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Salon hesabı yaradıldı!</h1>
         <p className="mt-3 text-slate-500">
-          Komandamız 1–2 iş günü ərzində telefon və ya e-poçt vasitəsilə əlaqə saxlayacaq.
+          Komandamız 1–2 iş günü ərzində yoxlayıb salon panelinizi aktivləşdirəcək.
         </p>
         <div className="mx-auto mt-5 max-w-sm rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
-          Müraciətiniz təsdiqləndikdən sonra <strong>ilk 30 gün pulsuz</strong> salon planından istifadə edə bilərsiniz.
+          Salon aktivləşdiriləndən sonra <strong>ilk 30 gün pulsuz</strong> sınaq müddəti verilir.
         </div>
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/me" className="btn-primary">Profil səhifəsinə qayıt</Link>
@@ -85,13 +85,13 @@ export default function DealerApplyPage() {
         <span className="mx-2">/</span>
         <Link href="/pricing#business" className="hover:text-slate-900">Biznes planları</Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-900">Salon müraciəti</span>
+        <span className="text-slate-900">Salon yarat</span>
       </nav>
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Avtomobil salonu</h1>
         <p className="mt-2 text-slate-500">
-          Salon müraciətini göndərin — admin təsdiqindən sonra salon planını aktivləşdirin.
+          Məlumatları doldurun — qısa yoxlamadan sonra salon paneliniz aktivləşdiriləcək.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function DealerApplyPage() {
           <div>
             <p className="text-sm font-semibold text-emerald-800">İlk 30 gün pulsuz sınaq</p>
             <p className="mt-0.5 text-xs text-emerald-700">
-              Müraciətiniz təsdiqləndikdən sonra salon planını ilk dəfə aktivləşdirəndə 30 günlük pulsuz sınaq müddəti verilir.
+              Salon aktivləşdiriləndən sonra ilk 30 gün pulsuz sınaq müddəti verilir.
               Sınaq bitdikdən sonra aylıq abunə ödənişinə keçilir.{" "}
               <Link href="/pricing#dealer" className="font-semibold underline">Qiymətlərə bax →</Link>
             </p>
@@ -114,9 +114,9 @@ export default function DealerApplyPage() {
       <div className="mb-6 rounded-xl border border-slate-900/10 bg-white/60 px-4 py-3 text-sm text-slate-700">
         Ehtiyat hissə mağazası açmaq istəyirsinizsə{" "}
         <Link href="/parts/apply" className="font-medium text-[#0057FF] hover:underline">
-          mağaza müraciəti
+          mağaza yarat
         </Link>{" "}
-        formundan istifadə edin — salon hesabından asılı deyil.
+        səhifəsindən istifadə edin — salon hesabından asılı deyil.
       </div>
 
       <form onSubmit={onSubmit} className="card p-8 space-y-5">
@@ -195,7 +195,7 @@ export default function DealerApplyPage() {
         )}
 
         <button disabled={loading} className="btn-primary w-full justify-center py-3">
-          {loading ? "Göndərilir..." : "Müraciəti göndər"}
+          {loading ? "Yaradılır..." : "Salonu yarat"}
         </button>
       </form>
 

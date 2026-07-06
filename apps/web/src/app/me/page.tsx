@@ -56,25 +56,25 @@ function WelcomeBanner({ welcome, pendingReports }: { welcome?: string; pendingR
       )}
       {welcome === "salon" && (
         <div className="flex items-center justify-between rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 px-5 py-3">
-          <p className="font-semibold text-[#0057FF]">Salon müraciətini göndərin, admin təsdiqindən sonra aktivləşəcək.</p>
+          <p className="font-semibold text-[#0057FF]">Salon yaradın — qısa yoxlamadan sonra aktivləşəcək.</p>
           <div className="flex shrink-0 gap-2">
-            <Link href="/dealer/apply" className="rounded-lg bg-[#0057FF] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#004ADF]">Müraciət et</Link>
+            <Link href="/dealer/apply" className="rounded-lg bg-[#0057FF] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#004ADF]">Yarat</Link>
             <Link href="/me" className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Sonra</Link>
           </div>
         </div>
       )}
       {welcome === "magaza" && (
         <div className="flex items-center justify-between rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3">
-          <p className="font-semibold text-violet-900">Mağaza planı ayrı aktivləşir — eyni hesab, fərqli plan.</p>
+          <p className="font-semibold text-violet-900">Mağaza yaradın — salon hesabından asılı deyil.</p>
           <div className="flex shrink-0 gap-2">
-            <Link href="/parts/apply" className="rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-800">Müraciət et</Link>
+            <Link href="/parts/apply" className="rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-800">Yarat</Link>
             <Link href="/me" className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Sonra</Link>
           </div>
         </div>
       )}
       {welcome === "service" && (
         <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3">
-          <p className="font-semibold text-emerald-800">Servis profili üçün müraciət edin.</p>
+          <p className="font-semibold text-emerald-800">Servis profilinizi yaradın — ani aktiv olur.</p>
           <ContactActionButton intent="service" className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700" />
         </div>
       )}

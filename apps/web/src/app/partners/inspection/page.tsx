@@ -27,7 +27,7 @@ export default async function InspectionPartnersPage({
 
       <h1 className="text-3xl font-bold text-slate-900">Servis profili əlavə et</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Rəsmi servis, ekspertiza, mexanik, elektrik, EV mütəxəssisi — bütün servis növləri üçün tərəfdaşlıq müraciəti.
+        Rəsmi servis, ekspertiza, mexanik, elektrik, EV mütəxəssisi — bütün servis növləri üçün profil yaradın.
       </p>
 
       <div className="mt-5 grid gap-3 rounded-2xl border border-slate-900/10 bg-white/60 p-5 text-sm text-slate-700 sm:grid-cols-3">
@@ -38,7 +38,7 @@ export default async function InspectionPartnersPage({
           </p>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Kim müraciət edə bilər?</p>
+          <p className="font-semibold text-slate-900">Kim profil yarada bilər?</p>
           <p className="mt-1 text-xs leading-relaxed">
             Rəsmi servis, ekspertiza şirkəti, mexanik, elektrik, dəmirçi, EV/Hibrid, ECU, ADAS, kondisioner, audio, cam, şin ustası.
           </p>
@@ -46,7 +46,7 @@ export default async function InspectionPartnersPage({
         <div>
           <p className="font-semibold text-slate-900">Növbəti addım</p>
           <p className="mt-1 text-xs leading-relaxed">
-            Müraciət 1-3 iş günü ərzində nəzərdən keçirilir. İlk qeydiyyat üçün 30 günlük pulsuz aktivləşdirmə də tətbiq oluna bilər.{" "}
+            Profil yaradıldıqdan sonra dərhal aktiv olur. İlk qeydiyyat üçün 30 günlük pulsuz aktivləşdirmə tətbiq olunur.{" "}
             <Link href="/pricing#services" className="font-medium text-[#0057FF] hover:underline">
               Qiymət planlarına bax →
             </Link>

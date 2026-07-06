@@ -55,7 +55,7 @@ export default async function DealerPortalPage() {
           <h1 className="text-2xl font-bold text-slate-900">Aktiv salon planı tapılmadı</h1>
           <p className="mt-3 text-slate-500">
             Salon panelinə daxil olmaq üçün aktiv plan lazımdır.
-            Müraciətiniz hələ gözləmədə ola bilər.
+            Hesabınız hələ aktivləşdirilməyib — 1–2 iş günü ərzində bildiriş alacaqsınız.
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <Link href="/pricing#dealer" className="btn-primary">Salon planları</Link>
