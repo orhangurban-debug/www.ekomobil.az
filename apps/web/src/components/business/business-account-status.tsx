@@ -60,7 +60,7 @@ export function BusinessAccountStatus({
           status={salonStatusLabel(snapshot)}
           active={salonActive}
           href={salonActive ? "/dealer" : "/dealer/apply"}
-          actionLabel={salonActive ? "Panel" : "Müraciət"}
+          actionLabel={salonActive ? "Panel" : "Yarat"}
           expiresAt={snapshot.salonSubscriptionExpiresAt}
           isTrial={snapshot.salonIsTrial}
         />
@@ -69,7 +69,7 @@ export function BusinessAccountStatus({
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
           href={magazaActive ? "/parts/store" : "/parts/apply"}
-          actionLabel={magazaActive ? "Panel" : "Aktiv et"}
+          actionLabel={magazaActive ? "Panel" : "Yarat"}
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
@@ -86,7 +86,7 @@ export function BusinessAccountStatus({
           status={salonStatusLabel(snapshot)}
           active={salonActive}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
-          primaryLabel={salonActive ? "Salon paneli" : "Müraciət et"}
+          primaryLabel={salonActive ? "Salon paneli" : "Yarat"}
           secondaryHref="/pricing#dealer"
           expiresAt={snapshot.salonSubscriptionExpiresAt}
           isTrial={snapshot.salonIsTrial}
@@ -97,7 +97,7 @@ export function BusinessAccountStatus({
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
           primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Mağaza paneli" : "Aktiv et"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : "Yarat"}
           secondaryHref="/pricing#parts-store"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
@@ -144,7 +144,7 @@ export function BusinessAccountStatus({
           status={salonStatusLabel(snapshot)}
           active={salonActive}
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
-          primaryLabel={salonActive ? "Salon paneli" : "Salon müraciəti"}
+          primaryLabel={salonActive ? "Salon paneli" : "Yarat"}
           secondaryHref="/pricing#dealer"
           secondaryLabel="Salon planları"
           expiresAt={snapshot.salonSubscriptionExpiresAt}
@@ -157,7 +157,7 @@ export function BusinessAccountStatus({
           status={magazaStatusLabel(snapshot)}
           active={magazaActive}
           primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
-          primaryLabel={magazaActive ? "Mağaza paneli" : "Mağaza müraciəti"}
+          primaryLabel={magazaActive ? "Mağaza paneli" : "Yarat"}
           secondaryHref="/pricing#parts-store"
           secondaryLabel="Mağaza planları"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
