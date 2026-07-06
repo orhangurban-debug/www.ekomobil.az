@@ -20,7 +20,11 @@ export const REQUEST_TYPE_GROUPS: Array<{
 }> = [
   { id: "support", label: "Dəstək", types: ["question", "problem"] },
   { id: "disputes", label: "Mübahisə / şikayət", types: ["complaint"] },
-  { id: "partnership", label: "Tərəfdaşlıq", types: ["partnership", "inspection_partner"] },
+  {
+    id: "business_apply",
+    label: "Biznes müraciətləri",
+    types: ["dealer_apply", "parts_apply", "partnership", "inspection_partner"]
+  },
   {
     id: "privacy",
     label: "Məxfilik / GDPR",
@@ -35,10 +39,13 @@ export function requestTypeGroupLabel(requestType: string): string {
 }
 
 export function requestTypeBadgeClass(requestType: string): string {
-  if (["complaint"].includes(requestType)) return "bg-rose-50 text-rose-700 ring-rose-200";
-  if (["problem", "question"].includes(requestType)) return "bg-sky-50 text-sky-700 ring-sky-200";
-  if (["partnership", "inspection_partner"].includes(requestType)) return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-  if (requestType.startsWith("data_")) return "bg-violet-50 text-violet-700 ring-violet-200";
+  if (requestType === "complaint") return "bg-rose-50 text-rose-700 ring-rose-200";
+  if (requestType === "problem" || requestType === "question") return "bg-sky-50 text-sky-700 ring-sky-200";
+  if (requestType === "dealer_apply") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (requestType === "parts_apply") return "bg-violet-50 text-violet-700 ring-violet-200";
+  if (requestType === "inspection_partner") return "bg-teal-50 text-teal-700 ring-teal-200";
+  if (requestType === "partnership") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (requestType.startsWith("data_")) return "bg-amber-50 text-amber-700 ring-amber-200";
   return "bg-slate-50 text-slate-600 ring-slate-200";
 }
 
@@ -61,12 +68,14 @@ export function defaultPriorityForRequestType(requestType: string): string {
     case "data_deletion":
     case "data_export":
       return "high";
+    case "dealer_apply":
+    case "parts_apply":
+    case "partnership":
+    case "inspection_partner":
+      return "high";
     case "problem":
     case "data_rectification":
     case "data_processing_objection":
-      return "normal";
-    case "partnership":
-    case "inspection_partner":
       return "normal";
     default:
       return "normal";

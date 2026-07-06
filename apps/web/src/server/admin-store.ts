@@ -3,6 +3,7 @@ import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
 import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
 import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
+import type { SupportRequestMeta } from "@/components/admin/admin-support-types";
 
 let supportEnrichColumnsReadyCache: boolean | null = null;
 let supportArchiveColumnsReadyCache: boolean | null = null;
@@ -158,6 +159,7 @@ export interface AdminSupportRequestRow {
   lastActivityAt: string;
   createdAt: string;
   reporterContext?: SupportReporterContext;
+  metadata?: SupportRequestMeta;
 }
 
 export interface SupportReporterContext {
@@ -986,7 +988,18 @@ function mapSupportRow(row: {
   archived_at?: Date | null;
   last_activity_at: Date;
   created_at: Date;
+  metadata?: Record<string, unknown> | null;
+  service_slug?: string | null;
+  service_status?: string | null;
 }): AdminSupportRequestRow {
+  const rawMeta = row.metadata ?? {};
+  const meta: SupportRequestMeta = { ...rawMeta };
+  if (row.service_slug) {
+    meta.serviceSlug = row.service_slug;
+  }
+  if (row.service_status) {
+    meta.serviceStatus = row.service_status;
+  }
   return {
     id: row.id,
     requestType: row.request_type,
@@ -1011,7 +1024,8 @@ function mapSupportRow(row: {
     resolvedAt: row.resolved_at ? row.resolved_at.toISOString() : undefined,
     archivedAt: row.archived_at ? row.archived_at.toISOString() : undefined,
     lastActivityAt: row.last_activity_at.toISOString(),
-    createdAt: row.created_at.toISOString()
+    createdAt: row.created_at.toISOString(),
+    metadata: meta
   };
 }
 
@@ -1043,15 +1057,20 @@ export async function getAdminSupportRequestById(id: string): Promise<AdminSuppo
     resolved_at: Date | null;
     last_activity_at: Date;
     created_at: Date;
+    metadata: Record<string, unknown> | null;
+    service_slug: string | null;
+    service_status: string | null;
   }>(
     `SELECT
        sr.id, sr.request_type, sr.subject, sr.message, sr.status, sr.priority, sr.source,
        sr.reporter_user_id, sr.reporter_name, sr.reporter_email, sr.reporter_phone,
        ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
-       sr.admin_response,
-       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at
+       sr.admin_response, sr.metadata,
+       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at,
+       sl.slug AS service_slug, sl.status AS service_status
      FROM support_requests sr
+     LEFT JOIN service_listings sl ON sl.support_request_id = sr.id
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
      WHERE sr.id = $1
      LIMIT 1`,
@@ -1187,16 +1206,21 @@ async function listAdminSupportRequestsPagedInternal(input: {
     archived_at: Date | null;
     last_activity_at: Date;
     created_at: Date;
+    metadata: Record<string, unknown> | null;
+    service_slug: string | null;
+    service_status: string | null;
   }>(
     `SELECT
        sr.id, sr.request_type, sr.subject, sr.message, sr.status, sr.priority, sr.source,
        sr.reporter_user_id, sr.reporter_name, sr.reporter_email, sr.reporter_phone,
        ${enrichSelect}, sr.listing_id,
        sr.assigned_to_user_id, au.email AS assigned_to_email,
-       sr.admin_response,
-       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at
+       sr.admin_response, sr.metadata,
+       sr.response_at, sr.resolved_at, ${archiveSelect}, sr.last_activity_at, sr.created_at,
+       sl.slug AS service_slug, sl.status AS service_status
      FROM support_requests sr
      LEFT JOIN users au ON au.id = sr.assigned_to_user_id
+     LEFT JOIN service_listings sl ON sl.support_request_id = sr.id
      ${whereSql}
      ORDER BY sr.last_activity_at ${sortDir}
      LIMIT $${values.length - 1} OFFSET $${values.length}`,

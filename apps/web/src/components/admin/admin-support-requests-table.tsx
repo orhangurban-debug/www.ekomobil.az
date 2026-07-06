@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/ui/confirm-dialog-provider";
-import type { AdminSupportRequestRow, AssignableStaff } from "@/components/admin/admin-support-types";
+import type { AdminSupportRequestRow, AssignableStaff, DealerApplicationMeta } from "@/components/admin/admin-support-types";
 import {
   PRIORITY_LABELS,
   REQUEST_TYPE_LABELS,
@@ -100,6 +100,314 @@ function staffLabel(staff: AssignableStaff): string {
   return name ? `${name} (${staff.email})` : staff.email;
 }
 
+// ── Smart Action Panel — type-specific context & actions ──────────────────────
+
+function SmartActionPanel({
+  row,
+  onActivate,
+  onReject,
+  busy
+}: {
+  row: AdminSupportRequestRow;
+  onActivate: () => void;
+  onReject: (note: string) => void;
+  busy: boolean;
+}) {
+  const [rejectNote, setRejectNote] = useState("");
+  const [showReject, setShowReject] = useState(false);
+  const type = row.requestType;
+  const isResolved = row.status === "resolved" || row.status === "closed" || row.status === "archived";
+
+  // ── Servis/Ekspertiza profili ──────────────────────────────────────────────
+  if (type === "inspection_partner") {
+    const slug = row.metadata?.serviceSlug as string | undefined;
+    const svcStatus = row.metadata?.serviceStatus as string | undefined;
+    const isActive = svcStatus === "approved";
+    return (
+      <section className="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🛠️</span>
+          <div className="flex-1">
+            <p className="font-semibold text-teal-800">Ekspertiza / Servis tərəfdaşlığı</p>
+            {slug ? (
+              isActive ? (
+                <p className="mt-1 text-sm text-teal-700">
+                  Bu profil müraciət göndəriləndə <strong>avtomatik aktivləşdirildi</strong>.
+                  Əlavə admin təsdiqi tələb olunmur.
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-amber-700">
+                  Profil yaradılıb amma <strong>{svcStatus}</strong> statusundadır.
+                </p>
+              )
+            ) : (
+              <p className="mt-1 text-sm text-slate-600">
+                Müraciət formasında kifayət qədər məlumat olmadığından profil avtomatik yaradılmadı.
+                Lazım olarsa aşağıdakı "Mağaza profili yarat" linkinə keçin.
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {slug && (
+                <Link
+                  href={`/services/${slug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700"
+                >
+                  Profili gör →
+                </Link>
+              )}
+              {slug && (
+                <Link
+                  href={`/admin/services`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-teal-300 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-100"
+                >
+                  Admin servis paneli
+                </Link>
+              )}
+              {isActive && !isResolved && (
+                <p className="self-center text-xs text-slate-500">
+                  Bu müraciəti arxivlə — işiniz bitdi.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Salon müraciəti ────────────────────────────────────────────────────────
+  if (type === "dealer_apply" || (type === "partnership" && row.metadata?.dealerApplication)) {
+    const app = row.metadata?.dealerApplication as DealerApplicationMeta | undefined;
+    return (
+      <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🏢</span>
+          <div className="flex-1">
+            <p className="font-semibold text-blue-800">Salon müraciəti</p>
+            {app ? (
+              <div className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
+                {app.businessName && (
+                  <div><span className="text-xs text-slate-500">Salon adı</span><p className="font-medium text-slate-900">{app.businessName}</p></div>
+                )}
+                {app.city && (
+                  <div><span className="text-xs text-slate-500">Şəhər</span><p className="font-medium text-slate-900">{app.city}</p></div>
+                )}
+                {app.voen && (
+                  <div><span className="text-xs text-slate-500">VÖEN</span><p className="font-medium text-slate-900">{app.voen}</p></div>
+                )}
+                {app.phone && (
+                  <div><span className="text-xs text-slate-500">Əlaqə nömrəsi</span><p className="font-medium text-slate-900">{app.phone}</p></div>
+                )}
+                {app.website && (
+                  <div><span className="text-xs text-slate-500">Sayt</span>
+                    <a href={app.website} target="_blank" rel="noopener" className="font-medium text-blue-700 hover:underline">{app.website}</a>
+                  </div>
+                )}
+                {app.description && (
+                  <div className="sm:col-span-2"><span className="text-xs text-slate-500">Qeyd</span><p className="text-slate-700">{app.description}</p></div>
+                )}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-slate-500">Strukturlaşmış məlumat yoxdur — yuxarıdakı müraciət mətninə baxın.</p>
+            )}
+            {!isResolved && (
+              <div className="mt-3 space-y-2">
+                <div className="rounded-lg bg-blue-100/60 px-3 py-2 text-xs text-blue-800">
+                  <strong>Aktivləşdir</strong> düyməsi basdıqda: Salon profili yaradılacaq · İstifadəçi
+                  &ldquo;dealer&rdquo; roluna keçiriləcək · 30 günlük pulsuz sınaq abunəsi veriləcək.
+                </div>
+                {!showReject ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={onActivate}
+                      disabled={busy}
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {busy ? "İşlənir..." : "✅ Müraciəti təsdiqlə & Aktivləşdir"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowReject(true)}
+                      disabled={busy}
+                      className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                    >
+                      ❌ Rədd et
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      className="input-field min-h-16 text-sm"
+                      placeholder="Rədd səbəbini yazın (istifadəçiyə göndəriləcək)..."
+                      value={rejectNote}
+                      onChange={(e) => setRejectNote(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onReject(rejectNote)}
+                        disabled={busy || !rejectNote.trim()}
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {busy ? "Göndərilir..." : "Rədd et & Cavab göndər"}
+                      </button>
+                      <button type="button" onClick={() => setShowReject(false)} className="btn-secondary px-3 py-2 text-sm">
+                        Geri
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {isResolved && (
+              <p className="mt-2 text-sm font-medium text-emerald-700">✓ Bu müraciət həll edilib.</p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Mağaza müraciəti ───────────────────────────────────────────────────────
+  if (type === "parts_apply") {
+    const app = row.metadata?.dealerApplication as DealerApplicationMeta | undefined;
+    return (
+      <section className="rounded-xl border border-violet-200 bg-violet-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🔧</span>
+          <div className="flex-1">
+            <p className="font-semibold text-violet-800">Ehtiyat hissələri mağazası müraciəti</p>
+            {app ? (
+              <div className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
+                {app.businessName && (
+                  <div><span className="text-xs text-slate-500">Mağaza adı</span><p className="font-medium text-slate-900">{app.businessName}</p></div>
+                )}
+                {app.city && (
+                  <div><span className="text-xs text-slate-500">Şəhər</span><p className="font-medium text-slate-900">{app.city}</p></div>
+                )}
+                {app.voen && (
+                  <div><span className="text-xs text-slate-500">VÖEN</span><p className="font-medium text-slate-900">{app.voen}</p></div>
+                )}
+                {app.phone && (
+                  <div><span className="text-xs text-slate-500">Əlaqə nömrəsi</span><p className="font-medium text-slate-900">{app.phone}</p></div>
+                )}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-slate-500">Strukturlaşmış məlumat yoxdur — yuxarıdakı müraciət mətninə baxın.</p>
+            )}
+            {!isResolved && (
+              <div className="mt-3 space-y-2">
+                <div className="rounded-lg bg-violet-100/60 px-3 py-2 text-xs text-violet-800">
+                  <strong>Aktivləşdir</strong> düyməsi basdıqda: Mağaza abunəliyi aktiv ediləcək ·
+                  İstifadəçi ehtiyat hissə elanı verə biləcək.
+                </div>
+                {!showReject ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={onActivate}
+                      disabled={busy}
+                      className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+                    >
+                      {busy ? "İşlənir..." : "✅ Müraciəti təsdiqlə & Aktivləşdir"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowReject(true)}
+                      disabled={busy}
+                      className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                    >
+                      ❌ Rədd et
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      className="input-field min-h-16 text-sm"
+                      placeholder="Rədd səbəbini yazın..."
+                      value={rejectNote}
+                      onChange={(e) => setRejectNote(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onReject(rejectNote)}
+                        disabled={busy || !rejectNote.trim()}
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {busy ? "Göndərilir..." : "Rədd et & Cavab göndər"}
+                      </button>
+                      <button type="button" onClick={() => setShowReject(false)} className="btn-secondary px-3 py-2 text-sm">
+                        Geri
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {isResolved && (
+              <p className="mt-2 text-sm font-medium text-emerald-700">✓ Bu müraciət həll edilib.</p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── GDPR / Məxfilik müraciəti ──────────────────────────────────────────────
+  if (type.startsWith("data_")) {
+    const gdprLabels: Record<string, string> = {
+      data_export: "İstifadəçi məlumatlarını toplayan sistemi yoxlayın, ZIP arxiv hazırlayın və cavab göndərin.",
+      data_deletion: "İstifadəçi hesabını arxivlə, şəxsi məlumatları sıfırla (ad, telefon, e-poçt) və cavab göndərin.",
+      data_rectification: "İstifadəçinin düzəldilməsini istədiyi məlumatı yenilə (admin users paneli) və cavab göndərin.",
+      data_processing_objection: "İstifadəçinin emal razılığını ləğv et (məxfilik paneli) və cavab göndərin."
+    };
+    return (
+      <section className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🔒</span>
+          <div className="flex-1">
+            <p className="font-semibold text-amber-800">GDPR / Məxfilik müraciəti</p>
+            <p className="mt-1 text-sm text-amber-700">{gdprLabels[type] ?? "Məxfilik sorğusunu yoxlayın və cavab göndərin."}</p>
+            {row.reporterUserId && (
+              <Link
+                href={`/admin/users/${row.reporterUserId}`}
+                className="mt-2 inline-flex items-center gap-1 rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+              >
+                İstifadəçi profilinə get →
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Şikayət ────────────────────────────────────────────────────────────────
+  if (type === "complaint") {
+    return (
+      <section className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="font-semibold text-rose-800">Şikayət müraciəti</p>
+            <p className="mt-1 text-sm text-rose-700">
+              Müraciəti nəzərdən keçirin. Ciddi ihlal varsa <strong>Incident yarat</strong> düyməsindən istifadə edin.
+              Cavab göndərərkən həll olunub kimi qeyd edin.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return null;
+}
+
+// ── Main table component ───────────────────────────────────────────────────────
+
 export function AdminSupportRequestsTable({
   items,
   assignees,
@@ -153,6 +461,15 @@ export function AdminSupportRequestsTable({
     setIncidentMsg(null);
   }
 
+  async function patchRequest(payload: Record<string, unknown>): Promise<{ ok: boolean; emailSent?: boolean; emailError?: string; status?: string; partnershipActivated?: boolean; error?: string }> {
+    const response = await fetch("/api/admin/support-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return response.json() as Promise<{ ok: boolean; emailSent?: boolean; emailError?: string; status?: string; partnershipActivated?: boolean; error?: string }>;
+  }
+
   async function saveSelected(options?: { resendEmail?: boolean }) {
     if (!selected) return;
     setBusy(true);
@@ -160,32 +477,21 @@ export function AdminSupportRequestsTable({
     setEmailSent(false);
     setEmailError(null);
     try {
-      const response = await fetch("/api/admin/support-requests", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selected.id,
-          status: draft.status,
-          priority: draft.priority,
-          assignedToUserId: draft.assignedToUserId.trim() || null,
-          adminResponse: draft.adminResponse.trim() || undefined,
-          internalNotes: draft.internalNotes,
-          riskFlag: draft.riskFlag,
-          resendEmail: options?.resendEmail === true
-        })
+      const result = await patchRequest({
+        id: selected.id,
+        status: draft.status,
+        priority: draft.priority,
+        assignedToUserId: draft.assignedToUserId.trim() || null,
+        adminResponse: draft.adminResponse.trim() || undefined,
+        internalNotes: draft.internalNotes,
+        riskFlag: draft.riskFlag,
+        resendEmail: options?.resendEmail === true
       });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        error?: string;
-        emailSent?: boolean;
-        emailError?: string;
-        status?: string;
-      };
-      if (!response.ok || !payload.ok) {
-        setError(payload.error ?? "Yeniləmə uğursuz oldu.");
+      if (!result.ok) {
+        setError(result.error ?? "Yeniləmə uğursuz oldu.");
         return;
       }
-      const savedStatus = payload.status ?? draft.status;
+      const savedStatus = result.status ?? draft.status;
       const assignee = assignees.find((a) => a.id === draft.assignedToUserId);
       setDraft((d) => ({ ...d, status: savedStatus }));
       setRows((prev) =>
@@ -207,11 +513,84 @@ export function AdminSupportRequestsTable({
         )
       );
       router.refresh();
-      if (payload.emailSent) {
+      if (result.emailSent) {
         setEmailSent(true);
         setTimeout(() => setEmailSent(false), 6000);
       }
-      if (payload.emailError) setEmailError(payload.emailError);
+      if (result.emailError) setEmailError(result.emailError);
+      if (result.partnershipActivated) {
+        setError(null);
+        setTimeout(() => router.refresh(), 800);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function activateBusinessRequest() {
+    if (!selected) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const activationMsg = selected.requestType === "dealer_apply" || selected.requestType === "partnership"
+        ? "Müraciətiniz təsdiqləndi. Salon panelinizə giriş açıldı."
+        : "Müraciətiniz təsdiqləndi. Mağaza panelinizə giriş açıldı.";
+      const result = await patchRequest({
+        id: selected.id,
+        status: "resolved",
+        priority: "high",
+        adminResponse: activationMsg
+      });
+      if (!result.ok) {
+        setError(result.error ?? "Aktivləşdirmə uğursuz oldu.");
+        return;
+      }
+      const savedStatus = result.status ?? "resolved";
+      setDraft((d) => ({ ...d, status: savedStatus, adminResponse: activationMsg }));
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === selected.id
+            ? { ...row, status: savedStatus, adminResponse: activationMsg, lastActivityAt: new Date().toISOString() }
+            : row
+        )
+      );
+      setEmailSent(result.emailSent ?? false);
+      if (result.partnershipActivated) {
+        setTimeout(() => router.refresh(), 600);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function rejectBusinessRequest(note: string) {
+    if (!selected) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await patchRequest({
+        id: selected.id,
+        status: "closed",
+        priority: draft.priority,
+        adminResponse: note.trim() || "Müraciətiniz rədd edildi."
+      });
+      if (!result.ok) {
+        setError(result.error ?? "Rədd uğursuz oldu.");
+        return;
+      }
+      const savedStatus = result.status ?? "closed";
+      setDraft((d) => ({ ...d, status: savedStatus, adminResponse: note.trim() }));
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === selected.id
+            ? { ...row, status: savedStatus, adminResponse: note.trim(), lastActivityAt: new Date().toISOString() }
+            : row
+        )
+      );
+      if (result.emailSent) {
+        setEmailSent(true);
+        setTimeout(() => setEmailSent(false), 6000);
+      }
     } finally {
       setBusy(false);
     }
@@ -350,7 +729,12 @@ export function AdminSupportRequestsTable({
                       <p className={`line-clamp-1 text-sm font-semibold ${active ? "text-[#0891B2]" : "text-slate-900"}`}>
                         {row.subject}
                       </p>
-                      {row.status === "new" && <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-sky-500" />}
+                      <div className="flex shrink-0 items-center gap-1">
+                        {(row.requestType === "dealer_apply" || row.requestType === "parts_apply" || row.requestType === "inspection_partner") && row.status === "new" && (
+                          <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Aksiya</span>
+                        )}
+                        {row.status === "new" && <span className="mt-0.5 h-2 w-2 rounded-full bg-sky-500" />}
+                      </div>
                     </div>
                     <p className="mt-1 line-clamp-2 text-xs text-slate-500">{row.message}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -493,6 +877,13 @@ export function AdminSupportRequestsTable({
                   </div>
                 </section>
               )}
+
+              <SmartActionPanel
+                row={selected}
+                onActivate={() => void activateBusinessRequest()}
+                onReject={(note) => void rejectBusinessRequest(note)}
+                busy={busy}
+              />
 
               <section>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət mətni</p>

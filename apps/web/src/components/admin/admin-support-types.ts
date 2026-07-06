@@ -9,6 +9,39 @@ export interface SupportReporterContext {
   openIncidentCount: number;
 }
 
+export interface DealerApplicationMeta {
+  businessType?: "dealer" | "parts_store";
+  businessName?: string;
+  voen?: string | null;
+  city?: string;
+  phone?: string;
+  website?: string | null;
+  description?: string | null;
+}
+
+export interface ServicePartnerMeta {
+  providerType?: string;
+  name?: string;
+  city?: string;
+  address?: string;
+  mapUrl?: string;
+  about?: string;
+  services?: string[];
+  certifications?: string[];
+  imageUrls?: string[];
+  phone?: string;
+  whatsapp?: string;
+}
+
+export interface SupportRequestMeta {
+  dealerApplication?: DealerApplicationMeta;
+  servicePartner?: ServicePartnerMeta;
+  serviceSlug?: string;
+  serviceId?: string;
+  serviceStatus?: string;
+  [key: string]: unknown;
+}
+
 export interface AdminSupportRequestRow {
   id: string;
   requestType: string;
@@ -35,6 +68,7 @@ export interface AdminSupportRequestRow {
   lastActivityAt: string;
   createdAt: string;
   reporterContext?: SupportReporterContext;
+  metadata?: SupportRequestMeta;
 }
 
 export interface AssignableStaff {
