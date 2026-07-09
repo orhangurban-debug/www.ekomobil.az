@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminUserEditPanel } from "@/components/admin/admin-user-edit-panel";
 import { REQUEST_TYPE_LABELS, STATUS_LABELS } from "@/lib/support-contact";
+import { getServerSessionUser } from "@/lib/auth";
 import { getAdminUserMembershipProfile } from "@/server/admin-store";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -51,6 +53,10 @@ export default async function AdminUserMembershipPage({
 
   const profile = await getAdminUserMembershipProfile(id);
   if (!profile) notFound();
+
+  const sessionUser = await getServerSessionUser();
+  const canEditRoles = sessionUser?.role === "admin";
+  const canDelete = sessionUser?.role === "admin" && !profile.user.email.includes("@anonymized.ekomobil.local");
 
   const displayName = profile.user.fullName?.trim() || profile.user.email;
   const membershipLabel =
@@ -118,6 +124,21 @@ export default async function AdminUserMembershipPage({
           </div>
         ))}
       </div>
+
+      <AdminUserEditPanel
+        user={{
+          id: profile.user.id,
+          email: profile.user.email,
+          role: profile.user.role,
+          userAccountStatus: profile.user.userAccountStatus,
+          penaltyBalanceAzn: profile.user.penaltyBalanceAzn,
+          fullName: profile.user.fullName,
+          city: profile.user.city,
+          phone: profile.user.phone
+        }}
+        canEditRoles={canEditRoles}
+        canDelete={canDelete}
+      />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="rounded-2xl border border-slate-200 bg-white p-5">

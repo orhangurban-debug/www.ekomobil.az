@@ -22,6 +22,7 @@ export async function GET(req: Request) {
   const priority = url.searchParams.get("priority") || undefined;
   const requestType = url.searchParams.get("requestType") || undefined;
   const requestGroup = url.searchParams.get("requestGroup") || undefined;
+  const excludeRequestGroup = url.searchParams.get("excludeRequestGroup") || undefined;
   const riskFlag = url.searchParams.get("riskFlag") || undefined;
   const assigned = (url.searchParams.get("assigned") as "yes" | "no" | null) ?? undefined;
   const sortDir = (url.searchParams.get("sortDir") as "asc" | "desc" | null) ?? undefined;
@@ -33,6 +34,7 @@ export async function GET(req: Request) {
     priority,
     requestType,
     requestGroup,
+    excludeRequestGroup,
     riskFlag,
     assigned,
     sortDir
@@ -50,6 +52,8 @@ export async function PATCH(req: Request) {
     assignedToUserId?: string | null;
     adminResponse?: string;
     internalNotes?: string;
+    subject?: string;
+    message?: string;
     riskFlag?: string;
     reason?: string;
     resendEmail?: boolean;
@@ -124,6 +128,10 @@ export async function PATCH(req: Request) {
     adminResponse: body.adminResponse,
     internalNotes: body.internalNotes,
     internalNotesProvided: "internalNotes" in body,
+    subject: body.subject,
+    message: body.message,
+    subjectProvided: "subject" in body,
+    messageProvided: "message" in body,
     riskFlag: body.riskFlag
   });
 
@@ -279,7 +287,7 @@ export async function DELETE(req: Request) {
   const deleted = await deleteArchivedSupportRequests(ids);
   if (deleted === 0) {
     return NextResponse.json(
-      { ok: false, error: "Yalnız arxivlənmiş müraciətlər silinə bilər." },
+      { ok: false, error: "Yalnız həll edilmiş, bağlanmış və ya arxivlənmiş müraciətlər silinə bilər." },
       { status: 400 }
     );
   }

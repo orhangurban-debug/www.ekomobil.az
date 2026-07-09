@@ -111,6 +111,8 @@ export interface AdminBusinessProfileRow {
   partsPlanId?: string;
   profileType: "dealer" | "store";
   updatedAt: string;
+  subscriptionExpiresAt?: string;
+  subscriptionStatus?: string;
 }
 
 export interface CrmSnapshot {
@@ -417,6 +419,66 @@ export async function updateAdminUserStatus(userId: string, status: string): Pro
   await pool.query(`UPDATE users SET user_account_status = $2 WHERE id = $1`, [userId, status]);
 }
 
+export async function updateAdminUserProfile(input: {
+  userId: string;
+  fullName?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  role?: UserRole;
+  userAccountStatus?: string;
+  penaltyBalanceAzn?: number;
+}): Promise<void> {
+  const pool = getPgPool();
+  if (input.role) {
+    await pool.query(`UPDATE users SET role = $2 WHERE id = $1`, [input.userId, input.role]);
+  }
+  if (input.userAccountStatus) {
+    await pool.query(`UPDATE users SET user_account_status = $2 WHERE id = $1`, [input.userId, input.userAccountStatus]);
+  }
+  if (input.penaltyBalanceAzn !== undefined) {
+    await pool.query(`UPDATE users SET penalty_balance_azn = $2 WHERE id = $1`, [input.userId, input.penaltyBalanceAzn]);
+  }
+  if (input.phone !== undefined) {
+    await pool.query(`UPDATE users SET phone = $2 WHERE id = $1`, [input.userId, input.phone]);
+  }
+  if (input.fullName !== undefined || input.city !== undefined) {
+    await pool.query(
+      `INSERT INTO user_profiles (user_id, full_name, city)
+       VALUES ($1, COALESCE($2, ''), COALESCE($3, 'Bakı'))
+       ON CONFLICT (user_id) DO UPDATE SET
+         full_name = COALESCE($2, user_profiles.full_name),
+         city = COALESCE($3, user_profiles.city)`,
+      [input.userId, input.fullName ?? null, input.city ?? null]
+    );
+  }
+}
+
+/** Soft-delete: anonymize PII and suspend account. Preserves FK integrity. */
+export async function anonymizeAdminUser(userId: string): Promise<void> {
+  const pool = getPgPool();
+  const anonEmail = `deleted-${userId.slice(0, 8)}@anonymized.ekomobil.local`;
+  await pool.query(
+    `UPDATE users SET
+       email = $2,
+       phone = NULL,
+       user_account_status = 'suspended',
+       role = 'viewer'
+     WHERE id = $1`,
+    [userId, anonEmail]
+  );
+  await pool.query(
+    `UPDATE user_profiles SET
+       full_name = 'Silinmiş istifadəçi',
+       bio = NULL,
+       avatar_url = NULL,
+       store_name = NULL,
+       store_logo_url = NULL,
+       store_cover_url = NULL
+     WHERE user_id = $1`,
+    [userId]
+  );
+}
+
 export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
   try {
     const pool = getPgPool();
@@ -538,6 +600,8 @@ export async function listAdminBusinessProfilesPaged(input: {
   page?: number;
   pageSize?: number;
   q?: string;
+  profileType?: "dealer" | "store";
+  verified?: "yes" | "no";
 }): Promise<PaginatedResult<AdminBusinessProfileRow>> {
   const page = clampPage(input.page);
   const pageSize = clampPageSize(input.pageSize);
@@ -553,6 +617,11 @@ export async function listAdminBusinessProfilesPaged(input: {
       OR LOWER(COALESCE(dp.website_url, '')) LIKE $${values.length}
     )`);
   }
+  if (input.verified === "yes") where.push(`dp.verified = TRUE`);
+  if (input.verified === "no") where.push(`dp.verified = FALSE`);
+
+  const includeDealers = input.profileType !== "store";
+  const includeStores = input.profileType !== "dealer";
   const pool = getPgPool();
 
   // Dealer profile WHERE clause uses different aliases
@@ -570,11 +639,13 @@ export async function listAdminBusinessProfilesPaged(input: {
   const countResult = await pool.query<{ total: string }>(
     `
       SELECT COUNT(*)::text AS total FROM (
+        ${includeDealers ? `
         SELECT dp.id
         FROM dealer_profiles dp
         LEFT JOIN users u ON u.id = dp.owner_user_id
-        ${dealerWhere}
-        UNION ALL
+        ${dealerWhere}` : ""}
+        ${includeDealers && includeStores ? "UNION ALL" : ""}
+        ${includeStores ? `
         SELECT u.id
         FROM users u
         LEFT JOIN user_profiles up ON up.user_id = u.id
@@ -584,7 +655,7 @@ export async function listAdminBusinessProfilesPaged(input: {
             AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
         )
         AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp2 WHERE dp2.owner_user_id = u.id)
-        ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}
+        ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}` : ""}
       ) combined
     `,
     countValues
@@ -610,9 +681,12 @@ export async function listAdminBusinessProfilesPaged(input: {
     dealer_plan_id: string | null;
     parts_plan_id: string | null;
     profile_type: "dealer" | "store";
+    subscription_expires_at: Date | null;
+    subscription_status: string | null;
     updated_at: Date;
   }>(
     `
+      ${includeDealers ? `
       SELECT
         dp.id AS dealer_id,
         dp.owner_user_id,
@@ -632,11 +706,23 @@ export async function listAdminBusinessProfilesPaged(input: {
             AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
           ORDER BY s.updated_at DESC LIMIT 1
         ) AS parts_plan_id,
+        (
+          SELECT s.expires_at FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id AND s.business_type = 'dealer'
+            AND s.status = 'active'
+          ORDER BY s.updated_at DESC LIMIT 1
+        ) AS subscription_expires_at,
+        (
+          SELECT s.status FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id AND s.business_type = 'dealer'
+          ORDER BY s.updated_at DESC LIMIT 1
+        ) AS subscription_status,
         dp.created_at AS updated_at
       FROM dealer_profiles dp
       LEFT JOIN users u ON u.id = dp.owner_user_id
-      ${dealerWhere}
-      UNION ALL
+      ${dealerWhere}` : ""}
+      ${includeDealers && includeStores ? "UNION ALL" : ""}
+      ${includeStores ? `
       SELECT
         u.id AS dealer_id,
         u.id AS owner_user_id,
@@ -658,6 +744,17 @@ export async function listAdminBusinessProfilesPaged(input: {
             AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
           ORDER BY s.updated_at DESC LIMIT 1
         ) AS parts_plan_id,
+        (
+          SELECT s.expires_at FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+            AND s.status = 'active'
+          ORDER BY s.updated_at DESC LIMIT 1
+        ) AS subscription_expires_at,
+        (
+          SELECT s.status FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+          ORDER BY s.updated_at DESC LIMIT 1
+        ) AS subscription_status,
         u.created_at AS updated_at
       FROM users u
       LEFT JOIN user_profiles up ON up.user_id = u.id
@@ -667,6 +764,7 @@ export async function listAdminBusinessProfilesPaged(input: {
           AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
       )
       AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp3 WHERE dp3.owner_user_id = u.id)
+      ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}` : ""}
       ORDER BY updated_at DESC
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `,
@@ -691,6 +789,8 @@ export async function listAdminBusinessProfilesPaged(input: {
       dealerPlanId: row.dealer_plan_id ?? undefined,
       partsPlanId: row.parts_plan_id ?? undefined,
       profileType: row.profile_type,
+      subscriptionExpiresAt: row.subscription_expires_at?.toISOString(),
+      subscriptionStatus: row.subscription_status ?? undefined,
       updatedAt: row.updated_at.toISOString()
     })),
     total,
@@ -1096,6 +1196,7 @@ export async function listAdminSupportRequestsPaged(input: {
   priority?: string;
   requestType?: string;
   requestGroup?: string;
+  excludeRequestGroup?: string;
   riskFlag?: string;
   assigned?: "yes" | "no";
   sortDir?: "asc" | "desc";
@@ -1118,6 +1219,7 @@ async function listAdminSupportRequestsPagedInternal(input: {
   priority?: string;
   requestType?: string;
   requestGroup?: string;
+  excludeRequestGroup?: string;
   riskFlag?: string;
   assigned?: "yes" | "no";
   sortDir?: "asc" | "desc";
@@ -1160,6 +1262,16 @@ async function listAdminSupportRequestsPagedInternal(input: {
         return `$${values.length}`;
       });
       where.push(`sr.request_type IN (${placeholders.join(", ")})`);
+    }
+  }
+  if (input.excludeRequestGroup?.trim()) {
+    const excludeTypes = requestGroupTypes(input.excludeRequestGroup.trim());
+    if (excludeTypes.length > 0) {
+      const placeholders = excludeTypes.map((type) => {
+        values.push(type);
+        return `$${values.length}`;
+      });
+      where.push(`sr.request_type NOT IN (${placeholders.join(", ")})`);
     }
   }
   if (input.riskFlag?.trim() && (await supportEnrichColumnsReady())) {
@@ -1257,6 +1369,10 @@ export async function updateAdminSupportRequest(input: {
   adminResponse?: string;
   internalNotes?: string;
   internalNotesProvided?: boolean;
+  subject?: string;
+  message?: string;
+  subjectProvided?: boolean;
+  messageProvided?: boolean;
   riskFlag?: string;
 }): Promise<void> {
   const pool = getPgPool();
@@ -1265,6 +1381,8 @@ export async function updateAdminSupportRequest(input: {
   const archivedAtSql = archive
     ? "archived_at = CASE WHEN $2 = 'archived' THEN NOW() WHEN $2 IS NOT NULL AND $2 <> 'archived' THEN NULL ELSE archived_at END,"
     : "";
+  const resolvedAtSql =
+    "resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() WHEN $2 IN ('new', 'in_progress', 'waiting_user') THEN NULL ELSE resolved_at END,";
   if (enrich) {
     await pool.query(
       `UPDATE support_requests
@@ -1274,9 +1392,11 @@ export async function updateAdminSupportRequest(input: {
          assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
          admin_response = COALESCE($5, admin_response),
          internal_notes = CASE WHEN $8 THEN $7 ELSE internal_notes END,
-         risk_flag = COALESCE($9, risk_flag),
+         subject = CASE WHEN $10 THEN $9 ELSE subject END,
+         message = CASE WHEN $12 THEN $11 ELSE message END,
+         risk_flag = COALESCE($13, risk_flag),
          response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
-         resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() WHEN $2 = 'archived' THEN resolved_at ELSE resolved_at END,
+         ${resolvedAtSql}
          ${archivedAtSql}
          last_activity_at = NOW(),
          updated_at = NOW()
@@ -1290,6 +1410,10 @@ export async function updateAdminSupportRequest(input: {
         input.assigneeProvided ?? false,
         input.internalNotes ?? null,
         input.internalNotesProvided ?? false,
+        input.subject ?? null,
+        input.subjectProvided ?? false,
+        input.message ?? null,
+        input.messageProvided ?? false,
         input.riskFlag ?? null
       ]
     );
@@ -1303,8 +1427,10 @@ export async function updateAdminSupportRequest(input: {
        priority = COALESCE($3, priority),
        assigned_to_user_id = CASE WHEN $6 THEN $4 ELSE assigned_to_user_id END,
        admin_response = COALESCE($5, admin_response),
+       subject = CASE WHEN $8 THEN $7 ELSE subject END,
+       message = CASE WHEN $10 THEN $9 ELSE message END,
        response_at = CASE WHEN $5 IS NULL THEN response_at ELSE NOW() END,
-       resolved_at = CASE WHEN $2 IN ('resolved', 'closed') THEN NOW() WHEN $2 = 'archived' THEN resolved_at ELSE resolved_at END,
+       ${resolvedAtSql}
        ${archivedAtSql}
        last_activity_at = NOW(),
        updated_at = NOW()
@@ -1315,7 +1441,11 @@ export async function updateAdminSupportRequest(input: {
       input.priority ?? null,
       input.assignedToUserId ?? null,
       input.adminResponse ?? null,
-      input.assigneeProvided ?? false
+      input.assigneeProvided ?? false,
+      input.subject ?? null,
+      input.subjectProvided ?? false,
+      input.message ?? null,
+      input.messageProvided ?? false
     ]
   );
 }
@@ -1338,7 +1468,7 @@ export async function deleteArchivedSupportRequests(ids: string[]): Promise<numb
   if (ids.length === 0) return 0;
   const pool = getPgPool();
   const result = await pool.query(
-    `DELETE FROM support_requests WHERE id = ANY($1::text[]) AND status = 'archived'`,
+    `DELETE FROM support_requests WHERE id = ANY($1::text[]) AND status IN ('archived', 'closed', 'resolved')`,
     [ids]
   );
   return result.rowCount ?? 0;

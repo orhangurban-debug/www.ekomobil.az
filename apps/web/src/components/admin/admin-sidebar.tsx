@@ -29,8 +29,8 @@ function buildSections(counts: AdminPendingCounts): NavSection[] {
         { href: "/admin/listings",         label: "Elanlar",           badgeKey: "pendingListings" },
         { href: "/admin/users",            label: "İstifadəçilər" },
         { href: "/admin/incidents",        label: "İnsidentlər",       badgeKey: "openIncidents" },
-        { href: "/admin/support-requests", label: "Müraciətlər",       badgeKey: "newSupportRequests" },
-        { href: "/admin/business-profiles",label: "Biznes müraciətləri", badgeKey: "newBusinessApplications" },
+        { href: "/admin/support-requests", label: "Müraciətlər", badgeKey: "newSupportRequests" },
+        { href: "/admin/business-applications", label: "Biznes müraciətləri", badgeKey: "newBusinessApplications" },
         { href: "/admin/legal-requests",   label: "Hüquqi sorğular" }
       ]
     },
@@ -123,7 +123,7 @@ export function AdminSidebar({ counts }: { counts: AdminPendingCounts }) {
 
                   return (
                     <Link
-                      key={item.href}
+                      key={`${section.title}-${item.label}`}
                       href={item.href}
                       className={`flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                         active

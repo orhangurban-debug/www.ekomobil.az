@@ -104,11 +104,13 @@ function staffLabel(staff: AssignableStaff): string {
 
 function SmartActionPanel({
   row,
+  mode,
   onActivate,
   onReject,
   busy
 }: {
   row: AdminSupportRequestRow;
+  mode: "general" | "business";
   onActivate: () => void;
   onReject: (note: string) => void;
   busy: boolean;
@@ -117,6 +119,28 @@ function SmartActionPanel({
   const [showReject, setShowReject] = useState(false);
   const type = row.requestType;
   const isResolved = row.status === "resolved" || row.status === "closed" || row.status === "archived";
+  const isBusinessType =
+    type === "dealer_apply" ||
+    type === "parts_apply" ||
+    type === "inspection_partner" ||
+    type === "partnership";
+
+  if (mode === "general" && isBusinessType) {
+    return (
+      <section className="rounded-xl border border-violet-200 bg-violet-50/40 p-4">
+        <p className="text-sm font-semibold text-violet-800">Biznes müraciəti</p>
+        <p className="mt-1 text-sm text-violet-700">
+          Bu müraciət biznes onboarding inbox-una aiddir. Təsdiq və aktivləşdirmə əməliyyatlarını orada edin.
+        </p>
+        <Link
+          href={`/admin/business-applications?q=${encodeURIComponent(row.reporterEmail ?? row.id.slice(0, 8))}`}
+          className="mt-3 inline-flex rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+        >
+          Biznes müraciətlərinə keç →
+        </Link>
+      </section>
+    );
+  }
 
   // ── Servis/Ekspertiza profili ──────────────────────────────────────────────
   if (type === "inspection_partner") {
@@ -411,11 +435,13 @@ function SmartActionPanel({
 export function AdminSupportRequestsTable({
   items,
   assignees,
-  canDelete = false
+  canDelete = false,
+  mode = "general"
 }: {
   items: AdminSupportRequestRow[];
   assignees: AssignableStaff[];
   canDelete?: boolean;
+  mode?: "general" | "business";
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(items);
@@ -442,8 +468,11 @@ export function AdminSupportRequestsTable({
     assignedToUserId: selected?.assignedToUserId ?? "",
     adminResponse: selected?.adminResponse ?? "",
     internalNotes: selected?.internalNotes ?? "",
+    subject: selected?.subject ?? "",
+    message: selected?.message ?? "",
     riskFlag: (selected?.riskFlag ?? "none") as SupportRiskFlag
   });
+  const [editContent, setEditContent] = useState(false);
 
   function selectRow(row: AdminSupportRequestRow) {
     setSelectedId(row.id);
@@ -453,8 +482,11 @@ export function AdminSupportRequestsTable({
       assignedToUserId: row.assignedToUserId ?? "",
       adminResponse: row.adminResponse ?? "",
       internalNotes: row.internalNotes ?? "",
+      subject: row.subject,
+      message: row.message,
       riskFlag: (row.riskFlag ?? "none") as SupportRiskFlag
     });
+    setEditContent(false);
     setError(null);
     setEmailSent(false);
     setEmailError(null);
@@ -484,6 +516,8 @@ export function AdminSupportRequestsTable({
         assignedToUserId: draft.assignedToUserId.trim() || null,
         adminResponse: draft.adminResponse.trim() || undefined,
         internalNotes: draft.internalNotes,
+        subject: editContent ? draft.subject.trim() : undefined,
+        message: editContent ? draft.message.trim() : undefined,
         riskFlag: draft.riskFlag,
         resendEmail: options?.resendEmail === true
       });
@@ -505,6 +539,8 @@ export function AdminSupportRequestsTable({
                 assignedToEmail: assignee?.email,
                 adminResponse: draft.adminResponse.trim() || row.adminResponse,
                 internalNotes: draft.internalNotes,
+                subject: editContent ? draft.subject.trim() : row.subject,
+                message: editContent ? draft.message.trim() : row.message,
                 riskFlag: draft.riskFlag,
                 responseAt: draft.adminResponse.trim() ? new Date().toISOString() : row.responseAt,
                 lastActivityAt: new Date().toISOString()
@@ -664,11 +700,82 @@ export function AdminSupportRequestsTable({
     }
   }
 
-  async function deleteSelected() {
-    if (!selected || selected.status !== "archived") return;
+  async function reopenSelected() {
+    if (!selected) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await patchRequest({
+        id: selected.id,
+        status: "in_progress",
+        priority: draft.priority
+      });
+      if (!result.ok) {
+        setError(result.error ?? "Geri qaytarma uğursuz oldu.");
+        return;
+      }
+      const savedStatus = result.status ?? "in_progress";
+      setDraft((d) => ({ ...d, status: savedStatus }));
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === selected.id
+            ? { ...row, status: savedStatus, lastActivityAt: new Date().toISOString() }
+            : row
+        )
+      );
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function blockReporter() {
+    if (!selected) return;
+    const userId = selected.reporterUserId ?? selected.reporterContext?.matchedUserId;
+    if (!userId) {
+      setError("Müraciətçi platforma istifadəçisi deyil — bloklamaq mümkün deyil.");
+      return;
+    }
     const confirmed = await confirm({
-      title: "Arxiv müraciətini sil",
-      message: "Bu arxiv müraciəti həmişəlik silinsin? Geri qaytarmaq mümkün deyil.",
+      title: "İstifadəçini blokla",
+      message: "Bu istifadəçinin hesabı dayandırılacaq (suspended). Davam edilsin?",
+      confirmLabel: "Blokla",
+      danger: true
+    });
+    if (!confirmed) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userAccountStatus: "suspended" })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        setError(payload.error ?? "Bloklama uğursuz oldu.");
+        return;
+      }
+      setIncidentMsg("İstifadəçi hesabı dayandırıldı.");
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteSelected() {
+    if (!selected) return;
+    const canRemoveNow =
+      selected.status === "archived" ||
+      selected.status === "closed" ||
+      selected.status === "resolved";
+    if (!canRemoveNow) {
+      setError("Silmək üçün əvvəl müraciəti həll edin və ya arxivləyin.");
+      return;
+    }
+    const confirmed = await confirm({
+      title: "Müraciəti sil",
+      message: "Bu müraciət həmişəlik silinsin? Geri qaytarmaq mümkün deyil.",
       confirmLabel: "Sil",
       danger: true
     });
@@ -695,6 +802,11 @@ export function AdminSupportRequestsTable({
   }
 
   const isArchived = selected?.status === "archived";
+  const isClosedLike =
+    selected?.status === "resolved" ||
+    selected?.status === "closed" ||
+    selected?.status === "archived";
+  const inboxTitle = mode === "business" ? "Biznes inbox" : "Inbox";
 
   if (rows.length === 0) {
     return (
@@ -710,7 +822,7 @@ export function AdminSupportRequestsTable({
       <div className="grid min-h-[620px] lg:grid-cols-[360px_1fr]">
         <div className="border-b border-slate-200 lg:border-b-0 lg:border-r">
           <div className="border-b border-slate-100 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Inbox</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{inboxTitle}</p>
             <p className="text-sm text-slate-700">{rows.length} müraciət</p>
           </div>
           <ul className="max-h-[580px] divide-y divide-slate-100 overflow-y-auto">
@@ -880,16 +992,52 @@ export function AdminSupportRequestsTable({
 
               <SmartActionPanel
                 row={selected}
+                mode={mode}
                 onActivate={() => void activateBusinessRequest()}
                 onReject={(note) => void rejectBusinessRequest(note)}
                 busy={busy}
               />
 
               <section>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət mətni</p>
-                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
-                  {selected.message}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Müraciət mətni</p>
+                  {!isArchived && (
+                    <button
+                      type="button"
+                      onClick={() => setEditContent((v) => !v)}
+                      className="text-xs font-medium text-[#0891B2] hover:underline"
+                    >
+                      {editContent ? "Redaktəni ləğv et" : "Mətni redaktə et"}
+                    </button>
+                  )}
                 </div>
+                {editContent && !isArchived ? (
+                  <div className="mt-2 space-y-3">
+                    <label className="block space-y-1">
+                      <span className="text-xs text-slate-500">Mövzu</span>
+                      <input
+                        className="input-field"
+                        value={draft.subject}
+                        onChange={(e) => setDraft((d) => ({ ...d, subject: e.target.value }))}
+                      />
+                    </label>
+                    <label className="block space-y-1">
+                      <span className="text-xs text-slate-500">Mesaj</span>
+                      <textarea
+                        className="input-field min-h-32"
+                        value={draft.message}
+                        onChange={(e) => setDraft((d) => ({ ...d, message: e.target.value }))}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-1 text-sm font-medium text-slate-800">{selected.subject}</p>
+                    <div className="mt-2 rounded-xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                      {selected.message}
+                    </div>
+                  </>
+                )}
                 <p className="mt-2 text-xs text-slate-400">
                   Yaradılıb: {formatWhen(selected.createdAt)} · Son aktivlik: {formatWhen(selected.lastActivityAt)}
                   {selected.archivedAt && <> · Arxiv: {formatWhen(selected.archivedAt)}</>}
@@ -992,6 +1140,16 @@ export function AdminSupportRequestsTable({
                     Arxivlə
                   </button>
                 )}
+                {isClosedLike && (
+                  <button type="button" onClick={() => void reopenSelected()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
+                    Geri qaytar
+                  </button>
+                )}
+                {(selected.reporterUserId || selected.reporterContext?.matchedUserId) && (
+                  <button type="button" onClick={() => void blockReporter()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
+                    İstifadəçini blokla
+                  </button>
+                )}
                 <button type="button" onClick={() => openPrintExport("html")} className="btn-secondary px-4 py-2.5 text-sm">
                   Çap / PDF
                 </button>
@@ -1001,19 +1159,29 @@ export function AdminSupportRequestsTable({
                 <button type="button" onClick={() => void createIncidentFromRequest()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
                   Incident yarat
                 </button>
+                {canDelete && isClosedLike && (
+                  <button type="button" onClick={() => void deleteSelected()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
+                    {busy ? "Silinir..." : "Sil"}
+                  </button>
+                )}
                 </>
                 )}
-                {isArchived && canDelete && (
+                {isArchived && (
                 <>
+                <button type="button" onClick={() => void reopenSelected()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
+                  Geri qaytar
+                </button>
                 <button type="button" onClick={() => openPrintExport("html")} className="btn-secondary px-4 py-2.5 text-sm">
                   Çap / PDF
                 </button>
                 <button type="button" onClick={() => openPrintExport("json")} className="btn-secondary px-4 py-2.5 text-sm">
                   JSON export
                 </button>
-                <button type="button" onClick={() => void deleteSelected()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
-                  {busy ? "Silinir..." : "Arxivi sil"}
-                </button>
+                {canDelete && (
+                  <button type="button" onClick={() => void deleteSelected()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
+                    {busy ? "Silinir..." : "Sil"}
+                  </button>
+                )}
                 </>
                 )}
                 {emailSent && <span className="text-sm font-medium text-emerald-600">E-poçt göndərildi</span>}

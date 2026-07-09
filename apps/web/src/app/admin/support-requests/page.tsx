@@ -16,8 +16,6 @@ import {
   listAdminSupportRequestsPaged,
   listSupportAssignableStaff
 } from "@/server/admin-store";
-import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
-
 function statHref(params: Record<string, string | undefined>): string {
   const q = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -42,6 +40,7 @@ export default async function AdminSupportRequestsPage({
   const priority = typeof params.priority === "string" ? params.priority : undefined;
   const requestType = typeof params.requestType === "string" ? params.requestType : undefined;
   const requestGroup = typeof params.requestGroup === "string" ? params.requestGroup : undefined;
+  const excludeBusiness = requestGroup !== "business_apply";
   const riskFlag = typeof params.riskFlag === "string" ? params.riskFlag : undefined;
   const assigned = typeof params.assigned === "string" ? (params.assigned as "yes" | "no") : undefined;
   const [snapshot, data, assignees] = await Promise.all([
@@ -53,7 +52,8 @@ export default async function AdminSupportRequestsPage({
       status,
       priority,
       requestType,
-      requestGroup,
+      requestGroup: requestGroup === "business_apply" ? "business_apply" : undefined,
+      excludeRequestGroup: excludeBusiness && !requestGroup ? "business_apply" : undefined,
       riskFlag,
       assigned
     }),
@@ -92,15 +92,12 @@ export default async function AdminSupportRequestsPage({
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Müraciət inbox</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Kateqoriyalaşdırılmış sorğular, müştəri konteksti və hüquqi arxiv üçün export.
-            Həll edilmiş müraciətlər {SUPPORT_ARCHIVE_AFTER_DAYS} gündən sonra avtomatik arxivlənir.
+            Dəstək, şikayət və məxfilik sorğuları. Biznes müraciətləri ayrıca siyahıdadır.
           </p>
         </div>
-        {assignees.length > 0 && (
-          <p className="text-xs text-slate-400">
-            {assignees.length} admin/dəstək işçisi təhkim üçün mövcuddur
-          </p>
-        )}
+        <Link href="/admin/business-applications" className="btn-secondary text-sm">
+          Biznes müraciətləri →
+        </Link>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
@@ -123,7 +120,9 @@ export default async function AdminSupportRequestsPage({
 
       {snapshot.byType.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {snapshot.byType.map((item) => (
+          {snapshot.byType
+            .filter((item) => !["dealer_apply", "parts_apply", "partnership", "inspection_partner"].includes(item.requestType))
+            .map((item) => (
             <Link
               key={item.requestType}
               href={statHref({ requestType: item.requestType })}
@@ -185,7 +184,7 @@ export default async function AdminSupportRequestsPage({
         </div>
       </form>
 
-      <AdminSupportRequestsTable items={data.items} assignees={assignees} canDelete={canDelete} />
+      <AdminSupportRequestsTable items={data.items} assignees={assignees} canDelete={canDelete} mode="general" />
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">

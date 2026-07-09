@@ -3,6 +3,15 @@ import { AdminBusinessProfilesTable } from "@/components/admin/admin-business-pr
 import { requirePageRoles } from "@/lib/rbac";
 import { listAdminBusinessProfilesPaged } from "@/server/admin-store";
 
+function statHref(params: Record<string, string | undefined>): string {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) q.set(key, value);
+  });
+  const query = q.toString();
+  return query ? `/admin/business-profiles?${query}` : "/admin/business-profiles";
+}
+
 export default async function AdminBusinessProfilesPage({
   searchParams
 }: {
@@ -14,28 +23,75 @@ export default async function AdminBusinessProfilesPage({
   const page = Number(params.page || 1);
   const pageSize = Number(params.pageSize || 25);
   const q = typeof params.q === "string" ? params.q : undefined;
-  const data = await listAdminBusinessProfilesPaged({ page, pageSize, q });
+  const profileType = typeof params.profileType === "string" ? (params.profileType as "dealer" | "store") : undefined;
+  const verified = typeof params.verified === "string" ? (params.verified as "yes" | "no") : undefined;
+
+  const data = await listAdminBusinessProfilesPaged({ page, pageSize, q, profileType, verified });
+
+  const dealers = data.items.filter((item) => item.profileType === "dealer");
+  const stores = data.items.filter((item) => item.profileType === "store");
+  const verifiedCount = data.items.filter((item) => item.verified).length;
+
   const qParams = new URLSearchParams();
   if (q) qParams.set("q", q);
+  if (profileType) qParams.set("profileType", profileType);
+  if (verified) qParams.set("verified", verified);
   qParams.set("pageSize", String(pageSize));
 
+  const stats = [
+    { label: "Cəmi", value: data.total, href: statHref({ q }) },
+    { label: "Salon", value: dealers.length, href: statHref({ profileType: "dealer", q }) },
+    { label: "Mağaza", value: stores.length, href: statHref({ profileType: "store", q }) },
+    { label: "Təsdiqlənib", value: verifiedCount, href: statHref({ verified: "yes", q }) },
+    { label: "Gözləyir", value: data.items.filter((item) => !item.verified && item.profileType === "dealer").length, href: statHref({ verified: "no", q }) }
+  ];
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Biznes profil moderasiyası</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Mağaza və salon profilinin görünürlüğünü, təsdiq statusunu və kontakt yayımlanmasını idarə edin.
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Biznes hesabları</p>
+          <h2 className="text-2xl font-bold text-slate-900">Salon / Mağaza profilləri</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Aktiv biznes hesablarının moderasiyası, abunə idarəetməsi və sahib profilinə keçid.
+          </p>
+        </div>
+        <Link href="/admin/business-applications" className="btn-secondary text-sm">
+          Yeni biznes müraciətləri →
+        </Link>
       </div>
 
-      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="Axtar: profil adı, şəhər, owner email"
-          className="input-field md:col-span-4"
-        />
-        <div className="flex gap-2">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        {stats.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-sm"
+          >
+            <p className="text-xs text-slate-500">{item.label}</p>
+            <p className="text-2xl font-bold text-slate-900">{item.value}</p>
+          </Link>
+        ))}
+      </div>
+
+      <form className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="grid gap-3 md:grid-cols-5">
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Axtar: profil adı, şəhər, owner email"
+            className="input-field md:col-span-2"
+          />
+          <select name="profileType" defaultValue={profileType ?? ""} className="input-field">
+            <option value="">Tip — hamısı</option>
+            <option value="dealer">Salon</option>
+            <option value="store">Mağaza</option>
+          </select>
+          <select name="verified" defaultValue={verified ?? ""} className="input-field">
+            <option value="">Təsdiq — hamısı</option>
+            <option value="yes">Təsdiqlənib</option>
+            <option value="no">Gözləyir</option>
+          </select>
           <input type="hidden" name="pageSize" value={pageSize} />
           <button type="submit" className="btn-primary w-full justify-center">
             Filtrlə
