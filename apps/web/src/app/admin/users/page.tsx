@@ -34,6 +34,7 @@ export default async function AdminUsersPage({
   if (status) qParams.set("status", status);
   qParams.set("pageSize", String(pageSize));
   const canEditRoles = user?.role === "admin";
+  const canDelete = user?.role === "admin";
 
   return (
     <div className="space-y-4">
@@ -64,7 +65,12 @@ export default async function AdminUsersPage({
         </div>
       </form>
 
-      <UserManagementTable users={data.items} canEditRoles={canEditRoles} />
+      <UserManagementTable
+        users={data.items}
+        canEditRoles={canEditRoles}
+        canDelete={canDelete}
+        currentUserId={user?.id}
+      />
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
         <p className="text-slate-500">
           Cəmi: <span className="font-semibold text-slate-900">{data.total}</span> | Səhifə {data.page}/{data.totalPages}
