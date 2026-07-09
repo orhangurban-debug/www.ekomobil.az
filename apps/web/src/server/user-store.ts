@@ -2,6 +2,7 @@ import { randomInt, randomUUID, scryptSync, timingSafeEqual } from "node:crypto"
 import { getPgPool } from "@/lib/postgres";
 import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
+import { deleteAdminUserPermanently } from "@/server/admin-store";
 
 export type UserAccountStatus = "active" | "suspended" | "banned" | string;
 
@@ -65,6 +66,10 @@ export function isActiveAccountStatus(status: string | null | undefined): boolea
   // "review" is not fully active — users under review cannot publish listings
   const s = status ?? "active";
   return s === "active";
+}
+
+export function isAnonymizedDeletedEmail(email: string | null | undefined): boolean {
+  return Boolean(email?.includes("@anonymized.ekomobil.local"));
 }
 
 /**
@@ -272,7 +277,7 @@ export async function isPhoneAlreadyUsed(phoneNormalized: string): Promise<boole
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {
+export async function upsertUserFromGoogle(input: GoogleOAuthIdentity, allowRecycle = true): Promise<UserRecord> {
   await ensureSeedData();
   const pool = getPgPool();
   const client = await pool.connect();
@@ -286,9 +291,10 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       role: string;
       email_verified: boolean;
       phone: string | null;
+      user_account_status: string;
     }>(
       `
-        SELECT u.id, u.email, u.role, u.email_verified, u.phone
+        SELECT u.id, u.email, u.role, u.email_verified, u.phone, u.user_account_status
         FROM user_oauth_accounts oa
         JOIN users u ON u.id = oa.user_id
         WHERE oa.provider = 'google' AND oa.provider_user_id = $1
@@ -297,6 +303,13 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       [input.providerUserId]
     );
     if (linked.rows[0]) {
+      if (allowRecycle && isAnonymizedDeletedEmail(linked.rows[0].email)) {
+        await client.query("ROLLBACK");
+        client.release();
+        await deleteAdminUserPermanently(linked.rows[0].id);
+        return upsertUserFromGoogle(input, false);
+      }
+
       await client.query(
         `UPDATE user_oauth_accounts SET last_login_at = NOW(), email_at_provider = $2
          WHERE provider = 'google' AND provider_user_id = $1`,
@@ -312,8 +325,9 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
         role: string;
         email_verified: boolean;
         phone: string | null;
+        user_account_status: string;
       }>(
-        `SELECT id, email, role, email_verified, phone FROM users WHERE id = $1 LIMIT 1`,
+        `SELECT id, email, role, email_verified, phone, user_account_status FROM users WHERE id = $1 LIMIT 1`,
         [linked.rows[0].id]
       );
       await client.query("COMMIT");
@@ -326,12 +340,20 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
       role: string;
       email_verified: boolean;
       phone: string | null;
+      user_account_status: string;
     }>(
-      `SELECT id, email, role, email_verified, phone FROM users WHERE email = $1 LIMIT 1`,
+      `SELECT id, email, role, email_verified, phone, user_account_status FROM users WHERE email = $1 LIMIT 1`,
       [input.email]
     );
 
     let user = existing.rows[0];
+    if (user && allowRecycle && isAnonymizedDeletedEmail(user.email)) {
+      await client.query("ROLLBACK");
+      client.release();
+      await deleteAdminUserPermanently(user.id);
+      return upsertUserFromGoogle(input, false);
+    }
+
     if (!user) {
       const userId = createUuidLikeId();
       const randomPassword = randomUUID();
@@ -341,11 +363,12 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
         role: string;
         email_verified: boolean;
         phone: string | null;
+        user_account_status: string;
       }>(
         `
           INSERT INTO users (id, email, password_hash, role, email_verified, phone)
           VALUES ($1, $2, $3, $4, true, NULL)
-          RETURNING id, email, role, email_verified, phone
+          RETURNING id, email, role, email_verified, phone, user_account_status
         `,
         [userId, input.email, hashPassword(randomPassword), "viewer"]
       );
@@ -383,7 +406,8 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<
         role: string;
         email_verified: boolean;
         phone: string | null;
-      }>(`SELECT id, email, role, email_verified, phone FROM users WHERE id = $1 LIMIT 1`, [user.id]);
+        user_account_status: string;
+      }>(`SELECT id, email, role, email_verified, phone, user_account_status FROM users WHERE id = $1 LIMIT 1`, [user.id]);
       user = refreshed.rows[0] ?? user;
     }
 

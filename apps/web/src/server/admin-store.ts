@@ -519,6 +519,7 @@ export async function deleteAdminUserPermanently(userId: string): Promise<void> 
     await safeDelete(`DELETE FROM service_listings WHERE owner_user_id = $1`, [userId]);
     await client.query(`DELETE FROM support_requests WHERE reporter_user_id = $1`, [userId]);
     await safeDelete(`DELETE FROM invoices WHERE user_id::text = $1`, [userId]);
+    await client.query(`DELETE FROM user_oauth_accounts WHERE user_id = $1`, [userId]);
 
     const deleted = await client.query(`DELETE FROM users WHERE id = $1`, [userId]);
     if ((deleted.rowCount ?? 0) === 0) {

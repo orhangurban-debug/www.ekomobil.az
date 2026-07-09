@@ -48,7 +48,9 @@ function LoginForm() {
                 ? "Google hesabı ilə giriş tamamlanmadı. Yenidən cəhd edin."
                 : oauthError === "google_access_denied"
                   ? "Google giriş icazəsi ləğv edildi."
-                  : null;
+                  : oauthError === "account_blocked"
+                    ? "Hesabınız dayandırılıb və ya bloklanıb. Admin tərəfindən silinibsə, yenidən qeydiyyatdan keçə bilərsiniz."
+                    : null;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
