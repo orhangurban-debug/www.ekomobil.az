@@ -190,90 +190,69 @@ function ServiceRow({
   listings?: ServiceListingRecord[];
 }) {
   const approvedListings = listings.filter((l) => l.status === "approved");
-  const pendingListings  = listings.filter((l) => l.status === "pending");
-  const hasActive = approvedListings.length > 0;
-  const hasPending = pendingListings.length > 0;
+  const pendingListings = listings.filter((l) => l.status === "pending");
+  const active = approvedListings.length > 0;
+  const pending = !active && pendingListings.length > 0;
+
+  const borderBg = active
+    ? "border-emerald-200 bg-emerald-50"
+    : pending
+    ? "border-amber-200 bg-amber-50/40"
+    : "border-slate-200 bg-slate-50";
+
+  const statusColor = active
+    ? "text-emerald-700 font-medium"
+    : pending
+    ? "text-amber-700 font-medium"
+    : "text-slate-500";
+
+  const statusText = active
+    ? `${approvedListings.length} aktiv profil`
+    : pending
+    ? "Profil yoxlanılır"
+    : "Aktiv deyil";
+
+  const primaryHref = active || pending ? dashboardHref : createHref;
+  const primaryLabel = active ? "İdarə et" : pending ? "Gözləyir" : "Yarat";
+
+  const btnClass = active
+    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+    : pending
+    ? "border border-amber-300 bg-white text-amber-700 cursor-default"
+    : "bg-[#0057FF] text-white hover:bg-[#004ADF]";
 
   return (
-    <div className={`rounded-xl border px-3.5 py-3 ${
-      hasActive
-        ? "border-emerald-200 bg-emerald-50/40"
-        : hasPending
-        ? "border-amber-200 bg-amber-50/40"
-        : "border-slate-200 bg-slate-50"
-    }`}>
+    <div className={`rounded-xl border p-3.5 ${borderBg}`}>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="text-xl shrink-0">{emoji}</span>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="shrink-0 text-xl">{emoji}</span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-sm font-semibold text-slate-800">{title}</p>
-              {hasActive && (
-                <span className="shrink-0 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-bold text-white">Aktiv</span>
-              )}
-              {!hasActive && hasPending && (
-                <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">Gözləmədə</span>
+              <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
+              {pending && (
+                <span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  Gözləmədə
+                </span>
               )}
             </div>
-            {hasActive ? (
-              <p className="text-xs text-emerald-700">{approvedListings.length} aktiv profil</p>
-            ) : hasPending ? (
-              <p className="text-xs text-amber-700">Profil yoxlanılır</p>
-            ) : (
-              <p className="text-xs text-slate-500">Profil yarat · Ani aktiv olur</p>
-            )}
+            <p className={`text-xs ${statusColor}`}>{statusText}</p>
           </div>
         </div>
-        <div className="flex shrink-0 gap-1.5">
-          {hasActive ? (
-            <>
-              <Link
-                href={`/services/${approvedListings[0].slug}`}
-                className="rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
-              >
-                Profilə bax
-              </Link>
-              <Link
-                href={dashboardHref}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:text-[#0057FF]"
-              >
-                İdarə et
-              </Link>
-            </>
-          ) : hasPending ? (
-            <>
-              <Link
-                href={dashboardHref}
-                className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
-              >
-                Profillərim
-              </Link>
-              <Link
-                href={createHref}
-                className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-2.5 py-1 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
-              >
-                + Yeni
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href={dashboardHref}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:text-[#0057FF]"
-              >
-                Profillərim
-              </Link>
-              <Link
-                href={createHref}
-                className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-2.5 py-1 text-xs font-semibold text-[#0057FF] transition hover:bg-[#0057FF]/10"
-              >
-                Yarat
-              </Link>
-            </>
-          )}
-        </div>
+        <Link
+          href={pending ? "#" : primaryHref}
+          className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${btnClass}`}
+        >
+          {primaryLabel}
+        </Link>
       </div>
-      {/* show multiple active profiles if user has more than one */}
+      {pending && (
+        <p className="mt-2 text-xs text-amber-600">
+          1–2 iş günü ərzində aktivləşdiriləcək. Bildiriş alacaqsınız.
+        </p>
+      )}
+      {!active && !pending && (
+        <p className="mt-2 text-xs text-slate-400">Profil yarat · Ani aktiv olur</p>
+      )}
       {approvedListings.length > 1 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {approvedListings.map((l) => (
