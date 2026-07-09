@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import type { UserRole } from "@/lib/auth";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { anonymizeAdminUser, getAdminUserMembershipProfile, updateAdminUserProfile } from "@/server/admin-store";
+import { deleteAdminUserPermanently, getAdminUserMembershipProfile, updateAdminUserProfile } from "@/server/admin-store";
 
 const ALLOWED_ROLES = new Set<UserRole>(["admin", "support", "dealer", "viewer"]);
 const ALLOWED_STATUS = new Set(["active", "suspended", "review"]);
@@ -90,18 +90,19 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
   const body = (await req.json().catch(() => ({}))) as { reason?: string };
 
   try {
-    await anonymizeAdminUser(id);
+    await deleteAdminUserPermanently(id);
     await createAdminAuditLog({
       actorUserId: auth.user.id,
       actorRole: auth.user.role,
-      actionType: "user_anonymized",
+      actionType: "user_deleted",
       entityType: "user",
       entityId: id,
       reason: body.reason,
-      metadata: { softDelete: true }
+      metadata: { hardDelete: true }
     });
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ ok: false, error: "İstifadəçi silinmədi." }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "İstifadəçi silinmədi.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useConfirm } from "@/components/ui/confirm-dialog-provider";
 import { useToast } from "@/components/ui/toast-provider";
 
@@ -41,10 +41,6 @@ interface Props {
   currentUserId?: string;
 }
 
-function isAnonymized(email: string): boolean {
-  return email.includes("@anonymized.ekomobil.local");
-}
-
 export function UserManagementTable({
   users,
   canEditRoles = false,
@@ -60,6 +56,10 @@ export function UserManagementTable({
   const confirm = useConfirm();
 
   const selectedCount = Object.values(selected).filter(Boolean).length;
+
+  useEffect(() => {
+    setRows(users);
+  }, [users]);
 
   async function updateRole(userId: string, role: UserRole) {
     setBusyId(userId);
@@ -108,7 +108,7 @@ export function UserManagementTable({
     }
     const ok = await confirm({
       title: "İstifadəçini sil",
-      message: `"${label}" hesabı anonimləşdiriləcək və dayandırılacaq. Geri qaytarmaq mümkün deyil. Davam edilsin?`,
+      message: `"${label}" hesabı və ona aid elanlar/profillər bazadan həmişəlik silinsin? Geri qaytarmaq mümkün deyil.`,
       confirmLabel: "Sil",
       danger: true
     });
@@ -141,7 +141,7 @@ export function UserManagementTable({
 
   async function bulkDelete() {
     const userIds = rows
-      .filter((row) => selected[row.id] && !isAnonymized(row.email))
+      .filter((row) => selected[row.id])
       .map((row) => row.id)
       .filter((id) => id !== currentUserId);
 
@@ -152,7 +152,7 @@ export function UserManagementTable({
 
     const ok = await confirm({
       title: "Seçilən istifadəçiləri sil",
-      message: `${userIds.length} hesab anonimləşdiriləcək və dayandırılacaq. Geri qaytarmaq mümkün deyil.`,
+      message: `${userIds.length} hesab və ona aid məlumatlar bazadan həmişəlik silinsin. Geri qaytarmaq mümkün deyil.`,
       confirmLabel: "Sil",
       danger: true
     });
@@ -266,9 +266,8 @@ export function UserManagementTable({
         </thead>
         <tbody className="divide-y divide-slate-100">
           {rows.map((user) => {
-            const deletedAlready = isAnonymized(user.email);
             const isSelf = currentUserId === user.id;
-            const canRemove = canDelete && !deletedAlready && !isSelf;
+            const canRemove = canDelete && !isSelf;
             return (
             <tr key={user.id}>
               <td className="px-4 py-3">
@@ -335,7 +334,7 @@ export function UserManagementTable({
                       Sil
                     </button>
                   ) : (
-                    <span className="text-xs text-slate-400">{isSelf ? "Siz" : deletedAlready ? "Silinib" : "—"}</span>
+                    <span className="text-xs text-slate-400">{isSelf ? "Siz" : "—"}</span>
                   )}
                 </td>
               )}

@@ -479,6 +479,61 @@ export async function anonymizeAdminUser(userId: string): Promise<void> {
   );
 }
 
+/** Hard-delete user and owned business data from the database. */
+export async function deleteAdminUserPermanently(userId: string): Promise<void> {
+  const pool = getPgPool();
+  const client = await pool.connect();
+
+  async function safeDelete(sql: string, params: unknown[] = []): Promise<void> {
+    try {
+      await client.query(sql, params);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === "42P01") return;
+      throw error;
+    }
+  }
+
+  try {
+    await client.query("BEGIN");
+
+    const dealers = await client.query<{ id: string }>(
+      `SELECT id FROM dealer_profiles WHERE owner_user_id = $1`,
+      [userId]
+    );
+    const dealerIds = dealers.rows.map((row) => row.id);
+
+    if (dealerIds.length > 0) {
+      await client.query(
+        `DELETE FROM listings
+         WHERE owner_user_id = $1 OR dealer_profile_id = ANY($2::text[])`,
+        [userId, dealerIds]
+      );
+    } else {
+      await client.query(`DELETE FROM listings WHERE owner_user_id = $1`, [userId]);
+    }
+
+    await client.query(`DELETE FROM dealer_profiles WHERE owner_user_id = $1`, [userId]);
+    await safeDelete(`DELETE FROM listing_plan_payments WHERE owner_user_id = $1`, [userId]);
+    await safeDelete(`DELETE FROM listing_boost_payments WHERE owner_user_id = $1`, [userId]);
+    await safeDelete(`DELETE FROM service_listings WHERE owner_user_id = $1`, [userId]);
+    await client.query(`DELETE FROM support_requests WHERE reporter_user_id = $1`, [userId]);
+    await safeDelete(`DELETE FROM invoices WHERE user_id::text = $1`, [userId]);
+
+    const deleted = await client.query(`DELETE FROM users WHERE id = $1`, [userId]);
+    if ((deleted.rowCount ?? 0) === 0) {
+      throw new Error("İstifadəçi tapılmadı.");
+    }
+
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function getFinanceSnapshot(): Promise<FinanceSnapshot> {
   try {
     const pool = getPgPool();
@@ -1572,12 +1627,16 @@ export async function listAdminUsersPaged(input: {
   status?: string;
   sortBy?: "created_at" | "email" | "penalty_balance_azn";
   sortDir?: "asc" | "desc";
+  includeDeleted?: boolean;
 }): Promise<PaginatedResult<AdminUserRow>> {
   const page = clampPage(input.page);
   const pageSize = clampPageSize(input.pageSize);
   const offset = (page - 1) * pageSize;
   const where: string[] = [];
   const values: Array<string | number> = [];
+  if (!input.includeDeleted) {
+    where.push(`u.email NOT LIKE '%@anonymized.ekomobil.local'`);
+  }
   if (input.q?.trim()) {
     values.push(`%${input.q.trim().toLowerCase()}%`);
     where.push(`(

@@ -72,7 +72,7 @@ export function AdminUserEditPanel({
     const ok = await confirm({
       title: "İstifadəçini sil",
       message:
-        "Bu əməliyyat geri qaytarıla bilməz. Hesab anonimləşdiriləcək və dayandırılacaq. Davam edilsin?",
+        "Bu istifadəçi və ona aid elanlar/profillər bazadan həmişəlik silinəcək. Geri qaytarmaq mümkün deyil. Davam edilsin?",
       confirmLabel: "Sil",
       danger: true
     });
@@ -89,7 +89,7 @@ export function AdminUserEditPanel({
         toast.error(payload.error ?? "Silinmə uğursuz oldu.");
         return;
       }
-      toast.success("İstifadəçi silindi (anonimləşdirildi).");
+      toast.success("İstifadəçi bazadan silindi.");
       router.push("/admin/users");
       router.refresh();
     } finally {
