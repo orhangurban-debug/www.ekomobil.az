@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteArchivedSupportRequests, updateAdminUserRole } from "@/server/admin-store";
+import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteAdminSupportRequests, updateAdminUserRole } from "@/server/admin-store";
 import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
 import { createDealerProfile } from "@/server/dealer-store";
@@ -284,10 +284,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: false, error: "Silinəcək müraciət ID-ləri mütləqdir." }, { status: 400 });
   }
 
-  const deleted = await deleteArchivedSupportRequests(ids);
+  const deleted = await deleteAdminSupportRequests(ids);
   if (deleted === 0) {
     return NextResponse.json(
-      { ok: false, error: "Yalnız həll edilmiş, bağlanmış və ya arxivlənmiş müraciətlər silinə bilər." },
+      { ok: false, error: "Müraciət tapılmadı və ya silinmədi." },
       { status: 400 }
     );
   }

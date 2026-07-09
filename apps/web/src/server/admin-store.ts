@@ -1464,14 +1464,19 @@ export async function autoArchiveStaleSupportRequests(): Promise<number> {
   return result.rowCount ?? 0;
 }
 
-export async function deleteArchivedSupportRequests(ids: string[]): Promise<number> {
+export async function deleteAdminSupportRequests(ids: string[]): Promise<number> {
   if (ids.length === 0) return 0;
   const pool = getPgPool();
   const result = await pool.query(
-    `DELETE FROM support_requests WHERE id = ANY($1::text[]) AND status IN ('archived', 'closed', 'resolved')`,
+    `DELETE FROM support_requests WHERE id = ANY($1::text[])`,
     [ids]
   );
   return result.rowCount ?? 0;
+}
+
+/** @deprecated Use deleteAdminSupportRequests */
+export async function deleteArchivedSupportRequests(ids: string[]): Promise<number> {
+  return deleteAdminSupportRequests(ids);
 }
 
 export async function listAdminLeads(limit = 100): Promise<AdminLeadRow[]> {

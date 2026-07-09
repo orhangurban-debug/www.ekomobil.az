@@ -765,17 +765,12 @@ export function AdminSupportRequestsTable({
 
   async function deleteSelected() {
     if (!selected) return;
-    const canRemoveNow =
-      selected.status === "archived" ||
-      selected.status === "closed" ||
-      selected.status === "resolved";
-    if (!canRemoveNow) {
-      setError("Silmək üçün əvvəl müraciəti həll edin və ya arxivləyin.");
-      return;
-    }
     const confirmed = await confirm({
       title: "Müraciəti sil",
-      message: "Bu müraciət həmişəlik silinsin? Geri qaytarmaq mümkün deyil.",
+      message:
+        selected.status === "new" || selected.status === "in_progress" || selected.status === "waiting_user"
+          ? "Bu aktiv müraciət həmişəlik silinsin? Geri qaytarmaq mümkün deyil."
+          : "Bu müraciət həmişəlik silinsin? Geri qaytarmaq mümkün deyil.",
       confirmLabel: "Sil",
       danger: true
     });
@@ -786,7 +781,7 @@ export function AdminSupportRequestsTable({
       const response = await fetch("/api/admin/support-requests", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [selected.id], reason: "Admin arxiv silməsi" })
+        body: JSON.stringify({ ids: [selected.id], reason: "Admin panelindən silindi" })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
       if (!response.ok || !payload.ok) {
@@ -1118,7 +1113,6 @@ export function AdminSupportRequestsTable({
               {isArchived && (
                 <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                   Bu müraciət arxivdədir. Həll edilmiş/bağlanmış müraciətlər {SUPPORT_ARCHIVE_AFTER_DAYS} gündən sonra avtomatik arxivlənir.
-                  Yalnız admin arxiv müraciətlərini silə bilər.
                 </section>
               )}
             </div>
@@ -1159,7 +1153,7 @@ export function AdminSupportRequestsTable({
                 <button type="button" onClick={() => void createIncidentFromRequest()} disabled={busy} className="btn-secondary px-4 py-2.5 text-sm disabled:opacity-60">
                   Incident yarat
                 </button>
-                {canDelete && isClosedLike && (
+                {canDelete && (
                   <button type="button" onClick={() => void deleteSelected()} disabled={busy} className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-60">
                     {busy ? "Silinir..." : "Sil"}
                   </button>
