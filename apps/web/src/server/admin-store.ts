@@ -1,4 +1,5 @@
 import { getPgPool } from "@/lib/postgres";
+import type { PoolClient } from "pg";
 import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
 import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
@@ -453,7 +454,7 @@ export async function updateAdminUserProfile(input: {
   }
 }
 
-/** Soft-delete: anonymize PII and suspend account. Preserves FK integrity. */
+/** User-initiated deletion: anonymize PII, suspend login. Listings/business data stay for legal retention. */
 export async function anonymizeAdminUser(userId: string): Promise<void> {
   const pool = getPgPool();
   const anonEmail = `deleted-${userId.slice(0, 8)}@anonymized.ekomobil.local`;
@@ -479,47 +480,82 @@ export async function anonymizeAdminUser(userId: string): Promise<void> {
   );
 }
 
-/** Hard-delete user and owned business data from the database. */
+type PgQueryClient = Pick<PoolClient, "query">;
+
+async function safePgDelete(
+  client: PgQueryClient,
+  sql: string,
+  params: unknown[] = []
+): Promise<void> {
+  try {
+    await client.query(sql, params);
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code === "42P01") return;
+    throw error;
+  }
+}
+
+/** Remove all marketplace/business data owned by a user (listings, plans, profiles, OAuth). */
+export async function purgeAllUserOwnedData(client: PgQueryClient, userId: string): Promise<void> {
+  const dealers = await client.query<{ id: string }>(
+    `SELECT id FROM dealer_profiles WHERE owner_user_id = $1`,
+    [userId]
+  );
+  const dealerIds = dealers.rows.map((row) => row.id);
+
+  const listings = await client.query<{ id: string }>(
+    dealerIds.length > 0
+      ? `
+          SELECT id FROM listings
+          WHERE owner_user_id = $1 OR dealer_profile_id = ANY($2::text[])
+        `
+      : `
+          SELECT id FROM listings
+          WHERE owner_user_id = $1
+        `,
+    dealerIds.length > 0 ? [userId, dealerIds] : [userId]
+  );
+  const listingIds = listings.rows.map((row) => row.id);
+
+  if (listingIds.length > 0) {
+    await safePgDelete(
+      client,
+      `DELETE FROM listing_boost_activations WHERE listing_id = ANY($1::text[])`,
+      [listingIds]
+    );
+    await client.query(`DELETE FROM listings WHERE id = ANY($1::text[])`, [listingIds]);
+  }
+
+  await client.query(`DELETE FROM dealer_profiles WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM service_listings WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM business_plan_subscriptions WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM business_plan_payments WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM listing_plan_payments WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM listing_boost_payments WHERE owner_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM auction_listings WHERE seller_user_id = $1`, [userId]);
+  await client.query(`DELETE FROM support_requests WHERE reporter_user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM invoices WHERE user_id::text = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM user_kyc_profiles WHERE user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM user_consent_acceptances WHERE user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM user_activity_logs WHERE user_id = $1`, [userId]);
+  await safePgDelete(client, `DELETE FROM incident_assignments WHERE assigned_to_user_id = $1`, [userId]);
+  await safePgDelete(
+    client,
+    `DELETE FROM auction_listing_documents WHERE uploaded_by_user_id = $1`,
+    [userId]
+  );
+  await client.query(`DELETE FROM user_oauth_accounts WHERE user_id = $1`, [userId]);
+}
+
+/** Admin-only hard delete: purge all owned data and remove the user row. */
 export async function deleteAdminUserPermanently(userId: string): Promise<void> {
   const pool = getPgPool();
   const client = await pool.connect();
 
-  async function safeDelete(sql: string, params: unknown[] = []): Promise<void> {
-    try {
-      await client.query(sql, params);
-    } catch (error) {
-      const code = (error as { code?: string }).code;
-      if (code === "42P01") return;
-      throw error;
-    }
-  }
-
   try {
     await client.query("BEGIN");
-
-    const dealers = await client.query<{ id: string }>(
-      `SELECT id FROM dealer_profiles WHERE owner_user_id = $1`,
-      [userId]
-    );
-    const dealerIds = dealers.rows.map((row) => row.id);
-
-    if (dealerIds.length > 0) {
-      await client.query(
-        `DELETE FROM listings
-         WHERE owner_user_id = $1 OR dealer_profile_id = ANY($2::text[])`,
-        [userId, dealerIds]
-      );
-    } else {
-      await client.query(`DELETE FROM listings WHERE owner_user_id = $1`, [userId]);
-    }
-
-    await client.query(`DELETE FROM dealer_profiles WHERE owner_user_id = $1`, [userId]);
-    await safeDelete(`DELETE FROM listing_plan_payments WHERE owner_user_id = $1`, [userId]);
-    await safeDelete(`DELETE FROM listing_boost_payments WHERE owner_user_id = $1`, [userId]);
-    await safeDelete(`DELETE FROM service_listings WHERE owner_user_id = $1`, [userId]);
-    await client.query(`DELETE FROM support_requests WHERE reporter_user_id = $1`, [userId]);
-    await safeDelete(`DELETE FROM invoices WHERE user_id::text = $1`, [userId]);
-    await client.query(`DELETE FROM user_oauth_accounts WHERE user_id = $1`, [userId]);
+    await purgeAllUserOwnedData(client, userId);
 
     const deleted = await client.query(`DELETE FROM users WHERE id = $1`, [userId]);
     if ((deleted.rowCount ?? 0) === 0) {

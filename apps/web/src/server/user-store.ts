@@ -2,7 +2,6 @@ import { randomInt, randomUUID, scryptSync, timingSafeEqual } from "node:crypto"
 import { getPgPool } from "@/lib/postgres";
 import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
-import { deleteAdminUserPermanently } from "@/server/admin-store";
 
 export type UserAccountStatus = "active" | "suspended" | "banned" | string;
 
@@ -277,7 +276,7 @@ export async function isPhoneAlreadyUsed(phoneNormalized: string): Promise<boole
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function upsertUserFromGoogle(input: GoogleOAuthIdentity, allowRecycle = true): Promise<UserRecord> {
+export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {
   await ensureSeedData();
   const pool = getPgPool();
   const client = await pool.connect();
@@ -303,13 +302,6 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity, allowRecy
       [input.providerUserId]
     );
     if (linked.rows[0]) {
-      if (allowRecycle && isAnonymizedDeletedEmail(linked.rows[0].email)) {
-        await client.query("ROLLBACK");
-        client.release();
-        await deleteAdminUserPermanently(linked.rows[0].id);
-        return upsertUserFromGoogle(input, false);
-      }
-
       await client.query(
         `UPDATE user_oauth_accounts SET last_login_at = NOW(), email_at_provider = $2
          WHERE provider = 'google' AND provider_user_id = $1`,
@@ -347,12 +339,6 @@ export async function upsertUserFromGoogle(input: GoogleOAuthIdentity, allowRecy
     );
 
     let user = existing.rows[0];
-    if (user && allowRecycle && isAnonymizedDeletedEmail(user.email)) {
-      await client.query("ROLLBACK");
-      client.release();
-      await deleteAdminUserPermanently(user.id);
-      return upsertUserFromGoogle(input, false);
-    }
 
     if (!user) {
       const userId = createUuidLikeId();
