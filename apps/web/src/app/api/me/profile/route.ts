@@ -4,6 +4,8 @@ import { getPgPool } from "@/lib/postgres";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { getPartsStoreProfileEntitlements } from "@/server/business-plan-store";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
+import { normalizeMapUrl, sanitizeBusinessBranches } from "@/lib/business-branches";
+import type { BusinessProfileBranch } from "@/lib/business-branches";
 
 interface ProfileUpdateInput {
   fullName?: string;
@@ -17,6 +19,8 @@ interface ProfileUpdateInput {
   storeWhatsappPhone?: string;
   storeWebsiteUrl?: string;
   storeAddress?: string;
+  storeMapUrl?: string;
+  storeBranches?: BusinessProfileBranch[];
   storeWorkingHours?: string;
   showStoreWhatsapp?: boolean;
   showStoreWebsite?: boolean;
@@ -70,6 +74,11 @@ export async function PUT(req: Request) {
   const storeWhatsappPhone = typeof body.storeWhatsappPhone === "string" ? body.storeWhatsappPhone.trim().slice(0, 30) : undefined;
   const storeWebsiteUrl = typeof body.storeWebsiteUrl === "string" ? body.storeWebsiteUrl.trim().slice(0, 200) : undefined;
   const storeAddress = typeof body.storeAddress === "string" ? body.storeAddress.trim().slice(0, 200) : undefined;
+  const storeMapUrl = typeof body.storeMapUrl === "string" ? normalizeMapUrl(body.storeMapUrl) : undefined;
+  const storeBranches =
+    body.storeBranches !== undefined
+      ? JSON.stringify(sanitizeBusinessBranches(body.storeBranches, city))
+      : undefined;
   const storeWorkingHours = typeof body.storeWorkingHours === "string" ? body.storeWorkingHours.trim().slice(0, 120) : undefined;
   const showStoreWhatsapp = typeof body.showStoreWhatsapp === "boolean" ? body.showStoreWhatsapp : undefined;
   const showStoreWebsite = typeof body.showStoreWebsite === "boolean" ? body.showStoreWebsite : undefined;
@@ -96,10 +105,10 @@ export async function PUT(req: Request) {
     await pool.query(
       `INSERT INTO user_profiles (
          user_id, full_name, city, bio, avatar_url, store_name, store_logo_url, store_cover_url,
-         store_description, store_whatsapp_phone, store_website_url, store_address, store_working_hours,
+         store_description, store_whatsapp_phone, store_website_url, store_address, store_map_url, store_branches, store_working_hours,
          show_store_whatsapp, show_store_website, updated_at
        )
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16,$17,NOW())
        ON CONFLICT (user_id) DO UPDATE SET
          full_name = COALESCE($2, user_profiles.full_name),
          city = COALESCE($3, user_profiles.city),
@@ -112,9 +121,11 @@ export async function PUT(req: Request) {
          store_whatsapp_phone = COALESCE($10, user_profiles.store_whatsapp_phone),
          store_website_url = COALESCE($11, user_profiles.store_website_url),
          store_address = COALESCE($12, user_profiles.store_address),
-         store_working_hours = COALESCE($13, user_profiles.store_working_hours),
-         show_store_whatsapp = COALESCE($14, user_profiles.show_store_whatsapp),
-         show_store_website = COALESCE($15, user_profiles.show_store_website),
+         store_map_url = COALESCE($13, user_profiles.store_map_url),
+         store_branches = COALESCE($14::jsonb, user_profiles.store_branches),
+         store_working_hours = COALESCE($15, user_profiles.store_working_hours),
+         show_store_whatsapp = COALESCE($16, user_profiles.show_store_whatsapp),
+         show_store_website = COALESCE($17, user_profiles.show_store_website),
          updated_at = NOW()`,
       [
         user.id,
@@ -129,6 +140,8 @@ export async function PUT(req: Request) {
         storeWhatsappPhone ?? null,
         storeWebsiteUrl ?? null,
         storeAddress ?? null,
+        storeMapUrl ?? null,
+        storeBranches ?? null,
         storeWorkingHours ?? null,
         showStoreWhatsapp ?? null,
         showStoreWebsite ?? null

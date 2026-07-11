@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BranchCitiesField } from "@/components/business/branch-cities-field";
-import { mergeDescriptionWithBranches, parseBranchCitiesFromDescription } from "@/lib/branch-cities";
+import { BusinessBranchesField } from "@/components/business/business-branches-field";
+import type { BusinessProfileBranch } from "@/lib/business-branches";
+import { stripLegacyBranchNote } from "@/lib/business-branches";
 
 interface Entitlements {
   canUseDescription: boolean;
@@ -23,6 +24,8 @@ interface ProfileState {
   whatsappPhone?: string;
   websiteUrl?: string;
   address?: string;
+  mapUrl?: string;
+  branches?: BusinessProfileBranch[];
   workingHours?: string;
   showWhatsapp: boolean;
   showWebsite: boolean;
@@ -36,12 +39,8 @@ export function DealerProfileSettingsForm({
   entitlements: Entitlements;
 }) {
   const [profile, setProfile] = useState<ProfileState>(initialProfile);
-  const [branchCities, setBranchCities] = useState(
-    parseBranchCitiesFromDescription(initialProfile.description, initialProfile.city)
-  );
-  const [baseDescription, setBaseDescription] = useState(
-    (initialProfile.description ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim()
-  );
+  const [branches, setBranches] = useState<BusinessProfileBranch[]>(initialProfile.branches ?? []);
+  const [baseDescription, setBaseDescription] = useState(stripLegacyBranchNote(initialProfile.description));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -54,7 +53,8 @@ export function DealerProfileSettingsForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...profile,
-          description: mergeDescriptionWithBranches(baseDescription, branchCities, profile.city)
+          description: baseDescription,
+          branches
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string; profile?: ProfileState };
@@ -63,8 +63,8 @@ export function DealerProfileSettingsForm({
         return;
       }
       setProfile(payload.profile);
-      setBaseDescription((payload.profile.description ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim());
-      setBranchCities(parseBranchCitiesFromDescription(payload.profile.description, payload.profile.city));
+      setBaseDescription(stripLegacyBranchNote(payload.profile.description));
+      setBranches(payload.profile.branches ?? []);
       setMessage("Profil uğurla yeniləndi.");
     } catch {
       setMessage("Profil yadda saxlanmadı.");
@@ -92,10 +92,11 @@ export function DealerProfileSettingsForm({
       </div>
 
       <div className="mt-4">
-        <BranchCitiesField
+        <BusinessBranchesField
           primaryCity={profile.city}
-          value={branchCities}
-          onChange={setBranchCities}
+          value={branches}
+          onChange={setBranches}
+          canUseAddress={entitlements.canUseAddress}
         />
       </div>
 
@@ -165,7 +166,7 @@ export function DealerProfileSettingsForm({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ünvan</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Əsas ünvan</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseAddress}
@@ -175,7 +176,20 @@ export function DealerProfileSettingsForm({
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">İş saatları</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Əsas xəritə linki</span>
+          <input
+            className="input-field"
+            disabled={!entitlements.canUseAddress}
+            value={profile.mapUrl ?? ""}
+            onChange={(e) => setProfile((p) => ({ ...p, mapUrl: e.target.value }))}
+            placeholder={entitlements.canUseAddress ? "https://maps.google.com/..." : "Korporativ/Şəbəkə plan"}
+          />
+        </label>
+      </div>
+
+      <div className="mt-4">
+        <label className="space-y-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">İş saatları (əsas ofis)</span>
           <input
             className="input-field"
             disabled={!entitlements.canUseWorkingHours}

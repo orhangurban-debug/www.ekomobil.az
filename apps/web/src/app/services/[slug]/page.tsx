@@ -6,6 +6,7 @@ import { getApprovedServiceListingBySlug } from "@/server/service-listing-store"
 import { ServiceInquiryForm } from "@/components/partners/service-inquiry-form";
 import { ServiceStatsTracker } from "@/components/partners/service-stats-tracker";
 import { ServiceContactActions } from "@/components/partners/service-contact-actions";
+import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
 
 // Admin təsdiqləri istənilən vaxt baş verə bilər (yeni servis təsdiqlənməsi/rədd edilməsi),
 // ona görə bu səhifə Full Route Cache-ə salınmamalıdır — əks halda yeni təsdiqlənmiş profillər
@@ -33,6 +34,15 @@ export default async function ServiceProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const item = await getApprovedServiceListingBySlug(slug);
   if (!item) notFound();
+
+  const locations = buildBusinessLocations({
+    primaryCity: item.city,
+    primaryLabel: item.name,
+    primaryAddress: item.address,
+    primaryMapUrl: item.mapUrl,
+    primaryPhone: item.phone,
+    branches: item.branches
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -85,6 +95,12 @@ export default async function ServiceProfilePage({ params }: PageProps) {
 
         {/* Detallı məlumat */}
         <div className="space-y-4">
+        {locations.length > 0 && (
+          <div className="rounded-2xl border glass-panel border-slate-900/10 p-5">
+            <BusinessBranchesDisplay locations={locations} />
+          </div>
+        )}
+
         {/* Xidmətlər */}
         <div className="rounded-2xl border glass-panel border-slate-900/10 p-5">
           <h2 className="text-sm font-semibold text-slate-900">Təqdim olunan xidmətlər</h2>
@@ -108,8 +124,14 @@ export default async function ServiceProfilePage({ params }: PageProps) {
             </div>
             {item.address && (
               <div className="flex items-start justify-between gap-4 text-sm">
-                <dt className="text-slate-500">Ünvan</dt>
+                <dt className="text-slate-500">Əsas ünvan</dt>
                 <dd className="text-right font-medium text-slate-900">{item.address}</dd>
+              </div>
+            )}
+            {(item.branches?.length ?? 0) > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <dt className="text-slate-500">Filial sayı</dt>
+                <dd className="font-medium text-slate-900">{item.branches!.length}</dd>
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
@@ -125,7 +147,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
               <dd className="font-medium text-emerald-700">{item.rating.toFixed(1)} ★ ({item.reviewCount} rəy)</dd>
             </div>
           </dl>
-          {item.mapUrl && (
+          {item.mapUrl && locations.length <= 1 && (
             <div className="mt-4">
               <a
                 href={item.mapUrl}

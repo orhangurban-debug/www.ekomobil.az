@@ -4,6 +4,7 @@ import { getPublicDealerProfile } from "@/server/dealer-store";
 import { ListingCard } from "@/components/listings/listing-card";
 import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
 import { computeTrustBadges } from "@/lib/seller-trust";
+import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
 
 function VerifiedBadge() {
   return (
@@ -47,6 +48,16 @@ export default async function PublicDealerPage({
     hasName:            !!profile.name,
     memberSince:        profile.memberSince ?? undefined,
     activeListingCount: profile.activeListingCount,
+  });
+
+  const locations = buildBusinessLocations({
+    primaryCity: profile.city,
+    primaryLabel: profile.name,
+    primaryAddress: profile.address,
+    primaryMapUrl: profile.mapUrl,
+    primaryPhone: profile.whatsappPhone,
+    primaryWorkingHours: profile.workingHours,
+    branches: profile.branches
   });
 
   return (
@@ -158,6 +169,12 @@ export default async function PublicDealerPage({
 
       {/* ── Inventory ────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        {locations.length > 0 && (
+          <div className="mb-8">
+            <BusinessBranchesDisplay locations={locations} />
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">
             Aktiv elanlar

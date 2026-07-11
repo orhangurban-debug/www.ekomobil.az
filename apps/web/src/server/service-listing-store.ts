@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { extractServicePartnerDraft } from "@/lib/service-partner-draft";
 import type { ServiceListingRecord, ServiceProviderType } from "@/lib/services-marketplace";
+import { branchesFromLegacyCities, parseBranchesFromDb, sanitizeBusinessBranches } from "@/lib/business-branches";
+import type { BusinessProfileBranch } from "@/lib/business-branches";
 
 export type ServiceListingStatus = "pending" | "approved" | "rejected";
 
@@ -21,6 +23,7 @@ interface ServiceListingRow {
   city: string;
   address: string | null;
   map_url: string | null;
+  branches: unknown;
   about: string;
   services: string[] | null;
   certifications: string[] | null;
@@ -82,6 +85,7 @@ async function ensureServiceListingsTable(): Promise<void> {
     await pool.query(`
       ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS owner_user_id TEXT;
       ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS branch_cities TEXT[] NOT NULL DEFAULT '{}';
+      ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS branches JSONB NOT NULL DEFAULT '[]'::jsonb;
       CREATE INDEX IF NOT EXISTS idx_service_listings_owner ON service_listings (owner_user_id);
     `).catch(() => {});
     serviceListingsTableEnsured = true;
@@ -98,6 +102,12 @@ function slugify(value: string): string {
     .slice(0, 60) || "servis";
 }
 
+function parseServiceBranches(row: ServiceListingRow & { branch_cities?: string[] }): BusinessProfileBranch[] {
+  const fromJson = parseBranchesFromDb(row.branches, undefined, row.city);
+  if (fromJson.length > 0) return fromJson;
+  return branchesFromLegacyCities(row.branch_cities ?? [], row.city);
+}
+
 function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
   return {
     id: row.id,
@@ -107,6 +117,7 @@ function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
     city: row.city,
     address: row.address ?? undefined,
     mapUrl: row.map_url ?? undefined,
+    branches: parseServiceBranches(row as ServiceListingRow & { branch_cities?: string[] }),
     rating: Number(row.rating),
     reviewCount: row.review_count,
     responseMinutes: row.response_minutes,
@@ -138,6 +149,7 @@ export async function createServiceListing(input: {
   providerType: string;
   city: string;
   branchCities?: string[];
+  branches?: BusinessProfileBranch[];
   address?: string;
   mapUrl?: string;
   about: string;
@@ -161,14 +173,20 @@ export async function createServiceListing(input: {
   const branchCities = (input.branchCities ?? []).filter(
     (city) => typeof city === "string" && city.trim() && city.trim() !== input.city
   );
+  const branches = JSON.stringify(
+    sanitizeBusinessBranches(
+      input.branches ?? branchesFromLegacyCities(branchCities, input.city),
+      input.city
+    )
+  );
 
   await pool.query(
     `
       INSERT INTO service_listings (
-        id, slug, support_request_id, owner_user_id, name, provider_type, city, branch_cities, address, map_url,
+        id, slug, support_request_id, owner_user_id, name, provider_type, city, branch_cities, branches, address, map_url,
         about, services, certifications, image_urls, phone, whatsapp, status
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pending')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16,$17,'pending')
     `,
     [
       id,
@@ -179,6 +197,7 @@ export async function createServiceListing(input: {
       input.providerType,
       input.city,
       branchCities,
+      branches,
       input.address ?? null,
       input.mapUrl ?? null,
       input.about,

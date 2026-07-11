@@ -11,6 +11,12 @@ import {
 } from "@/server/business-leads-store";
 import { getEffectiveDealerPlan } from "@/server/business-plan-store";
 import { isDealerListingStale } from "@/lib/dealer-plans";
+import {
+  parseBranchesFromDb,
+  sanitizeBusinessBranches,
+  stripLegacyBranchNote,
+  type BusinessProfileBranch
+} from "@/lib/business-branches";
 
 interface DealerProfileRow {
   id: string;
@@ -25,6 +31,8 @@ interface DealerProfileRow {
   whatsapp_phone?: string | null;
   website_url?: string | null;
   address?: string | null;
+  map_url?: string | null;
+  branches?: unknown;
   working_hours?: string | null;
   show_whatsapp?: boolean | null;
   show_website?: boolean | null;
@@ -376,6 +384,8 @@ export interface PublicDealerProfile {
   whatsappPhone?: string;
   websiteUrl?: string;
   address?: string;
+  mapUrl?: string;
+  branches?: BusinessProfileBranch[];
   workingHours?: string;
   showWhatsapp: boolean;
   showWebsite: boolean;
@@ -395,13 +405,13 @@ export async function getPublicDealerProfile(
       response_sla_minutes: number; created_at: Date | null;
       logo_url: string | null; cover_url: string | null; description: string | null;
       whatsapp_phone: string | null; website_url: string | null;
-      address: string | null; working_hours: string | null;
+      address: string | null; map_url: string | null; branches: unknown; working_hours: string | null;
       show_whatsapp: boolean | null; show_website: boolean | null;
       voen: string | null;
     }>(
       `SELECT id, name, city, verified, response_sla_minutes, created_at,
               logo_url, cover_url, description, whatsapp_phone, website_url,
-              address, working_hours, show_whatsapp, show_website, voen
+              address, map_url, branches, working_hours, show_whatsapp, show_website, voen
        FROM dealer_profiles WHERE id = $1 LIMIT 1`,
       [dealerId]
     );
@@ -472,10 +482,12 @@ export async function getPublicDealerProfile(
       memberSince: dealer.created_at?.toISOString() ?? null,
       logoUrl: dealer.logo_url ?? undefined,
       coverUrl: dealer.cover_url ?? undefined,
-      description: dealer.description ?? undefined,
+      description: stripLegacyBranchNote(dealer.description) || undefined,
       whatsappPhone: dealer.whatsapp_phone ?? undefined,
       websiteUrl: dealer.website_url ?? undefined,
       address: dealer.address ?? undefined,
+      mapUrl: dealer.map_url ?? undefined,
+      branches: parseBranchesFromDb(dealer.branches, dealer.description, dealer.city),
       voen: dealer.voen,
       workingHours: dealer.working_hours ?? undefined,
       showWhatsapp: dealer.show_whatsapp ?? false,
@@ -561,6 +573,8 @@ export interface DealerProfileSettings {
   whatsappPhone?: string;
   websiteUrl?: string;
   address?: string;
+  mapUrl?: string;
+  branches?: BusinessProfileBranch[];
   workingHours?: string;
   showWhatsapp: boolean;
   showWebsite: boolean;
@@ -574,7 +588,7 @@ export async function getDealerProfileSettingsForOwner(userId: string): Promise<
       SELECT
         id, owner_user_id, name, city, verified, response_sla_minutes,
         logo_url, cover_url, description, whatsapp_phone, website_url,
-        address, working_hours, show_whatsapp, show_website
+        address, map_url, branches, working_hours, show_whatsapp, show_website
       FROM dealer_profiles
       WHERE owner_user_id = $1
       LIMIT 1
@@ -590,10 +604,12 @@ export async function getDealerProfileSettingsForOwner(userId: string): Promise<
     city: row.city,
     logoUrl: row.logo_url ?? undefined,
     coverUrl: row.cover_url ?? undefined,
-    description: row.description ?? undefined,
+    description: stripLegacyBranchNote(row.description) || undefined,
     whatsappPhone: row.whatsapp_phone ?? undefined,
     websiteUrl: row.website_url ?? undefined,
     address: row.address ?? undefined,
+    mapUrl: row.map_url ?? undefined,
+    branches: parseBranchesFromDb(row.branches, row.description, row.city),
     workingHours: row.working_hours ?? undefined,
     showWhatsapp: row.show_whatsapp ?? false,
     showWebsite: row.show_website ?? false
@@ -623,6 +639,8 @@ export async function updateDealerProfileSettings(input: {
   whatsappPhone?: string;
   websiteUrl?: string;
   address?: string;
+  mapUrl?: string;
+  branches?: BusinessProfileBranch[];
   workingHours?: string;
   showWhatsapp?: boolean;
   showWebsite?: boolean;
@@ -640,6 +658,10 @@ export async function updateDealerProfileSettings(input: {
   const nextWhatsapp = input.entitlements.canUseWhatsapp ? normalizePhone(input.whatsappPhone) ?? null : null;
   const nextWebsite = input.entitlements.canUseWebsite ? normalizeUrl(input.websiteUrl) ?? null : null;
   const nextAddress = input.entitlements.canUseAddress ? input.address?.trim() ?? null : null;
+  const nextMapUrl = normalizeUrl(input.mapUrl) ?? null;
+  const nextBranches = JSON.stringify(
+    sanitizeBusinessBranches(input.branches, input.city?.trim() || current.city)
+  );
   const nextWorkingHours = input.entitlements.canUseWorkingHours ? input.workingHours?.trim() ?? null : null;
   const nextShowWhatsapp = input.entitlements.canUseWhatsapp ? Boolean(input.showWhatsapp && nextWhatsapp) : false;
   const nextShowWebsite = input.entitlements.canUseWebsite ? Boolean(input.showWebsite && nextWebsite) : false;
@@ -656,9 +678,11 @@ export async function updateDealerProfileSettings(input: {
         whatsapp_phone = $7,
         website_url = $8,
         address = $9,
-        working_hours = $10,
-        show_whatsapp = $11,
-        show_website = $12
+        map_url = $10,
+        branches = $11::jsonb,
+        working_hours = $12,
+        show_whatsapp = $13,
+        show_website = $14
       WHERE owner_user_id = $1
     `,
     [
@@ -671,6 +695,8 @@ export async function updateDealerProfileSettings(input: {
       nextWhatsapp,
       nextWebsite,
       nextAddress,
+      nextMapUrl,
+      nextBranches,
       nextWorkingHours,
       nextShowWhatsapp,
       nextShowWebsite

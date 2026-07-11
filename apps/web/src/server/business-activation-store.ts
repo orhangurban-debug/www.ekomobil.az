@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
-import { mergeDescriptionWithBranches } from "@/lib/branch-cities";
+import { branchesFromLegacyCities } from "@/lib/business-branches";
 import { createDealerProfile } from "@/server/dealer-store";
 import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
 import {
@@ -71,7 +71,8 @@ async function activateDealerRequest(input: {
   const branchCities = Array.isArray(app?.branchCities)
     ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
     : [];
-  const description = mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null;
+  const branches = JSON.stringify(branchesFromLegacyCities(branchCities, city));
+  const description = rawDescription;
 
   const existingProfile = await pool.query<{ id: string }>(
     `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
@@ -90,6 +91,10 @@ async function activateDealerRequest(input: {
       description,
       logoUrl
     });
+    await pool.query(
+      `UPDATE dealer_profiles SET branches = $2::jsonb WHERE owner_user_id = $1`,
+      [input.ownerUserId, branches]
+    );
     activated = true;
   } else {
     await pool.query(
@@ -102,10 +107,11 @@ async function activateDealerRequest(input: {
           website_url = COALESCE($5, website_url),
           description = COALESCE($6, description),
           logo_url = COALESCE($7, logo_url),
+          branches = COALESCE($8::jsonb, branches),
           verified = TRUE
         WHERE owner_user_id = $1
       `,
-      [input.ownerUserId, businessName, city, voen, websiteUrl, description, logoUrl]
+      [input.ownerUserId, businessName, city, voen, websiteUrl, description, logoUrl, branches]
     );
   }
 
@@ -129,9 +135,8 @@ async function activatePartsStoreRequest(input: {
   const branchCities = Array.isArray(app?.branchCities)
     ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
     : [];
-  const storeDescription = city
-    ? mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null
-    : rawDescription;
+  const storeBranches = JSON.stringify(branchesFromLegacyCities(branchCities, city ?? undefined));
+  const storeDescription = rawDescription;
 
   const existingSub = await pool.query<{ id: string }>(
     `SELECT id FROM business_plan_subscriptions
@@ -158,15 +163,16 @@ async function activatePartsStoreRequest(input: {
 
   if (businessName || logoUrl || storeDescription || city) {
     await pool.query(
-      `INSERT INTO user_profiles (user_id, store_name, store_logo_url, store_description, city, updated_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
+      `INSERT INTO user_profiles (user_id, store_name, store_logo_url, store_description, store_branches, city, updated_at)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6, NOW())
        ON CONFLICT (user_id) DO UPDATE SET
          store_name = COALESCE(EXCLUDED.store_name, user_profiles.store_name),
          store_logo_url = CASE WHEN EXCLUDED.store_logo_url IS NOT NULL THEN EXCLUDED.store_logo_url ELSE user_profiles.store_logo_url END,
          store_description = COALESCE(EXCLUDED.store_description, user_profiles.store_description),
+         store_branches = COALESCE(EXCLUDED.store_branches, user_profiles.store_branches),
          city = COALESCE(EXCLUDED.city, user_profiles.city),
          updated_at = NOW()`,
-      [input.ownerUserId, businessName, logoUrl, storeDescription, city]
+      [input.ownerUserId, businessName, logoUrl, storeDescription, storeBranches, city]
     );
   }
 

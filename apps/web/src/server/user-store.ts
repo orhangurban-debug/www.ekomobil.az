@@ -3,6 +3,7 @@ import { getPgPool } from "@/lib/postgres";
 import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
 import { deliverPhoneOtp } from "@/server/phone-otp-delivery";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
+import { parseBranchesFromDb, stripLegacyBranchNote } from "@/lib/business-branches";
 
 export type UserAccountStatus = "active" | "suspended" | "banned" | string;
 
@@ -28,6 +29,8 @@ export interface UserProfileRecord {
   storeWhatsappPhone?: string;
   storeWebsiteUrl?: string;
   storeAddress?: string;
+  storeMapUrl?: string;
+  storeBranches?: import("@/lib/business-branches").BusinessProfileBranch[];
   storeWorkingHours?: string;
   showStoreWhatsapp?: boolean;
   showStoreWebsite?: boolean;
@@ -504,6 +507,8 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       store_whatsapp_phone: string | null;
       store_website_url: string | null;
       store_address: string | null;
+      store_map_url: string | null;
+      store_branches: unknown;
       store_working_hours: string | null;
       show_store_whatsapp: boolean | null;
       show_store_website: boolean | null;
@@ -513,7 +518,7 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
           u.id, u.email, u.role, u.email_verified, u.phone,
           p.full_name, p.city, p.avatar_url, p.bio,
           p.store_name, p.store_logo_url, p.store_cover_url, p.store_description,
-          p.store_whatsapp_phone, p.store_website_url, p.store_address, p.store_working_hours,
+          p.store_whatsapp_phone, p.store_website_url, p.store_address, p.store_map_url, p.store_branches, p.store_working_hours,
           p.show_store_whatsapp, p.show_store_website
         FROM users u
         LEFT JOIN user_profiles p ON p.user_id = u.id
@@ -534,10 +539,12 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       storeName: row.store_name ?? undefined,
       storeLogoUrl: row.store_logo_url ?? undefined,
       storeCoverUrl: row.store_cover_url ?? undefined,
-      storeDescription: row.store_description ?? undefined,
+      storeDescription: stripLegacyBranchNote(row.store_description) || undefined,
       storeWhatsappPhone: row.store_whatsapp_phone ?? undefined,
       storeWebsiteUrl: row.store_website_url ?? undefined,
       storeAddress: row.store_address ?? undefined,
+      storeMapUrl: row.store_map_url ?? undefined,
+      storeBranches: parseBranchesFromDb(row.store_branches, row.store_description, row.city ?? undefined),
       storeWorkingHours: row.store_working_hours ?? undefined,
       showStoreWhatsapp: row.show_store_whatsapp ?? undefined,
       showStoreWebsite: row.show_store_website ?? undefined
@@ -638,6 +645,14 @@ export interface PublicSellerProfile {
   storeLogoUrl: string | null;
   storeCoverUrl: string | null;
   storeDescription: string | null;
+  storeAddress: string | null;
+  storeMapUrl: string | null;
+  storeBranches: import("@/lib/business-branches").BusinessProfileBranch[];
+  storeWhatsappPhone: string | null;
+  storeWebsiteUrl: string | null;
+  storeWorkingHours: string | null;
+  showStoreWhatsapp: boolean;
+  showStoreWebsite: boolean;
 }
 
 export async function getPublicSellerProfile(
@@ -659,10 +674,21 @@ export async function getPublicSellerProfile(
       store_logo_url: string | null;
       store_cover_url: string | null;
       store_description: string | null;
+      store_address: string | null;
+      store_map_url: string | null;
+      store_branches: unknown;
+      store_whatsapp_phone: string | null;
+      store_website_url: string | null;
+      store_working_hours: string | null;
+      show_store_whatsapp: boolean | null;
+      show_store_website: boolean | null;
     }>(
       `SELECT up.full_name, up.city, u.created_at, u.email_verified, u.phone,
               up.avatar_url, up.bio,
-              up.store_name, up.store_logo_url, up.store_cover_url, up.store_description
+              up.store_name, up.store_logo_url, up.store_cover_url, up.store_description,
+              up.store_address, up.store_map_url, up.store_branches,
+              up.store_whatsapp_phone, up.store_website_url, up.store_working_hours,
+              up.show_store_whatsapp, up.show_store_website
        FROM users u
        LEFT JOIN user_profiles up ON up.user_id = u.id
        WHERE u.id = $1 LIMIT 1`,
@@ -718,7 +744,15 @@ export async function getPublicSellerProfile(
       storeName: user.store_name,
       storeLogoUrl: user.store_logo_url,
       storeCoverUrl: user.store_cover_url,
-      storeDescription: user.store_description
+      storeDescription: stripLegacyBranchNote(user.store_description) || null,
+      storeAddress: user.store_address,
+      storeMapUrl: user.store_map_url,
+      storeBranches: parseBranchesFromDb(user.store_branches, user.store_description, user.city ?? undefined),
+      storeWhatsappPhone: user.store_whatsapp_phone,
+      storeWebsiteUrl: user.store_website_url,
+      storeWorkingHours: user.store_working_hours,
+      showStoreWhatsapp: user.show_store_whatsapp ?? false,
+      showStoreWebsite: user.show_store_website ?? false
     };
   } catch (error) {
     console.error("getPublicSellerProfile failed:", error);

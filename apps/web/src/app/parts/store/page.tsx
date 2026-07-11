@@ -306,6 +306,8 @@ export default async function StorePortalPage() {
                     storeWhatsappPhone: profile?.storeWhatsappPhone,
                     storeWebsiteUrl: profile?.storeWebsiteUrl,
                     storeAddress: profile?.storeAddress,
+                    storeMapUrl: profile?.storeMapUrl,
+                    storeBranches: profile?.storeBranches,
                     storeWorkingHours: profile?.storeWorkingHours,
                     showStoreWhatsapp: profile?.showStoreWhatsapp,
                     showStoreWebsite: profile?.showStoreWebsite

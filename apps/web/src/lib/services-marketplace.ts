@@ -117,6 +117,7 @@ export interface ServiceListingRecord {
   city: string;
   address?: string;
   mapUrl?: string;
+  branches?: import("@/lib/business-branches").BusinessProfileBranch[];
   rating: number;
   reviewCount: number;
   responseMinutes: number;

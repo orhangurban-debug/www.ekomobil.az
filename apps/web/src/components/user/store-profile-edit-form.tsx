@@ -2,8 +2,9 @@
 
 import { useState, useRef } from "react";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
-import { BranchCitiesField } from "@/components/business/branch-cities-field";
-import { mergeDescriptionWithBranches, parseBranchCitiesFromDescription } from "@/lib/branch-cities";
+import { BusinessBranchesField } from "@/components/business/business-branches-field";
+import type { BusinessProfileBranch } from "@/lib/business-branches";
+import { stripLegacyBranchNote } from "@/lib/business-branches";
 
 interface StoreProfileEditFormProps {
   initialData: {
@@ -15,6 +16,8 @@ interface StoreProfileEditFormProps {
     storeWhatsappPhone?: string;
     storeWebsiteUrl?: string;
     storeAddress?: string;
+    storeMapUrl?: string;
+    storeBranches?: BusinessProfileBranch[];
     storeWorkingHours?: string;
     showStoreWhatsapp?: boolean;
     showStoreWebsite?: boolean;
@@ -139,15 +142,12 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
   const [city, setCity] = useState(initialCity);
   const [storeLogoUrl, setStoreLogoUrl] = useState(initialData.storeLogoUrl ?? "");
   const [storeCoverUrl, setStoreCoverUrl] = useState(initialData.storeCoverUrl ?? "");
-  const [storeDescription, setStoreDescription] = useState(
-    (initialData.storeDescription ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim()
-  );
-  const [branchCities, setBranchCities] = useState(
-    parseBranchCitiesFromDescription(initialData.storeDescription, initialCity)
-  );
+  const [storeDescription, setStoreDescription] = useState(stripLegacyBranchNote(initialData.storeDescription));
+  const [storeBranches, setStoreBranches] = useState<BusinessProfileBranch[]>(initialData.storeBranches ?? []);
   const [storeWhatsappPhone, setStoreWhatsappPhone] = useState(initialData.storeWhatsappPhone ?? "");
   const [storeWebsiteUrl, setStoreWebsiteUrl] = useState(initialData.storeWebsiteUrl ?? "");
   const [storeAddress, setStoreAddress] = useState(initialData.storeAddress ?? "");
+  const [storeMapUrl, setStoreMapUrl] = useState(initialData.storeMapUrl ?? "");
   const [storeWorkingHours, setStoreWorkingHours] = useState(initialData.storeWorkingHours ?? "");
   const [showStoreWhatsapp, setShowStoreWhatsapp] = useState(initialData.showStoreWhatsapp ?? false);
   const [showStoreWebsite, setShowStoreWebsite] = useState(initialData.showStoreWebsite ?? false);
@@ -167,12 +167,12 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
           city: city || undefined,
           storeLogoUrl: entitlements.canUseLogo ? (storeLogoUrl || "") : undefined,
           storeCoverUrl: entitlements.canUseCover ? (storeCoverUrl || "") : undefined,
-          storeDescription: entitlements.canUseDescription
-            ? mergeDescriptionWithBranches(storeDescription, branchCities, city) || undefined
-            : undefined,
+          storeDescription: entitlements.canUseDescription ? storeDescription || undefined : undefined,
           storeWhatsappPhone: entitlements.canUseWhatsapp ? storeWhatsappPhone || undefined : undefined,
           storeWebsiteUrl: entitlements.canUseWebsite ? storeWebsiteUrl || undefined : undefined,
           storeAddress: entitlements.canUseAddress ? storeAddress || undefined : undefined,
+          storeMapUrl: entitlements.canUseAddress ? storeMapUrl || undefined : undefined,
+          storeBranches: entitlements.canUseAddress ? storeBranches : undefined,
           storeWorkingHours: entitlements.canUseWorkingHours ? storeWorkingHours || undefined : undefined,
           showStoreWhatsapp: entitlements.canUseWhatsapp ? showStoreWhatsapp : undefined,
           showStoreWebsite: entitlements.canUseWebsite ? showStoreWebsite : undefined
@@ -242,10 +242,11 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
       </div>
 
       {city && (
-        <BranchCitiesField
+        <BusinessBranchesField
           primaryCity={city}
-          value={branchCities}
-          onChange={setBranchCities}
+          value={storeBranches}
+          onChange={setStoreBranches}
+          canUseAddress={entitlements.canUseAddress}
         />
       )}
 
@@ -272,10 +273,21 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
       )}
 
       {entitlements.canUseAddress && (
-        <label className="block space-y-1">
-          <span className="text-xs font-medium text-slate-600">Ünvan</span>
-          <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} />
-        </label>
+        <>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-slate-600">Əsas ünvan</span>
+            <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-slate-600">Əsas xəritə linki</span>
+            <input
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              value={storeMapUrl}
+              onChange={(e) => setStoreMapUrl(e.target.value)}
+              placeholder="https://maps.google.com/..."
+            />
+          </label>
+        </>
       )}
 
       {entitlements.canUseWorkingHours && (

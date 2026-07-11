@@ -32,6 +32,8 @@ export async function POST(req: Request) {
     whatsappPhone?: string;
     websiteUrl?: string;
     address?: string;
+    mapUrl?: string;
+    branches?: import("@/lib/business-branches").BusinessProfileBranch[];
     workingHours?: string;
     showWhatsapp?: boolean;
     showWebsite?: boolean;

@@ -7,6 +7,7 @@ import { ListingCard } from "@/components/listings/listing-card";
 import type { ListingSummary } from "@/lib/marketplace-types";
 import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
 import { computeTrustBadges } from "@/lib/seller-trust";
+import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
 
 function formatMemberSince(iso: string | null): string {
   if (!iso) return "Məlum deyil";
@@ -91,6 +92,18 @@ export default async function PublicSellerPage({
 
   const groups = groupByCategory(activeListings);
   const coverUrl = profile.storeCoverUrl;
+
+  const storeLocations = profile.isStore
+    ? buildBusinessLocations({
+        primaryCity: profile.city ?? "",
+        primaryLabel: profile.storeName ?? profile.displayName,
+        primaryAddress: profile.storeAddress ?? undefined,
+        primaryMapUrl: profile.storeMapUrl ?? undefined,
+        primaryPhone: profile.showStoreWhatsapp ? profile.storeWhatsappPhone ?? profile.phone ?? undefined : profile.phone ?? undefined,
+        primaryWorkingHours: profile.storeWorkingHours ?? undefined,
+        branches: profile.storeBranches
+      })
+    : [];
 
   const trustBadges = computeTrustBadges({
     phoneSet:           !!profile.phone,
@@ -198,6 +211,41 @@ export default async function PublicSellerPage({
         <div className="mx-auto max-w-5xl px-4 pt-5 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm leading-relaxed text-slate-600 shadow-sm">
             {profile.storeDescription ?? profile.bio}
+          </div>
+        </div>
+      )}
+
+      {storeLocations.length > 0 && (
+        <div className="mx-auto max-w-5xl px-4 pt-5 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <BusinessBranchesDisplay locations={storeLocations} />
+          </div>
+        </div>
+      )}
+
+      {profile.isStore && (profile.showStoreWhatsapp || profile.showStoreWebsite) && (
+        <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap gap-2">
+            {profile.showStoreWhatsapp && profile.storeWhatsappPhone && (
+              <a
+                href={`https://wa.me/${profile.storeWhatsappPhone.replace(/[^\d]/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+              >
+                WhatsApp ilə yaz
+              </a>
+            )}
+            {profile.showStoreWebsite && profile.storeWebsiteUrl && (
+              <a
+                href={profile.storeWebsiteUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Vebsayt
+              </a>
+            )}
           </div>
         </div>
       )}
