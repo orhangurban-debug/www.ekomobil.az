@@ -80,6 +80,7 @@ async function ensureServiceListingsTable(): Promise<void> {
     // Incremental: add owner_user_id if not yet present (migration 058)
     await pool.query(`
       ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS owner_user_id TEXT;
+      ALTER TABLE service_listings ADD COLUMN IF NOT EXISTS branch_cities TEXT[] NOT NULL DEFAULT '{}';
       CREATE INDEX IF NOT EXISTS idx_service_listings_owner ON service_listings (owner_user_id);
     `).catch(() => {});
     serviceListingsTableEnsured = true;
@@ -122,11 +123,8 @@ function mapRow(row: ServiceListingRow): AdminServiceListingRecord {
 }
 
 /**
- * Creates a new service listing with status 'approved'.
- * Service profiles are self-serve and go live immediately by design —
- * they are low-risk (no financial transaction, no vehicle data) and
- * benefit from fast onboarding. Admins can reject post-facto via the
- * /admin/service-listings panel if needed.
+ * Creates a new service listing with status 'pending'.
+ * Admin approves via support request resolve or /admin/service-listings.
  *
  * @deprecated alias: previously called createPendingServiceListing (misleading name)
  */
@@ -138,6 +136,7 @@ export async function createServiceListing(input: {
   name: string;
   providerType: string;
   city: string;
+  branchCities?: string[];
   address?: string;
   mapUrl?: string;
   about: string;
@@ -158,13 +157,17 @@ export async function createServiceListing(input: {
     slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
   }
 
+  const branchCities = (input.branchCities ?? []).filter(
+    (city) => typeof city === "string" && city.trim() && city.trim() !== input.city
+  );
+
   await pool.query(
     `
       INSERT INTO service_listings (
-        id, slug, support_request_id, owner_user_id, name, provider_type, city, address, map_url,
+        id, slug, support_request_id, owner_user_id, name, provider_type, city, branch_cities, address, map_url,
         about, services, certifications, image_urls, phone, whatsapp, status
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'approved')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pending')
     `,
     [
       id,
@@ -174,6 +177,7 @@ export async function createServiceListing(input: {
       input.name,
       input.providerType,
       input.city,
+      branchCities,
       input.address ?? null,
       input.mapUrl ?? null,
       input.about,
@@ -298,5 +302,23 @@ export async function updateServiceListingStatus(
     return { ok: true };
   } catch {
     return { ok: false, error: "Status yenilənərkən xəta baş verdi." };
+  }
+}
+
+export async function approveServiceListingsBySupportRequestId(
+  supportRequestId: string
+): Promise<{ ok: boolean; approvedCount: number }> {
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `UPDATE service_listings
+       SET status = 'approved', updated_at = NOW()
+       WHERE support_request_id = $1 AND status = 'pending'`,
+      [supportRequestId]
+    );
+    return { ok: true, approvedCount: result.rowCount ?? 0 };
+  } catch {
+    return { ok: false, approvedCount: 0 };
   }
 }

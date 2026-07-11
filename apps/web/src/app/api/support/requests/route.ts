@@ -99,6 +99,7 @@ interface ServicePartnerDraft {
   providerType?: string;
   name?: string;
   city?: string;
+  branchCities?: string[];
   address?: string;
   mapUrl?: string;
   about?: string;
@@ -117,6 +118,8 @@ interface DealerApplicationDraft {
   phone?: string;
   website?: string | null;
   description?: string | null;
+  logoUrl?: string | null;
+  branchCities?: string[];
 }
 
 export async function POST(req: Request) {
@@ -153,6 +156,10 @@ export async function POST(req: Request) {
       phone:         body.dealerApplication.phone?.trim() || null,
       website:       body.dealerApplication.website?.trim() || null,
       description:   body.dealerApplication.description?.trim() || null,
+      logoUrl:       body.dealerApplication.logoUrl?.trim() || null,
+      branchCities:  Array.isArray(body.dealerApplication.branchCities)
+        ? body.dealerApplication.branchCities.filter((city): city is string => typeof city === "string")
+        : [],
     };
   }
   const supportRequestId = randomUUID();
@@ -184,6 +191,9 @@ export async function POST(req: Request) {
             name: draft.name.trim(),
             providerType: draft.providerType.trim(),
             city: draft.city.trim(),
+            branchCities: Array.isArray(draft.branchCities)
+              ? draft.branchCities.filter((city): city is string => typeof city === "string")
+              : undefined,
             address: draft.address?.trim() || undefined,
             mapUrl: draft.mapUrl?.trim() || undefined,
             about: draft.about?.trim() || "",
@@ -207,7 +217,7 @@ export async function POST(req: Request) {
       id: supportRequestId,
       serviceSlug,
       message: serviceSlug
-        ? "Profil yaradıldı və aktiv edildi."
+        ? "Müraciətiniz qəbul edildi. Profil admin təsdiqindən sonra aktiv olacaq."
         : "Müraciətiniz qəbul edildi."
     });
   } catch {

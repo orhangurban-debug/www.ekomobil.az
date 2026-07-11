@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { BranchCitiesField } from "@/components/business/branch-cities-field";
+import { mergeDescriptionWithBranches, parseBranchCitiesFromDescription } from "@/lib/branch-cities";
 
 interface StoreProfileEditFormProps {
   initialData: {
@@ -124,11 +126,17 @@ function ImageUploadField({
 }
 
 export function StoreProfileEditForm({ initialData, publicProfileUrl }: StoreProfileEditFormProps) {
+  const initialCity = initialData.city ?? "";
   const [storeName, setStoreName] = useState(initialData.storeName ?? "");
-  const [city, setCity] = useState(initialData.city ?? "");
+  const [city, setCity] = useState(initialCity);
   const [storeLogoUrl, setStoreLogoUrl] = useState(initialData.storeLogoUrl ?? "");
   const [storeCoverUrl, setStoreCoverUrl] = useState(initialData.storeCoverUrl ?? "");
-  const [storeDescription, setStoreDescription] = useState(initialData.storeDescription ?? "");
+  const [storeDescription, setStoreDescription] = useState(
+    (initialData.storeDescription ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim()
+  );
+  const [branchCities, setBranchCities] = useState(
+    parseBranchCitiesFromDescription(initialData.storeDescription, initialCity)
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +153,7 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
           city: city || undefined,
           storeLogoUrl: storeLogoUrl || "",
           storeCoverUrl: storeCoverUrl || "",
-          storeDescription: storeDescription || undefined
+          storeDescription: mergeDescriptionWithBranches(storeDescription, branchCities, city) || undefined
         })
       });
       const data = await res.json() as { ok: boolean; error?: string };
@@ -210,6 +218,14 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
           className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0057FF]/20"
         />
       </div>
+
+      {city && (
+        <BranchCitiesField
+          primaryCity={city}
+          value={branchCities}
+          onChange={setBranchCities}
+        />
+      )}
 
       {/* Image uploads */}
       <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">

@@ -18,6 +18,7 @@ import { loadBusinessAccountSnapshot } from "@/server/business-access";
 import { formatAccountTypeLabel } from "@/lib/business-account";
 import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
+import { FirstListingBanner } from "@/components/business/first-listing-banner";
 import { MyListingsSection } from "@/components/user/my-listings-section";
 import { TrustCompletenessPanel } from "@/components/seller/trust-badges";
 import { computeTrustBadges, missingTrustItems } from "@/lib/seller-trust";
@@ -75,7 +76,7 @@ function WelcomeBanner({ welcome, pendingReports }: { welcome?: string; pendingR
       )}
       {welcome === "service" && (
         <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3">
-          <p className="font-semibold text-emerald-800">Servis profilinizi yaradın — ani aktiv olur.</p>
+          <p className="font-semibold text-emerald-800">Servis profilinizi yaradın — admin təsdiqindən sonra aktiv olur.</p>
           <ContactActionButton intent="service" className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700" />
         </div>
       )}
@@ -120,6 +121,10 @@ export default async function ProfilePage({
   );
 
   const activeListings = myListings.filter(l => l.status === "active").length;
+  const vehicleListings = myListings.filter((item) => item.listingKind !== "part");
+  const partsListings = myListings.filter((item) => item.listingKind === "part");
+  const showSalonFirstListing = !!businessSnapshot?.salonSubscriptionActive && vehicleListings.length === 0;
+  const showStoreFirstListing = isStore && partsListings.length === 0;
 
   const trustInput = {
     phoneSet:           !!profile?.phone,
@@ -151,6 +156,12 @@ export default async function ProfilePage({
       <div className="border-b border-slate-900/8 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
           <WelcomeBanner welcome={welcome} pendingReports={pendingReports.length} />
+          {(showSalonFirstListing || showStoreFirstListing) && (
+            <div className="mb-6 space-y-3">
+              <FirstListingBanner businessType="salon" show={showSalonFirstListing} />
+              <FirstListingBanner businessType="magaza" show={showStoreFirstListing} />
+            </div>
+          )}
 
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             {/* Avatar + Identity */}

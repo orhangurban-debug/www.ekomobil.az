@@ -733,12 +733,13 @@ export async function createDealerProfile(input: {
   phone?: string | null;
   websiteUrl?: string | null;
   description?: string | null;
+  logoUrl?: string | null;
 }): Promise<void> {
   const pool = getPgPool();
   await pool.query(
     `INSERT INTO dealer_profiles
-       (id, owner_user_id, name, city, verified, response_sla_minutes, voen, website_url, description)
-     VALUES ($1, $2, $3, $4, false, 15, $5, $6, $7)
+       (id, owner_user_id, name, city, verified, response_sla_minutes, voen, website_url, description, logo_url)
+     VALUES ($1, $2, $3, $4, false, 15, $5, $6, $7, $8)
      ON CONFLICT (id) DO NOTHING`,
     [
       input.id,
@@ -748,6 +749,7 @@ export async function createDealerProfile(input: {
       input.voen?.trim() || null,
       input.websiteUrl?.trim() || null,
       input.description?.trim() || null,
+      input.logoUrl?.trim() || null,
     ]
   );
 }

@@ -7,6 +7,8 @@ import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
 import { createDealerProfile } from "@/server/dealer-store";
 import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
+import { approveServiceListingsBySupportRequestId } from "@/server/service-listing-store";
+import { mergeDescriptionWithBranches } from "@/lib/branch-cities";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
 const ALLOWED_PRIORITY = new Set(["low", "normal", "high", "urgent"]);
@@ -154,6 +156,7 @@ export async function PATCH(req: Request) {
       const req = reqRow.rows[0];
       const isDealerApply = req?.request_type === "dealer_apply" || req?.request_type === "partnership";
       const isPartsApply  = req?.request_type === "parts_apply";
+      const isInspectionPartner = req?.request_type === "inspection_partner";
 
       // ── Salon / dealer activation ──────────────────────────────────────────
       if (isDealerApply && req.reporter_user_id) {
@@ -162,7 +165,12 @@ export async function PATCH(req: Request) {
         const city = (app?.city as string | undefined)?.trim() || "Bakı";
         const voen = (app?.voen as string | undefined)?.trim() || null;
         const websiteUrl = (app?.website as string | undefined)?.trim() || null;
-        const description = (app?.description as string | undefined)?.trim() || null;
+        const rawDescription = (app?.description as string | undefined)?.trim() || null;
+        const logoUrl = (app?.logoUrl as string | undefined)?.trim() || null;
+        const branchCities = Array.isArray(app?.branchCities)
+          ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
+          : [];
+        const description = mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null;
 
         const existingProfile = await pool.query<{ id: string }>(
           `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
@@ -178,6 +186,7 @@ export async function PATCH(req: Request) {
             voen,
             websiteUrl,
             description,
+            logoUrl,
           });
           await updateAdminUserRole(req.reporter_user_id, "dealer");
           const now = new Date();
@@ -185,7 +194,7 @@ export async function PATCH(req: Request) {
           await upsertBusinessPlanSubscription({
             ownerUserId: req.reporter_user_id,
             businessType: "dealer",
-            planId: "dealer_standard",
+            planId: "baza",
             status: "active",
             startsAt: now.toISOString(),
             expiresAt: trialEnd.toISOString(),
@@ -197,6 +206,18 @@ export async function PATCH(req: Request) {
 
       // ── Parts store activation ─────────────────────────────────────────────
       if (isPartsApply && req.reporter_user_id) {
+        const app = req.metadata?.dealerApplication as Record<string, unknown> | undefined;
+        const businessName = (app?.businessName as string | undefined)?.trim() || null;
+        const city = (app?.city as string | undefined)?.trim() || null;
+        const rawDescription = (app?.description as string | undefined)?.trim() || null;
+        const logoUrl = (app?.logoUrl as string | undefined)?.trim() || null;
+        const branchCities = Array.isArray(app?.branchCities)
+          ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
+          : [];
+        const storeDescription = city
+          ? mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null
+          : rawDescription;
+
         const existingSub = await pool.query<{ id: string }>(
           `SELECT id FROM business_plan_subscriptions
            WHERE owner_user_id = $1 AND business_type = 'parts_store'
@@ -210,12 +231,34 @@ export async function PATCH(req: Request) {
           await upsertBusinessPlanSubscription({
             ownerUserId: req.reporter_user_id,
             businessType: "parts_store",
-            planId: "parts_store_standard",
+            planId: "baza",
             status: "active",
             startsAt: now.toISOString(),
             expiresAt: trialEnd.toISOString(),
             trialGrantedAt: now.toISOString(),
           });
+          partnershipActivated = true;
+        }
+
+        if (businessName || logoUrl || storeDescription || city) {
+          await pool.query(
+            `INSERT INTO user_profiles (user_id, store_name, store_logo_url, store_description, city, updated_at)
+             VALUES ($1, $2, $3, $4, $5, NOW())
+             ON CONFLICT (user_id) DO UPDATE SET
+               store_name = COALESCE(EXCLUDED.store_name, user_profiles.store_name),
+               store_logo_url = CASE WHEN EXCLUDED.store_logo_url IS NOT NULL THEN EXCLUDED.store_logo_url ELSE user_profiles.store_logo_url END,
+               store_description = COALESCE(EXCLUDED.store_description, user_profiles.store_description),
+               city = COALESCE(EXCLUDED.city, user_profiles.city),
+               updated_at = NOW()`,
+            [req.reporter_user_id, businessName, logoUrl, storeDescription, city]
+          );
+        }
+      }
+
+      // ── Servis / ekspertiza profili təsdiqi ───────────────────────────────
+      if (isInspectionPartner) {
+        const approval = await approveServiceListingsBySupportRequestId(body.id);
+        if (approval.approvedCount > 0) {
           partnershipActivated = true;
         }
       }

@@ -34,7 +34,7 @@ function buildSellItems(hasStorePlan: boolean, hasSalonPlan: boolean) {
       desc: hasSalonPlan ? "Salon inventarına əlavə et" : "Fərdi avtomobil elanı",
     },
     {
-      href: hasStorePlan ? "/parts/publish" : "/parts/setup",
+      href: hasStorePlan ? "/parts/publish" : "/parts/apply",
       icon: "📦",
       label: hasStorePlan ? "Hissə elanı yerləşdir" : "Hissə sat",
       desc: hasStorePlan ? "Mağaza inventarına əlavə et" : "Fərdi elan və ya mağaza aç",

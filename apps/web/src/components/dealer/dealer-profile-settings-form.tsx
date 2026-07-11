@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { BranchCitiesField } from "@/components/business/branch-cities-field";
+import { mergeDescriptionWithBranches, parseBranchCitiesFromDescription } from "@/lib/branch-cities";
 
 interface Entitlements {
   canUseDescription: boolean;
@@ -34,6 +36,12 @@ export function DealerProfileSettingsForm({
   entitlements: Entitlements;
 }) {
   const [profile, setProfile] = useState<ProfileState>(initialProfile);
+  const [branchCities, setBranchCities] = useState(
+    parseBranchCitiesFromDescription(initialProfile.description, initialProfile.city)
+  );
+  const [baseDescription, setBaseDescription] = useState(
+    (initialProfile.description ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim()
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -44,7 +52,10 @@ export function DealerProfileSettingsForm({
       const response = await fetch("/api/dealer/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile)
+        body: JSON.stringify({
+          ...profile,
+          description: mergeDescriptionWithBranches(baseDescription, branchCities, profile.city)
+        })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string; profile?: ProfileState };
       if (!response.ok || !payload.ok || !payload.profile) {
@@ -52,6 +63,8 @@ export function DealerProfileSettingsForm({
         return;
       }
       setProfile(payload.profile);
+      setBaseDescription((payload.profile.description ?? "").replace(/\n\nFiliallar: [^\n]+$/, "").trim());
+      setBranchCities(parseBranchCitiesFromDescription(payload.profile.description, payload.profile.city));
       setMessage("Profil uğurla yeniləndi.");
     } catch {
       setMessage("Profil yadda saxlanmadı.");
@@ -76,6 +89,14 @@ export function DealerProfileSettingsForm({
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Şəhər</span>
           <input className="input-field" value={profile.city} onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value }))} />
         </label>
+      </div>
+
+      <div className="mt-4">
+        <BranchCitiesField
+          primaryCity={profile.city}
+          value={branchCities}
+          onChange={setBranchCities}
+        />
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -170,8 +191,8 @@ export function DealerProfileSettingsForm({
         <textarea
           className="input-field min-h-[96px]"
           disabled={!entitlements.canUseDescription}
-          value={profile.description ?? ""}
-          onChange={(e) => setProfile((p) => ({ ...p, description: e.target.value }))}
+          value={baseDescription}
+          onChange={(e) => setBaseDescription(e.target.value)}
           placeholder="Salon/mağaza haqqında qısa məlumat"
         />
       </label>

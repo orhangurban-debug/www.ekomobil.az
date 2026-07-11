@@ -115,6 +115,20 @@ export default async function DealerPortalPage() {
         </div>
       </div>
 
+      {dashboard.inventory.length === 0 && (
+        <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold text-emerald-900">İlk elanınızı əlavə edin</p>
+            <p className="mt-1 text-sm text-emerald-800">
+              Salon inventarınız boşdur. Avtomobil elanı yerləşdirin — yoxlamadan sonra aktiv olacaq.
+            </p>
+          </div>
+          <Link href="/publish" className="shrink-0 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+            İlk elanı yerləşdir →
+          </Link>
+        </div>
+      )}
+
       {/* Abunə upgrade banner */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
         <div>

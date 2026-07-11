@@ -25,7 +25,7 @@ export default async function StorePortalPage() {
 
   const isStore = await hasActiveBusinessSubscription(user.id, "parts_store");
   if (!isStore && user.role !== "admin") {
-    redirect("/parts/setup");
+    redirect("/parts/apply");
   }
 
   const [profile, allListings, partsPlan, snapshot] = await Promise.all([
@@ -164,10 +164,10 @@ export default async function StorePortalPage() {
                 </div>
                 <div>
                   <p className="font-medium text-slate-700">Hələ elanınız yoxdur</p>
-                  <p className="mt-1 text-sm text-slate-400">İlk hissə elanını dəqiqələr içində əlavə edin</p>
+                  <p className="mt-1 text-sm text-slate-400">İlk elanınızı əlavə edin — dəqiqələr içində hazır olacaq</p>
                 </div>
                 <Link href="/parts/publish" className="rounded-xl bg-[#0057FF] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF]">
-                  İlk elanı əlavə et
+                  İlk elanınızı əlavə edin
                 </Link>
               </div>
             ) : (

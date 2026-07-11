@@ -46,7 +46,7 @@ export default async function InspectionPartnersPage({
         <div>
           <p className="font-semibold text-slate-900">Növbəti addım</p>
           <p className="mt-1 text-xs leading-relaxed">
-            Profil yaradıldıqdan sonra dərhal aktiv olur. İlk qeydiyyat üçün 30 günlük pulsuz aktivləşdirmə tətbiq olunur.{" "}
+            Müraciət admin yoxlamasından keçir. Təsdiqdən sonra profil aktiv olur. İlk qeydiyyat üçün 30 günlük pulsuz sınaq tətbiq olunur.{" "}
             <Link href="/pricing#services" className="font-medium text-[#0057FF] hover:underline">
               Qiymət planlarına bax →
             </Link>

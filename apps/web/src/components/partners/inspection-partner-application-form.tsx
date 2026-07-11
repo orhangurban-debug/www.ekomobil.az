@@ -10,6 +10,7 @@ import {
   getPartnerPlanGroupForProviderType
 } from "@/lib/service-plans";
 import { useLaunchPromo } from "@/hooks/use-launch-promo";
+import { BranchCitiesField } from "@/components/business/branch-cities-field";
 
 // ─── Provider types (grouped) ─────────────────────────────────────────────────
 
@@ -363,6 +364,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [providerName, setProviderName] = useState("");
   const [city, setCity] = useState("");
+  const [branchCities, setBranchCities] = useState<string[]>([]);
   const [address, setAddress] = useState("");
   const [mapLink, setMapLink] = useState("");
   const [workingHours, setWorkingHours] = useState("");
@@ -537,6 +539,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
       `Provider type: ${providerLabel}`,
       `Name: ${providerName.trim()}`,
       `City: ${city}`,
+      `Branch cities: ${branchCities.length > 0 ? branchCities.join(", ") : "-"}`,
       `Address: ${address.trim() || "-"}`,
       `Map link: ${mapLink.trim() || "-"}`,
       `Working hours: ${workingHours.trim() || "-"}`,
@@ -584,6 +587,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
             providerType,
             name: providerName.trim(),
             city,
+            branchCities,
             address: address.trim() || undefined,
             mapUrl: mapLink.trim() || undefined,
             about,
@@ -615,36 +619,37 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
   /* ── Success screen ──────────────────────────────────────────────────────── */
   if (createdSlug) {
     return (
-      <div className="flex flex-col items-center gap-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-14 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-4xl shadow-lg">
-          ✓
+      <div className="flex flex-col items-center gap-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-14 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-400 text-4xl shadow-lg text-white">
+          ⏳
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-emerald-900">Profil yaradıldı!</h2>
-          <p className="mt-2 text-base text-emerald-800">
-            <strong>{createdName}</strong> profili aktiv edildi və indi görünür.
+          <h2 className="text-2xl font-bold text-amber-900">Müraciətiniz qəbul edildi</h2>
+          <p className="mt-2 text-base text-amber-800">
+            <strong>{createdName}</strong> profili yaradılıb və <strong>gözləmə rejimindədir</strong>.
+            Admin təsdiqindən sonra ictimai siyahıda görünəcək.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
-            href={`/services/${createdSlug}`}
-            className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            href="/partners/my-services"
+            className="rounded-xl bg-amber-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
           >
-            Profilimə bax →
+            Profillərimə bax →
           </Link>
           <Link
-            href="/services"
-            className="rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50"
+            href="/me"
+            className="rounded-xl border border-amber-300 bg-white px-6 py-3 text-sm font-semibold text-amber-800 transition hover:bg-amber-50"
           >
-            Bütün servislər
+            Hesab səhifəsi
           </Link>
         </div>
         <button
           type="button"
           onClick={() => { setCreatedSlug(null); setCreatedName(""); }}
-          className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800"
+          className="text-xs text-amber-700 underline underline-offset-2 hover:text-amber-900"
         >
-          Yeni profil yarat
+          Yeni müraciət göndər
         </button>
       </div>
     );
@@ -859,6 +864,16 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
                 ))}
               </select>
             </label>
+
+            {city && (
+              <div className="md:col-span-2">
+                <BranchCitiesField
+                  primaryCity={city}
+                  value={branchCities}
+                  onChange={setBranchCities}
+                />
+              </div>
+            )}
 
             <label className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">İş saatları</span>
@@ -1090,7 +1105,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
             className="btn-primary px-8 py-3"
             disabled={submitting}
           >
-            {submitting ? "Yaradılır..." : "Profili yarat və aktiv et"}
+            {submitting ? "Göndərilir..." : "Müraciət göndər"}
           </button>
           {feedback && (
             <span className={`text-sm font-medium ${isError ? "text-rose-600" : "text-emerald-700"}`}>

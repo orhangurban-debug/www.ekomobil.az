@@ -251,7 +251,7 @@ function ServiceRow({
         </p>
       )}
       {!active && !pending && (
-        <p className="mt-2 text-xs text-slate-400">Profil yarat · Ani aktiv olur</p>
+        <p className="mt-2 text-xs text-slate-400">Profil yarat · Admin təsdiqi tələb olunur</p>
       )}
       {approvedListings.length > 1 && (
         <div className="mt-2 flex flex-wrap gap-1.5">

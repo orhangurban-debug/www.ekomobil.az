@@ -156,12 +156,11 @@ function SmartActionPanel({
             {slug ? (
               isActive ? (
                 <p className="mt-1 text-sm text-teal-700">
-                  Bu profil müraciət göndəriləndə <strong>avtomatik aktivləşdirildi</strong>.
-                  Əlavə admin təsdiqi tələb olunmur.
+                  Admin tərəfindən təsdiqlənib və <strong>aktiv</strong> statusundadır.
                 </p>
               ) : (
                 <p className="mt-1 text-sm text-amber-700">
-                  Profil yaradılıb amma <strong>{svcStatus}</strong> statusundadır.
+                  Profil yaradılıb və <strong>gözləmə</strong> statusundadır. Təsdiq üçün müraciəti həll edin.
                 </p>
               )
             ) : (

@@ -86,7 +86,7 @@ export default async function AdminBusinessApplicationsPage({
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">Biznes onboarding</p>
           <h2 className="text-2xl font-bold text-slate-900">Biznes müraciətləri</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Salon, mağaza və servis profili müraciətləri. Təsdiq etdikdən sonra istifadəçinin hesabı avtomatik aktivləşir.
+            Salon, mağaza və servis profili müraciətləri. Təsdiq etdikdən sonra müvafiq biznes hesabı aktivləşir.
           </p>
         </div>
         <Link href="/admin/support-requests" className="btn-secondary text-sm">

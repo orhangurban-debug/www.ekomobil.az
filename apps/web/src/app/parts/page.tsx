@@ -261,7 +261,7 @@ export default async function PartsPage({
             </Link>
 
             <Link
-              href="/parts/setup"
+              href="/parts/apply"
               className="group flex items-center gap-4 rounded-2xl border border-emerald-500/30 bg-emerald-50/60 p-5 transition hover:border-emerald-500/60 hover:shadow-md"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xl">

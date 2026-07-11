@@ -37,7 +37,7 @@ export default async function MyServicesPage() {
           <span className="text-5xl">🔧</span>
           <div>
             <p className="font-semibold text-slate-800">Hələ servis profiliniz yoxdur</p>
-            <p className="mt-1 text-sm text-slate-500">Profil yaradın — anında aktiv olur</p>
+            <p className="mt-1 text-sm text-slate-500">Profil yaradın — admin təsdiqindən sonra aktiv olur</p>
           </div>
           <Link
             href="/partners/inspection"
