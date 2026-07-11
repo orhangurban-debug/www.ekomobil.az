@@ -120,7 +120,7 @@ export function missingTrustItems(
   if (!earned.has("profile_complete"))
     items.push({ icon: "👤", label: "Profili tamamla (şəkil, şəhər)",  href: "/me#profile" });
   if (!earned.has("active_subscriber"))
-    items.push({ icon: "⭐", label: "Biznes planı aktiv et",            href: "/pricing"   });
+    items.push({ icon: "⭐", label: "Salon və ya mağaza planı aktiv et", href: "/pricing#dealer" });
 
   return items;
 }

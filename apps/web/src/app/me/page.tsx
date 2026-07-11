@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ContactActionButton } from "@/components/support/contact-action-button";
 import { PrivacyControls } from "@/components/user/privacy-controls";
 import { ProfileEditForm } from "@/components/user/profile-edit-form";
+import { PhoneSetupForm } from "@/components/user/phone-setup-form";
 import { getServerSessionUser } from "@/lib/auth";
 import { listListingsForUser } from "@/server/listing-store";
 import { getLatestPendingPaymentForListing } from "@/server/payment-store";
@@ -280,7 +281,7 @@ export default async function ProfilePage({
           <div className="space-y-5">
 
             {/* Profil redaktəsi */}
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section id="profile" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm scroll-mt-24">
               <div className="border-b border-slate-100 px-5 py-4">
                 <h2 className="font-semibold text-slate-900">Profil</h2>
               </div>
@@ -302,11 +303,8 @@ export default async function ProfilePage({
                 />
 
                 {/* Account info pills */}
-                <div className="mt-4 space-y-2.5 border-t border-slate-100 pt-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">Telefon</span>
-                    <span className="font-medium text-slate-700">{profile?.phone || "—"}</span>
-                  </div>
+                <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                  <PhoneSetupForm initialPhone={profile?.phone} />
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-400">Dərin KYC</span>
                     <span className={`font-medium ${deepKyc?.status === "approved" ? "text-emerald-600" : deepKyc?.status === "submitted" ? "text-amber-600" : "text-slate-500"}`}>

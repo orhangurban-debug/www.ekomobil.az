@@ -261,19 +261,45 @@ export async function consumePhoneOtpChallenge(input: {
   return { ok: true };
 }
 
-export async function isPhoneAlreadyUsed(phoneNormalized: string): Promise<boolean> {
+export async function isPhoneAlreadyUsed(phoneNormalized: string, excludeUserId?: string): Promise<boolean> {
   await ensureSeedData();
   const pool = getPgPool();
   const result = await pool.query<{ exists: number }>(
-    `
-      SELECT 1 as exists
-      FROM users
-      WHERE phone_normalized = $1
-      LIMIT 1
-    `,
-    [phoneNormalized]
+    excludeUserId
+      ? `
+          SELECT 1 as exists
+          FROM users
+          WHERE phone_normalized = $1 AND id <> $2
+          LIMIT 1
+        `
+      : `
+          SELECT 1 as exists
+          FROM users
+          WHERE phone_normalized = $1
+          LIMIT 1
+        `,
+    excludeUserId ? [phoneNormalized, excludeUserId] : [phoneNormalized]
   );
   return (result.rowCount ?? 0) > 0;
+}
+
+export async function setVerifiedPhoneForUser(input: {
+  userId: string;
+  phone: string;
+  phoneNormalized: string;
+}): Promise<void> {
+  await ensureSeedData();
+  const pool = getPgPool();
+  await pool.query(
+    `
+      UPDATE users
+      SET phone = $2,
+          phone_normalized = $3,
+          phone_verified = TRUE
+      WHERE id = $1
+    `,
+    [input.userId, input.phone, input.phoneNormalized]
+  );
 }
 
 export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {
