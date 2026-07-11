@@ -88,16 +88,59 @@ function TagChip({
   );
 }
 
+function ClaimedTagChip({
+  tag,
+  selectedOnThisImage,
+  onAssign,
+  onClear
+}: {
+  tag: { id: ImagePhotoTag; shortLabel: string; hint: string };
+  selectedOnThisImage: boolean;
+  onAssign: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={
+        selectedOnThisImage
+          ? `${tag.hint} — bu şəkil üçün seçilib`
+          : `${tag.hint} — eyni növü bu şəkilə də təyin et`
+      }
+      onClick={() => (selectedOnThisImage ? onClear() : onAssign())}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-95 ${
+        selectedOnThisImage
+          ? "border-[#0057FF] bg-[#0057FF] text-white shadow-sm shadow-[#0057FF]/30"
+          : "border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100"
+      }`}
+    >
+      <span className="text-[13px] leading-none">{TAG_ICONS[tag.id] ?? "📷"}</span>
+      <span>{tag.shortLabel}</span>
+      {selectedOnThisImage ? (
+        <svg className="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clipRule="evenodd" />
+        </svg>
+      ) : (
+        <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold leading-none text-white">
+          +
+        </span>
+      )}
+    </button>
+  );
+}
+
 function ImageTagCard({
   img,
   index,
   selectedTag,
+  allAngleTags,
   onRemove,
   onAssignAngle
 }: {
   img: ProcessedImage;
   index: number;
   selectedTag: ImagePhotoTag | null;
+  allAngleTags: Array<ImagePhotoTag | null>;
   onRemove: () => void;
   onAssignAngle: (tag: ImagePhotoTag | null) => void;
 }) {
@@ -107,8 +150,21 @@ function ImageTagCard({
   const tagsByGroup = (gId: PhotoTagGroupId) =>
     IMAGE_PHOTO_TAG_OPTIONS.filter((t) => t.group === gId);
 
-  // Show all if the selected tag is in a non-active group
+  const globallyUsedTagIds = Array.from(
+    new Set(allAngleTags.filter((tag): tag is ImagePhotoTag => tag !== null))
+  );
+  const claimedTagOptions = IMAGE_PHOTO_TAG_OPTIONS.filter((t) =>
+    globallyUsedTagIds.includes(t.id)
+  );
+
   const effectiveGroup: PhotoTagGroupId | null = activeGroup === "all" ? null : activeGroup;
+  const availableGridTags = IMAGE_PHOTO_TAG_OPTIONS.filter(
+    (t) =>
+      (effectiveGroup === null ? true : t.group === effectiveGroup) &&
+      !globallyUsedTagIds.includes(t.id)
+  );
+
+  // Show all if the selected tag is in a non-active group
 
   return (
     <div
@@ -171,17 +227,43 @@ function ImageTagCard({
               </button>
             </div>
           ) : (
-            <p className="mt-1.5 text-xs text-amber-700">👆 Aşağıdan şəkil növünü seçin</p>
+            <p className="mt-1.5 text-xs text-amber-700">
+              👆 Seçilmişlərdən <strong>+</strong> ilə və ya aşağıdan yeni növ seçin
+            </p>
           )}
         </div>
       </div>
 
       {/* Tag selector */}
       <div className="border-t border-slate-900/8 px-3 pb-3 pt-2.5 sm:px-4 sm:pb-4">
+        {claimedTagOptions.length > 0 && (
+          <div className="mb-3 rounded-xl border border-emerald-200/80 bg-emerald-50/50 px-3 py-2.5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+              Seçilmiş növlər
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {claimedTagOptions.map((tag) => (
+                <ClaimedTagChip
+                  key={tag.id}
+                  tag={tag}
+                  selectedOnThisImage={selectedTag === tag.id}
+                  onAssign={() => onAssignAngle(tag.id)}
+                  onClear={() => onAssignAngle(null)}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] text-emerald-700">
+              Eyni rakursdan əlavə şəkil üçün <strong>+</strong> düyməsinə klik edin.
+            </p>
+          </div>
+        )}
+
         {/* Group tabs */}
         <div className="mb-2.5 flex gap-1 overflow-x-auto">
           {displayGroups.map((g) => {
-            const groupHasSelection = tagsByGroup(g.id).some((t) => t.id === selectedTag);
+            const groupHasSelection = tagsByGroup(g.id).some(
+              (t) => t.id === selectedTag || globallyUsedTagIds.includes(t.id)
+            );
             return (
               <button
                 key={g.id}
@@ -207,18 +289,22 @@ function ImageTagCard({
           })}
         </div>
 
-        {/* Tag chips */}
+        {/* Tag chips — yalnız hələ seçilməmiş növlər */}
         <div className="flex flex-wrap gap-1.5">
-          {IMAGE_PHOTO_TAG_OPTIONS.filter((t) =>
-            effectiveGroup === null ? true : t.group === effectiveGroup
-          ).map((tag) => (
-            <TagChip
-              key={tag.id}
-              tag={tag}
-              selected={selectedTag === tag.id}
-              onSelect={() => onAssignAngle(selectedTag === tag.id ? null : tag.id)}
-            />
-          ))}
+          {availableGridTags.length > 0 ? (
+            availableGridTags.map((tag) => (
+              <TagChip
+                key={tag.id}
+                tag={tag}
+                selected={false}
+                onSelect={() => onAssignAngle(tag.id)}
+              />
+            ))
+          ) : (
+            <p className="text-[11px] text-slate-500">
+              Bu qrupda qalan növ yoxdur — yuxarıdakı seçilmişlərdən + ilə təyin edin.
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -388,6 +474,7 @@ export function PublishImageAngleTagger({
               img={img}
               index={index}
               selectedTag={imageAngleTags[index] ?? null}
+              allAngleTags={imageAngleTags}
               onRemove={() => onRemoveImage(index)}
               onAssignAngle={(tag) => onAssignAngle(index, tag)}
             />
