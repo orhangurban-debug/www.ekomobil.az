@@ -199,6 +199,52 @@ export async function sendInvoiceEmail(data: InvoiceEmailData): Promise<{ ok: bo
   }
 }
 
+export async function sendPhoneOtpEmail(input: {
+  to: string;
+  code: string;
+  phone: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resend = getResend();
+    const { error } = await resend.emails.send({
+      from: "EkoMobil.az <info@ekomobil.az>",
+      to: input.to,
+      subject: "Telefon təsdiq kodu — EkoMobil",
+      html: `<!DOCTYPE html>
+<html lang="az">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 0;">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+        <tr>
+          <td style="background:#0057FF;padding:24px 32px;">
+            <h1 style="margin:0;font-size:18px;color:#fff;">Telefon təsdiqi</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <p style="margin:0 0 16px;font-size:15px;color:#334155;">Telefon nömrənizi təsdiqləmək üçün aşağıdakı kodu daxil edin:</p>
+            <p style="margin:0 0 8px;font-size:13px;color:#64748b;">Nömrə: <strong>${input.phone}</strong></p>
+            <p style="margin:16px 0;font-size:32px;font-weight:700;letter-spacing:6px;color:#0f172a;text-align:center;">${input.code}</p>
+            <p style="margin:0;font-size:13px;color:#94a3b8;">Kod 10 dəqiqə etibarlıdır. Bu kodu heç kimlə paylaşmayın.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+    });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "E-poçt göndərilmədi" };
+  }
+}
+
 // ─── Support reply email ──────────────────────────────────────────────────────
 
 export interface SupportReplyEmailData {

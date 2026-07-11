@@ -8,6 +8,7 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
+  const [deliveryHint, setDeliveryHint] = useState<string | null>(null);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +32,8 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
         challengeId?: string;
         error?: string;
         code?: string;
+        deliveryChannel?: "sms" | "email";
+        deliveryDestination?: string;
       };
       if (!response.ok || !payload.ok || !payload.challengeId) {
         setError(payload.error ?? "Təsdiq kodu göndərilmədi.");
@@ -38,6 +41,13 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
       }
       setChallengeId(payload.challengeId);
       setOtpHintCode(payload.code ?? null);
+      setDeliveryHint(
+        payload.deliveryChannel === "email"
+          ? `Kod e-poçtunuza göndərildi (${payload.deliveryDestination ?? "təsdiqlənmiş email"}).`
+          : payload.deliveryChannel === "sms"
+          ? `Kod SMS ilə göndərildi (${payload.deliveryDestination ?? "telefon"}).`
+          : null
+      );
       setOtpSent(true);
     } catch {
       setError("Şəbəkə xətası. Yenidən cəhd edin.");
@@ -97,7 +107,7 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
     <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div>
         <p className="text-sm font-semibold text-slate-900">Telefon nömrəsi</p>
-        <p className="mt-0.5 text-xs text-slate-500">SMS təsdiqi ilə əlavə edin — etibar xalınız artır.</p>
+        <p className="mt-0.5 text-xs text-slate-500">SMS və ya e-poçt təsdiqi ilə əlavə edin — etibar xalınız artır.</p>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -128,6 +138,9 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
             placeholder="6 rəqəmli kod"
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:outline-none focus:ring-1 focus:ring-[#0057FF]/30"
           />
+          {deliveryHint && (
+            <p className="text-xs text-emerald-700">{deliveryHint}</p>
+          )}
           {otpHintCode && (
             <p className="text-xs text-amber-700">Test kodu: {otpHintCode}</p>
           )}

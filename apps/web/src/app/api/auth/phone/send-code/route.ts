@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { createPhoneOtpChallenge, isPhoneAlreadyUsed, normalizePhoneNumber } from "@/server/user-store";
+import { PhoneOtpDeliveryError } from "@/server/phone-otp-delivery";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
@@ -14,7 +15,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Yanlış sorğu formatı." }, { status: 400 });
   }
 
-  const phoneRaw = typeof body === "object" && body && "phone" in body ? String((body as { phone?: string }).phone ?? "") : "";
+  const payload = body as { phone?: string; email?: string };
+  const phoneRaw = String(payload.phone ?? "");
+  const fallbackEmail = String(payload.email ?? "").trim() || undefined;
   const normalizedPhone = normalizePhoneNumber(phoneRaw);
   if (!normalizedPhone) {
     return NextResponse.json({ ok: false, error: "Telefon nömrəsi düzgün deyil." }, { status: 400 });
@@ -32,12 +35,24 @@ export async function POST(req: Request) {
     });
   }
 
-  const challenge = await createPhoneOtpChallenge({ phoneNormalized: normalizedPhone });
-  return NextResponse.json({
-    ok: true,
-    challengeId: challenge.challengeId,
-    expiresAt: challenge.expiresAt,
-    // Only exposed when ALLOW_OTP_PLAINTEXT_IN_RESPONSE=true in non-production.
-    code: challenge.codeForDev
-  });
+  try {
+    const challenge = await createPhoneOtpChallenge({
+      phoneNormalized: normalizedPhone,
+      fallbackEmail
+    });
+    return NextResponse.json({
+      ok: true,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
+      deliveryChannel: challenge.deliveryChannel,
+      deliveryDestination: challenge.deliveryDestination,
+      code: challenge.codeForDev
+    });
+  } catch (error) {
+    const message =
+      error instanceof PhoneOtpDeliveryError
+        ? error.message
+        : "Təsdiq kodu göndərilmədi.";
+    return NextResponse.json({ ok: false, error: message }, { status: 503 });
+  }
 }

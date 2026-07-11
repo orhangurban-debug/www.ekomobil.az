@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { createPhoneOtpChallenge, isPhoneAlreadyUsed, normalizePhoneNumber } from "@/server/user-store";
+import { PhoneOtpDeliveryError } from "@/server/phone-otp-delivery";
 
 export async function POST(req: Request) {
   const user = await getServerSessionUser();
@@ -33,11 +34,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Bu telefon nömrəsi artıq başqa hesabda istifadə olunur." }, { status: 409 });
   }
 
-  const challenge = await createPhoneOtpChallenge({ phoneNormalized: normalizedPhone });
-  return NextResponse.json({
-    ok: true,
-    challengeId: challenge.challengeId,
-    expiresAt: challenge.expiresAt,
-    code: challenge.codeForDev
-  });
+  try {
+    const challenge = await createPhoneOtpChallenge({
+      phoneNormalized: normalizedPhone,
+      fallbackEmail: user.email
+    });
+    return NextResponse.json({
+      ok: true,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
+      deliveryChannel: challenge.deliveryChannel,
+      deliveryDestination: challenge.deliveryDestination,
+      code: challenge.codeForDev
+    });
+  } catch (error) {
+    const message =
+      error instanceof PhoneOtpDeliveryError
+        ? error.message
+        : "Təsdiq kodu göndərilmədi.";
+    return NextResponse.json({ ok: false, error: message }, { status: 503 });
+  }
 }

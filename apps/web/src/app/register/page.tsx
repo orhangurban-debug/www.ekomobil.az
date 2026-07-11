@@ -134,7 +134,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/auth/phone/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: form.phone })
+        body: JSON.stringify({ phone: form.phone, email: form.email })
       });
       const payload = (await response.json()) as {
         ok: boolean;

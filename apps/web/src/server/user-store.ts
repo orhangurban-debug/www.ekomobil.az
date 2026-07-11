@@ -1,6 +1,7 @@
 import { randomInt, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { isOtpPlaintextExposureAllowed } from "@/lib/phone-otp-config";
+import { deliverPhoneOtp } from "@/server/phone-otp-delivery";
 import { ensureSeedData, createUuidLikeId } from "@/server/bootstrap-seed";
 
 export type UserAccountStatus = "active" | "suspended" | "banned" | string;
@@ -204,7 +205,14 @@ function createOtpCode(): string {
 
 export async function createPhoneOtpChallenge(input: {
   phoneNormalized: string;
-}): Promise<{ challengeId: string; expiresAt: string; codeForDev?: string }> {
+  fallbackEmail?: string;
+}): Promise<{
+  challengeId: string;
+  expiresAt: string;
+  codeForDev?: string;
+  deliveryChannel?: "sms" | "email";
+  deliveryDestination?: string;
+}> {
   await ensureSeedData();
   const challengeId = randomUUID();
   const code = createOtpCode();
@@ -217,10 +225,25 @@ export async function createPhoneOtpChallenge(input: {
     `,
     [challengeId, input.phoneNormalized, code]
   );
+
+  let deliveryChannel: "sms" | "email" | undefined;
+  let deliveryDestination: string | undefined;
+  if (!isOtpPlaintextExposureAllowed()) {
+    const delivery = await deliverPhoneOtp({
+      phoneNormalized: input.phoneNormalized,
+      code,
+      fallbackEmail: input.fallbackEmail
+    });
+    deliveryChannel = delivery.channel;
+    deliveryDestination = delivery.destinationMasked;
+  }
+
   return {
     challengeId,
     expiresAt: result.rows[0]?.expires_at?.toISOString() ?? new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    codeForDev: isOtpPlaintextExposureAllowed() ? code : undefined
+    codeForDev: isOtpPlaintextExposureAllowed() ? code : undefined,
+    deliveryChannel,
+    deliveryDestination
   };
 }
 
