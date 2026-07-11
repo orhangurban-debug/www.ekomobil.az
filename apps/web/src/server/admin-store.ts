@@ -121,6 +121,7 @@ export interface AdminBusinessProfileSummary {
   dealerCount: number;
   storeCount: number;
   verifiedCount: number;
+  verifiedDealerCount: number;
   pendingDealerCount: number;
 }
 
@@ -936,6 +937,7 @@ export async function listAdminBusinessProfilesPaged(input: {
     dealerCount,
     storeCount,
     verifiedCount: n(summaryRow?.verified_dealer_count) + storeCount,
+    verifiedDealerCount: n(summaryRow?.verified_dealer_count),
     pendingDealerCount: n(summaryRow?.pending_dealer_count)
   };
 

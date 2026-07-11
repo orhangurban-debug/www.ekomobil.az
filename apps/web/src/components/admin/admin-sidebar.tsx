@@ -37,7 +37,8 @@ function buildSections(counts: AdminPendingCounts): NavSection[] {
     {
       title: "Biznes hesabları",
       items: [
-        { href: "/admin/business-profiles", label: "Salon/Mağaza profilləri" },
+        { href: "/admin/salon-profiles",   label: "Salon profilləri" },
+        { href: "/admin/magaza-profiles",  label: "Mağaza profilləri" },
         { href: "/admin/service-listings",  label: "Servis elanları" },
         { href: "/admin/business-plans",    label: "Plan abunələri" }
       ]

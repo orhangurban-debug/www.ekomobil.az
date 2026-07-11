@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BusinessPlanSubscriptionsManager } from "@/components/admin/business-plan-subscriptions-manager";
 import { requirePageRoles } from "@/lib/rbac";
 import { getDealerPlanCatalog, getPartsPlanCatalog, listBusinessPlanSubscriptions } from "@/server/business-plan-store";
@@ -16,6 +17,11 @@ export default async function AdminBusinessPlansPage() {
         <h2 className="text-xl font-bold text-slate-900">Biznes plan abunələri</h2>
         <p className="mt-1 text-sm text-slate-500">
           Salon və mağaza planlarının aktivliyi, bitmə tarixi və status idarəsi.
+          Profil moderasiyası üçün{" "}
+          <Link href="/admin/salon-profiles" className="text-[#0891B2] hover:underline">Salon profilləri</Link>
+          {" "}və{" "}
+          <Link href="/admin/magaza-profiles" className="text-[#0891B2] hover:underline">Mağaza profilləri</Link>
+          {" "}səhifələrinə keçin.
         </p>
       </div>
       <BusinessPlanSubscriptionsManager

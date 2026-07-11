@@ -160,7 +160,7 @@ export default async function AdminUserMembershipPage({
             <div className="mt-4 space-y-2 text-sm">
               <p className="font-semibold text-slate-900">{profile.dealerProfile.name}</p>
               <p className="text-slate-600">{profile.dealerProfile.city} · {profile.dealerProfile.verified ? "Təsdiqlənib" : "Təsdiq gözləyir"}</p>
-              <Link href={`/admin/business-profiles?q=${encodeURIComponent(profile.dealerProfile.name)}`} className="inline-flex text-[#0891B2] hover:underline">
+              <Link href={`/admin/salon-profiles?q=${encodeURIComponent(profile.dealerProfile.name)}`} className="inline-flex text-[#0891B2] hover:underline">
                 Salon profilinə bax →
               </Link>
             </div>
