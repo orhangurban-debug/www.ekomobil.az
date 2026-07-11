@@ -7,7 +7,7 @@ import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
 import { createDealerProfile } from "@/server/dealer-store";
 import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
-import { approveServiceListingsBySupportRequestId, rejectServiceListingsBySupportRequestId } from "@/server/service-listing-store";
+import { approveServiceListingsBySupportRequestId, ensureServiceListingForSupportRequest, rejectServiceListingsBySupportRequestId } from "@/server/service-listing-store";
 import { mergeDescriptionWithBranches } from "@/lib/branch-cities";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
@@ -261,6 +261,7 @@ export async function PATCH(req: Request) {
 
       // ── Servis / ekspertiza profili təsdiqi ───────────────────────────────
       if (isInspectionPartner) {
+        await ensureServiceListingForSupportRequest(body.id);
         const approval = await approveServiceListingsBySupportRequestId(body.id);
         if (approval.approvedCount > 0) {
           partnershipActivated = true;

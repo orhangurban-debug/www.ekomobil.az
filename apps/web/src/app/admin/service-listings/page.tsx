@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { AdminServiceListingsTable } from "@/components/admin/admin-service-listings-table";
 import { requirePageRoles } from "@/lib/rbac";
-import { listServiceListingsForAdmin, type ServiceListingStatus } from "@/server/service-listing-store";
+import {
+  getServiceListingStatusCounts,
+  listServiceListingsForAdmin,
+  type ServiceListingStatus
+} from "@/server/service-listing-store";
 
 const STATUS_TABS: Array<{ value: ServiceListingStatus | "all"; label: string }> = [
   { value: "pending", label: "Gözləyir" },
@@ -9,6 +13,11 @@ const STATUS_TABS: Array<{ value: ServiceListingStatus | "all"; label: string }>
   { value: "rejected", label: "Rədd edilib" },
   { value: "all", label: "Hamısı" }
 ];
+
+function tabHref(value: ServiceListingStatus | "all"): string {
+  if (value === "all") return "/admin/service-listings?status=all";
+  return `/admin/service-listings?status=${value}`;
+}
 
 export default async function AdminServiceListingsPage({
   searchParams
@@ -18,11 +27,26 @@ export default async function AdminServiceListingsPage({
   const params = await searchParams;
   const auth = await requirePageRoles(["admin", "support"]);
   const canEdit = auth.ok && auth.user.role === "admin";
-  const statusParam = typeof params.status === "string" ? params.status : "pending";
-  const status = (["pending", "approved", "rejected"] as const).includes(statusParam as ServiceListingStatus)
-    ? (statusParam as ServiceListingStatus)
-    : undefined;
-  const items = await listServiceListingsForAdmin({ status });
+  const counts = await getServiceListingStatusCounts();
+
+  const rawStatus = typeof params.status === "string" ? params.status : undefined;
+  const activeTab: ServiceListingStatus | "all" =
+    rawStatus === "all" ||
+    rawStatus === "pending" ||
+    rawStatus === "approved" ||
+    rawStatus === "rejected"
+      ? rawStatus
+      : counts.pending > 0
+        ? "pending"
+        : "all";
+
+  const statusFilter = activeTab === "all" ? undefined : activeTab;
+  const items = await listServiceListingsForAdmin({ status: statusFilter });
+
+  const tabCount = (value: ServiceListingStatus | "all"): number => {
+    if (value === "all") return counts.total;
+    return counts[value];
+  };
 
   return (
     <div className="space-y-4">
@@ -38,22 +62,31 @@ export default async function AdminServiceListingsPage({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {STATUS_TABS.map((tab) => (
-          <Link
-            key={tab.value}
-            href={tab.value === "pending" ? "/admin/service-listings" : `/admin/service-listings?status=${tab.value}`}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-              (statusParam || "pending") === tab.value
-                ? "bg-[#0891B2] text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
+        {STATUS_TABS.map((tab) => {
+          const count = tabCount(tab.value);
+          return (
+            <Link
+              key={tab.value}
+              href={tabHref(tab.value)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                activeTab === tab.value
+                  ? "bg-[#0891B2] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {tab.label}
+              {count > 0 ? ` (${count})` : ""}
+            </Link>
+          );
+        })}
       </div>
 
-      <AdminServiceListingsTable items={items} readOnly={!canEdit} />
+      <AdminServiceListingsTable
+        items={items}
+        readOnly={!canEdit}
+        activeTab={activeTab}
+        counts={counts}
+      />
     </div>
   );
 }

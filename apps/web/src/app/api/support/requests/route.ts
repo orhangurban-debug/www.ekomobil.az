@@ -213,6 +213,30 @@ export async function POST(req: Request) {
         : [],
     };
   }
+  if (body.servicePartner) {
+    metadata.servicePartner = {
+      providerType: body.servicePartner.providerType?.trim() || null,
+      name: body.servicePartner.name?.trim() || null,
+      city: body.servicePartner.city?.trim() || null,
+      branchCities: Array.isArray(body.servicePartner.branchCities)
+        ? body.servicePartner.branchCities.filter((city): city is string => typeof city === "string")
+        : [],
+      address: body.servicePartner.address?.trim() || null,
+      mapUrl: body.servicePartner.mapUrl?.trim() || null,
+      about: body.servicePartner.about?.trim() || null,
+      services: Array.isArray(body.servicePartner.services)
+        ? body.servicePartner.services.filter((item): item is string => typeof item === "string")
+        : [],
+      certifications: Array.isArray(body.servicePartner.certifications)
+        ? body.servicePartner.certifications.filter((item): item is string => typeof item === "string")
+        : [],
+      imageUrls: Array.isArray(body.servicePartner.imageUrls)
+        ? body.servicePartner.imageUrls.filter((item): item is string => typeof item === "string")
+        : [],
+      phone: body.servicePartner.phone?.trim() || null,
+      whatsapp: body.servicePartner.whatsapp?.trim() || null
+    };
+  }
   const supportRequestId = randomUUID();
   try {
     await insertSupportRequest({

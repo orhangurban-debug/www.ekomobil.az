@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AdminReadOnlyBanner } from "@/components/admin/admin-read-only-banner";
 import { useToast } from "@/components/ui/toast-provider";
 import { SERVICE_PROVIDER_TYPE_LABELS, type ServiceProviderType } from "@/lib/services-marketplace";
+import type { ServiceListingStatusCounts } from "@/server/service-listing-store";
 
 interface ServiceListingItem {
   id: string;
@@ -36,10 +37,14 @@ const STATUS_STYLES: Record<ServiceListingItem["status"], string> = {
 
 export function AdminServiceListingsTable({
   items,
-  readOnly = false
+  readOnly = false,
+  activeTab = "pending",
+  counts
 }: {
   items: ServiceListingItem[];
   readOnly?: boolean;
+  activeTab?: ServiceListingItem["status"] | "all";
+  counts?: ServiceListingStatusCounts;
 }) {
   const [localItems, setLocalItems] = useState(items);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -68,9 +73,32 @@ export function AdminServiceListingsTable({
   }
 
   if (localItems.length === 0) {
+    const approvedCount = counts?.approved ?? 0;
+    const totalCount = counts?.total ?? 0;
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-        Bu filtrə uyğun servis müraciəti tapılmadı.
+        <p>Bu filtrə uyğun servis müraciəti tapılmadı.</p>
+        {activeTab === "pending" && approvedCount > 0 && (
+          <p className="mt-2 text-slate-600">
+            Gözləyən müraciət yoxdur — {approvedCount} servis artıq təsdiqlənib.
+          </p>
+        )}
+        {activeTab === "pending" && approvedCount > 0 && (
+          <Link
+            href="/admin/service-listings?status=approved"
+            className="mt-3 inline-flex rounded-lg bg-[#0891B2] px-3 py-2 text-xs font-semibold text-white hover:bg-[#067a94]"
+          >
+            Təsdiqlənmiş servislərə bax ({approvedCount})
+          </Link>
+        )}
+        {activeTab !== "all" && totalCount > 0 && activeTab !== "pending" && (
+          <Link
+            href="/admin/service-listings?status=all"
+            className="mt-3 inline-flex text-xs font-medium text-[#0891B2] hover:underline"
+          >
+            Bütün servisləri göstər ({totalCount})
+          </Link>
+        )}
       </div>
     );
   }

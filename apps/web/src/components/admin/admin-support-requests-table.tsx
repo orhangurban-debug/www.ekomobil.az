@@ -186,7 +186,13 @@ function SmartActionPanel({
                   {isActive ? "Canlı profilə bax →" : "Profili önizlə →"}
                 </Link>
                 <Link
-                  href="/admin/service-listings"
+                  href={
+                    isActive
+                      ? "/admin/service-listings?status=approved"
+                      : isPending
+                        ? "/admin/service-listings?status=pending"
+                        : "/admin/service-listings?status=all"
+                  }
                   className="inline-flex items-center gap-1 rounded-lg border border-teal-300 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-100"
                 >
                   Servis paneli

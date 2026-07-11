@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
+import { extractServicePartnerDraft } from "@/lib/service-partner-draft";
 import type { ServiceListingRecord, ServiceProviderType } from "@/lib/services-marketplace";
 
 export type ServiceListingStatus = "pending" | "approved" | "rejected";
@@ -268,11 +269,98 @@ export async function getApprovedServiceListingBySlug(rawSlug: string): Promise<
   }
 }
 
+export async function ensureServiceListingForSupportRequest(
+  supportRequestId: string
+): Promise<{ created: boolean; listingId?: string }> {
+  await ensureServiceListingsTable();
+  const pool = getPgPool();
+
+  const existing = await pool.query<{ id: string }>(
+    `SELECT id FROM service_listings WHERE support_request_id = $1 LIMIT 1`,
+    [supportRequestId]
+  );
+  if (existing.rows[0]) {
+    return { created: false, listingId: existing.rows[0].id };
+  }
+
+  const request = await pool.query<{
+    message: string;
+    subject: string;
+    metadata: Record<string, unknown> | null;
+    status: string;
+    reporter_user_id: string | null;
+  }>(
+    `SELECT message, subject, metadata, status, reporter_user_id
+     FROM support_requests
+     WHERE id = $1 AND request_type = 'inspection_partner'
+     LIMIT 1`,
+    [supportRequestId]
+  );
+  const row = request.rows[0];
+  if (!row) return { created: false };
+
+  const draft = extractServicePartnerDraft({
+    message: row.message,
+    subject: row.subject,
+    metadata: row.metadata
+  });
+  if (!draft) return { created: false };
+
+  const created = await createServiceListing({
+    supportRequestId,
+    ownerUserId: row.reporter_user_id ?? undefined,
+    name: draft.name,
+    providerType: draft.providerType,
+    city: draft.city,
+    branchCities: draft.branchCities,
+    address: draft.address,
+    mapUrl: draft.mapUrl,
+    about: draft.about ?? "",
+    services: draft.services ?? [],
+    certifications: draft.certifications,
+    imageUrls: draft.imageUrls,
+    phone: draft.phone,
+    whatsapp: draft.whatsapp
+  });
+
+  if (row.status === "resolved" || row.status === "closed") {
+    await pool.query(
+      `UPDATE service_listings SET status = 'approved', updated_at = NOW() WHERE id = $1`,
+      [created.id]
+    );
+  }
+
+  return { created: true, listingId: created.id };
+}
+
+export async function syncMissingServiceListingsFromSupportRequests(): Promise<number> {
+  await ensureServiceListingsTable();
+  const pool = getPgPool();
+  const missing = await pool.query<{ id: string }>(
+    `
+      SELECT sr.id
+      FROM support_requests sr
+      WHERE sr.request_type = 'inspection_partner'
+        AND NOT EXISTS (
+          SELECT 1 FROM service_listings sl WHERE sl.support_request_id = sr.id
+        )
+    `
+  );
+
+  let created = 0;
+  for (const row of missing.rows) {
+    const result = await ensureServiceListingForSupportRequest(row.id);
+    if (result.created) created += 1;
+  }
+  return created;
+}
+
 export async function listServiceListingsForAdmin(filter?: {
   status?: ServiceListingStatus;
 }): Promise<AdminServiceListingRecord[]> {
   try {
     await ensureServiceListingsTable();
+    await syncMissingServiceListingsFromSupportRequests();
     const pool = getPgPool();
     const values: unknown[] = [];
     const where: string[] = [];
@@ -286,8 +374,43 @@ export async function listServiceListingsForAdmin(filter?: {
       values
     );
     return result.rows.map(mapRow);
-  } catch {
+  } catch (error) {
+    console.error("listServiceListingsForAdmin failed:", error);
     return [];
+  }
+}
+
+export interface ServiceListingStatusCounts {
+  pending: number;
+  approved: number;
+  rejected: number;
+  total: number;
+}
+
+export async function getServiceListingStatusCounts(): Promise<ServiceListingStatusCounts> {
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    const result = await pool.query<{ status: string; count: string }>(
+      `SELECT status, COUNT(*)::text AS count FROM service_listings GROUP BY status`
+    );
+    const counts: ServiceListingStatusCounts = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      total: 0
+    };
+    for (const row of result.rows) {
+      const count = Number(row.count) || 0;
+      counts.total += count;
+      if (row.status === "pending") counts.pending = count;
+      if (row.status === "approved") counts.approved = count;
+      if (row.status === "rejected") counts.rejected = count;
+    }
+    return counts;
+  } catch (error) {
+    console.error("getServiceListingStatusCounts failed:", error);
+    return { pending: 0, approved: 0, rejected: 0, total: 0 };
   }
 }
 
