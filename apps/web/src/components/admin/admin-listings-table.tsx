@@ -96,7 +96,7 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
       body: JSON.stringify(body),
     });
     const payload = (await res.json()) as { ok: boolean; error?: string };
-    if (!payload.ok) throw new Error(payload.error ?? "Xəta");
+    if (!res.ok || !payload.ok) throw new Error(payload.error ?? "Xəta");
   }
 
   async function bulkUpdate(status: string) {
@@ -124,13 +124,17 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
   }
 
   async function quickStatusChange(id: string, status: string, note?: string) {
+    if (status === "rejected") {
+      setRejectModal({ id, note: note ?? "" });
+      return;
+    }
     const prev = rows;
     setRows((current) => current.map((row) => (row.id === id ? { ...row, status } : row)));
     try {
       await patchListing(id, { status, rejectionNote: note ?? null });
-    } catch {
+    } catch (error) {
       setRows(prev);
-      toast.error("Status yenilənmədi");
+      toast.error(error instanceof Error ? error.message : "Status yenilənmədi");
     }
   }
 
@@ -403,7 +407,11 @@ export function AdminListingsTable({ items, canDelete = false }: { items: AdminL
                   <select
                     value={item.status}
                     className={`rounded-full border-0 px-2 py-1 text-xs font-medium ring-1 ring-inset ring-slate-200 focus:ring-2 cursor-pointer ${STATUS_CLS[item.status] ?? "bg-slate-100 text-slate-600"}`}
-                    onChange={(e) => void quickStatusChange(item.id, e.target.value)}
+                    onChange={(e) => {
+                      const nextStatus = e.target.value;
+                      if (nextStatus === item.status) return;
+                      void quickStatusChange(item.id, nextStatus);
+                    }}
                   >
                     {STATUS_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
