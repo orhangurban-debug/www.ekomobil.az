@@ -266,11 +266,12 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
   const { loading: authLoading, ready: authReady } = useRequireAuth("/publish");
   const salonAccessEnabled = dealerPublishContext.salonAccessEnabled;
   const dealerPlan = dealerPublishContext.plan;
+  const salonProfile = dealerPublishContext.profile;
   const [step, setStep] = useState<Step>("Şəkillər");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceAzn, setPriceAzn] = useState(0);
-  const [city, setCity] = useState("Bakı");
+  const [city, setCity] = useState(salonProfile?.city ?? "Bakı");
   const [vin, setVin] = useState("");
   const [vinInfoType, setVinInfoType] = useState<"link" | "document">("link");
   const [vinInfoUrl, setVinInfoUrl] = useState("");
@@ -641,6 +642,13 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
       return;
     }
 
+    if (isDealerPublishMode && !salonProfile?.contactPhone) {
+      showPublishErrors([
+        "Salon əlaqə telefonu tapılmadı. /me səhifəsindən hesab telefonunuzu əlavə edin və ya salon panelindən profili yeniləyin."
+      ]);
+      return;
+    }
+
     setSubmitting(true);
     try {
     await trackEvent("listing_publish_attempted", { vin, city, sellerVerified, vinVerified });
@@ -713,8 +721,8 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
           ownersCount: ownersCount === "" ? undefined : ownersCount,
           hasServiceBook,
           hasRepairHistory,
-          contactPhone: contactPhone.trim(),
-          whatsappPhone: whatsappPhone.trim() || undefined,
+          contactPhone: isDealerPublishMode ? undefined : contactPhone.trim(),
+          whatsappPhone: isDealerPublishMode ? undefined : whatsappPhone.trim() || undefined,
           sellerType: isDealerPublishMode ? "dealer" : "private",
           vehicle: { vin: vin.trim().toUpperCase(), make, model, year, declaredMileageKm },
           vinVerified,
@@ -811,11 +819,34 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
     <div className="min-h-screen overflow-x-hidden bg-white/60 py-6 sm:py-10">
       <div className="mx-auto min-w-0 max-w-2xl px-4">
         <div className="mb-6 text-center sm:mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Maşını sat</h1>
-          <p className="mt-1.5 text-sm text-slate-500">4 addım — şəkil, məlumat, plan, yayımla</p>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+            {isDealerPublishMode ? "Salon inventarına əlavə et" : "Maşını sat"}
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-500">
+            {isDealerPublishMode
+              ? "Avtomobil məlumatları və şəkillər — əlaqə salon profilindən götürülür"
+              : "4 addım — şəkil, məlumat, plan, yayımla"}
+          </p>
         </div>
 
         <StepIndicator current={step} />
+
+        {salonAccessEnabled && !result && (
+          <div className="mb-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
+            <label className="label text-emerald-800">Yerləşdirmə rejimi</label>
+            <select
+              className="input-field bg-white"
+              value={sellerType}
+              onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}
+            >
+              <option value="dealer">Salon inventarı (abunə planı)</option>
+              <option value="private">Fərdi satıcı kimi</option>
+            </select>
+            <p className="mt-1.5 text-xs text-emerald-800">
+              Salon rejimində əlaqə telefonu və WhatsApp salon profilinizdən istifadə olunur.
+            </p>
+          </div>
+        )}
 
         {!result ? (
           <form onSubmit={onSubmit} className="space-y-6">
@@ -953,40 +984,72 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                 </div>
 
                 {/* Contact info */}
-                <div className="rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4">
-                  <p className="mb-3 text-sm font-semibold text-[#0057FF]">📞 Əlaqə məlumatı</p>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className={fieldLabelClass("contactPhone")}>
-                        Əlaqə nömrəsi <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={contactPhone}
-                        onChange={(e) => {
-                          setContactPhone(e.target.value);
-                          clearFieldError("contactPhone");
-                        }}
-                        className={fieldInputClass("contactPhone")}
-                        placeholder="+994 50 123 45 67"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-slate-400">Alıcılar bu nömrəyə zəng edəcək</p>
-                      {renderFieldError("contactPhone")}
-                    </div>
-                    <div>
-                      <label className="label">WhatsApp nömrəsi <span className="text-slate-400 text-xs">(istəyə görə)</span></label>
-                      <input
-                        type="tel"
-                        value={whatsappPhone}
-                        onChange={(e) => setWhatsappPhone(e.target.value)}
-                        className="input-field"
-                        placeholder="+994 50 123 45 67"
-                      />
-                      <p className="mt-1 text-xs text-slate-400">Boş buraxılsa əlaqə nömrəsi istifadə olunur</p>
+                {isDealerPublishMode ? (
+                  <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-900">
+                    <p className="font-semibold">📞 Əlaqə — salon profilindən</p>
+                    <p className="mt-2">
+                      <span className="text-emerald-700">Salon:</span>{" "}
+                      <strong>{salonProfile?.dealerName ?? "Salon profili"}</strong>
+                    </p>
+                    <p className="mt-1">
+                      <span className="text-emerald-700">Telefon:</span>{" "}
+                      <strong>{salonProfile?.contactPhone ?? "Hesab telefonu təyin edilməyib"}</strong>
+                    </p>
+                    {salonProfile?.showWhatsapp && salonProfile.whatsappPhone && (
+                      <p className="mt-1">
+                        <span className="text-emerald-700">WhatsApp:</span>{" "}
+                        <strong>{salonProfile.whatsappPhone}</strong>
+                      </p>
+                    )}
+                    <p className="mt-3 text-xs text-emerald-800">
+                      Əlaqə məlumatını dəyişmək üçün{" "}
+                      <Link href="/dealer" className="font-medium text-[#0057FF] hover:underline">
+                        salon paneli
+                      </Link>
+                      ndən profil parametrlərini yeniləyin.
+                    </p>
+                    {!salonProfile?.contactPhone && (
+                      <p className="mt-2 text-xs font-medium text-amber-800">
+                        Hesabınızda telefon nömrəsi yoxdur — elan yerləşdirmədən əvvəl /me və ya salon müraciətindəki nömrəni təsdiqləyin.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4">
+                    <p className="mb-3 text-sm font-semibold text-[#0057FF]">📞 Əlaqə məlumatı</p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className={fieldLabelClass("contactPhone")}>
+                          Əlaqə nömrəsi <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          value={contactPhone}
+                          onChange={(e) => {
+                            setContactPhone(e.target.value);
+                            clearFieldError("contactPhone");
+                          }}
+                          className={fieldInputClass("contactPhone")}
+                          placeholder="+994 50 123 45 67"
+                          required
+                        />
+                        <p className="mt-1 text-xs text-slate-400">Alıcılar bu nömrəyə zəng edəcək</p>
+                        {renderFieldError("contactPhone")}
+                      </div>
+                      <div>
+                        <label className="label">WhatsApp nömrəsi <span className="text-slate-400 text-xs">(istəyə görə)</span></label>
+                        <input
+                          type="tel"
+                          value={whatsappPhone}
+                          onChange={(e) => setWhatsappPhone(e.target.value)}
+                          className="input-field"
+                          placeholder="+994 50 123 45 67"
+                        />
+                        <p className="mt-1 text-xs text-slate-400">Boş buraxılsa əlaqə nömrəsi istifadə olunur</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
@@ -1161,6 +1224,7 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                   {renderFieldError("vin")}
                 </div>
 
+                {!isDealerPublishMode && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label className="label">VIN məlumatı</label>
@@ -1179,6 +1243,7 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                     )}
                   </div>
                 </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
@@ -1388,26 +1453,11 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
             {/* Step 3: Plan selection */}
             {step === "Plan" && (
               <div className="card space-y-5 p-4 sm:p-8">
-                <h2 className="text-lg font-semibold text-slate-900">Plan seçin</h2>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {isDealerPublishMode ? "Salon abunəliyi" : "Plan seçin"}
+                </h2>
 
                 {publishGuide?.step === "Plan" && <PublishStepErrorAlert guide={publishGuide} />}
-
-                {salonAccessEnabled && (
-                  <div>
-                    <label className="label">Satıcı tipi</label>
-                    <select
-                      className="input-field"
-                      value={sellerType}
-                      onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}
-                    >
-                      <option value="dealer">Salon (abunə planı)</option>
-                      <option value="private">Fərdi satıcı</option>
-                    </select>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Salon rejimində elanlar aylıq abunə limitinizdən sayılır; fərdi rejimdə elan başına plan seçilir.
-                    </p>
-                  </div>
-                )}
 
                 {isDealerPublishMode && dealerPlan ? (
                   <>
@@ -1586,6 +1636,12 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                     ["Şəhər", city],
                     ["Yanacaq", `${fuelType} · ${transmission}`],
                     ["Şəkillər", `${uploadedImages.length} şəkil`],
+                    ...(isDealerPublishMode
+                      ? [
+                          ["Satıcı", salonProfile?.dealerName ?? "Salon"],
+                          ["Əlaqə", salonProfile?.contactPhone ?? "Salon profili"]
+                        ]
+                      : []),
                     ["Plan", planSummaryLabel]
                   ].map(([label, value]) => (
                     <div key={label} className="flex justify-between px-4 py-3 text-sm">
@@ -1616,9 +1672,11 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                     </svg>
                     <p>
                       <strong>Məlumat dəqiqliyi bəyannaməsi:</strong> Yerləşdirdiyim elanda göstərilən yürüş,
-                      qiymət, texniki vəziyyət və digər məlumatlar doğrudur. Saxta və ya yanlış məlumat
-                      yerləşdirmənin hesabımın bloklanmasına və hüquqi məsuliyyətə gətirib çıxara biləcəyini
-                      qəbul edirəm. Hər yeni elan admin tərəfindən yoxlanılır.
+                      qiymət, texniki vəziyyət və digər məlumatlar doğrudur.
+                      {isDealerPublishMode
+                        ? " Salon kimi yerləşdirilən elanlar biznes inventarı hesab olunur və müştəri sorğuları salon panelinə düşür."
+                        : " Saxta və ya yanlış məlumat yerləşdirmənin hesabımın bloklanmasına və hüquqi məsuliyyətə gətirib çıxara biləcəyini qəbul edirəm."}{" "}
+                      Hər yeni elan admin tərəfindən yoxlanılır.
                     </p>
                   </div>
                 </div>

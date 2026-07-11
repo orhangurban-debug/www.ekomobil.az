@@ -19,7 +19,7 @@ import {
   listListings,
   ListingGuardUnavailableError
 } from "@/server/listing-store";
-import { getDealerProfileIdByOwner } from "@/server/dealer-store";
+import { getDealerProfileIdByOwner, resolveDealerListingContact } from "@/server/dealer-store";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
 
@@ -526,14 +526,33 @@ async function handleCreateListing(req: Request): Promise<Response> {
     return NextResponse.json({ ok: false, errors: validation.errors }, { status: 400 });
   }
 
-  const phone = vehiclePayload.contactPhone?.trim() ?? "";
-  if (!phone) {
+  let resolvedContactPhone = vehiclePayload.contactPhone?.trim() ?? "";
+  let resolvedWhatsappPhone = vehiclePayload.whatsappPhone?.trim() || undefined;
+
+  if (isDealerVehicleSeller && !resolvedContactPhone) {
+    const dealerContact = await resolveDealerListingContact(sessionUser.id);
+    if (!dealerContact) {
+      return NextResponse.json(
+        {
+          ok: false,
+          errors: [
+            "Salon əlaqə telefonu tapılmadı. Hesabınızda telefon əlavə edin və ya salon profilini /dealer panelindən yeniləyin."
+          ]
+        },
+        { status: 400 }
+      );
+    }
+    resolvedContactPhone = dealerContact.contactPhone;
+    resolvedWhatsappPhone = resolvedWhatsappPhone ?? dealerContact.whatsappPhone;
+  }
+
+  if (!resolvedContactPhone) {
     return NextResponse.json(
       { ok: false, errors: ["Əlaqə telefon nömrəsi tələb olunur."] },
       { status: 400 }
     );
   }
-  const phoneDigits = phone.replace(/[^\d]/g, "");
+  const phoneDigits = resolvedContactPhone.replace(/[^\d]/g, "");
   if (phoneDigits.length < 7) {
     return NextResponse.json(
       { ok: false, errors: ["Telefon nömrəsi düzgün formatda deyil (məs: +994501234567)."] },
@@ -689,8 +708,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
     vinDocumentRef: vehiclePayload.vinDocumentRef?.trim() || undefined,
     serviceHistoryUrl: vehiclePayload.serviceHistoryUrl?.trim() || undefined,
     serviceHistoryDocumentRef: vehiclePayload.serviceHistoryDocumentRef?.trim() || undefined,
-    contactPhone: vehiclePayload.contactPhone?.trim() || undefined,
-    whatsappPhone: vehiclePayload.whatsappPhone?.trim() || undefined,
+    contactPhone: resolvedContactPhone,
+    whatsappPhone: resolvedWhatsappPhone,
     planType: vehiclePaidPlan ? "free" : vehiclePlanType,
     planExpiresAt: isDealerVehicleSeller ? dealerSubscriptionExpiry : undefined,
     status: (vehiclePaidPlan ? "draft" : "pending_review") as "draft" | "pending_review",

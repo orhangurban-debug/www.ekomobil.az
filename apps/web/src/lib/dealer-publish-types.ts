@@ -11,10 +11,19 @@ export interface DealerPublishPlanSnapshot {
   listingRefreshDays: number;
 }
 
+export interface DealerSalonProfileSnapshot {
+  dealerName: string;
+  city: string;
+  contactPhone: string | null;
+  whatsappPhone: string | null;
+  showWhatsapp: boolean;
+}
+
 export interface DealerPublishContext {
   salonAccessEnabled: boolean;
   plan: DealerPublishPlanSnapshot | null;
   activeVehicleListings: number;
   subscriptionExpiresAt: string | null;
   isTrial: boolean;
+  profile: DealerSalonProfileSnapshot | null;
 }

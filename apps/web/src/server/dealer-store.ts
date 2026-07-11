@@ -681,6 +681,40 @@ export async function updateDealerProfileSettings(input: {
 }
 
 /**
+ * Salon elanı üçün əlaqə nömrəsini hesab profili və salon parametrlərindən həll edir.
+ */
+export async function resolveDealerListingContact(userId: string): Promise<{
+  contactPhone: string;
+  whatsappPhone?: string;
+} | null> {
+  const [userProfile, dealerProfile] = await Promise.all([
+    (async () => {
+      const pool = getPgPool();
+      const result = await pool.query<{ phone: string | null }>(
+        `SELECT phone FROM users WHERE id = $1 LIMIT 1`,
+        [userId]
+      );
+      return result.rows[0]?.phone?.trim() || null;
+    })(),
+    getDealerProfileSettingsForOwner(userId)
+  ]);
+
+  if (!userProfile) return null;
+  const phoneDigits = userProfile.replace(/[^\d]/g, "");
+  if (phoneDigits.length < 7) return null;
+
+  const whatsappPhone =
+    dealerProfile?.showWhatsapp && dealerProfile.whatsappPhone
+      ? dealerProfile.whatsappPhone.trim()
+      : undefined;
+
+  return {
+    contactPhone: userProfile,
+    whatsappPhone: whatsappPhone || undefined
+  };
+}
+
+/**
  * Returns the dealer_profiles.id for a given user.
  * Used when creating listings to link them to the correct dealer profile.
  */
