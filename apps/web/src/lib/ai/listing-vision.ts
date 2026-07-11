@@ -248,9 +248,19 @@ async function callGeminiVision(input: {
   }
 }
 
+const AI_LANGUAGE_POLICY = `
+DİL QAYDASI (vacibdir):
+- Adlandırma sahələri (title, partName, partBrand, make, model, OEM/SKU kodları) standart bazar formatında verilə bilər; beynəlxalq brend və model adları orijinal (latın) yazılışda qalsın.
+- Məhsul və ya xidmət HAQQINDA məlumat mətnləri — description, notes, partCompatibility, experience, suggestedTags — MÜTLƏQ Azərbaycan dilində yazılmalıdır (latın əlifbası ilə).
+- searchKeywords: brend/model/OEM ilə yanaşı Azərbaycan dilində axtarış teqləri də əlavə et.
+- description, notes və izah mətnlərini ingilis və ya rus dilində YAZMA.
+`;
+
 const VEHICLE_PROMPT = `Sən avtomobil elanı analiz ekspertisən. Şəkillərdən avtomobil haqqında JSON çıxar.
+${AI_LANGUAGE_POLICY}
 STANDART title formatı (axtarış üçün): "[Marka] [Model] [İl] — [Yanacaq/Mühərrik] — [Yürüş] km — [Rəng]"
 Nümunə: "Hyundai Tucson 2019 — Benzin — 84 000 km — Ağ"
+- description və notes: Azərbaycan dilində, alıcıya müraciət edən 2-4 tam cümlə (texniki vəziyyət, xüsusiyyətlər, qeydlər).
 Yalnız şəkildə görünən və ya etiket/salon ekranında oxunan məlumatları yaz. Təxmin etdiyin hər sahə üçün fieldConfidence 0-1 ver.
 Kateqoriyalar: make markalarından (${CAR_MAKES.slice(0, 20).join(", ")}...), fuelType: ${FUEL_TYPES.join(", ")}, bodyType: ${BODY_TYPES.join(", ")}.
 mediaAngles: hansı rakursların şəkildə olduğunu boolean olaraq qeyd et.
@@ -262,13 +272,16 @@ const STANDARD_PART_NAMING = `
 STANDART ADLANDIRMA (axtarış/filter üçün vacibdir):
 - title formatı: "[Brend] [Məhsul adı] — [OEM kodu və/və ya uyğunluq qısa]"
   Nümunə: "BOSCH Yağ filtri — Toyota Corolla 2014-2021 1.6"
-- partName: qısa, standart məhsul tipi (məs: "Yağ filtri", "Əyləc diski")
+- partName: qısa, standart məhsul tipi (Azərbaycan dilində və ya ümumi bazar adı; məs: "Yağ filtri", "Əyləc diski")
 - partCategory və partSubcategory: kataloq filterlərinə uyğun dəqiq seç
-- description: 2-3 cümlə — material, vəziyyət, qablaşdırma, istifadə sahəsi
-- searchKeywords: 5-10 açar söz (brend, model, OEM, hissə tipi) — alıcı axtarışında tapılmaq üçün
+- description: Azərbaycan dilində 2-3 cümlə — material, vəziyyət, qablaşdırma, istifadə sahəsi
+- partCompatibility: Azərbaycan dilində uyğunluq cümləsi; marka/model adları orijinal qala bilər (məs: "Toyota Corolla 2014-2021 1.6 benzin")
+- notes: Azərbaycan dilində əlavə qeydlər (qablaşdırma, zəmanət, çatışmayan məlumatlar)
+- searchKeywords: 5-10 açar söz — brend, model, OEM (latın) + Azərbaycan dilində axtarış sözləri
 `;
 
 const PART_PROMPT = `Sən avtomobil hissəsi/məhsul elanı analiz ekspertisən. Şəkillərdən məhsul haqqında JSON çıxar.
+${AI_LANGUAGE_POLICY}
 ${STANDARD_PART_NAMING}
 partCategory seç: ${PART_CATEGORIES.join(" | ")}.
 partBrand seç: ${PART_BRANDS.slice(0, 15).join(", ")} və s.
@@ -279,6 +292,7 @@ Cavab YALNIZ JSON:
 
 const PART_BULK_PROMPT = `Sən avtomobil mağazası inventar analiz ekspertisən. Verilən şəkilləri eyni məhsula aid qrupla.
 Hər qrup üçün ayrı elan sahələri çıxar. imageIndices 0-based indekslərdir.
+${AI_LANGUAGE_POLICY}
 ${STANDARD_PART_NAMING}
 partCategory: ${PART_CATEGORIES.join(" | ")}.
 Cavab YALNIZ JSON:
@@ -316,6 +330,9 @@ function sanitizeService(raw: Record<string, unknown>, hintProviderType?: string
 }
 
 const SERVICE_PROMPT = `Sən avtomobil servis/usta profili analiz ekspertisən. Şəkillərdən servis emalatxanası, rəsmi servis və ya usta profili haqqında JSON çıxar.
+${AI_LANGUAGE_POLICY}
+- providerName: şəkildə/loqoda görünən orijinal ad (dəyişməyə ehtiyac yoxdursa olduğu kimi).
+- description, experience, workingHours, suggestedTags, notes: Azərbaycan dilində.
 providerType seç: ${Object.entries(SERVICE_PROVIDER_TYPE_LABELS)
   .map(([k, v]) => `${k}=${v}`)
   .join(" | ")}.
@@ -340,6 +357,7 @@ export interface ImageSearchAttributes {
 }
 
 const SEARCH_PROMPT = `Sən EkoMobil platformasının şəkillə axtarış köməkçisisən. Şəkildəki obyektin AVTOMOBİL yoxsa EHTİYYAT HİSSƏSİ olduğunu müəyyən et və YALNIZ axtarış üçün lazım olan az sayda atribut çıxar (tam elan yaratmır, sadəcə oxşar elanları tapmaq üçün).
+- searchKeywords: əsasən Azərbaycan dilində axtarış sözləri; brend/model adları orijinal (latın) qala bilər.
 
 Əgər AVTOMOBİL-dirsə: kind="vehicle", make, model (bilinirsə), color, bodyType doldur.
 Əgər EHTİYYAT HİSSƏSİ / aksesuar-dırsa: kind="part", partCategory (${PART_CATEGORIES.join(" | ")}), partBrand (görünürsə) doldur.
