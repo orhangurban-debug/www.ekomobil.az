@@ -230,6 +230,16 @@ export async function getPartsStoreSubscriptionExpiry(userId: string): Promise<D
   return new Date(sub.expires_at);
 }
 
+/**
+ * Returns the expires_at date of the active dealer subscription.
+ * Used to set plan_expires_at on salon vehicle listings so cron can auto-deactivate them.
+ */
+export async function getDealerSubscriptionExpiry(userId: string): Promise<Date | null> {
+  const sub = await getActiveSubscription(userId, "dealer");
+  if (!sub || !sub.expires_at) return null;
+  return new Date(sub.expires_at);
+}
+
 export async function getEffectiveDealerPlan(userId: string): Promise<DealerPlan> {
   const catalog = await getDealerPlanCatalog();
   const fallback = await getDealerFallbackPlan();

@@ -6,7 +6,7 @@ import { getUserAccountStatus, isActiveAccountStatus } from "@/server/user-store
 import { getCompatibleEngineTypes, getCompatibleTransmissions } from "@/lib/car-data";
 import { FREE_LISTING_CONCURRENT_LIMIT, getPlanById, isPaidPlan, validateListingImageCount } from "@/lib/listing-plans";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
-import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription, getPartsStoreSubscriptionExpiry } from "@/server/business-plan-store";
+import { getEffectiveDealerPlan, getEffectivePartsPlan, hasActiveBusinessSubscription, getPartsStoreSubscriptionExpiry, getDealerSubscriptionExpiry } from "@/server/business-plan-store";
 import type { ImagePhotoTag } from "@/lib/vehicle-media-angles";
 import {
   countDealerListingsForUserByKind,
@@ -451,13 +451,37 @@ async function handleCreateListing(req: Request): Promise<Response> {
     (url) => typeof url === "string" && url.trim().length > 0
   );
 
-  const isDealerVehiclePublisher =
-    (vehiclePayload.sellerType ?? "private") === "dealer" ||
-    (["dealer", "admin"].includes(sessionUser.role) &&
-      (await hasActiveBusinessSubscription(sessionUser.id, "dealer")));
+  const isDealerVehicleSeller = (vehiclePayload.sellerType ?? "private") === "dealer";
+  const vehiclePlanType = isDealerVehicleSeller ? "free" : requestedPlanType;
+  const vehiclePaidPlan = isPaidPlan(vehiclePlanType);
+
+  if (isDealerVehicleSeller) {
+    if (sessionUser.role !== "admin") {
+      const hasDealerPlan = await hasActiveBusinessSubscription(sessionUser.id, "dealer");
+      if (!hasDealerPlan) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Salon kimi avtomobil elanı üçün aktiv salon planı tələb olunur. /dealer/apply və ya /pricing#dealer."
+          },
+          { status: 403 }
+        );
+      }
+      if (!["dealer", "admin"].includes(sessionUser.role)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Salon kimi avtomobil elanı üçün təsdiqlənmiş salon hesabı tələb olunur. /dealer/apply."
+          },
+          { status: 403 }
+        );
+      }
+    }
+  }
 
   let dealerPlanForPublish: Awaited<ReturnType<typeof getEffectiveDealerPlan>> | null = null;
-  if (isDealerVehiclePublisher) {
+  if (isDealerVehicleSeller) {
     dealerPlanForPublish = await getEffectiveDealerPlan(sessionUser.id);
     const maxDealerImages = dealerPlanForPublish.perListingMaxImages;
     if (vehicleImageUrls.length > maxDealerImages) {
@@ -486,11 +510,13 @@ async function handleCreateListing(req: Request): Promise<Response> {
     }
   }
 
-  const imageCountCheck = validateListingImageCount(requestedPlanType, vehicleImageUrls.length);
-  if (!imageCountCheck.ok) {
-    return NextResponse.json({ ok: false, error: imageCountCheck.error }, { status: 400 });
+  if (!isDealerVehicleSeller) {
+    const imageCountCheck = validateListingImageCount(requestedPlanType, vehicleImageUrls.length);
+    if (!imageCountCheck.ok) {
+      return NextResponse.json({ ok: false, error: imageCountCheck.error }, { status: 400 });
+    }
   }
-  const planMaxImages = isDealerVehiclePublisher && dealerPlanForPublish
+  const planMaxImages = isDealerVehicleSeller && dealerPlanForPublish
     ? dealerPlanForPublish.perListingMaxImages
     : (getPlanById(requestedPlanType)?.maxImages ?? 15);
   vehiclePayload.imageUrls = vehicleImageUrls.slice(0, planMaxImages);
@@ -530,7 +556,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     make: vehiclePayload.vehicle.make,
     model: vehiclePayload.vehicle.model,
     year: vehiclePayload.vehicle.year,
-    globalScope: requestedPlanType === "free"
+    globalScope: vehiclePlanType === "free"
   });
   if (hasDuplicateVehicle) {
     return NextResponse.json(
@@ -543,7 +569,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     );
   }
 
-  if (!isPaidPlan(requestedPlanType) && Array.isArray(vehiclePayload.imageHashes) && vehiclePayload.imageHashes.length > 0) {
+  if (!vehiclePaidPlan && Array.isArray(vehiclePayload.imageHashes) && vehiclePayload.imageHashes.length > 0) {
     const hasImageDuplicate = await hasRecentImageHashDuplicate({
       imageHashes: vehiclePayload.imageHashes,
       lookbackDays: 90
@@ -559,7 +585,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     }
   }
 
-  if (!isPaidPlan(requestedPlanType)) {
+  if (!isDealerVehicleSeller && !vehiclePaidPlan) {
     const currentFreeListings = await countConcurrentFreeVehicleListingsForUser(sessionUser.id);
     if (currentFreeListings >= FREE_LISTING_CONCURRENT_LIMIT) {
       return NextResponse.json(
@@ -575,17 +601,9 @@ async function handleCreateListing(req: Request): Promise<Response> {
   }
 
   let vehicleDealerProfileId: string | null = null;
-  if ((vehiclePayload.sellerType ?? "private") === "dealer") {
-    if (!["dealer", "admin"].includes(sessionUser.role)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Salon kimi avtomobil elanı üçün təsdiqlənmiş salon hesabı tələb olunur. /dealer/apply."
-        },
-        { status: 403 }
-      );
-    }
-    const dealerPlan = await getEffectiveDealerPlan(sessionUser.id);
+  let dealerSubscriptionExpiry: Date | null = null;
+  if (isDealerVehicleSeller) {
+    const dealerPlan = dealerPlanForPublish ?? (await getEffectiveDealerPlan(sessionUser.id));
     const dealerVehicleListingCount = await countDealerListingsForUserByKind(sessionUser.id, "vehicle");
     if (dealerVehicleListingCount >= dealerPlan.maxActiveListings) {
       return NextResponse.json(
@@ -598,6 +616,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
     }
     // Resolve dealer_profile_id so the listing appears in salon dashboard inventory
     vehicleDealerProfileId = await getDealerProfileIdByOwner(sessionUser.id);
+    dealerSubscriptionExpiry = await getDealerSubscriptionExpiry(sessionUser.id);
   }
 
   const trustSignals = buildTrustSignals({
@@ -672,8 +691,9 @@ async function handleCreateListing(req: Request): Promise<Response> {
     serviceHistoryDocumentRef: vehiclePayload.serviceHistoryDocumentRef?.trim() || undefined,
     contactPhone: vehiclePayload.contactPhone?.trim() || undefined,
     whatsappPhone: vehiclePayload.whatsappPhone?.trim() || undefined,
-    planType: isPaidPlan(requestedPlanType) ? "free" : requestedPlanType,
-    status: (isPaidPlan(requestedPlanType) ? "draft" : "pending_review") as "draft" | "pending_review",
+    planType: vehiclePaidPlan ? "free" : vehiclePlanType,
+    planExpiresAt: isDealerVehicleSeller ? dealerSubscriptionExpiry : undefined,
+    status: (vehiclePaidPlan ? "draft" : "pending_review") as "draft" | "pending_review",
     listingKind: "vehicle" as const,
     imageUrls: vehiclePayload.imageUrls,
     imageHashes: vehiclePayload.imageHashes,
@@ -696,8 +716,8 @@ async function handleCreateListing(req: Request): Promise<Response> {
       ok: true,
       id: created.id,
       trustScore,
-      paymentRequired: isPaidPlan(requestedPlanType),
-      requestedPlanType
+      paymentRequired: vehiclePaidPlan,
+      requestedPlanType: vehiclePlanType
     });
   } catch (error) {
     console.error("Failed to persist vehicle listing", error);
