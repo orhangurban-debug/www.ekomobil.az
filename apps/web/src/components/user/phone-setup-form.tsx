@@ -4,65 +4,14 @@ import { useState } from "react";
 
 export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
   const [phone, setPhone] = useState(initialPhone ?? "");
-  const [challengeId, setChallengeId] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
-  const [deliveryHint, setDeliveryHint] = useState<string | null>(null);
-  const [sendingOtp, setSendingOtp] = useState(false);
+  const [editing, setEditing] = useState(!initialPhone);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedPhone, setSavedPhone] = useState(initialPhone ?? "");
 
-  async function sendOtp() {
+  async function savePhone() {
     if (!phone.trim()) {
       setError("Telefon nömrəsini daxil edin.");
-      return;
-    }
-    setSendingOtp(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/me/phone/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone })
-      });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        challengeId?: string;
-        error?: string;
-        code?: string;
-        deliveryChannel?: "sms" | "email";
-        deliveryDestination?: string;
-      };
-      if (!response.ok || !payload.ok || !payload.challengeId) {
-        setError(payload.error ?? "Təsdiq kodu göndərilmədi.");
-        return;
-      }
-      setChallengeId(payload.challengeId);
-      setOtpHintCode(payload.code ?? null);
-      setDeliveryHint(
-        payload.deliveryChannel === "email"
-          ? `Kod e-poçtunuza göndərildi (${payload.deliveryDestination ?? "təsdiqlənmiş email"}).`
-          : payload.deliveryChannel === "sms"
-          ? `Kod SMS ilə göndərildi (${payload.deliveryDestination ?? "telefon"}).`
-          : null
-      );
-      setOtpSent(true);
-    } catch {
-      setError("Şəbəkə xətası. Yenidən cəhd edin.");
-    } finally {
-      setSendingOtp(false);
-    }
-  }
-
-  async function verifyAndSave() {
-    if (!challengeId) {
-      setError("Əvvəl təsdiq kodu göndərin.");
-      return;
-    }
-    if (!otpCode.trim()) {
-      setError("Təsdiq kodunu daxil edin.");
       return;
     }
     setSaving(true);
@@ -71,11 +20,7 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
       const response = await fetch("/api/me/phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone,
-          phoneOtpChallengeId: challengeId,
-          phoneOtpCode: otpCode
-        })
+        body: JSON.stringify({ phone })
       });
       const payload = (await response.json()) as { ok: boolean; phone?: string; error?: string };
       if (!response.ok || !payload.ok) {
@@ -83,9 +28,7 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
         return;
       }
       setSavedPhone(payload.phone ?? phone);
-      setOtpSent(false);
-      setOtpCode("");
-      setChallengeId("");
+      setEditing(false);
       window.location.reload();
     } catch {
       setError("Şəbəkə xətası. Yenidən cəhd edin.");
@@ -94,11 +37,23 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
     }
   }
 
-  if (savedPhone) {
+  if (savedPhone && !editing) {
     return (
-      <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm">
-        <span className="text-emerald-800">{savedPhone}</span>
-        <span className="text-xs font-semibold text-emerald-700">Təsdiqlənib</span>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm">
+          <span className="text-slate-800">{savedPhone}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setPhone(savedPhone);
+              setEditing(true);
+              setError(null);
+            }}
+            className="text-xs font-semibold text-[#0057FF] hover:underline"
+          >
+            Dəyiş
+          </button>
+        </div>
       </div>
     );
   }
@@ -107,7 +62,7 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
     <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div>
         <p className="text-sm font-semibold text-slate-900">Telefon nömrəsi</p>
-        <p className="mt-0.5 text-xs text-slate-500">SMS və ya e-poçt təsdiqi ilə əlavə edin — etibar xalınız artır.</p>
+        <p className="mt-0.5 text-xs text-slate-500">Əlaqə üçün nömrənizi daxil edin — etibar xalınız artır.</p>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -120,39 +75,26 @@ export function PhoneSetupForm({ initialPhone }: { initialPhone?: string }) {
         />
         <button
           type="button"
-          onClick={() => void sendOtp()}
-          disabled={sendingOtp}
-          className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-60"
+          onClick={() => void savePhone()}
+          disabled={saving}
+          className="shrink-0 rounded-xl bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF] disabled:opacity-60"
         >
-          {sendingOtp ? "Göndərilir..." : otpSent ? "Yenidən göndər" : "Kod göndər"}
+          {saving ? "Saxlanılır..." : "Saxla"}
         </button>
       </div>
 
-      {otpSent && (
-        <div className="space-y-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={otpCode}
-            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            placeholder="6 rəqəmli kod"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0057FF] focus:outline-none focus:ring-1 focus:ring-[#0057FF]/30"
-          />
-          {deliveryHint && (
-            <p className="text-xs text-emerald-700">{deliveryHint}</p>
-          )}
-          {otpHintCode && (
-            <p className="text-xs text-amber-700">Test kodu: {otpHintCode}</p>
-          )}
-          <button
-            type="button"
-            onClick={() => void verifyAndSave()}
-            disabled={saving}
-            className="rounded-xl bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF] disabled:opacity-60"
-          >
-            {saving ? "Yoxlanılır..." : "Təsdiqlə və saxla"}
-          </button>
-        </div>
+      {savedPhone && editing && (
+        <button
+          type="button"
+          onClick={() => {
+            setPhone(savedPhone);
+            setEditing(false);
+            setError(null);
+          }}
+          className="text-xs font-medium text-slate-500 hover:text-slate-700"
+        >
+          İmtina
+        </button>
       )}
 
       {error && (

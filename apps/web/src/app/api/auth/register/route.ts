@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, getSessionCookieName } from "@/lib/auth";
-import { consumePhoneOtpChallenge, createUserAccount, normalizePhoneNumber } from "@/server/user-store";
+import { createUserAccount, isPhoneAlreadyUsed, normalizePhoneNumber } from "@/server/user-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { registerSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 import { recordAllPlatformConsents } from "@/server/user-consent-store";
@@ -37,13 +37,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Telefon nömrəsi düzgün deyil." }, { status: 400 });
     }
 
-    const otpCheck = await consumePhoneOtpChallenge({
-      challengeId: parsed.phoneOtpChallengeId,
-      phoneNormalized: normalizedPhone,
-      otpCode: parsed.phoneOtpCode
-    });
-    if (!otpCheck.ok) {
-      return NextResponse.json({ ok: false, error: otpCheck.error }, { status: 400 });
+    if (await isPhoneAlreadyUsed(normalizedPhone)) {
+      return NextResponse.json({ ok: false, error: "Bu telefon nömrəsi artıq istifadə olunur." }, { status: 409 });
     }
 
     const user = await createUserAccount({
@@ -53,7 +48,7 @@ export async function POST(req: Request) {
       city: parsed.city,
       phone: parsed.phone,
       phoneNormalized: normalizedPhone,
-      phoneVerified: true
+      phoneVerified: false
     });
 
     const userAgent = req.headers.get("user-agent") ?? undefined;

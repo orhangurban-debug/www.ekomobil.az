@@ -306,10 +306,11 @@ export async function isPhoneAlreadyUsed(phoneNormalized: string, excludeUserId?
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function setVerifiedPhoneForUser(input: {
+export async function setPhoneForUser(input: {
   userId: string;
   phone: string;
   phoneNormalized: string;
+  verified?: boolean;
 }): Promise<void> {
   await ensureSeedData();
   const pool = getPgPool();
@@ -318,11 +319,19 @@ export async function setVerifiedPhoneForUser(input: {
       UPDATE users
       SET phone = $2,
           phone_normalized = $3,
-          phone_verified = TRUE
+          phone_verified = $4
       WHERE id = $1
     `,
-    [input.userId, input.phone, input.phoneNormalized]
+    [input.userId, input.phone, input.phoneNormalized, input.verified === true]
   );
+}
+
+export async function setVerifiedPhoneForUser(input: {
+  userId: string;
+  phone: string;
+  phoneNormalized: string;
+}): Promise<void> {
+  await setPhoneForUser({ ...input, verified: true });
 }
 
 export async function upsertUserFromGoogle(input: GoogleOAuthIdentity): Promise<UserRecord> {

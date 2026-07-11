@@ -46,11 +46,6 @@ export const registerSchema = z.object({
     .string()
     .regex(/^\+?[0-9\s\-().]{6,20}$/, "Düzgün telefon nömrəsi daxil edin")
     .min(6, "Telefon nömrəsi tələb olunur"),
-  phoneOtpChallengeId: z.string().uuid("Telefon təsdiqi sorğusu keçərsizdir"),
-  phoneOtpCode: z
-    .string()
-    .trim()
-    .regex(/^[0-9]{6}$/, "Telefon təsdiq kodu 6 rəqəm olmalıdır"),
   acceptTerms: z.literal(true, "İstifadəçi Razılaşmasını qəbul etməlisiniz"),
   acceptPrivacy: z.literal(true, "Məxfilik Siyasətini qəbul etməlisiniz")
 });

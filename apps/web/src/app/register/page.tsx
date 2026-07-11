@@ -56,14 +56,9 @@ export default function RegisterPage() {
     email: "",
     city: "Bakı",
     phone: "",
-    password: "",
-    phoneOtpChallengeId: "",
-    phoneOtpCode: ""
+    password: ""
   });
   const [loading, setLoading] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpHintCode, setOtpHintCode] = useState<string | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,10 +75,6 @@ export default function RegisterPage() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.phoneOtpChallengeId) {
-      setError("Əvvəl telefon təsdiq kodunu göndərin.");
-      return;
-    }
     if (!consentComplete) {
       setError("Hesab yaratmaq üçün razılaşmaları qəbul edin.");
       return;
@@ -95,7 +86,11 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          fullName: form.fullName,
+          email: form.email,
+          city: form.city,
+          phone: form.phone,
+          password: form.password,
           acceptTerms: true as const,
           acceptPrivacy: true as const
         })
@@ -120,40 +115,6 @@ export default function RegisterPage() {
       console.error("register error:", err);
       setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
       setLoading(false);
-    }
-  }
-
-  async function sendPhoneOtp() {
-    if (!form.phone.trim()) {
-      setError("Əvvəl telefon nömrəsini daxil edin.");
-      return;
-    }
-    setSendingOtp(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/auth/phone/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: form.phone, email: form.email })
-      });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        challengeId?: string;
-        error?: string;
-        code?: string;
-      };
-      if (!payload.ok || !payload.challengeId) {
-        setError(payload.error || "Təsdiq kodu göndərilmədi.");
-        return;
-      }
-      setForm((prev) => ({ ...prev, phoneOtpChallengeId: payload.challengeId! }));
-      setOtpHintCode(payload.code ?? null);
-      setOtpSent(true);
-    } catch (err) {
-      console.error("send otp error:", err);
-      setError("Şəbəkə xətası baş verdi. Yenidən cəhd edin.");
-    } finally {
-      setSendingOtp(false);
     }
   }
 
@@ -288,37 +249,10 @@ export default function RegisterPage() {
               className="input-field"
               value={form.phone}
               onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-              placeholder="+994..."
+              placeholder="+994501234567"
               required
             />
-            <button
-              type="button"
-              onClick={() => void sendPhoneOtp()}
-              disabled={sendingOtp}
-              className="btn-secondary mt-2 text-xs"
-            >
-              {sendingOtp ? "Kod göndərilir..." : otpSent ? "Kodu yenidən göndər" : "Telefonu təsdiqlə"}
-            </button>
           </div>
-        </div>
-
-        <div>
-          <label className="label">Telefon təsdiq kodu</label>
-          <input
-            className="input-field"
-            value={form.phoneOtpCode}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, phoneOtpCode: e.target.value.replace(/\D/g, "").slice(0, 6) }))
-            }
-            placeholder="6 rəqəmli kod"
-            maxLength={6}
-            required
-          />
-          {otpHintCode && (
-            <p className="mt-1 text-xs text-slate-500">
-              Test kodu: <span className="font-mono">{otpHintCode}</span>
-            </p>
-          )}
         </div>
 
         <div>
