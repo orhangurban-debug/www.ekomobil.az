@@ -1,11 +1,12 @@
 import { access } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { LISTING_WATERMARK } from "@/lib/listing-watermark";
 
-const WATERMARK_LOGO_CANDIDATES = [
-  path.join(process.cwd(), "public", "brand", "ekomobil-mark.png"),
-  path.join(process.cwd(), "apps", "web", "public", "brand", "ekomobil-mark.png")
-];
+const WATERMARK_LOGO_CANDIDATES = LISTING_WATERMARK.fileNames.flatMap((fileName) => [
+  path.join(process.cwd(), "public", "brand", fileName),
+  path.join(process.cwd(), "apps", "web", "public", "brand", fileName)
+]);
 
 let cachedLogoPath: string | null | undefined;
 
@@ -24,6 +25,27 @@ async function resolveWatermarkLogoPath(): Promise<string | null> {
   return null;
 }
 
+async function applyLogoOpacity(logoBuffer: Buffer, opacity: number): Promise<Buffer> {
+  const { data, info } = await sharp(logoBuffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 3; i < data.length; i += 4) {
+    data[i] = Math.round(data[i] * opacity);
+  }
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 }
+  })
+    .png()
+    .toBuffer();
+}
+
+function roundedBackdropSvg(width: number, height: number, opacity: number): Buffer {
+  const radius = Math.max(6, Math.round(Math.min(width, height) * 0.18));
+  return Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" rx="${radius}" fill="rgba(8,15,30,${opacity})"/>
+    </svg>`
+  );
+}
+
 export interface WatermarkedImageResult {
   buffer: Buffer;
   mimeType: string;
@@ -31,9 +53,8 @@ export interface WatermarkedImageResult {
 }
 
 /**
- * Elan şəkillərinə EkoMobil loqo nişanı vurur (sağ alt künc, şəffaf PNG).
- * Turbo.az istifadəçi yükləmələrində loqo qadağan edir; biz isə saytda göstərilən
- * şəkilləri brendləyirik — oxşar platformalarda (bina.az, tap.az) bu server tərəfində edilir.
+ * Elan şəkillərinə EkoMobil wordmark loqosu vurur (sağ alt, şəffaf).
+ * Yükləmə zamanı server tərəfində tətbiq olunur — paylaşılan URL-lərdə də görünür.
  */
 export async function applyListingImageWatermark(
   inputBuffer: Buffer,
@@ -52,25 +73,46 @@ export async function applyListingImageWatermark(
     }
 
     const shortSide = Math.min(meta.width, meta.height);
-    const logoSize = Math.max(44, Math.round(shortSide * 0.13));
-    const margin = Math.max(10, Math.round(shortSide * 0.022));
+    const margin = Math.max(
+      LISTING_WATERMARK.minMarginPx,
+      Math.round(shortSide * LISTING_WATERMARK.marginRatio)
+    );
+    const targetLogoWidth = Math.min(
+      LISTING_WATERMARK.maxWidthPx,
+      Math.max(LISTING_WATERMARK.minWidthPx, Math.round(meta.width * LISTING_WATERMARK.widthRatio))
+    );
 
-    const logo = await sharp(logoPath)
-      .resize(logoSize, logoSize, { fit: "inside", withoutEnlargement: true })
+    const logoRaw = await sharp(logoPath)
+      .resize({ width: targetLogoWidth, withoutEnlargement: true })
       .ensureAlpha()
       .png()
       .toBuffer();
 
+    const logo = await applyLogoOpacity(logoRaw, LISTING_WATERMARK.opacity);
     const logoMeta = await sharp(logo).metadata();
-    const logoWidth = logoMeta.width ?? logoSize;
-    const logoHeight = logoMeta.height ?? logoSize;
+    const logoWidth = logoMeta.width ?? targetLogoWidth;
+    const logoHeight = logoMeta.height ?? Math.round(targetLogoWidth * 0.32);
 
-    const left = Math.max(0, meta.width - logoWidth - margin);
-    const top = Math.max(0, meta.height - logoHeight - margin);
+    const padX = Math.max(8, Math.round(logoWidth * LISTING_WATERMARK.backdropPaddingRatio));
+    const padY = Math.max(6, Math.round(logoHeight * LISTING_WATERMARK.backdropPaddingRatio));
+    const backdropWidth = logoWidth + padX * 2;
+    const backdropHeight = logoHeight + padY * 2;
+
+    const backdrop = await sharp(roundedBackdropSvg(backdropWidth, backdropHeight, LISTING_WATERMARK.backdropOpacity))
+      .png()
+      .toBuffer();
+
+    const backdropLeft = Math.max(0, meta.width - backdropWidth - margin);
+    const backdropTop = Math.max(0, meta.height - backdropHeight - margin);
+    const logoLeft = backdropLeft + padX;
+    const logoTop = backdropTop + padY;
 
     const output = await base
-      .composite([{ input: logo, left, top, blend: "over" }])
-      .jpeg({ quality: 85, mozjpeg: true })
+      .composite([
+        { input: backdrop, left: backdropLeft, top: backdropTop, blend: "over" },
+        { input: logo, left: logoLeft, top: logoTop, blend: "over" }
+      ])
+      .jpeg({ quality: 86, mozjpeg: true })
       .toBuffer();
 
     return { buffer: output, mimeType: "image/jpeg", watermarked: true };
