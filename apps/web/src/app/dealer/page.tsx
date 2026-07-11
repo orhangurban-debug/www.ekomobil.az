@@ -234,8 +234,8 @@ export default async function DealerPortalPage() {
                     </td>
                     <td className="px-6 py-4 text-right font-semibold text-[#0057FF]">{item.priceAzn.toLocaleString()} ₼</td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`text-xs font-medium ${item.planType === "vip" ? "text-amber-700" : item.planType === "standard" ? "text-[#0057FF]" : "text-slate-500"}`}>
-                        {item.planType === "vip" ? "VIP" : item.planType === "standard" ? "Standart" : "Pulsuz"}
+                      <span className="text-xs font-medium text-emerald-700">
+                        Salon abunə
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center"><TrustScorePill score={item.trustScore} /></td>
@@ -246,7 +246,7 @@ export default async function DealerPortalPage() {
                     </td>
                     <td className="px-6 py-4 text-center"><StatusBadge status={item.status} /></td>
                     <td className="px-6 py-4 text-center">
-                      <BoostListingButton listingId={item.id} currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />
+                      <BoostListingButton listingId={item.id} sellerType="dealer" currentPlan={item.planType ?? "free"} listingPriceAzn={item.priceAzn} variant="compact" />
                     </td>
                   </tr>
                 ))

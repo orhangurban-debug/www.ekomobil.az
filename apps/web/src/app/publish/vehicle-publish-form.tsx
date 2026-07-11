@@ -37,6 +37,7 @@ import {
   reorderListingImageArrays,
   type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
+import { VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES } from "@/lib/vehicle-media-constants";
 import type { VehicleAiSuggestion } from "@/lib/ai/listing-vision-types";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { DealerPublishContext } from "@/lib/dealer-publish-types";
@@ -370,7 +371,7 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
     : 0;
   const dealerSlotsFull = isDealerPublishMode && dealerSlotsRemaining <= 0;
   const minimumRequiredImages = useMemo(
-    () => Math.min(effectiveMaxImages, 8),
+    () => Math.min(effectiveMaxImages, VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES),
     [effectiveMaxImages]
   );
   const resolvedMedia = useMemo(

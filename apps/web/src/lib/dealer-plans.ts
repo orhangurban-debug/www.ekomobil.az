@@ -68,7 +68,8 @@ export const DEALER_PLANS: DealerPlan[] = [
     priceAzn: 29,
     billingCycle: "monthly",
     maxActiveListings: 30,
-    perListingMaxImages: 10,
+    /** 8 məcburi rakurs + mühərrik/təkər/detallar (tövsiyə: 12) üçün ehtiyat */
+    perListingMaxImages: 15,
     videoEnabled: false,
     maxVideosPerListing: 0,
     listingRefreshDays: 60,
@@ -78,6 +79,7 @@ export const DEALER_PLANS: DealerPlan[] = [
     gracePeriodDays: 14,
     features: [
       "30 aktiv avtomobil elanı limiti",
+      "Elan başına 15 şəkil (8 məcburi rakurs + əlavə detallar)",
       "Aşağı giriş xərci ilə baza salon paneli",
       "Salon paneli: inventar və lead qutusu",
       "Elanlara irəlilətmə xidməti tətbiq etmə",
@@ -92,6 +94,7 @@ export const DEALER_PLANS: DealerPlan[] = [
     priceAzn: 59,
     billingCycle: "monthly",
     maxActiveListings: 80,
+    /** Peşəkar fotoçəkim və video üçün geniş limit */
     perListingMaxImages: 20,
     videoEnabled: true,
     maxVideosPerListing: 1,

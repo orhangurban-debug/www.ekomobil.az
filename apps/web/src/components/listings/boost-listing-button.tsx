@@ -13,6 +13,8 @@ import {
 interface BoostListingButtonProps {
   listingId: string;
   currentPlan?: PlanType;
+  /** Salon/mağaza elanı — elan başına plan yüksəltmə göstərilmir, yalnız irəlilətmə paketləri */
+  sellerType?: "private" | "dealer";
   /** Elan/hissə satış qiyməti — dinamik plan haqqı üçün */
   listingPriceAzn?: number;
   /** Only show for paid plans when already max */
@@ -29,6 +31,7 @@ const PLAN_RANK: Record<PlanType, number> = {
 export function BoostListingButton({
   listingId,
   currentPlan = "free",
+  sellerType = "private",
   listingPriceAzn,
   variant = "full"
 }: BoostListingButtonProps) {
@@ -37,14 +40,17 @@ export function BoostListingButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const availablePlans = PAID_PLANS.filter((planId) => PLAN_RANK[planId] >= PLAN_RANK[currentPlan]);
+  const availablePlans =
+    sellerType === "dealer"
+      ? []
+      : PAID_PLANS.filter((planId) => PLAN_RANK[planId] >= PLAN_RANK[currentPlan]);
 
   function planPriceLabel(planId: PlanType): string {
     const fee = formatListingPlanPrice(planId, listingPriceAzn);
     return `${fee} · ${formatListingPlanDuration(planId)}`;
   }
 
-  if (availablePlans.length === 0) return null;
+  if (availablePlans.length === 0 && sellerType !== "dealer") return null;
 
   async function handleUpgrade(planType: PlanType) {
     setLoading(true);
@@ -124,27 +130,31 @@ export function BoostListingButton({
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-slate-900/10 bg-white py-1 shadow-lg">
-              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Plan yüksəlt</div>
-              {availablePlans.map((planId) => {
-                const plan = LISTING_PLANS.find((p) => p.id === planId)!;
-                const isCurrent = planId === currentPlan;
-                return (
-                  <button
-                    key={planId}
-                    type="button"
-                    onClick={() => handleUpgrade(planId)}
-                    disabled={loading}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-900/5 disabled:opacity-50"
-                  >
-                    <span>
-                      {plan.nameAz}
-                      {isCurrent ? " (müddəti uzat)" : ""}
-                    </span>
-                    <span className="font-semibold text-slate-700">{planPriceLabel(planId)}</span>
-                  </button>
-                );
-              })}
-              <div className="my-1 border-t border-slate-100" />
+              {availablePlans.length > 0 && (
+                <>
+                  <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Plan yüksəlt</div>
+                  {availablePlans.map((planId) => {
+                    const plan = LISTING_PLANS.find((p) => p.id === planId)!;
+                    const isCurrent = planId === currentPlan;
+                    return (
+                      <button
+                        key={planId}
+                        type="button"
+                        onClick={() => handleUpgrade(planId)}
+                        disabled={loading}
+                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-900/5 disabled:opacity-50"
+                      >
+                        <span>
+                          {plan.nameAz}
+                          {isCurrent ? " (müddəti uzat)" : ""}
+                        </span>
+                        <span className="font-semibold text-slate-700">{planPriceLabel(planId)}</span>
+                      </button>
+                    );
+                  })}
+                  <div className="my-1 border-t border-slate-100" />
+                </>
+              )}
               <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">İrəlilətmə paketləri</div>
               {BUMP_PACKAGES.slice(0, 2).map(renderCompactBoostButton)}
               {VIP_PACKAGES.slice(0, 1).map(renderCompactBoostButton)}
@@ -170,30 +180,34 @@ export function BoostListingButton({
       </button>
       {open && (
         <div className="rounded-xl border border-slate-900/10 bg-white p-4 space-y-3">
-          <p className="text-sm font-medium text-slate-700">Plan seçin və ya müddəti uzadın</p>
-          <div className="grid gap-2">
-            {availablePlans.map((planId) => {
-              const plan = LISTING_PLANS.find((p) => p.id === planId)!;
-              const isCurrent = planId === currentPlan;
-              return (
-                <button
-                  key={planId}
-                  type="button"
-                  onClick={() => handleUpgrade(planId)}
-                  disabled={loading}
-                  className="flex items-center justify-between rounded-lg border border-slate-900/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
-                >
-                  <span className="font-medium text-slate-900">
-                    {plan.nameAz}
-                    {isCurrent ? " (müddəti uzat)" : ""}
-                  </span>
-                  <span className="font-bold text-[#0057FF]">{planPriceLabel(planId)}</span>
-                </button>
-              );
-            })}
-          </div>
+          {availablePlans.length > 0 && (
+            <>
+              <p className="text-sm font-medium text-slate-700">Plan seçin və ya müddəti uzadın</p>
+              <div className="grid gap-2">
+                {availablePlans.map((planId) => {
+                  const plan = LISTING_PLANS.find((p) => p.id === planId)!;
+                  const isCurrent = planId === currentPlan;
+                  return (
+                    <button
+                      key={planId}
+                      type="button"
+                      onClick={() => handleUpgrade(planId)}
+                      disabled={loading}
+                      className="flex items-center justify-between rounded-lg border border-slate-900/10 p-3 text-left hover:border-[#0057FF]/40 hover:bg-[#0057FF]/10 disabled:opacity-50"
+                    >
+                      <span className="font-medium text-slate-900">
+                        {plan.nameAz}
+                        {isCurrent ? " (müddəti uzat)" : ""}
+                      </span>
+                      <span className="font-bold text-[#0057FF]">{planPriceLabel(planId)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-          <div className="pt-2">
+          <div className={availablePlans.length > 0 ? "pt-2" : ""}>
             <p className="text-sm font-medium text-slate-700">İrəlilətmə paketləri</p>
             <p className="mt-1 text-xs text-slate-500">
               İrəli çək / VIP / Premium paketləri ilə elanın görünürlüğünü artırın.

@@ -3,6 +3,7 @@ import {
   validateMediaProtocol,
   validatePartListingMediaProtocol
 } from "@/lib/media-protocol";
+import { VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES } from "@/lib/vehicle-media-constants";
 import { MileageEvent, VehicleIdentity } from "@/lib/vehicle";
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -87,7 +88,7 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
       hasOdometer: false,
       hasTrunk: false
     },
-    { minimumImageCount: 8, requireVideo: false }
+    { minimumImageCount: VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES, requireVideo: false }
   );
   errors.push(...mediaResult.missingRequirements);
 

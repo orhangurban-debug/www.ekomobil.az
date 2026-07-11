@@ -1,3 +1,5 @@
+import { VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES } from "@/lib/vehicle-media-constants";
+
 export interface MediaProtocolInput {
   imageCount: number;
   engineVideoDurationSec: number;
@@ -26,7 +28,7 @@ export function validateMediaProtocol(
   options?: ValidateMediaProtocolOptions
 ): MediaProtocolResult {
   const missingRequirements: string[] = [];
-  const minimumImageCount = options?.minimumImageCount ?? 8;
+  const minimumImageCount = options?.minimumImageCount ?? VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES;
   const requireVideo = options?.requireVideo ?? false;
 
   if (input.imageCount < minimumImageCount) {

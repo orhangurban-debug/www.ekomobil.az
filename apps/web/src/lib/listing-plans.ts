@@ -14,9 +14,9 @@
  *     (lütf müddəti bitdikdən sonra arxiv).
  *
  * SALON (dealer) — ayrıca DEALER_PLANS abunəliyi var:
- *   • Aylıq sabit abunə → N aktiv elan hüququ.
- *   • Hər elan Standart keyfiyyətdə (20 foto, video, 40 MB).
- *   • CSV toplu yükləmə imkanı (Pro/Enterprise).
+ *   • Aylıq sabit abunə → N aktiv elan hüququ (slot).
+ *   • Elan başına şəkil limiti abunə paketindən gəlir (Əsas 15, Peşəkar 20, Korporativ 25).
+ *   • Minimum 8 məcburi rakurs media protokolu tələb olunur.
  *   → bax: src/lib/dealer-plans.ts
  *
  * MAĞAZA (ehtiyat hissəsi) — ayrıca PARTS_STORE_PLANS abunəliyi var:

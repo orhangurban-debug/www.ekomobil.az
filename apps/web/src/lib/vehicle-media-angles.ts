@@ -211,6 +211,8 @@ export const PROTOCOL_REQUIREMENT_OPTIONS: {
   { key: "hasTrunk", shortLabel: "Baqaj", hint: "Baqajın şəkli" }
 ];
 
+/** @see VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES — protokol rakurs sayı ilə uyğun olmalıdır */
+
 /** @deprecated Köhnə API uyğunluğu — yeni kod IMAGE_PHOTO_TAG_OPTIONS istifadə etsin */
 export const VEHICLE_MEDIA_ANGLE_OPTIONS = PROTOCOL_REQUIREMENT_OPTIONS.map((item) => ({
   key: item.key,
