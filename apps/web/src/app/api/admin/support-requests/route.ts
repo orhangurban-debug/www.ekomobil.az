@@ -203,7 +203,7 @@ export async function PATCH(req: Request) {
           partnershipActivated = true;
         }
         await pool.query(
-          `UPDATE dealer_profiles SET verified = TRUE, updated_at = NOW() WHERE owner_user_id = $1`,
+          `UPDATE dealer_profiles SET verified = TRUE WHERE owner_user_id = $1`,
           [req.reporter_user_id]
         );
       }

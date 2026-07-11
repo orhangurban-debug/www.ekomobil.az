@@ -1,6 +1,6 @@
 -- Backfill salon verification for owners with active dealer subscriptions
 UPDATE dealer_profiles dp
-SET verified = TRUE, updated_at = NOW()
+SET verified = TRUE
 WHERE dp.verified = FALSE
   AND EXISTS (
     SELECT 1 FROM business_plan_subscriptions s
