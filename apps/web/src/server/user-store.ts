@@ -25,6 +25,12 @@ export interface UserProfileRecord {
   storeLogoUrl?: string;
   storeCoverUrl?: string;
   storeDescription?: string;
+  storeWhatsappPhone?: string;
+  storeWebsiteUrl?: string;
+  storeAddress?: string;
+  storeWorkingHours?: string;
+  showStoreWhatsapp?: boolean;
+  showStoreWebsite?: boolean;
 }
 
 export interface GoogleOAuthIdentity {
@@ -495,12 +501,20 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       store_logo_url: string | null;
       store_cover_url: string | null;
       store_description: string | null;
+      store_whatsapp_phone: string | null;
+      store_website_url: string | null;
+      store_address: string | null;
+      store_working_hours: string | null;
+      show_store_whatsapp: boolean | null;
+      show_store_website: boolean | null;
     }>(
       `
         SELECT
           u.id, u.email, u.role, u.email_verified, u.phone,
           p.full_name, p.city, p.avatar_url, p.bio,
-          p.store_name, p.store_logo_url, p.store_cover_url, p.store_description
+          p.store_name, p.store_logo_url, p.store_cover_url, p.store_description,
+          p.store_whatsapp_phone, p.store_website_url, p.store_address, p.store_working_hours,
+          p.show_store_whatsapp, p.show_store_website
         FROM users u
         LEFT JOIN user_profiles p ON p.user_id = u.id
         WHERE u.id = $1
@@ -520,7 +534,13 @@ export async function getUserProfile(userId: string): Promise<(UserRecord & User
       storeName: row.store_name ?? undefined,
       storeLogoUrl: row.store_logo_url ?? undefined,
       storeCoverUrl: row.store_cover_url ?? undefined,
-      storeDescription: row.store_description ?? undefined
+      storeDescription: row.store_description ?? undefined,
+      storeWhatsappPhone: row.store_whatsapp_phone ?? undefined,
+      storeWebsiteUrl: row.store_website_url ?? undefined,
+      storeAddress: row.store_address ?? undefined,
+      storeWorkingHours: row.store_working_hours ?? undefined,
+      showStoreWhatsapp: row.show_store_whatsapp ?? undefined,
+      showStoreWebsite: row.show_store_website ?? undefined
     };
   } catch {
     return null;

@@ -947,7 +947,7 @@ export async function getCrmSnapshot(): Promise<CrmSnapshot> {
       `SELECT
          COUNT(*)::text AS total,
          SUM(CASE WHEN stage = 'new' THEN 1 ELSE 0 END)::text AS lead_new,
-         SUM(CASE WHEN stage = 'in_progress' THEN 1 ELSE 0 END)::text AS lead_progress,
+         SUM(CASE WHEN stage IN ('contacted', 'visit_booked') THEN 1 ELSE 0 END)::text AS lead_progress,
          SUM(CASE WHEN stage = 'closed' THEN 1 ELSE 0 END)::text AS lead_closed,
          AVG(NULLIF(response_time_minutes, 0))::text AS avg_response
        FROM leads`

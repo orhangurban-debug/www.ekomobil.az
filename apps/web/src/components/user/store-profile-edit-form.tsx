@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 import { BranchCitiesField } from "@/components/business/branch-cities-field";
 import { mergeDescriptionWithBranches, parseBranchCitiesFromDescription } from "@/lib/branch-cities";
 
@@ -11,7 +12,14 @@ interface StoreProfileEditFormProps {
     storeCoverUrl?: string;
     storeDescription?: string;
     city?: string;
+    storeWhatsappPhone?: string;
+    storeWebsiteUrl?: string;
+    storeAddress?: string;
+    storeWorkingHours?: string;
+    showStoreWhatsapp?: boolean;
+    showStoreWebsite?: boolean;
   };
+  entitlements: BusinessProfileEntitlements;
   publicProfileUrl: string;
 }
 
@@ -125,7 +133,7 @@ function ImageUploadField({
   );
 }
 
-export function StoreProfileEditForm({ initialData, publicProfileUrl }: StoreProfileEditFormProps) {
+export function StoreProfileEditForm({ initialData, entitlements, publicProfileUrl }: StoreProfileEditFormProps) {
   const initialCity = initialData.city ?? "";
   const [storeName, setStoreName] = useState(initialData.storeName ?? "");
   const [city, setCity] = useState(initialCity);
@@ -137,6 +145,12 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
   const [branchCities, setBranchCities] = useState(
     parseBranchCitiesFromDescription(initialData.storeDescription, initialCity)
   );
+  const [storeWhatsappPhone, setStoreWhatsappPhone] = useState(initialData.storeWhatsappPhone ?? "");
+  const [storeWebsiteUrl, setStoreWebsiteUrl] = useState(initialData.storeWebsiteUrl ?? "");
+  const [storeAddress, setStoreAddress] = useState(initialData.storeAddress ?? "");
+  const [storeWorkingHours, setStoreWorkingHours] = useState(initialData.storeWorkingHours ?? "");
+  const [showStoreWhatsapp, setShowStoreWhatsapp] = useState(initialData.showStoreWhatsapp ?? false);
+  const [showStoreWebsite, setShowStoreWebsite] = useState(initialData.showStoreWebsite ?? false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,9 +165,17 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
         body: JSON.stringify({
           storeName: storeName || undefined,
           city: city || undefined,
-          storeLogoUrl: storeLogoUrl || "",
-          storeCoverUrl: storeCoverUrl || "",
-          storeDescription: mergeDescriptionWithBranches(storeDescription, branchCities, city) || undefined
+          storeLogoUrl: entitlements.canUseLogo ? (storeLogoUrl || "") : undefined,
+          storeCoverUrl: entitlements.canUseCover ? (storeCoverUrl || "") : undefined,
+          storeDescription: entitlements.canUseDescription
+            ? mergeDescriptionWithBranches(storeDescription, branchCities, city) || undefined
+            : undefined,
+          storeWhatsappPhone: entitlements.canUseWhatsapp ? storeWhatsappPhone || undefined : undefined,
+          storeWebsiteUrl: entitlements.canUseWebsite ? storeWebsiteUrl || undefined : undefined,
+          storeAddress: entitlements.canUseAddress ? storeAddress || undefined : undefined,
+          storeWorkingHours: entitlements.canUseWorkingHours ? storeWorkingHours || undefined : undefined,
+          showStoreWhatsapp: entitlements.canUseWhatsapp ? showStoreWhatsapp : undefined,
+          showStoreWebsite: entitlements.canUseWebsite ? showStoreWebsite : undefined
         })
       });
       const data = await res.json() as { ok: boolean; error?: string };
@@ -227,10 +249,47 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
         />
       )}
 
+      {entitlements.canUseWhatsapp && (
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-slate-600">WhatsApp</span>
+          <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeWhatsappPhone} onChange={(e) => setStoreWhatsappPhone(e.target.value)} placeholder="+994..." />
+          <label className="inline-flex items-center gap-2 text-xs text-slate-500">
+            <input type="checkbox" checked={showStoreWhatsapp} onChange={(e) => setShowStoreWhatsapp(e.target.checked)} />
+            İctimai profildə göstər
+          </label>
+        </label>
+      )}
+
+      {entitlements.canUseWebsite && (
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-slate-600">Vebsayt</span>
+          <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeWebsiteUrl} onChange={(e) => setStoreWebsiteUrl(e.target.value)} placeholder="https://..." />
+          <label className="inline-flex items-center gap-2 text-xs text-slate-500">
+            <input type="checkbox" checked={showStoreWebsite} onChange={(e) => setShowStoreWebsite(e.target.checked)} />
+            İctimai profildə göstər
+          </label>
+        </label>
+      )}
+
+      {entitlements.canUseAddress && (
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-slate-600">Ünvan</span>
+          <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} />
+        </label>
+      )}
+
+      {entitlements.canUseWorkingHours && (
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-slate-600">İş saatları</span>
+          <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={storeWorkingHours} onChange={(e) => setStoreWorkingHours(e.target.value)} />
+        </label>
+      )}
+
       {/* Image uploads */}
       <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Şəkillər</p>
 
+        {entitlements.canUseLogo && (
         <ImageUploadField
           label="Mağaza loqosu"
           value={storeLogoUrl}
@@ -242,7 +301,9 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
             </svg>
           }
         />
+        )}
 
+        {entitlements.canUseCover && (
         <ImageUploadField
           label="Arxa plan (cover) şəkli"
           value={storeCoverUrl}
@@ -254,6 +315,7 @@ export function StoreProfileEditForm({ initialData, publicProfileUrl }: StorePro
             </svg>
           }
         />
+        )}
       </div>
 
       {error && (

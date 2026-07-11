@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { getServerSessionUser } from "@/lib/auth";
 import { getUserProfile } from "@/server/user-store";
 import { listListingsForUser } from "@/server/listing-store";
-import { hasActiveBusinessSubscription, getEffectivePartsPlan, getBusinessAccountSnapshot } from "@/server/business-plan-store";
+import { hasActiveBusinessSubscription, getEffectivePartsPlan, getBusinessAccountSnapshot, getPartsStoreProfileEntitlements } from "@/server/business-plan-store";
+import { listLeadsForPartsStore } from "@/server/business-leads-store";
+import { BusinessLeadsInbox } from "@/components/business/business-leads-inbox";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
@@ -28,11 +30,13 @@ export default async function StorePortalPage() {
     redirect("/parts/apply");
   }
 
-  const [profile, allListings, partsPlan, snapshot] = await Promise.all([
+  const [profile, allListings, partsPlan, snapshot, storeEntitlements, storeLeads] = await Promise.all([
     getUserProfile(user.id),
     listListingsForUser(user.id),
     getEffectivePartsPlan(user.id),
-    getBusinessAccountSnapshot(user.id, user.role)
+    getBusinessAccountSnapshot(user.id, user.role),
+    getPartsStoreProfileEntitlements(user.id),
+    listLeadsForPartsStore(user.id)
   ]);
 
   const partsListings = allListings.filter(l => l.listingKind === "part");
@@ -105,9 +109,11 @@ export default async function StorePortalPage() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2">
-              <Link href="/parts/analytics" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                Analitika
-              </Link>
+              {partsPlan.analyticsEnabled && (
+                <Link href="/parts/analytics" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                  Analitika
+                </Link>
+              )}
               <Link href={`/sellers/${user.id}`} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                 İctimai profil ↗
               </Link>
@@ -273,6 +279,15 @@ export default async function StorePortalPage() {
             )}
           </section>
 
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <BusinessLeadsInbox
+              leads={storeLeads}
+              updateUrlPrefix="/api/parts/leads"
+              title="Sifariş sorğuları qutusu"
+              emptyMessage="Hələ sifariş sorğusu yoxdur. Hissə elanlarınızda müştəri formu aktivdir."
+            />
+          </section>
+
           {/* ── RIGHT: Profile edit ───────────────────────────────────────────── */}
           <div className="space-y-5">
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -282,12 +297,19 @@ export default async function StorePortalPage() {
               </div>
               <div className="p-5">
                 <StoreProfileEditForm
+                  entitlements={storeEntitlements}
                   initialData={{
                     storeName: profile?.storeName,
                     storeLogoUrl: profile?.storeLogoUrl,
                     storeCoverUrl: profile?.storeCoverUrl,
                     storeDescription: profile?.storeDescription,
-                    city: profile?.city
+                    city: profile?.city,
+                    storeWhatsappPhone: profile?.storeWhatsappPhone,
+                    storeWebsiteUrl: profile?.storeWebsiteUrl,
+                    storeAddress: profile?.storeAddress,
+                    storeWorkingHours: profile?.storeWorkingHours,
+                    showStoreWhatsapp: profile?.showStoreWhatsapp,
+                    showStoreWebsite: profile?.showStoreWebsite
                   }}
                   publicProfileUrl={`/sellers/${user.id}`}
                 />
@@ -303,7 +325,9 @@ export default async function StorePortalPage() {
                 {[
                   { href: "/parts/publish", label: "+ Hissə elanı əlavə et", icon: "📦" },
                   { href: "/parts/publish/bulk", label: "Toplu yükləmə", icon: "📋" },
-                  { href: "/parts/analytics", label: "Analitika və statistika", icon: "📊" },
+                  ...(partsPlan.analyticsEnabled
+                    ? [{ href: "/parts/analytics", label: "Analitika və statistika", icon: "📊" }]
+                    : []),
                   { href: `/sellers/${user.id}`, label: "İctimai mağaza profili", icon: "🔗", external: true },
                   { href: "/me", label: "Şəxsi hesaba qayıt", icon: "👤" }
                 ].map(({ href, label, icon, external }) => (

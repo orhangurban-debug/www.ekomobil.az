@@ -274,6 +274,11 @@ function getPartsProfileEntitlements(plan: PartsStorePlan): BusinessProfileEntit
   };
 }
 
+export async function getPartsStoreProfileEntitlements(userId: string): Promise<BusinessProfileEntitlements> {
+  const plan = await getEffectivePartsPlan(userId);
+  return getPartsProfileEntitlements(plan);
+}
+
 export async function getEffectiveBusinessProfileEntitlements(userId: string): Promise<BusinessProfileEntitlements> {
   const [dealerPlan, partsPlan] = await Promise.all([
     getEffectiveDealerPlan(userId),

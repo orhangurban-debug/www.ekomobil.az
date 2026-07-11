@@ -4,6 +4,13 @@ import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { createListingRecord, inferPriceInsight } from "@/server/listing-store";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
+import {
+  createLeadForListing,
+  listLeadsForDealerProfile,
+  updateLeadStage as updateLeadStageCore
+} from "@/server/business-leads-store";
+import { getEffectiveDealerPlan } from "@/server/business-plan-store";
+import { isDealerListingStale } from "@/lib/dealer-plans";
 
 interface DealerProfileRow {
   id: string;
@@ -132,15 +139,7 @@ export async function getDealerDashboard(userId: string): Promise<{
       [dealer.id]
     );
 
-    const leadsResult = await pool.query<LeadRow>(
-      `
-        SELECT *
-        FROM leads
-        WHERE dealer_profile_id = $1
-        ORDER BY created_at DESC
-      `,
-      [dealer.id]
-    );
+    const leads = await listLeadsForDealerProfile(dealer.id);
 
     return {
       dealerName: dealer.name,
@@ -182,7 +181,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         mediaComplete: row.media_complete ?? false,
         priceInsight: row.listing_kind === "part" ? undefined : inferPriceInsight(row.price_azn)
       })),
-      leads: leadsResult.rows.map(mapLead)
+      leads
     };
   } catch (error) {
     console.error("getDealerDashboard failed:", error);
@@ -209,37 +208,50 @@ export async function updateLeadStage(input: {
   leadId: string;
   stage: LeadRecord["stage"];
   note?: string;
-  /**
-   * When provided, the update is scoped to leads owned by this dealer profile, preventing
-   * one dealer from mutating another dealer's CRM (IDOR). Omit only for admin actors.
-   */
   dealerProfileId?: string;
 }): Promise<boolean> {
+  return updateLeadStageCore({
+    leadId: input.leadId,
+    stage: input.stage,
+    note: input.note,
+    dealerProfileId: input.dealerProfileId
+  });
+}
+
+export async function refreshDealerListingInventory(userId: string, listingId: string): Promise<boolean> {
   await ensureSeedData();
   const pool = getPgPool();
-  // Əgər lead ilk dəfə 'new' mərhələsindən çıxırsa, real cavab vaxtını yazırıq.
-  // response_time_minutes = (indi − lead yaradılma tarixi) / 60 saniyə
   const result = await pool.query(
-    `
-      UPDATE leads
-      SET
-        stage = $2,
-        note  = COALESCE($3, note),
-        updated_at = NOW(),
-        response_time_minutes = CASE
-          WHEN stage = 'new' AND $2 <> 'new' AND response_time_minutes IS NULL
-          THEN ROUND(EXTRACT(EPOCH FROM (NOW() - created_at)) / 60)::integer
-          ELSE response_time_minutes
-        END
-      WHERE id = $1
-        ${input.dealerProfileId ? "AND dealer_profile_id = $4" : ""}
-    `,
-    input.dealerProfileId
-      ? [input.leadId, input.stage, input.note ?? null, input.dealerProfileId]
-      : [input.leadId, input.stage, input.note ?? null]
+    `UPDATE listings l
+     SET inventory_refreshed_at = NOW(), updated_at = NOW()
+     FROM dealer_profiles dp
+     WHERE l.id = $2
+       AND l.dealer_profile_id = dp.id
+       AND dp.owner_user_id = $1`,
+    [userId, listingId]
   );
   return (result.rowCount ?? 0) > 0;
 }
+
+export async function countStaleDealerListings(userId: string): Promise<number> {
+  await ensureSeedData();
+  const plan = await getEffectiveDealerPlan(userId);
+  const pool = getPgPool();
+  const result = await pool.query<{ inventory_refreshed_at: Date | null; updated_at: Date; created_at: Date }>(
+    `SELECT l.inventory_refreshed_at, l.updated_at, l.created_at
+     FROM listings l
+     JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+     WHERE dp.owner_user_id = $1
+       AND l.status = 'active'
+       AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'`,
+    [userId]
+  );
+  return result.rows.filter((row) =>
+    isDealerListingStale(row.inventory_refreshed_at ?? row.updated_at ?? row.created_at, plan)
+  ).length;
+}
+
+export { createLeadForListing };
 
 export async function importDealerInventoryCsv(userId: string, csv: string): Promise<{ created: number; errors: string[] }> {
   await ensureSeedData();
@@ -346,41 +358,6 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
   }
 
   return { created, errors };
-}
-
-export async function createLeadForListing(input: {
-  listingId: string;
-  customerName: string;
-  customerPhone?: string;
-  customerEmail?: string;
-  note?: string;
-  source?: string;
-}): Promise<void> {
-  await ensureSeedData();
-  const pool = getPgPool();
-  const listing = await pool.query<{ dealer_profile_id: string | null }>(
-    "SELECT dealer_profile_id FROM listings WHERE id = $1 LIMIT 1",
-    [input.listingId]
-  );
-  const source = input.source ?? "listing_detail";
-  await pool.query(
-    `
-      INSERT INTO leads (
-        id, listing_id, dealer_profile_id, customer_name, customer_phone, customer_email, note, stage, source
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'new', $8)
-    `,
-    [
-      randomUUID(),
-      input.listingId,
-      listing.rows[0]?.dealer_profile_id ?? null,
-      input.customerName,
-      input.customerPhone ?? null,
-      input.customerEmail ?? null,
-      input.note ?? null,
-      source
-    ]
-  );
 }
 
 // ── Public profile ─────────────────────────────────────────────────────────

@@ -1,9 +1,7 @@
 export const LEAD_STAGE_OPTIONS = [
   { value: "new", label: "Yeni" },
-  { value: "in_progress", label: "İcrada" },
-  { value: "test_drive", label: "Test sürüşü" },
-  { value: "offer", label: "Təklif verildi" },
-  { value: "won", label: "Uğurlu satış" },
+  { value: "contacted", label: "Əlaqə qurulub" },
+  { value: "visit_booked", label: "Baxış / görüş" },
   { value: "closed", label: "Bağlanıb" }
 ] as const;
 

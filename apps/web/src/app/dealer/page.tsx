@@ -1,10 +1,9 @@
 import { requirePageRoles } from "@/lib/rbac";
-import { getDealerDashboard } from "@/server/dealer-store";
-import { getDealerProfileSettingsForOwner } from "@/server/dealer-store";
-import { LeadStageActions } from "@/components/dealer/lead-stage-actions";
+import { getDealerDashboard, getDealerProfileSettingsForOwner, countStaleDealerListings } from "@/server/dealer-store";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
 import Link from "next/link";
 import { DealerProfileSettingsForm } from "@/components/dealer/dealer-profile-settings-form";
+import { BusinessLeadsInbox } from "@/components/business/business-leads-inbox";
 import { getEffectiveBusinessProfileEntitlements, getEffectiveDealerPlan } from "@/server/business-plan-store";
 import { RoleAccessGate } from "@/components/ui/role-access-gate";
 import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
@@ -66,11 +65,12 @@ export default async function DealerPortalPage() {
     }
   }
 
-  const [dashboard, dealerPlan, profileSettings, profileEntitlements] = await Promise.all([
+  const [dashboard, dealerPlan, profileSettings, profileEntitlements, staleListingCount] = await Promise.all([
     getDealerDashboard(auth.user.id),
     getEffectiveDealerPlan(auth.user.id),
     getDealerProfileSettingsForOwner(auth.user.id),
-    getEffectiveBusinessProfileEntitlements(auth.user.id)
+    getEffectiveBusinessProfileEntitlements(auth.user.id),
+    countStaleDealerListings(auth.user.id)
   ]);
 
   // B-8: If dealer profile row doesn't exist yet, show setup prompt
@@ -114,6 +114,12 @@ export default async function DealerPortalPage() {
           )}
         </div>
       </div>
+
+      {staleListingCount > 0 && (
+        <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm text-amber-800">
+          <strong>{staleListingCount} elan</strong> inventar yeniləməsi tələb edir. Aktiv qalması üçün salon panelindən təsdiqləyin.
+        </div>
+      )}
 
       {dashboard.inventory.length === 0 && (
         <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -250,56 +256,12 @@ export default async function DealerPortalPage() {
         </div>
       </div>
 
-      {/* Lead inbox */}
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900/10">
-          <h2 className="font-semibold text-slate-900">Lead Qutusu</h2>
-          {newLeads > 0 && <span className="badge-verified">{newLeads} yeni</span>}
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-white/60 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="px-6 py-3 text-left">Müştəri</th>
-                <th className="px-6 py-3 text-left">Elan</th>
-                <th className="px-6 py-3 text-center">Status</th>
-                <th className="px-6 py-3 text-center">Hərəkət</th>
-                <th className="px-6 py-3 text-center">Cavab (dəq)</th>
-                <th className="px-6 py-3 text-center">Cavab müddəti</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-900/10">
-              {dashboard.leads.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
-                    Hələ müştəri sorğusu yoxdur.
-                  </td>
-                </tr>
-              ) : (
-                dashboard.leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-900/5 transition">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{lead.customerName}</div>
-                      {lead.customerPhone && <div className="text-xs text-slate-500">{lead.customerPhone}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link href={`/listings/${lead.listingId}`} className="text-slate-600 hover:text-[#0057FF] text-sm">
-                        #{lead.listingId.slice(0, 8)}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 text-center"><StatusBadge status={lead.stage} /></td>
-                    <td className="px-6 py-4">
-                      <LeadStageActions leadId={lead.id} currentStage={lead.stage} />
-                    </td>
-                    <td className="px-6 py-4 text-center text-slate-700">{lead.responseTimeMinutes ?? 0}</td>
-                    <td className="px-6 py-4 text-center"><SlaBadge minutes={lead.responseTimeMinutes ?? 0} /></td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <BusinessLeadsInbox
+        leads={dashboard.leads}
+        updateUrlPrefix="/api/dealer/leads"
+        title="Lead qutusu"
+        emptyMessage="Hələ müştəri sorğusu yoxdur."
+      />
     </div>
   );
 }

@@ -106,3 +106,13 @@ export const PARTS_STORE_PLANS: PartsStorePlan[] = [
 export function getPartsStorePlanById(id: PartsStorePlanId): PartsStorePlan | undefined {
   return PARTS_STORE_PLANS.find((p) => p.id === id);
 }
+
+export function shouldArchivePartsListings(
+  subscriptionExpiresAt: string | Date,
+  plan: PartsStorePlan
+): boolean {
+  const expiry = new Date(subscriptionExpiresAt);
+  const archiveAt = new Date(expiry);
+  archiveAt.setDate(archiveAt.getDate() + plan.gracePeriodDays);
+  return new Date() > archiveAt;
+}

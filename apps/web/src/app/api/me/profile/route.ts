@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
 import { getPgPool } from "@/lib/postgres";
 import { ensureSeedData } from "@/server/bootstrap-seed";
+import { getPartsStoreProfileEntitlements } from "@/server/business-plan-store";
+import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 
 interface ProfileUpdateInput {
   fullName?: string;
@@ -12,6 +14,12 @@ interface ProfileUpdateInput {
   storeLogoUrl?: string;
   storeCoverUrl?: string;
   storeDescription?: string;
+  storeWhatsappPhone?: string;
+  storeWebsiteUrl?: string;
+  storeAddress?: string;
+  storeWorkingHours?: string;
+  showStoreWhatsapp?: boolean;
+  showStoreWebsite?: boolean;
 }
 
 function isValidUrl(value: string): boolean {
@@ -23,19 +31,48 @@ function isValidUrl(value: string): boolean {
   }
 }
 
+function applyStoreEntitlements(
+  body: ProfileUpdateInput,
+  entitlements: BusinessProfileEntitlements
+): ProfileUpdateInput {
+  const next = { ...body };
+  if (!entitlements.canUseLogo && "storeLogoUrl" in next) delete next.storeLogoUrl;
+  if (!entitlements.canUseCover && "storeCoverUrl" in next) delete next.storeCoverUrl;
+  if (!entitlements.canUseDescription && "storeDescription" in next) delete next.storeDescription;
+  if (!entitlements.canUseWhatsapp) {
+    delete next.storeWhatsappPhone;
+    delete next.showStoreWhatsapp;
+  }
+  if (!entitlements.canUseWebsite) {
+    delete next.storeWebsiteUrl;
+    delete next.showStoreWebsite;
+  }
+  if (!entitlements.canUseAddress) delete next.storeAddress;
+  if (!entitlements.canUseWorkingHours) delete next.storeWorkingHours;
+  return next;
+}
+
 export async function PUT(req: Request) {
   const user = await getServerSessionUser();
   if (!user) {
     return NextResponse.json({ ok: false, error: "Daxil olun." }, { status: 401 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as ProfileUpdateInput;
+  const rawBody = (await req.json().catch(() => ({}))) as ProfileUpdateInput;
+  const entitlements = await getPartsStoreProfileEntitlements(user.id);
+  const body = applyStoreEntitlements(rawBody, entitlements);
 
   const fullName = typeof body.fullName === "string" ? body.fullName.trim().slice(0, 80) : undefined;
   const city = typeof body.city === "string" ? body.city.trim().slice(0, 60) : undefined;
   const bio = typeof body.bio === "string" ? body.bio.trim().slice(0, 300) : undefined;
   const storeName = typeof body.storeName === "string" ? body.storeName.trim().slice(0, 80) : undefined;
   const storeDescription = typeof body.storeDescription === "string" ? body.storeDescription.trim().slice(0, 500) : undefined;
+  const storeWhatsappPhone = typeof body.storeWhatsappPhone === "string" ? body.storeWhatsappPhone.trim().slice(0, 30) : undefined;
+  const storeWebsiteUrl = typeof body.storeWebsiteUrl === "string" ? body.storeWebsiteUrl.trim().slice(0, 200) : undefined;
+  const storeAddress = typeof body.storeAddress === "string" ? body.storeAddress.trim().slice(0, 200) : undefined;
+  const storeWorkingHours = typeof body.storeWorkingHours === "string" ? body.storeWorkingHours.trim().slice(0, 120) : undefined;
+  const showStoreWhatsapp = typeof body.showStoreWhatsapp === "boolean" ? body.showStoreWhatsapp : undefined;
+  const showStoreWebsite = typeof body.showStoreWebsite === "boolean" ? body.showStoreWebsite : undefined;
 
   const avatarUrl =
     typeof body.avatarUrl === "string"
@@ -56,22 +93,46 @@ export async function PUT(req: Request) {
     await ensureSeedData();
     const pool = getPgPool();
 
-    // Upsert user_profiles with all provided fields
     await pool.query(
-      `INSERT INTO user_profiles (user_id, full_name, city, bio, avatar_url, store_name, store_logo_url, store_cover_url, store_description, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+      `INSERT INTO user_profiles (
+         user_id, full_name, city, bio, avatar_url, store_name, store_logo_url, store_cover_url,
+         store_description, store_whatsapp_phone, store_website_url, store_address, store_working_hours,
+         show_store_whatsapp, show_store_website, updated_at
+       )
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
        ON CONFLICT (user_id) DO UPDATE SET
-         full_name         = COALESCE($2, user_profiles.full_name),
-         city              = COALESCE($3, user_profiles.city),
-         bio               = COALESCE($4, user_profiles.bio),
-         avatar_url        = CASE WHEN $5::text IS NOT NULL THEN $5 ELSE user_profiles.avatar_url END,
-         store_name        = COALESCE($6, user_profiles.store_name),
-         store_logo_url    = CASE WHEN $7::text IS NOT NULL THEN $7 ELSE user_profiles.store_logo_url END,
-         store_cover_url   = CASE WHEN $8::text IS NOT NULL THEN $8 ELSE user_profiles.store_cover_url END,
+         full_name = COALESCE($2, user_profiles.full_name),
+         city = COALESCE($3, user_profiles.city),
+         bio = COALESCE($4, user_profiles.bio),
+         avatar_url = CASE WHEN $5::text IS NOT NULL THEN $5 ELSE user_profiles.avatar_url END,
+         store_name = COALESCE($6, user_profiles.store_name),
+         store_logo_url = CASE WHEN $7::text IS NOT NULL THEN $7 ELSE user_profiles.store_logo_url END,
+         store_cover_url = CASE WHEN $8::text IS NOT NULL THEN $8 ELSE user_profiles.store_cover_url END,
          store_description = COALESCE($9, user_profiles.store_description),
-         updated_at        = NOW()`,
-      [user.id, fullName ?? null, city ?? null, bio ?? null, avatarUrl ?? null,
-       storeName ?? null, storeLogoUrl ?? null, storeCoverUrl ?? null, storeDescription ?? null]
+         store_whatsapp_phone = COALESCE($10, user_profiles.store_whatsapp_phone),
+         store_website_url = COALESCE($11, user_profiles.store_website_url),
+         store_address = COALESCE($12, user_profiles.store_address),
+         store_working_hours = COALESCE($13, user_profiles.store_working_hours),
+         show_store_whatsapp = COALESCE($14, user_profiles.show_store_whatsapp),
+         show_store_website = COALESCE($15, user_profiles.show_store_website),
+         updated_at = NOW()`,
+      [
+        user.id,
+        fullName ?? null,
+        city ?? null,
+        bio ?? null,
+        avatarUrl ?? null,
+        storeName ?? null,
+        storeLogoUrl ?? null,
+        storeCoverUrl ?? null,
+        storeDescription ?? null,
+        storeWhatsappPhone ?? null,
+        storeWebsiteUrl ?? null,
+        storeAddress ?? null,
+        storeWorkingHours ?? null,
+        showStoreWhatsapp ?? null,
+        showStoreWebsite ?? null
+      ]
     );
 
     return NextResponse.json({ ok: true });

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSessionUser } from "@/lib/auth";
+import { LeadInboxLimitError } from "@/server/business-leads-store";
 import { createLeadForListing } from "@/server/dealer-store";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
@@ -9,7 +11,6 @@ interface Params {
 export async function POST(req: Request, context: Params) {
   const { id } = await context.params;
 
-  // Public endpoint — rate limit to prevent lead/CRM spam.
   const ip = getClientIp(req);
   const limit = await checkRateLimit(`lead:${ip}:${id}`, 5, 10);
   if (!limit.ok) return rateLimitResponse(600);
@@ -42,6 +43,9 @@ export async function POST(req: Request, context: Params) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof LeadInboxLimitError) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 429 });
+    }
     console.error("create lead error:", error);
     return NextResponse.json({ ok: false, error: "Müraciət göndərilə bilmədi." }, { status: 500 });
   }

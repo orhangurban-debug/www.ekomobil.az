@@ -450,11 +450,49 @@ async function handleCreateListing(req: Request): Promise<Response> {
   const vehicleImageUrls = (vehiclePayload.imageUrls ?? []).filter(
     (url) => typeof url === "string" && url.trim().length > 0
   );
+
+  const isDealerVehiclePublisher =
+    (vehiclePayload.sellerType ?? "private") === "dealer" ||
+    (["dealer", "admin"].includes(sessionUser.role) &&
+      (await hasActiveBusinessSubscription(sessionUser.id, "dealer")));
+
+  let dealerPlanForPublish: Awaited<ReturnType<typeof getEffectiveDealerPlan>> | null = null;
+  if (isDealerVehiclePublisher) {
+    dealerPlanForPublish = await getEffectiveDealerPlan(sessionUser.id);
+    const maxDealerImages = dealerPlanForPublish.perListingMaxImages;
+    if (vehicleImageUrls.length > maxDealerImages) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Salon planınızda elan başına maksimum ${maxDealerImages} şəkil icazə verilir.`
+        },
+        { status: 400 }
+      );
+    }
+
+    const mediaProtocol =
+      vehiclePayload.mediaProtocol && typeof vehiclePayload.mediaProtocol === "object"
+        ? (vehiclePayload.mediaProtocol as { engineVideoDurationSec?: number })
+        : undefined;
+    const hasVideo = (mediaProtocol?.engineVideoDurationSec ?? 0) > 0;
+    if (hasVideo && (!dealerPlanForPublish.videoEnabled || dealerPlanForPublish.maxVideosPerListing < 1)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Cari salon planınızda elan videosu dəstəklənmir. Planı yüksəldin."
+        },
+        { status: 403 }
+      );
+    }
+  }
+
   const imageCountCheck = validateListingImageCount(requestedPlanType, vehicleImageUrls.length);
   if (!imageCountCheck.ok) {
     return NextResponse.json({ ok: false, error: imageCountCheck.error }, { status: 400 });
   }
-  const planMaxImages = getPlanById(requestedPlanType)?.maxImages ?? 15;
+  const planMaxImages = isDealerVehiclePublisher && dealerPlanForPublish
+    ? dealerPlanForPublish.perListingMaxImages
+    : (getPlanById(requestedPlanType)?.maxImages ?? 15);
   vehiclePayload.imageUrls = vehicleImageUrls.slice(0, planMaxImages);
 
   const validation = validateListingInput(vehiclePayload);

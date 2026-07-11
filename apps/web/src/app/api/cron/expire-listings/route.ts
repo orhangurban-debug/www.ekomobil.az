@@ -13,6 +13,7 @@
 import { NextResponse } from "next/server";
 import { getPgPool } from "@/lib/postgres";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
+import { archiveListingsPastBusinessGracePeriod } from "@/server/business-subscription-store";
 
 function isAuthorizedCronRequest(req: Request): boolean {
   const configuredSecret = process.env.CRON_SECRET?.trim();
@@ -26,6 +27,8 @@ interface ExpirySummary {
   nearExpiry: number;
   expiredBusinessSubscriptions: number;
   nearExpiryBusinessSubscriptions: number;
+  businessGraceArchivedDealer: number;
+  businessGraceArchivedParts: number;
   errors: string[];
 }
 
@@ -35,6 +38,8 @@ async function runExpireListings(): Promise<ExpirySummary> {
     nearExpiry: 0,
     expiredBusinessSubscriptions: 0,
     nearExpiryBusinessSubscriptions: 0,
+    businessGraceArchivedDealer: 0,
+    businessGraceArchivedParts: 0,
     errors: []
   };
 
@@ -85,6 +90,10 @@ async function runExpireListings(): Promise<ExpirySummary> {
         AND expires_at BETWEEN NOW() AND NOW() + INTERVAL '3 days'
     `);
     summary.nearExpiryBusinessSubscriptions = Number(nearSubsResult.rows[0]?.count ?? 0);
+
+    const graceArchive = await archiveListingsPastBusinessGracePeriod();
+    summary.businessGraceArchivedDealer = graceArchive.dealerArchived;
+    summary.businessGraceArchivedParts = graceArchive.partsArchived;
 
     await createAdminAuditLog({
       actorRole: "system",
