@@ -3,6 +3,8 @@ import { getPgPool } from "@/lib/postgres";
 import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
 import { createListingRecord, inferPriceInsight, listingMediaOrderSql } from "@/server/listing-store";
+import { buildVehicleListingTitle } from "@/lib/listing-title";
+import { listingSellerContextSelectSql, resolveListingTrustSignals } from "@/lib/listing-seller-verification";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 import {
   createLeadForListing,
@@ -322,18 +324,31 @@ export async function importDealerInventoryCsv(userId: string, csv: string): Pro
     }
 
     try {
+      const mileageKm = Number(get("mileageKm"));
+      const fuelType = get("fuelType");
+      const make = get("make");
+      const model = get("model");
+      const year = Number(get("year"));
+      const color = getOptional("color");
       await createListingRecord({
         ownerUserId: userId,
         dealerProfileId: dealerId,
-        title: get("title"),
+        title: buildVehicleListingTitle({
+          make,
+          model,
+          year,
+          fuelType,
+          mileageKm,
+          color
+        }),
         description: get("description"),
-        make: get("make"),
-        model: get("model"),
-        year: Number(get("year")),
+        make,
+        model,
+        year,
         city: get("city"),
         priceAzn: Number(get("priceAzn")),
-        mileageKm: Number(get("mileageKm")),
-        fuelType: get("fuelType"),
+        mileageKm,
+        fuelType,
         engineType: getOptional("engineType"),
         transmission: get("transmission"),
         vin,
@@ -444,6 +459,11 @@ export async function getPublicDealerProfile(
       image_url: string | null;
       trust_score: number | null; vin_verified: boolean | null;
       seller_verified: boolean | null; media_complete: boolean | null;
+      dealer_verified: boolean | null;
+      owner_email_verified: boolean | null;
+      owner_phone_set: boolean | null;
+      owner_kyc_approved: boolean | null;
+      owner_has_store_plan: boolean | null;
     }>(
       `SELECT l.id, l.title, l.description, l.price_azn, l.city, l.year,
               l.mileage_km, l.fuel_type, l.transmission, l.make, l.model,
@@ -457,9 +477,12 @@ export async function getPublicDealerProfile(
                 ORDER BY ${mediaOrderSql}
                 LIMIT 1
               ) as image_url,
-              ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
+              ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
+              ${listingSellerContextSelectSql()}
        FROM listings l
        LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
+       LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+       LEFT JOIN users ou ON ou.id = l.owner_user_id
        WHERE l.dealer_profile_id = $1 AND l.status = 'active'
          AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
        ORDER BY CASE COALESCE(l.plan_type,'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END, l.created_at DESC
@@ -467,7 +490,21 @@ export async function getPublicDealerProfile(
       [dealerId]
     );
 
-    const inventory: ListingSummary[] = inventoryResult.rows.map((r) => ({
+    const inventory: ListingSummary[] = inventoryResult.rows.map((r) => {
+      const trust = resolveListingTrustSignals({
+        storedSellerVerified: r.seller_verified,
+        dealerProfileVerified: r.dealer_verified,
+        ownerKycApproved: r.owner_kyc_approved,
+        ownerEmailVerified: r.owner_email_verified,
+        ownerPhoneSet: r.owner_phone_set,
+        sellerType: r.seller_type,
+        listingKind: (r.listing_kind ?? "vehicle") as ListingSummary["listingKind"],
+        ownerHasStorePlan: r.owner_has_store_plan,
+        vinVerified: r.vin_verified,
+        mediaComplete: r.media_complete
+      });
+
+      return {
       id: r.id, title: r.title, description: r.description,
       priceAzn: r.price_azn, city: r.city, year: r.year,
       mileageKm: r.mileage_km, fuelType: r.fuel_type,
@@ -490,12 +527,13 @@ export async function getPublicDealerProfile(
       createdAt: r.created_at.toISOString(),
       updatedAt: r.updated_at.toISOString(),
       imageUrl: r.image_url ?? undefined,
-      trustScore: r.trust_score ?? 50,
+      trustScore: trust.trustScore,
       vinVerified: r.vin_verified ?? false,
-      sellerVerified: r.seller_verified ?? false,
+      sellerVerified: trust.sellerVerified,
       mediaComplete: r.media_complete ?? false,
       priceInsight: r.listing_kind === "part" ? undefined : inferPriceInsight(r.price_azn)
-    }));
+    };
+    });
 
     return {
       id: dealer.id, name: dealer.name, city: dealer.city,

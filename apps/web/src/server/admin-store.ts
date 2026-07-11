@@ -980,6 +980,8 @@ export async function listAdminBusinessProfilesPaged(input: {
   };
 }
 
+import { syncListingTrustForDealerOwner } from "@/server/listing-trust-sync";
+
 export async function updateAdminBusinessProfile(input: {
   dealerId: string;
   verified?: boolean;
@@ -998,6 +1000,17 @@ export async function updateAdminBusinessProfile(input: {
     `,
     [input.dealerId, input.verified ?? null, input.showWhatsapp ?? null, input.showWebsite ?? null]
   );
+
+  if (input.verified !== undefined) {
+    const ownerResult = await pool.query<{ owner_user_id: string | null }>(
+      `SELECT owner_user_id FROM dealer_profiles WHERE id = $1 LIMIT 1`,
+      [input.dealerId]
+    );
+    const ownerUserId = ownerResult.rows[0]?.owner_user_id;
+    if (ownerUserId) {
+      await syncListingTrustForDealerOwner(ownerUserId);
+    }
+  }
 }
 
 export async function bulkUpdateAdminBusinessProfiles(input: {
@@ -1016,9 +1029,20 @@ export async function bulkUpdateAdminBusinessProfiles(input: {
         show_whatsapp = COALESCE($3, show_whatsapp),
         show_website = COALESCE($4, show_website)
       WHERE id = ANY($1::text[])
+      RETURNING owner_user_id
     `,
     [input.dealerIds, input.verified ?? null, input.showWhatsapp ?? null, input.showWebsite ?? null]
   );
+
+  if (input.verified !== undefined) {
+    const ownerIds = [...new Set(
+      result.rows
+        .map((row: { owner_user_id: string | null }) => row.owner_user_id)
+        .filter((id): id is string => Boolean(id))
+    )];
+    await Promise.all(ownerIds.map((ownerUserId) => syncListingTrustForDealerOwner(ownerUserId)));
+  }
+
   return result.rowCount ?? 0;
 }
 

@@ -20,6 +20,8 @@ import {
   ListingGuardUnavailableError
 } from "@/server/listing-store";
 import { getDealerProfileIdByOwner, resolveDealerListingContact } from "@/server/dealer-store";
+import { resolveSellerVerifiedForPublish } from "@/server/listing-trust-sync";
+import { resolveVehicleListingTitle } from "@/lib/listing-title";
 import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
 
@@ -334,10 +336,15 @@ async function handleCreateListing(req: Request): Promise<Response> {
       declaredMileageKm: 0
     };
 
+    const resolvedPartSellerVerified = await resolveSellerVerifiedForPublish({
+      ownerUserId: sessionUser.id,
+      listingKind: "part"
+    });
+
     const trustSignals = buildTrustSignals({
       vehicle: dummyVehicle,
       vinVerified: false,
-      sellerVerified: partPayload.sellerVerified,
+      sellerVerified: resolvedPartSellerVerified,
       mediaComplete: validation.mediaComplete
     });
     const trustScore = estimateTrustScore(trustSignals);
@@ -635,10 +642,16 @@ async function handleCreateListing(req: Request): Promise<Response> {
     dealerSubscriptionExpiry = await getDealerSubscriptionExpiry(sessionUser.id);
   }
 
+  const resolvedSellerVerified = await resolveSellerVerifiedForPublish({
+    ownerUserId: sessionUser.id,
+    dealerProfileId: vehicleDealerProfileId,
+    listingKind: "vehicle"
+  });
+
   const trustSignals = buildTrustSignals({
     vehicle: vehiclePayload.vehicle,
     vinVerified: vehiclePayload.vinVerified,
-    sellerVerified: vehiclePayload.sellerVerified,
+    sellerVerified: resolvedSellerVerified,
     mediaComplete: validation.mediaComplete,
     latestMileageEvent: vehiclePayload.latestMileageEvent
   });
@@ -661,7 +674,14 @@ async function handleCreateListing(req: Request): Promise<Response> {
   const createInput = {
     ownerUserId: sessionUser?.id,
     dealerProfileId: vehicleDealerProfileId ?? undefined,
-    title: vehiclePayload.title,
+    title: resolveVehicleListingTitle(vehiclePayload.title, {
+      make: vehiclePayload.vehicle.make,
+      model: vehiclePayload.vehicle.model,
+      year: vehiclePayload.vehicle.year,
+      fuelType: normalizedFuelType,
+      mileageKm: vehiclePayload.vehicle.declaredMileageKm,
+      color: vehiclePayload.color?.trim()
+    }),
     description: vehiclePayload.description?.trim() || "",
     make: vehiclePayload.vehicle.make,
     model: vehiclePayload.vehicle.model,

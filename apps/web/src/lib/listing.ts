@@ -37,6 +37,8 @@ export interface ListingInput {
   vehicle: VehicleIdentity;
   sellerVerified: boolean;
   vinVerified: boolean;
+  fuelType?: string;
+  engineVolumeCc?: number;
   latestMileageEvent?: MileageEvent;
   mediaProtocol: MediaProtocolInput;
   contactPhone?: string;
@@ -73,6 +75,15 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
   }
   if (typeof year !== "number" || Number.isNaN(year) || year < 1950 || year > new Date().getFullYear() + 1) {
     errors.push("Avtomobil ili icazə verilən aralıqda deyil.");
+  }
+
+  const fuelType = input?.fuelType?.trim() ?? "";
+  const engineVolumeCc = input?.engineVolumeCc;
+  const isElectric = fuelType.toLowerCase().includes("elektrik");
+  if (!isElectric) {
+    if (typeof engineVolumeCc !== "number" || Number.isNaN(engineVolumeCc) || engineVolumeCc <= 0) {
+      errors.push("Mühərrik həcmi tələb olunur (cc).");
+    }
   }
 
   const mediaResult = validateMediaProtocol(

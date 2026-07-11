@@ -8,6 +8,7 @@ import {
   ensureServiceListingForSupportRequest
 } from "@/server/service-listing-store";
 import { updateAdminUserRole } from "@/server/admin-store";
+import { syncListingTrustForDealerOwner } from "@/server/listing-trust-sync";
 
 const BUSINESS_REQUEST_TYPES = new Set([
   "dealer_apply",
@@ -118,6 +119,7 @@ async function activateDealerRequest(input: {
   await updateAdminUserRole(input.ownerUserId, "dealer");
   if (await ensureDealerTrialSubscription(input.ownerUserId)) activated = true;
   await pool.query(`UPDATE dealer_profiles SET verified = TRUE WHERE owner_user_id = $1`, [input.ownerUserId]);
+  await syncListingTrustForDealerOwner(input.ownerUserId);
 
   return { ok: true, activated };
 }

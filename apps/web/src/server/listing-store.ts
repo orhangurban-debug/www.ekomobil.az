@@ -15,6 +15,15 @@ import { ensureSeedData } from "@/server/bootstrap-seed";
 import { getBoostOrderSql } from "@/server/listing-boost-store";
 import { persistSupportUploadFile } from "@/server/support-upload-storage";
 import { LISTING_MEDIA_DISPLAY_ORDER_SQL, reorderListingImageArrays, type ImagePhotoTag } from "@/lib/vehicle-media-angles";
+import {
+  listingSellerContextSelectSql,
+  resolveListingTrustSignals
+} from "@/lib/listing-seller-verification";
+import {
+  buildVehicleListingTitle,
+  resolveVehicleListingTitle
+} from "@/lib/listing-title";
+import { syncListingTrustForListing } from "@/server/listing-trust-sync";
 
 interface ListingRow {
   id: string;
@@ -85,6 +94,11 @@ interface ListingRow {
   contact_phone?: string | null;
   whatsapp_phone?: string | null;
   seller_display_name?: string | null;
+  dealer_verified?: boolean | null;
+  owner_email_verified?: boolean | null;
+  owner_phone_set?: boolean | null;
+  owner_kyc_approved?: boolean | null;
+  owner_has_store_plan?: boolean | null;
 }
 
 interface ServiceRecordRow {
@@ -235,6 +249,20 @@ async function normalizeAndPersistImageUrl(url: string): Promise<string | null> 
 }
 
 function mapRowToSummary(row: ListingRow): ListingSummary {
+  const trust = resolveListingTrustSignals({
+    storedSellerVerified: row.seller_verified,
+    dealerProfileVerified: row.dealer_verified,
+    ownerKycApproved: row.owner_kyc_approved,
+    ownerEmailVerified: row.owner_email_verified,
+    ownerPhoneSet: row.owner_phone_set,
+    sellerType: row.seller_type,
+    listingKind: row.listing_kind === "part" ? "part" : "vehicle",
+    ownerHasStorePlan: row.owner_has_store_plan,
+    vinVerified: row.vin_verified,
+    mediaComplete: row.media_complete,
+    mileageFlagSeverity: row.mileage_flag_severity as ListingSummary["mileageFlagSeverity"]
+  });
+
   return {
     id: row.id,
     title: row.title,
@@ -295,9 +323,9 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
     imageUrl: row.image_url ?? undefined,
-    trustScore: row.trust_score ?? 50,
+    trustScore: trust.trustScore,
     vinVerified: row.vin_verified ?? false,
-    sellerVerified: row.seller_verified ?? false,
+    sellerVerified: trust.sellerVerified,
     mediaComplete: row.media_complete ?? false,
     mileageFlagSeverity: (row.mileage_flag_severity as ListingSummary["mileageFlagSeverity"]) ?? undefined,
     mileageFlagMessage: row.mileage_flag_message ?? undefined,
@@ -556,10 +584,12 @@ export async function listListings(query: ListingQuery): Promise<ListingQueryRes
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
-          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name,
+          ${listingSellerContextSelectSql()}
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN users ou ON ou.id = l.owner_user_id
         LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         ${whereSql}
         ORDER BY ${sortSql}
@@ -630,7 +660,8 @@ export async function getListingDetail(id: string): Promise<ListingDetail | null
               THEN ${dealerWhatsappPhoneExpr}
             ELSE COALESCE(NULLIF(l.contact_phone, ''), NULLIF(ou.phone, ''), ${ownerPhoneNormalizedExpr}, NULLIF(dpu.phone, ''), ${dealerPhoneNormalizedExpr})
           END AS whatsapp_phone,
-          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name,
+          ${listingSellerContextSelectSql()}
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
@@ -805,6 +836,17 @@ export async function createListingRecord(input: {
       : status === "active"
         ? calculatePlanExpiry(planType)
         : null;
+  const resolvedTitle =
+    (input.listingKind ?? "vehicle") === "part"
+      ? input.title
+      : resolveVehicleListingTitle(input.title, {
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          fuelType: input.fuelType,
+          mileageKm: input.mileageKm,
+          color: input.color
+        });
 
   try {
     await ensureSeedData();
@@ -827,7 +869,7 @@ export async function createListingRecord(input: {
         id,
         input.ownerUserId ?? null,
         input.dealerProfileId ?? null,
-        input.title,
+        resolvedTitle,
         input.description,
         input.make,
         input.model,
@@ -937,6 +979,7 @@ export async function createListingRecord(input: {
     }
 
     await client.query("COMMIT");
+    void syncListingTrustForListing(id).catch(() => undefined);
     return { id };
   } catch (error) {
     await client.query("ROLLBACK");
@@ -974,10 +1017,12 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
-          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name,
+          ${listingSellerContextSelectSql()}
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN users ou ON ou.id = l.owner_user_id
         LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         WHERE l.id = ANY($1::text[])
       `,
@@ -1030,10 +1075,12 @@ export async function listListingsForUser(userId: string): Promise<ListingSummar
           ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete,
           ts.mileage_flag_severity, ts.mileage_flag_message, ts.service_history_summary, ts.risk_summary, ts.last_verified_at,
-          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name
+          COALESCE(dp.name, up.store_name, up.full_name) AS seller_display_name,
+          ${listingSellerContextSelectSql()}
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         LEFT JOIN dealer_profiles dp ON dp.id = l.dealer_profile_id
+        LEFT JOIN users ou ON ou.id = l.owner_user_id
         LEFT JOIN user_profiles up ON up.user_id = l.owner_user_id
         WHERE l.owner_user_id = $1 OR l.dealer_profile_id IN (
           SELECT id FROM dealer_profiles WHERE owner_user_id = $1
@@ -1505,11 +1552,46 @@ export async function updateListingForOwner(
   try {
     await ensureSeedData();
     const pool = getPgPool();
+    const currentResult = await pool.query<{
+      title: string;
+      make: string;
+      model: string;
+      year: number;
+      mileage_km: number;
+      fuel_type: string;
+      color: string | null;
+      listing_kind: string | null;
+    }>(
+      `SELECT title, make, model, year, mileage_km, fuel_type, color, listing_kind
+       FROM listings WHERE id = $1 LIMIT 1`,
+      [listingId]
+    );
+    const current = currentResult.rows[0];
+    if (!current) return { ok: false, error: "Elan tapılmadı." };
+
+    const nextMake = make ?? current.make;
+    const nextModel = model ?? current.model;
+    const nextYear = year ?? current.year;
+    const nextMileageKm = mileageKm ?? current.mileage_km;
+    const nextFuelType = fuelType ?? current.fuel_type;
+    const nextColor = color ?? current.color;
+    const resolvedTitle =
+      current.listing_kind === "part"
+        ? title ?? current.title
+        : resolveVehicleListingTitle(title ?? current.title, {
+            make: nextMake,
+            model: nextModel,
+            year: nextYear,
+            fuelType: nextFuelType,
+            mileageKm: nextMileageKm,
+            color: nextColor
+          });
+
     await pool.query(
       `
         UPDATE listings
         SET
-          title = COALESCE($1, title),
+          title = $1,
           description = COALESCE($2, description),
           city = COALESCE($3, city),
           price_azn = COALESCE($4, price_azn),
@@ -1551,7 +1633,7 @@ export async function updateListingForOwner(
         WHERE id = $35
       `,
       [
-        title ?? null,
+        resolvedTitle,
         description ?? null,
         city ?? null,
         priceAzn ?? null,
@@ -1588,6 +1670,7 @@ export async function updateListingForOwner(
         listingId
       ]
     );
+    void syncListingTrustForListing(listingId).catch(() => undefined);
     return { ok: true };
   } catch {
     return { ok: false, error: "Elan yenilənərkən xəta baş verdi" };

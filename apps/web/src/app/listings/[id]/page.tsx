@@ -23,6 +23,7 @@ import { getListingStats } from "@/server/listing-stats-store";
 import { getLatestPendingPaymentForListing } from "@/server/payment-store";
 import { getPublicSellerProfile } from "@/server/user-store";
 import { getVinCheckLinks, isVinFormatValid } from "@/lib/vin-check";
+import { buildVehicleListingSubtitle, formatEngineVolumeLiters } from "@/lib/listing-title";
 import type { PlanType } from "@/lib/listing-plans";
 
 const priceInsightMap = {
@@ -102,6 +103,7 @@ export default async function ListingDetailPage({
   if (!listing) notFound();
   // Salon avtomobil elanları → /dealers/[id]; mağaza/hissə elanları → /sellers/[userId].
   const isSalonVehicleListing = listing.listingKind !== "part" && Boolean(listing.dealerProfileId);
+  const sellerVerificationLabel = isSalonVehicleListing ? "Salon Doğrulaması" : "Satıcı Doğrulaması";
   const sellerUserId = isSalonVehicleListing ? null : listing.ownerUserId;
   const [related, sellerProfile] = await Promise.all([
     getRelatedListings(listing.relatedIds),
@@ -142,9 +144,11 @@ export default async function ListingDetailPage({
         {
           value: listing.engineVolumeCc ? String(Math.round(listing.engineVolumeCc / 100) / 10) : listing.fuelType.toLowerCase().includes("elektrik") ? listing.fuelType : "—",
           unit: listing.engineVolumeCc ? "L" : "",
-          label: listing.engineVolumeCc ? "Mühərrik həcmi" : "Yanacaq növü"
+          label: listing.engineVolumeCc ? "Mühərrik həcmi" : listing.fuelType.toLowerCase().includes("elektrik") ? "Yanacaq növü" : "Mühərrik həcmi"
         }
       ];
+
+  const engineVolumeLabel = formatEngineVolumeLiters(listing.engineVolumeCc);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 pb-32 sm:px-6 lg:px-8 lg:pb-10">
@@ -264,7 +268,7 @@ export default async function ListingDetailPage({
                       ["Yanacaq növü", listing.fuelType],
                       ["Mühərrik növü", listing.engineType || "—"],
                       ["Ötürücü qutsu", listing.transmission],
-                      ["Mühərrik həcmi", listing.engineVolumeCc ? `${listing.engineVolumeCc} cc` : "—"],
+                      ["Mühərrik həcmi", engineVolumeLabel ?? (listing.fuelType.toLowerCase().includes("elektrik") ? listing.fuelType : "Göstərilməyib")],
                       ["Salon materialı", listing.interiorMaterial || "—"],
                       ["Lyuk", listing.hasSunroof ? "Var" : "Yox"],
                       ["Kredit", listing.creditAvailable ? "Mümkündür" : "Yox"],
@@ -358,10 +362,10 @@ export default async function ListingDetailPage({
                   failText: "Daxil edilməyib"
                 },
                 {
-                  label: "Satıcı Doğrulaması",
+                  label: sellerVerificationLabel,
                   ok: listing.sellerVerified,
-                  okText: "Doğrulandı",
-                  failText: "Doğrulanmayıb"
+                  okText: isSalonVehicleListing ? "Təsdiqlənmiş salon" : "Doğrulandı",
+                  failText: isSalonVehicleListing ? "Admin yoxlaması gözlənilir" : "Doğrulanmayıb"
                 },
                 {
                   label: "Media Protokolu",
@@ -699,6 +703,13 @@ export default async function ListingDetailPage({
 
       <ListingFloatingCta
         title={listing.title}
+        subtitle={isPart ? `${listing.city} • ${listing.year}` : buildVehicleListingSubtitle({
+          year: listing.year,
+          mileageKm: listing.mileageKm,
+          fuelType: listing.fuelType,
+          city: listing.city,
+          color: listing.color
+        })}
         priceAzn={listing.priceAzn}
         city={listing.city}
         year={listing.year}
