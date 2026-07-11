@@ -8,9 +8,7 @@ import { listLeadsForPartsStore } from "@/server/business-leads-store";
 import { BusinessLeadsInbox } from "@/components/business/business-leads-inbox";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
 import { BoostListingButton } from "@/components/listings/boost-listing-button";
-import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
 import { StoreProfileEditForm } from "@/components/user/store-profile-edit-form";
-import type { PlanType } from "@/lib/listing-plans";
 
 const STATUS_META: Record<string, { label: string; dot: string; cls: string }> = {
   active:         { label: "Aktiv",      dot: "bg-emerald-500", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -220,14 +218,14 @@ export default async function StorePortalPage() {
                             </p>
                           )}
 
-                          {item.status === "active" && item.planExpiresAt && (
-                            <div className="mt-1.5">
-                              <ListingPlanExpiryCounter
-                                planExpiresAt={item.planExpiresAt}
-                                planType={(item.planType ?? "free") as PlanType}
-                                variant="compact"
-                              />
-                            </div>
+                          {item.status === "active" && item.sellerType === "dealer" && (
+                            <p className="mt-1.5 text-xs font-medium text-violet-700">Mağaza abunə</p>
+                          )}
+
+                          {item.status === "active" && item.sellerType !== "dealer" && item.planExpiresAt && (
+                            <p className="mt-1.5 text-xs text-slate-500">
+                              Plan bitmə: {new Date(item.planExpiresAt).toLocaleDateString("az-AZ")}
+                            </p>
                           )}
 
                           {item.status === "rejected" && item.rejectionNote && (
@@ -241,6 +239,7 @@ export default async function StorePortalPage() {
                         <div className="shrink-0">
                           <BoostListingButton
                             listingId={item.id}
+                            sellerType="dealer"
                             currentPlan={item.planType ?? "free"}
                             listingPriceAzn={item.priceAzn}
                             variant="compact"

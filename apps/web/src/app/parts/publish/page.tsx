@@ -1,12 +1,8 @@
-import { getServerSessionUser } from "@/lib/auth";
-import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
+import { getStorePublishContext } from "@/server/store-publish-context";
 import { PartsPublishForm } from "./parts-publish-form";
 
 export default async function PartsPublishPage() {
-  const user = await getServerSessionUser();
-  const storeAccessEnabled = user
-    ? user.role === "admin" || (await hasActiveBusinessSubscription(user.id, "parts_store"))
-    : false;
+  const storePublishContext = await getStorePublishContext();
 
-  return <PartsPublishForm storeAccessEnabled={storeAccessEnabled} />;
+  return <PartsPublishForm storePublishContext={storePublishContext} />;
 }

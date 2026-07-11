@@ -16,6 +16,7 @@ import {
 } from "@/lib/parts-catalog";
 import { LISTING_PLANS, formatListingPlanPrice, type PlanType } from "@/lib/listing-plans";
 import { formatFileSize, processImageForUpload, type ProcessedImage } from "@/lib/image-processor";
+import type { StorePublishContext } from "@/lib/store-publish-types";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -29,9 +30,12 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
+export function PartsPublishForm({ storePublishContext }: { storePublishContext: StorePublishContext }) {
   const router = useRouter();
   const { loading: authLoading, ready: authReady } = useRequireAuth("/parts/publish");
+  const storeAccessEnabled = storePublishContext.storeAccessEnabled;
+  const storePlan = storePublishContext.plan;
+  const storeProfile = storePublishContext.profile;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<ProcessedImage[]>([]);
@@ -40,7 +44,7 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [city, setCity] = useState("Bakı");
+  const [city, setCity] = useState(storeProfile?.city ?? "Bakı");
   const [priceAzn, setPriceAzn] = useState<number | "">("");
   const [partCategory, setPartCategory] = useState("");
   const [partSubcategory, setPartSubcategory] = useState("");
@@ -54,13 +58,17 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
   const [partCompatibility, setPartCompatibility] = useState("");
   const [sellerType, setSellerType] = useState<"private" | "dealer">(storeAccessEnabled ? "dealer" : "private");
   const [planType, setPlanType] = useState<PlanType>("free");
+  const isStorePublishMode = storeAccessEnabled && sellerType === "dealer" && storePlan !== null;
+  const maxImages = isStorePublishMode ? storePlan!.perListingMaxImages : 8;
+  const storeSlotsRemaining = isStorePublishMode
+    ? Math.max(0, storePlan!.maxActiveListings - storePublishContext.activePartListings)
+    : 0;
+  const storeSlotsFull = isStorePublishMode && storeSlotsRemaining <= 0;
   const planPriceLabel = useCallback(
     (planId: PlanType) =>
       formatListingPlanPrice(planId, typeof priceAzn === "number" ? priceAzn : undefined),
     [priceAzn]
   );
-
-  const maxImages = 8;
   const subcategories = useMemo(() => {
     if (!partCategory) return [];
     return PART_SUBCATEGORIES_BY_CATEGORY[partCategory] ?? [];
@@ -122,6 +130,12 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
       setError(`Hissə elanı üçün ən azı ${MIN_PART_IMAGES} şəkil yükləyin.`);
       return;
     }
+    if (storeSlotsFull) {
+      setError(
+        `Mağaza planınızda aktiv elan limiti dolub (${storePlan?.maxActiveListings ?? 0} SKU). Yeni elan üçün mövcud elanı deaktiv edin və ya planı yüksəldin.`
+      );
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -146,8 +160,8 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
           partSku: partSku.trim() || undefined,
           partQuantity: Number(partQuantity || 0),
           partCompatibility: partCompatibility.trim() || undefined,
-          sellerType: storeAccessEnabled ? "dealer" : sellerType,
-          planType: storeAccessEnabled ? "free" : planType,
+          sellerType: isStorePublishMode ? "dealer" : "private",
+          planType: isStorePublishMode ? "free" : planType,
           sellerVerified: false,
           imageUrls,
           mediaProtocol: {
@@ -237,8 +251,31 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         <span className="text-slate-900">Yeni hissə elanı</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Hissə sat</h1>
-      <p className="mt-2 text-sm text-slate-600">Şəkil yükləyin, məlumatları doldurun və yayımlayın.</p>
+      <h1 className="text-3xl font-bold text-slate-900">
+        {isStorePublishMode ? "Mağaza kataloquna əlavə et" : "Hissə sat"}
+      </h1>
+      <p className="mt-2 text-sm text-slate-600">
+        {isStorePublishMode
+          ? "Məhsul məlumatları və şəkillər — əlaqə mağaza profilindən götürülür"
+          : "Şəkil yükləyin, məlumatları doldurun və yayımlayın."}
+      </p>
+
+      {storeAccessEnabled && (
+        <div className="mt-4 rounded-2xl border border-violet-500/25 bg-violet-500/10 px-4 py-3">
+          <label className="label text-violet-800">Yerləşdirmə rejimi</label>
+          <select
+            className="input-field bg-white"
+            value={sellerType}
+            onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}
+          >
+            <option value="dealer">Mağaza kataloqu (abunə planı)</option>
+            <option value="private">Fərdi satıcı kimi</option>
+          </select>
+          <p className="mt-1.5 text-xs text-violet-800">
+            Mağaza rejimində əlaqə məlumatları mağaza profilinizdən istifadə olunur.
+          </p>
+        </div>
+      )}
 
       {!storeAccessEnabled && (
         <p className="mt-3 text-xs text-slate-500">
@@ -426,7 +463,69 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
         </div>
 
         <div>
-          {!storeAccessEnabled ? (
+          {isStorePublishMode && storePlan ? (
+            <>
+              <label className="label">Mağaza abunəliyi</label>
+              <div className="rounded-2xl border-2 border-violet-500/30 bg-violet-500/10 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Aktiv mağaza abunəliyi</p>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900">{storePlan.nameAz}</h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {storePlan.priceAzn} ₼/ay · {storePublishContext.isTrial ? "sınaq dövrü" : "aktiv abunə"}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-violet-600 px-3 py-1 text-xs font-semibold text-white">
+                    Mağaza rejimi
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl bg-white/70 px-4 py-3">
+                    <p className="text-xs text-slate-500">Aktiv SKU slotları</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-900">
+                      {storePublishContext.activePartListings} / {storePlan.maxActiveListings}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {storeSlotsRemaining > 0
+                        ? `${storeSlotsRemaining} boş slot qalıb`
+                        : "Limit dolub — yeni elan üçün slot azad edin"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white/70 px-4 py-3">
+                    <p className="text-xs text-slate-500">Elan başına limitlər</p>
+                    <p className="mt-1 text-sm font-medium text-slate-900">
+                      {storePlan.perListingMaxImages} şəkil
+                    </p>
+                  </div>
+                </div>
+
+                {storePublishContext.subscriptionExpiresAt && (
+                  <p className="mt-4 text-xs text-slate-600">
+                    Abunə bitmə tarixi:{" "}
+                    <strong>
+                      {new Date(storePublishContext.subscriptionExpiresAt).toLocaleDateString("az-AZ")}
+                    </strong>
+                    . Abunə bitəndə elanlar gizlənir.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-3 rounded-xl border border-violet-500/25 bg-violet-500/10 px-4 py-3 text-sm text-violet-800">
+                Mağaza planınız aktivdir — SKU elanları aylıq abunə limitinizdən sayılır, əlavə elan haqqı tutulmur.
+              </div>
+
+              {storeSlotsFull && (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Aktiv elan limitiniz dolub. Yeni elan üçün mövcud elanı deaktiv edin və ya{" "}
+                  <Link href="/pricing#parts-store" className="font-medium text-[#0057FF] hover:underline">
+                    planı yüksəldin
+                  </Link>
+                  .
+                </div>
+              )}
+            </>
+          ) : (
             <>
               <label className="label">Elan planı</label>
               <div className="grid gap-2 sm:grid-cols-3">
@@ -453,10 +552,6 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
                 Ödənişli plan seçiləndə elan əvvəl draft olaraq yaranır və ödənişdən sonra aktivləşir.
               </p>
             </>
-          ) : (
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
-              Mağaza planınız aktivdir — SKU elanları aylıq abunə limitinizdən sayılır, əlavə elan haqqı tutulmur.
-            </div>
           )}
         </div>
 
@@ -465,28 +560,54 @@ export function PartsPublishForm({ storeAccessEnabled }: { storeAccessEnabled: b
             <label className="label">Şəhər</label>
             <input className="input-field" value={city} onChange={(e) => setCity(e.target.value)} required />
           </div>
-          <div>
-            <label className="label">Satıcı tipi</label>
-            {storeAccessEnabled ? (
-              <select className="input-field" value={sellerType} onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}>
-                <option value="dealer">Mağaza</option>
-                <option value="private">Fərdi</option>
-              </select>
-            ) : (
-              <>
-                <input className="input-field bg-white/60" value="Fərdi" readOnly />
-                <p className="mt-1 text-xs text-slate-500">
-                  Mağaza rejimi üçün <Link href="/pricing#parts-store" className="text-[#0057FF] hover:underline">plan aktivləşdirin</Link>.
-                </p>
-              </>
-            )}
-          </div>
+          {!isStorePublishMode && !storeAccessEnabled && (
+            <div>
+              <label className="label">Satıcı tipi</label>
+              <input className="input-field bg-white/60" value="Fərdi" readOnly />
+              <p className="mt-1 text-xs text-slate-500">
+                Mağaza rejimi üçün{" "}
+                <Link href="/pricing#parts-store" className="text-[#0057FF] hover:underline">
+                  plan aktivləşdirin
+                </Link>
+                .
+              </p>
+            </div>
+          )}
         </div>
+
+        {isStorePublishMode && (
+          <div className="rounded-2xl border border-violet-500/25 bg-violet-500/10 p-4 text-sm text-violet-900">
+            <p className="font-semibold">📞 Əlaqə — mağaza profilindən</p>
+            <p className="mt-2">
+              <span className="text-violet-700">Mağaza:</span>{" "}
+              <strong>{storeProfile?.storeName ?? "Mağaza profili"}</strong>
+            </p>
+            {storeProfile?.contactPhone && (
+              <p className="mt-1">
+                <span className="text-violet-700">Telefon:</span>{" "}
+                <strong>{storeProfile.contactPhone}</strong>
+              </p>
+            )}
+            {storeProfile?.showWhatsapp && storeProfile.whatsappPhone && (
+              <p className="mt-1">
+                <span className="text-violet-700">WhatsApp:</span>{" "}
+                <strong>{storeProfile.whatsappPhone}</strong>
+              </p>
+            )}
+            <p className="mt-3 text-xs text-violet-800">
+              Əlaqə məlumatını dəyişmək üçün{" "}
+              <Link href="/parts/store" className="font-medium text-[#0057FF] hover:underline">
+                mağaza paneli
+              </Link>
+              ndən profil parametrlərini yeniləyin.
+            </p>
+          </div>
+        )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <button type="submit" disabled={submitting} className="btn-primary w-full justify-center py-3">
-          {submitting ? "Yüklənir..." : "Hissə elanını yerləşdir"}
+        <button type="submit" disabled={submitting || storeSlotsFull} className="btn-primary w-full justify-center py-3">
+          {submitting ? "Yüklənir..." : isStorePublishMode ? "Mağaza kataloquna əlavə et" : "Hissə elanını yerləşdir"}
         </button>
       </form>
         </>

@@ -10,6 +10,7 @@ import type { PartBulkProductSuggestion } from "@/lib/ai/listing-vision-types";
 import { LISTING_PLANS, type PlanType } from "@/lib/listing-plans";
 import { PART_AUTHENTICITY_OPTIONS, PART_CONDITIONS } from "@/lib/parts-catalog";
 import type { ProcessedImage } from "@/lib/image-processor";
+import type { StorePublishContext } from "@/lib/store-publish-types";
 
 type PartCondition = "new" | "used" | "refurbished";
 type PartAuthenticity = "original" | "oem" | "aftermarket";
@@ -68,14 +69,24 @@ function toDraft(product: PartBulkProductSuggestion, index: number): DraftProduc
   };
 }
 
-export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnabled: boolean }) {
+export function PartsBulkPublishForm({ storePublishContext }: { storePublishContext: StorePublishContext }) {
   const router = useRouter();
   const { loading: authLoading, ready: authReady } = useRequireAuth("/parts/publish/bulk");
+  const storeAccessEnabled = storePublishContext.storeAccessEnabled;
+  const storePlan = storePublishContext.plan;
+  const storeProfile = storePublishContext.profile;
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [drafts, setDrafts] = useState<DraftProduct[]>([]);
-  const [city, setCity] = useState("Bakı");
+  const [city, setCity] = useState(storeProfile?.city ?? "Bakı");
   const [sellerType, setSellerType] = useState<"private" | "dealer">(storeAccessEnabled ? "dealer" : "private");
   const [planType, setPlanType] = useState<PlanType>("free");
+  const isStorePublishMode = storeAccessEnabled && sellerType === "dealer" && storePlan !== null;
+  const maxImages = isStorePublishMode ? storePlan!.perListingMaxImages : 8;
+  const storeSlotsRemaining = isStorePublishMode
+    ? Math.max(0, storePlan!.maxActiveListings - storePublishContext.activePartListings)
+    : 0;
+  const bulkExceedsSlots = isStorePublishMode && drafts.length > storeSlotsRemaining;
+  const storeSlotsFull = isStorePublishMode && storeSlotsRemaining <= 0;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState(0);
@@ -115,6 +126,18 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
 
   async function publishAll() {
     if (!canPublish) return;
+    if (storeSlotsFull) {
+      setError(
+        `Mağaza planınızda aktiv elan limiti dolub (${storePlan?.maxActiveListings ?? 0} SKU).`
+      );
+      return;
+    }
+    if (bulkExceedsSlots) {
+      setError(
+        `${drafts.length} elan yerləşdirmək üçün yalnız ${storeSlotsRemaining} boş slot qalıb. Plan limitini yüksəldin və ya elan sayını azaldın.`
+      );
+      return;
+    }
     setSubmitting(true);
     setError(null);
     setSuccessCount(0);
@@ -146,8 +169,8 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
             partOemCode: draft.partOemCode.trim() || undefined,
             partSku: draft.partSku.trim() || undefined,
             partQuantity: draft.partQuantity,
-            sellerType: storeAccessEnabled ? "dealer" : sellerType,
-            planType: storeAccessEnabled ? "free" : planType,
+            sellerType: isStorePublishMode ? "dealer" : "private",
+            planType: isStorePublishMode ? "free" : planType,
             sellerVerified: false,
             imageUrls,
             mediaProtocol: {
@@ -214,13 +237,39 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
         <span className="text-slate-900">Toplu yükləmə</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-slate-900">Çox məhsul sat</h1>
-      <p className="mt-2 text-sm text-slate-600">Şəkilləri yükləyin — AI məhsulları ayıracaq.</p>
+      <h1 className="text-3xl font-bold text-slate-900">
+        {isStorePublishMode ? "Mağaza kataloquna toplu əlavə" : "Çox məhsul sat"}
+      </h1>
+      <p className="mt-2 text-sm text-slate-600">
+        {isStorePublishMode
+          ? "Şəkilləri yükləyin — AI məhsulları ayıracaq. Elanlar mağaza abunə limitindən sayılır."
+          : "Şəkilləri yükləyin — AI məhsulları ayıracaq."}
+      </p>
+
+      {storeAccessEnabled && (
+        <div className="mt-4 rounded-2xl border border-violet-500/25 bg-violet-500/10 px-4 py-3">
+          <label className="label text-violet-800">Yerləşdirmə rejimi</label>
+          <select
+            className="input-field bg-white"
+            value={sellerType}
+            onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}
+          >
+            <option value="dealer">Mağaza kataloqu (abunə planı)</option>
+            <option value="private">Fərdi satıcı kimi</option>
+          </select>
+          {isStorePublishMode && storePlan && (
+            <p className="mt-2 text-xs text-violet-800">
+              {storePublishContext.activePartListings} / {storePlan.maxActiveListings} SKU slot ·{" "}
+              {storeSlotsRemaining} boş qalıb · elan başına max {maxImages} şəkil
+            </p>
+          )}
+        </div>
+      )}
 
       <ListingAiAnalyzePanel
         analysisContext="part_bulk"
         bulkMode
-        maxImages={15}
+        maxImages={isStorePublishMode ? Math.min(15, maxImages * 3) : 15}
         autoApply
         onImagesChange={setImages}
         onApplyBulkParts={applyBulkParts}
@@ -233,26 +282,36 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
             <h2 className="text-lg font-semibold text-slate-900">{drafts.length} elan hazırlanıb</h2>
             <div className="grid gap-3 sm:grid-cols-3">
               <input className="input-field" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Şəhər" />
-              {storeAccessEnabled ? (
-                <input className="input-field bg-emerald-500/10" value="Mağaza (abunə)" readOnly />
+              {isStorePublishMode ? (
+                <>
+                  <input className="input-field bg-violet-500/10" value="Mağaza (abunə)" readOnly />
+                  <input className="input-field bg-violet-500/10" value={storePlan?.nameAz ?? "Mağaza planı"} readOnly />
+                </>
               ) : (
-                <select className="input-field" value={sellerType} onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}>
-                  <option value="private">Fərdi</option>
-                  <option value="dealer">Mağaza</option>
-                </select>
-              )}
-              {!storeAccessEnabled ? (
-                <select className="input-field" value={planType} onChange={(e) => setPlanType(e.target.value as PlanType)}>
-                  {LISTING_PLANS.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.nameAz}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input className="input-field bg-emerald-500/10" value="Mağaza planı limiti" readOnly />
+                <>
+                  <select className="input-field" value={sellerType} onChange={(e) => setSellerType(e.target.value as "private" | "dealer")}>
+                    <option value="private">Fərdi</option>
+                    <option value="dealer">Mağaza</option>
+                  </select>
+                  <select className="input-field" value={planType} onChange={(e) => setPlanType(e.target.value as PlanType)}>
+                    {LISTING_PLANS.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.nameAz}
+                      </option>
+                    ))}
+                  </select>
+                </>
               )}
             </div>
+            {bulkExceedsSlots && (
+              <p className="text-sm text-amber-700">
+                {drafts.length} elan üçün yalnız {storeSlotsRemaining} boş slot var.{" "}
+                <Link href="/pricing#parts-store" className="font-medium text-[#0057FF] hover:underline">
+                  Planı yüksəldin
+                </Link>{" "}
+                və ya elan sayını azaldın.
+              </p>
+            )}
           </div>
 
           {drafts.map((draft) => (
@@ -366,11 +425,11 @@ export function PartsBulkPublishForm({ storeAccessEnabled }: { storeAccessEnable
 
           <button
             type="button"
-            disabled={!canPublish || submitting}
+            disabled={!canPublish || submitting || storeSlotsFull || bulkExceedsSlots}
             onClick={() => void publishAll()}
             className="btn-primary w-full justify-center py-3 disabled:opacity-50"
           >
-            {submitting ? "Yerləşdirilir…" : `${drafts.length} elanı yerləşdir`}
+            {submitting ? "Yerləşdirilir…" : isStorePublishMode ? `${drafts.length} elanı kataloqa əlavə et` : `${drafts.length} elanı yerləşdir`}
           </button>
         </div>
       )}
