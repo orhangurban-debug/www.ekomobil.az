@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getServerSessionUser } from "@/lib/auth";
+import { getUserProfile } from "@/server/user-store";
 import { InspectionPartnerApplicationForm } from "@/components/partners/inspection-partner-application-form";
 
 export const metadata: Metadata = {
@@ -15,6 +18,12 @@ export default async function InspectionPartnersPage({
 }) {
   const params = await searchParams;
   const initialType = params.type ?? null;
+
+  const user = await getServerSessionUser();
+  if (!user) redirect("/login?next=/partners/inspection");
+
+  const profile = await getUserProfile(user.id);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-6 text-sm text-slate-500">
@@ -55,7 +64,12 @@ export default async function InspectionPartnersPage({
       </div>
 
       <div className="mt-8">
-        <InspectionPartnerApplicationForm initialType={initialType} />
+        <InspectionPartnerApplicationForm
+          initialType={initialType}
+          accountEmail={user.email}
+          accountPhone={profile?.phone}
+          accountName={profile?.fullName}
+        />
       </div>
     </div>
   );

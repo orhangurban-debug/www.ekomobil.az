@@ -42,7 +42,7 @@ export default async function AdminBusinessApplicationsPage({
   const businessGroup = REQUEST_TYPE_GROUPS.find((g) => g.id === "business_apply");
   const businessTypes = businessGroup?.types ?? [];
 
-  const [snapshot, data, assignees, pendingCounts] = await Promise.all([
+  const [snapshot, data, resolvedData, assignees, pendingCounts] = await Promise.all([
     getAdminSupportSnapshot(),
     listAdminSupportRequestsPaged({
       page,
@@ -54,6 +54,12 @@ export default async function AdminBusinessApplicationsPage({
       requestGroup: "business_apply",
       riskFlag,
       assigned
+    }),
+    listAdminSupportRequestsPaged({
+      page: 1,
+      pageSize: 1,
+      requestGroup: "business_apply",
+      status: "resolved"
     }),
     listSupportAssignableStaff(),
     getAdminPendingCounts()
@@ -76,7 +82,7 @@ export default async function AdminBusinessApplicationsPage({
     { label: "Salon", value: businessByType.find((t) => t.requestType === "dealer_apply")?.count ?? 0, href: statHref({ requestType: "dealer_apply" }) },
     { label: "Mağaza", value: businessByType.find((t) => t.requestType === "parts_apply")?.count ?? 0, href: statHref({ requestType: "parts_apply" }) },
     { label: "Servis", value: businessByType.find((t) => t.requestType === "inspection_partner")?.count ?? 0, href: statHref({ requestType: "inspection_partner" }) },
-    { label: "Həll edilib", value: snapshot.resolvedCount, href: statHref({ status: "resolved" }) }
+    { label: "Həll edilib", value: resolvedData.total, href: statHref({ status: "resolved" }) }
   ];
 
   return (

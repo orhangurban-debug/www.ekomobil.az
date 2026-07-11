@@ -53,12 +53,15 @@ export function AdminServiceListingsTable({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status })
       });
-      const payload = (await response.json()) as { ok: boolean; error?: string };
+      const payload = (await response.json()) as { ok: boolean; error?: string; supportRequestResolved?: boolean };
       if (!response.ok || !payload.ok) {
         toast.error(payload.error ?? "Status yenilənə bilmədi.");
         return;
       }
       setLocalItems((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)));
+      if (status === "approved" && payload.supportRequestResolved) {
+        toast.success("Servis təsdiqləndi və bağlı müraciət həll edildi.");
+      }
     } finally {
       setBusyId(null);
     }

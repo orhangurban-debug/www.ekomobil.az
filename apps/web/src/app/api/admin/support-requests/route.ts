@@ -7,7 +7,7 @@ import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
 import { createDealerProfile } from "@/server/dealer-store";
 import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
-import { approveServiceListingsBySupportRequestId } from "@/server/service-listing-store";
+import { approveServiceListingsBySupportRequestId, rejectServiceListingsBySupportRequestId } from "@/server/service-listing-store";
 import { mergeDescriptionWithBranches } from "@/lib/branch-cities";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
@@ -202,6 +202,10 @@ export async function PATCH(req: Request) {
           });
           partnershipActivated = true;
         }
+        await pool.query(
+          `UPDATE dealer_profiles SET verified = TRUE, updated_at = NOW() WHERE owner_user_id = $1`,
+          [req.reporter_user_id]
+        );
       }
 
       // ── Parts store activation ─────────────────────────────────────────────
@@ -264,6 +268,21 @@ export async function PATCH(req: Request) {
       }
     } catch (err) {
       console.error("[support-requests PATCH] Business activation failed:", err);
+    }
+  }
+
+  if (effectiveStatus === "closed") {
+    try {
+      const pool = getPgPool();
+      const reqRow = await pool.query<{ request_type: string }>(
+        `SELECT request_type FROM support_requests WHERE id = $1 LIMIT 1`,
+        [body.id]
+      );
+      if (reqRow.rows[0]?.request_type === "inspection_partner") {
+        await rejectServiceListingsBySupportRequestId(body.id);
+      }
+    } catch (err) {
+      console.error("[support-requests PATCH] Service rejection failed:", err);
     }
   }
 

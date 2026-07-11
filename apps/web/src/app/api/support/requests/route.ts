@@ -122,6 +122,13 @@ interface DealerApplicationDraft {
   branchCities?: string[];
 }
 
+const BUSINESS_REQUEST_TYPES = new Set([
+  "dealer_apply",
+  "parts_apply",
+  "inspection_partner",
+  "partnership"
+]);
+
 export async function POST(req: Request) {
   const body = (await req.json()) as {
     requestType?: string;
@@ -141,6 +148,50 @@ export async function POST(req: Request) {
   const priority = defaultPriorityForRequestType(requestType);
   const reporterIp = getClientIp(req);
   const reporterUserAgent = req.headers.get("user-agent")?.slice(0, 512) ?? null;
+
+  let reporterUserId = getOptionalUserIdFromCookie(req);
+  let reporterEmail = body.email?.trim() || null;
+  let reporterName = body.name?.trim() || null;
+
+  if (BUSINESS_REQUEST_TYPES.has(requestType)) {
+    if (!reporterUserId) {
+      return NextResponse.json(
+        { ok: false, error: "Biznes müraciəti üçün hesabınıza daxil olun." },
+        { status: 401 }
+      );
+    }
+    try {
+      const pool = getPgPool();
+      const userRow = await pool.query<{ email: string; phone: string | null }>(
+        `SELECT email, phone FROM users WHERE id = $1 LIMIT 1`,
+        [reporterUserId]
+      );
+      const account = userRow.rows[0];
+      reporterEmail = reporterEmail || account?.email?.trim() || null;
+      if (!reporterEmail) {
+        return NextResponse.json(
+          { ok: false, error: "Biznes müraciəti üçün hesab e-poçtu tələb olunur." },
+          { status: 400 }
+        );
+      }
+      if (!reporterName) {
+        const profileRow = await pool.query<{ full_name: string | null }>(
+          `SELECT full_name FROM user_profiles WHERE user_id = $1 LIMIT 1`,
+          [reporterUserId]
+        );
+        reporterName = profileRow.rows[0]?.full_name?.trim() || account?.email?.split("@")[0] || "İstifadəçi";
+      }
+      if (!body.phone?.trim() && account?.phone) {
+        body.phone = account.phone;
+      }
+    } catch {
+      return NextResponse.json(
+        { ok: false, error: "Hesab məlumatları yoxlanıla bilmədi." },
+        { status: 500 }
+      );
+    }
+  }
+
   const metadata: Record<string, unknown> = {
     referer: req.headers.get("referer") ?? null,
     acceptLanguage: req.headers.get("accept-language")?.slice(0, 128) ?? null,
@@ -170,9 +221,9 @@ export async function POST(req: Request) {
       subject: body.subject.trim(),
       message: body.message.trim(),
       priority,
-      reporterUserId: getOptionalUserIdFromCookie(req),
-      reporterName: body.name?.trim() || null,
-      reporterEmail: body.email?.trim() || null,
+      reporterUserId,
+      reporterName,
+      reporterEmail,
       reporterPhone: body.phone?.trim() || null,
       listingId: body.listingId?.trim() || null,
       reporterIp: reporterIp || null,
@@ -187,7 +238,7 @@ export async function POST(req: Request) {
         try {
           const result = await createPendingServiceListing({
             supportRequestId,
-            ownerUserId: getOptionalUserIdFromCookie(req) ?? undefined,
+            ownerUserId: reporterUserId ?? undefined,
             name: draft.name.trim(),
             providerType: draft.providerType.trim(),
             city: draft.city.trim(),

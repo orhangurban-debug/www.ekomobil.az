@@ -357,7 +357,17 @@ const AZ_CITIES = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function InspectionPartnerApplicationForm({ initialType }: { initialType?: string | null }) {
+export function InspectionPartnerApplicationForm({
+  initialType,
+  accountEmail,
+  accountPhone,
+  accountName
+}: {
+  initialType?: string | null;
+  accountEmail: string;
+  accountPhone?: string;
+  accountName?: string;
+}) {
   const [providerType, setProviderType] = useState<ProviderTypeValue | "">(
     (initialType as ProviderTypeValue) ?? ""
   );
@@ -371,9 +381,9 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
   const [experience, setExperience] = useState("");
   const [licenseInfo, setLicenseInfo] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);
-  const [contactName, setContactName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [contactName, setContactName] = useState(accountName ?? "");
+  const [email, setEmail] = useState(accountEmail);
+  const [phone, setPhone] = useState(accountPhone ?? "");
   const [whatsapp, setWhatsapp] = useState("");
   const [website, setWebsite] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("");
@@ -581,7 +591,7 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
           subject,
           message: message.join("\n"),
           name: effectiveContactName,
-          email: email.trim() || "info@ekomobil.az",
+          email: accountEmail,
           phone: phone.trim(),
           servicePartner: {
             providerType,
@@ -600,6 +610,10 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
         })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string; serviceSlug?: string };
+      if (response.status === 401) {
+        window.location.href = "/login?next=/partners/inspection";
+        return;
+      }
       if (!response.ok || !payload.ok) {
         setIsError(true);
         setFeedback(payload.error ?? "Müraciət göndərilə bilmədi.");
@@ -1004,12 +1018,11 @@ export function InspectionPartnerApplicationForm({ initialType }: { initialType?
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email (hesab)</span>
               <input
-                className="input-field"
+                className="input-field bg-slate-50"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="info@..."
+                readOnly
                 type="email"
               />
             </label>

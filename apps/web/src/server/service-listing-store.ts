@@ -294,14 +294,64 @@ export async function listServiceListingsForAdmin(filter?: {
 export async function updateServiceListingStatus(
   id: string,
   status: ServiceListingStatus
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; supportRequestResolved?: boolean }> {
   try {
     await ensureServiceListingsTable();
     const pool = getPgPool();
     await pool.query(`UPDATE service_listings SET status = $2, updated_at = NOW() WHERE id = $1`, [id, status]);
-    return { ok: true };
+    let supportRequestResolved = false;
+    if (status === "approved") {
+      const resolved = await resolveLinkedSupportRequestAfterServiceApproval(id);
+      supportRequestResolved = resolved.resolved;
+    }
+    return { ok: true, supportRequestResolved };
   } catch {
     return { ok: false, error: "Status yenilənərkən xəta baş verdi." };
+  }
+}
+
+export async function resolveLinkedSupportRequestAfterServiceApproval(
+  listingId: string,
+  adminResponse = "Müraciətiniz təsdiqləndi. Servis profiliniz aktivləşdirildi."
+): Promise<{ resolved: boolean }> {
+  await ensureServiceListingsTable();
+  const pool = getPgPool();
+  const listing = await pool.query<{ support_request_id: string | null }>(
+    `SELECT support_request_id FROM service_listings WHERE id = $1 LIMIT 1`,
+    [listingId]
+  );
+  const requestId = listing.rows[0]?.support_request_id;
+  if (!requestId) return { resolved: false };
+
+  const result = await pool.query(
+    `UPDATE support_requests
+     SET
+       status = 'resolved',
+       admin_response = COALESCE(NULLIF(admin_response, ''), $2),
+       resolved_at = COALESCE(resolved_at, NOW()),
+       last_activity_at = NOW()
+     WHERE id = $1
+       AND status NOT IN ('resolved', 'closed', 'archived')`,
+    [requestId, adminResponse]
+  );
+  return { resolved: (result.rowCount ?? 0) > 0 };
+}
+
+export async function rejectServiceListingsBySupportRequestId(
+  supportRequestId: string
+): Promise<{ ok: boolean; rejectedCount: number }> {
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `UPDATE service_listings
+       SET status = 'rejected', updated_at = NOW()
+       WHERE support_request_id = $1 AND status IN ('pending', 'approved')`,
+      [supportRequestId]
+    );
+    return { ok: true, rejectedCount: result.rowCount ?? 0 };
+  } catch {
+    return { ok: false, rejectedCount: 0 };
   }
 }
 

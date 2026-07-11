@@ -36,8 +36,8 @@ export async function POST(req: Request) {
     actionType: "service_listing_status_updated",
     entityType: "service_listing",
     entityId: body.id,
-    metadata: { status: body.status }
+    metadata: { status: body.status, supportRequestResolved: result.supportRequestResolved ?? false }
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, supportRequestResolved: result.supportRequestResolved ?? false });
 }

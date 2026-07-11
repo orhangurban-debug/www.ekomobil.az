@@ -147,52 +147,176 @@ function SmartActionPanel({
     const slug = row.metadata?.serviceSlug as string | undefined;
     const svcStatus = row.metadata?.serviceStatus as string | undefined;
     const isActive = svcStatus === "approved";
+    const isPending = svcStatus === "pending";
+    const canActivate = Boolean(slug) && !isResolved;
+
     return (
       <section className="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
         <div className="flex items-start gap-3">
           <span className="text-2xl">🛠️</span>
           <div className="flex-1">
             <p className="font-semibold text-teal-800">Ekspertiza / Servis tərəfdaşlığı</p>
-            {slug ? (
-              isActive ? (
-                <p className="mt-1 text-sm text-teal-700">
-                  Admin tərəfindən təsdiqlənib və <strong>aktiv</strong> statusundadır.
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-amber-700">
-                  Profil yaradılıb və <strong>gözləmə</strong> statusundadır. Təsdiq üçün müraciəti həll edin.
-                </p>
-              )
+            {!slug ? (
+              <p className="mt-1 text-sm text-amber-700">
+                Müraciət formasında kifayət qədər məlumat olmadığından profil avtomatik yaradılmadı.
+                Müraciət mətnini yoxlayın və ya istifadəçidən yenidən müraciət istəyin.
+              </p>
+            ) : isActive ? (
+              <p className="mt-1 text-sm text-teal-700">
+                Servis profili <strong>aktiv</strong> statusundadır.
+                {!isResolved && " Müraciəti bağlamaq üçün aşağıdakı düyməni basın."}
+              </p>
+            ) : isPending ? (
+              <p className="mt-1 text-sm text-amber-700">
+                Profil yaradılıb və <strong>gözləmə</strong> statusundadır. Təsdiq üçün aktivləşdirin.
+              </p>
             ) : (
               <p className="mt-1 text-sm text-slate-600">
-                Müraciət formasında kifayət qədər məlumat olmadığından profil avtomatik yaradılmadı.
-                Lazım olarsa aşağıdakı "Mağaza profili yarat" linkinə keçin.
+                Servis profili mövcuddur, lakin aktiv deyil ({svcStatus ?? "naməlum"}).
               </p>
             )}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {slug && (
+
+            {slug && (
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Link
                   href={`/services/${slug}`}
                   target="_blank"
-                  className="inline-flex items-center gap-1 rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700"
+                  className="inline-flex items-center gap-1 rounded-lg border border-teal-300 bg-white px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-100"
                 >
-                  Profili gör →
+                  {isActive ? "Canlı profilə bax →" : "Profili önizlə →"}
                 </Link>
-              )}
-              {slug && (
                 <Link
-                  href={`/admin/services`}
+                  href="/admin/service-listings"
                   className="inline-flex items-center gap-1 rounded-lg border border-teal-300 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-100"
                 >
-                  Admin servis paneli
+                  Servis paneli
                 </Link>
-              )}
-              {isActive && !isResolved && (
-                <p className="self-center text-xs text-slate-500">
-                  Bu müraciəti arxivlə — işiniz bitdi.
-                </p>
-              )}
-            </div>
+              </div>
+            )}
+
+            {canActivate && (
+              <div className="mt-3 space-y-2">
+                <div className="rounded-lg bg-teal-100/60 px-3 py-2 text-xs text-teal-800">
+                  <strong>Aktivləşdir</strong> düyməsi basıldıqda: Servis profili təsdiqlənəcək ·
+                  İctimai kataloqda görünəcək · Müraciət həll edilmiş kimi qeyd olunacaq.
+                </div>
+                {!showReject ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={onActivate}
+                      disabled={busy || !slug}
+                      className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+                    >
+                      {busy ? "İşlənir..." : isActive ? "✅ Müraciəti bağla" : "✅ Müraciəti təsdiqlə & Aktivləşdir"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowReject(true)}
+                      disabled={busy}
+                      className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                    >
+                      ❌ Rədd et
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      className="input-field min-h-16 text-sm"
+                      placeholder="Rədd səbəbini yazın (istifadəçiyə göndəriləcək)..."
+                      value={rejectNote}
+                      onChange={(e) => setRejectNote(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onReject(rejectNote)}
+                        disabled={busy || !rejectNote.trim()}
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {busy ? "Göndərilir..." : "Rədd et & Cavab göndər"}
+                      </button>
+                      <button type="button" onClick={() => setShowReject(false)} className="btn-secondary px-3 py-2 text-sm">
+                        Geri
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isResolved && (
+              <p className="mt-2 text-sm font-medium text-emerald-700">✓ Bu müraciət həll edilib.</p>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Ümumi tərəfdaşlıq (strukturlaşdırılmamış) ─────────────────────────────
+  if (type === "partnership") {
+    return (
+      <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">🤝</span>
+          <div className="flex-1">
+            <p className="font-semibold text-emerald-800">Tərəfdaşlıq müraciəti</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Strukturlaşdırılmış salon məlumatı yoxdur — müraciət mətninə əsasən qərar verin.
+            </p>
+            {!isResolved && (
+              <div className="mt-3 space-y-2">
+                <div className="rounded-lg bg-emerald-100/60 px-3 py-2 text-xs text-emerald-800">
+                  Aktivləşdirmə salon hesabı və 30 günlük sınaq abunəsi yaradır (mümkün olduqda).
+                </div>
+                {!showReject ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={onActivate}
+                      disabled={busy}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                    >
+                      {busy ? "İşlənir..." : "✅ Müraciəti təsdiqlə & Aktivləşdir"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowReject(true)}
+                      disabled={busy}
+                      className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+                    >
+                      ❌ Rədd et
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <textarea
+                      className="input-field min-h-16 text-sm"
+                      placeholder="Rədd səbəbini yazın..."
+                      value={rejectNote}
+                      onChange={(e) => setRejectNote(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onReject(rejectNote)}
+                        disabled={busy || !rejectNote.trim()}
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {busy ? "Göndərilir..." : "Rədd et & Cavab göndər"}
+                      </button>
+                      <button type="button" onClick={() => setShowReject(false)} className="btn-secondary px-3 py-2 text-sm">
+                        Geri
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {isResolved && (
+              <p className="mt-2 text-sm font-medium text-emerald-700">✓ Bu müraciət həll edilib.</p>
+            )}
           </div>
         </div>
       </section>
@@ -567,9 +691,12 @@ export function AdminSupportRequestsTable({
     setBusy(true);
     setError(null);
     try {
-      const activationMsg = selected.requestType === "dealer_apply" || selected.requestType === "partnership"
-        ? "Müraciətiniz təsdiqləndi. Salon panelinizə giriş açıldı."
-        : "Müraciətiniz təsdiqləndi. Mağaza panelinizə giriş açıldı.";
+      const activationMsg =
+        selected.requestType === "inspection_partner"
+          ? "Müraciətiniz təsdiqləndi. Servis profiliniz aktivləşdirildi."
+          : selected.requestType === "dealer_apply" || selected.requestType === "partnership"
+          ? "Müraciətiniz təsdiqləndi. Salon panelinizə giriş açıldı."
+          : "Müraciətiniz təsdiqləndi. Mağaza panelinizə giriş açıldı.";
       const result = await patchRequest({
         id: selected.id,
         status: "resolved",
