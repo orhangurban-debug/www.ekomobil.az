@@ -7,6 +7,8 @@ export interface AdminPendingCounts {
   newSupportRequests: number;
   /** Business applications (dealer_apply, parts_apply, inspection_partner) in "new" state */
   newBusinessApplications: number;
+  /** Service partner listings awaiting approval */
+  pendingServiceListings: number;
   /** Open incident cases */
   openIncidents: number;
   /** Ad requests awaiting action */
@@ -21,7 +23,7 @@ export interface AdminPendingCounts {
 export async function getAdminPendingCounts(): Promise<AdminPendingCounts> {
   const pool = getPgPool();
   try {
-    const [listingsRes, supportRes, incidentRes, adReqRes] = await Promise.all([
+    const [listingsRes, supportRes, serviceRes, incidentRes, adReqRes] = await Promise.all([
       // Listings pending review
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text AS count FROM listings WHERE status = 'pending_review'`
@@ -35,6 +37,9 @@ export async function getAdminPendingCounts(): Promise<AdminPendingCounts> {
           ))::text AS business
          FROM support_requests
          WHERE status = 'new'`
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM service_listings WHERE status = 'pending'`
       ),
       // Open incident cases
       pool.query<{ count: string }>(
@@ -53,6 +58,7 @@ export async function getAdminPendingCounts(): Promise<AdminPendingCounts> {
       pendingListings: parseInt(listingsRes.rows[0]?.count ?? "0", 10),
       newSupportRequests: total - business,
       newBusinessApplications: business,
+      pendingServiceListings: parseInt(serviceRes.rows[0]?.count ?? "0", 10),
       openIncidents: parseInt(incidentRes.rows[0]?.count ?? "0", 10),
       pendingAdRequests: parseInt(adReqRes.rows[0]?.count ?? "0", 10)
     };
@@ -62,6 +68,7 @@ export async function getAdminPendingCounts(): Promise<AdminPendingCounts> {
       pendingListings: 0,
       newSupportRequests: 0,
       newBusinessApplications: 0,
+      pendingServiceListings: 0,
       openIncidents: 0,
       pendingAdRequests: 0
     };

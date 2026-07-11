@@ -39,7 +39,7 @@ function buildSections(counts: AdminPendingCounts): NavSection[] {
       items: [
         { href: "/admin/salon-profiles",   label: "Salon profilləri" },
         { href: "/admin/magaza-profiles",  label: "Mağaza profilləri" },
-        { href: "/admin/service-listings",  label: "Servis elanları" },
+        { href: "/admin/service-listings",  label: "Servis elanları", badgeKey: "pendingServiceListings" },
         { href: "/admin/business-plans",    label: "Plan abunələri" }
       ]
     },

@@ -56,6 +56,12 @@ export default async function AdminDashboardPage() {
           href="/admin/support-requests?status=new"
           accent={overview.newSupportRequests > 0}
         />
+        <StatCard
+          label="Biznes müraciətləri"
+          value={overview.newBusinessApplications.toLocaleString("az-AZ")}
+          href="/admin/business-applications?status=new"
+          accent={overview.newBusinessApplications > 0}
+        />
         <StatCard label="Canlı auksionlar" value={overview.liveAuctions.toLocaleString("az-AZ")} href="/admin/auctions?status=live" />
         <StatCard label="Auksion həll gözləyən" value={overview.unresolvedCases.toLocaleString("az-AZ")} href="/admin/auctions?status=ended_pending_confirmation" />
         <StatCard
@@ -120,6 +126,21 @@ export default async function AdminDashboardPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Auksion idarəsi</p>
           <h3 className="mt-2 font-bold text-slate-900">Risk və dondurma paneli</h3>
           <p className="mt-1 text-sm text-slate-500">Lot dondurma, əl baxışı bayraqları və sürətli keçidlər.</p>
+        </Link>
+        <Link href="/admin/business-applications" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Biznes</p>
+          <h3 className="mt-2 font-bold text-slate-900">Biznes müraciətləri</h3>
+          <p className="mt-1 text-sm text-slate-500">Salon, mağaza və servis onboarding təsdiqi.</p>
+        </Link>
+        <Link href="/admin/salon-profiles" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Biznes hesabları</p>
+          <h3 className="mt-2 font-bold text-slate-900">Salon / Mağaza profilləri</h3>
+          <p className="mt-1 text-sm text-slate-500">Profil moderasiyası və abunə əməliyyatları.</p>
+        </Link>
+        <Link href="/admin/service-listings" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Servislər</p>
+          <h3 className="mt-2 font-bold text-slate-900">Servis partnyorları</h3>
+          <p className="mt-1 text-sm text-slate-500">Servis profillərinin təsdiqi və idarəsi.</p>
         </Link>
         <Link href="/admin/invoices" className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-[#0891B2]/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0891B2]">Maliyyə</p>

@@ -1,14 +1,11 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
-import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteAdminSupportRequests, updateAdminUserRole } from "@/server/admin-store";
+import { listAdminSupportRequestsPaged, updateAdminSupportRequest, deleteAdminSupportRequests } from "@/server/admin-store";
 import { getPgPool } from "@/lib/postgres";
 import { sendSupportReplyEmail } from "@/lib/email";
-import { createDealerProfile } from "@/server/dealer-store";
-import { upsertBusinessPlanSubscription } from "@/server/business-plan-store";
-import { approveServiceListingsBySupportRequestId, ensureServiceListingForSupportRequest, rejectServiceListingsBySupportRequestId } from "@/server/service-listing-store";
-import { mergeDescriptionWithBranches } from "@/lib/branch-cities";
+import { activateBusinessSupportRequest, isBusinessSupportRequestType } from "@/server/business-activation-store";
+import { rejectServiceListingsBySupportRequestId } from "@/server/service-listing-store";
 
 const ALLOWED_STATUS = new Set(["new", "in_progress", "waiting_user", "resolved", "closed", "archived"]);
 const ALLOWED_PRIORITY = new Set(["low", "normal", "high", "urgent"]);
@@ -117,6 +114,34 @@ export async function PATCH(req: Request) {
     effectiveStatus = "waiting_user";
   }
 
+  let partnershipActivated = false;
+  if (effectiveStatus === "resolved") {
+    try {
+      const pool = getPgPool();
+      const reqRow = await pool.query<{ request_type: string }>(
+        `SELECT request_type FROM support_requests WHERE id = $1 LIMIT 1`,
+        [body.id]
+      );
+      const requestType = reqRow.rows[0]?.request_type ?? "";
+      if (isBusinessSupportRequestType(requestType)) {
+        const activation = await activateBusinessSupportRequest(body.id);
+        if (!activation.ok) {
+          return NextResponse.json(
+            { ok: false, error: activation.error ?? "Biznes hesabı aktivləşdirilə bilmədi." },
+            { status: 409 }
+          );
+        }
+        partnershipActivated = activation.activated;
+      }
+    } catch (err) {
+      console.error("[support-requests PATCH] Business activation failed:", err);
+      return NextResponse.json(
+        { ok: false, error: "Biznes hesabı aktivləşdirilərkən xəta baş verdi." },
+        { status: 500 }
+      );
+    }
+  }
+
   await updateAdminSupportRequest({
     id: body.id,
     status: effectiveStatus,
@@ -136,141 +161,6 @@ export async function PATCH(req: Request) {
     messageProvided: "message" in body,
     riskFlag: body.riskFlag
   });
-
-  // ── Business account auto-activation ──────────────────────────────────────
-  // When a dealer_apply / partnership / parts_apply request is marked "resolved",
-  // automatically grant the appropriate 30-day trial subscription (and for
-  // dealer_apply, also create the dealer_profiles row and set the user role).
-  let partnershipActivated = false;
-  if (effectiveStatus === "resolved") {
-    try {
-      const pool = getPgPool();
-      const reqRow = await pool.query<{
-        request_type: string;
-        reporter_user_id: string | null;
-        metadata: Record<string, unknown> | null;
-      }>(
-        `SELECT request_type, reporter_user_id, metadata FROM support_requests WHERE id = $1 LIMIT 1`,
-        [body.id]
-      );
-      const req = reqRow.rows[0];
-      const isDealerApply = req?.request_type === "dealer_apply" || req?.request_type === "partnership";
-      const isPartsApply  = req?.request_type === "parts_apply";
-      const isInspectionPartner = req?.request_type === "inspection_partner";
-
-      // ── Salon / dealer activation ──────────────────────────────────────────
-      if (isDealerApply && req.reporter_user_id) {
-        const app = req.metadata?.dealerApplication as Record<string, unknown> | undefined;
-        const businessName = (app?.businessName as string | undefined)?.trim() || "Dealer";
-        const city = (app?.city as string | undefined)?.trim() || "Bakı";
-        const voen = (app?.voen as string | undefined)?.trim() || null;
-        const websiteUrl = (app?.website as string | undefined)?.trim() || null;
-        const rawDescription = (app?.description as string | undefined)?.trim() || null;
-        const logoUrl = (app?.logoUrl as string | undefined)?.trim() || null;
-        const branchCities = Array.isArray(app?.branchCities)
-          ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
-          : [];
-        const description = mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null;
-
-        const existingProfile = await pool.query<{ id: string }>(
-          `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
-          [req.reporter_user_id]
-        );
-        if (!existingProfile.rows[0]) {
-          const dealerProfileId = randomUUID();
-          await createDealerProfile({
-            id: dealerProfileId,
-            ownerUserId: req.reporter_user_id,
-            name: businessName,
-            city,
-            voen,
-            websiteUrl,
-            description,
-            logoUrl,
-          });
-          await updateAdminUserRole(req.reporter_user_id, "dealer");
-          const now = new Date();
-          const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-          await upsertBusinessPlanSubscription({
-            ownerUserId: req.reporter_user_id,
-            businessType: "dealer",
-            planId: "baza",
-            status: "active",
-            startsAt: now.toISOString(),
-            expiresAt: trialEnd.toISOString(),
-            trialGrantedAt: now.toISOString(),
-          });
-          partnershipActivated = true;
-        }
-        await pool.query(
-          `UPDATE dealer_profiles SET verified = TRUE WHERE owner_user_id = $1`,
-          [req.reporter_user_id]
-        );
-      }
-
-      // ── Parts store activation ─────────────────────────────────────────────
-      if (isPartsApply && req.reporter_user_id) {
-        const app = req.metadata?.dealerApplication as Record<string, unknown> | undefined;
-        const businessName = (app?.businessName as string | undefined)?.trim() || null;
-        const city = (app?.city as string | undefined)?.trim() || null;
-        const rawDescription = (app?.description as string | undefined)?.trim() || null;
-        const logoUrl = (app?.logoUrl as string | undefined)?.trim() || null;
-        const branchCities = Array.isArray(app?.branchCities)
-          ? (app.branchCities as unknown[]).filter((item): item is string => typeof item === "string")
-          : [];
-        const storeDescription = city
-          ? mergeDescriptionWithBranches(rawDescription ?? "", branchCities, city) || null
-          : rawDescription;
-
-        const existingSub = await pool.query<{ id: string }>(
-          `SELECT id FROM business_plan_subscriptions
-           WHERE owner_user_id = $1 AND business_type = 'parts_store'
-             AND status = 'active' AND (expires_at IS NULL OR expires_at >= NOW())
-           LIMIT 1`,
-          [req.reporter_user_id]
-        );
-        if (!existingSub.rows[0]) {
-          const now = new Date();
-          const trialEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-          await upsertBusinessPlanSubscription({
-            ownerUserId: req.reporter_user_id,
-            businessType: "parts_store",
-            planId: "baza",
-            status: "active",
-            startsAt: now.toISOString(),
-            expiresAt: trialEnd.toISOString(),
-            trialGrantedAt: now.toISOString(),
-          });
-          partnershipActivated = true;
-        }
-
-        if (businessName || logoUrl || storeDescription || city) {
-          await pool.query(
-            `INSERT INTO user_profiles (user_id, store_name, store_logo_url, store_description, city, updated_at)
-             VALUES ($1, $2, $3, $4, $5, NOW())
-             ON CONFLICT (user_id) DO UPDATE SET
-               store_name = COALESCE(EXCLUDED.store_name, user_profiles.store_name),
-               store_logo_url = CASE WHEN EXCLUDED.store_logo_url IS NOT NULL THEN EXCLUDED.store_logo_url ELSE user_profiles.store_logo_url END,
-               store_description = COALESCE(EXCLUDED.store_description, user_profiles.store_description),
-               city = COALESCE(EXCLUDED.city, user_profiles.city),
-               updated_at = NOW()`,
-            [req.reporter_user_id, businessName, logoUrl, storeDescription, city]
-          );
-        }
-      }
-
-      // ── Servis / ekspertiza profili təsdiqi ───────────────────────────────
-      if (isInspectionPartner) {
-        await ensureServiceListingForSupportRequest(body.id);
-        const approval = await approveServiceListingsBySupportRequestId(body.id);
-        if (approval.approvedCount > 0) {
-          partnershipActivated = true;
-        }
-      }
-    } catch (err) {
-      console.error("[support-requests PATCH] Business activation failed:", err);
-    }
-  }
 
   if (effectiveStatus === "closed") {
     try {

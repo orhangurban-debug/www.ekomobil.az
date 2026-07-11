@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiRoles } from "@/lib/rbac";
+import { LEAD_STAGE_OPTIONS } from "@/lib/admin-leads";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { bulkUpdateLeadStage, listAdminLeadsPaged } from "@/server/admin-store";
 
@@ -25,7 +26,7 @@ export async function PATCH(req: Request) {
   if (leadIds.length === 0 || !body.stage) {
     return NextResponse.json({ ok: false, error: "Sorğu ID-ləri və mərhələ mütləqdir." }, { status: 400 });
   }
-  const allowed = new Set(["new", "in_progress", "test_drive", "offer", "won", "closed"]);
+  const allowed = new Set<string>(LEAD_STAGE_OPTIONS.map((item) => item.value));
   if (!allowed.has(body.stage)) {
     return NextResponse.json({ ok: false, error: "Sorğu mərhələsi yanlışdır." }, { status: 400 });
   }

@@ -61,6 +61,7 @@ export interface AdminOverview {
   liveAuctions: number;
   unresolvedCases: number;
   newSupportRequests: number;
+  newBusinessApplications: number;
   openIncidents: number;
   monthlyRevenueAzn: number;
 }
@@ -309,7 +310,7 @@ function n(v: string | number | null | undefined): number {
 export async function getAdminOverview(): Promise<AdminOverview> {
   try {
     const pool = getPgPool();
-    const [users, listings, auctions, cases, supportNew, openIncidents, revenue] = await Promise.all([
+    const [users, listings, auctions, cases, supportNew, businessNew, openIncidents, revenue] = await Promise.all([
       pool.query<{ total: string; active: string }>(
         `SELECT COUNT(*)::text AS total,
                 SUM(CASE WHEN user_account_status = 'active' THEN 1 ELSE 0 END)::text AS active
@@ -333,7 +334,14 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text AS count
          FROM support_requests
-         WHERE status = 'new'`
+         WHERE status = 'new'
+           AND request_type NOT IN ('dealer_apply','parts_apply','inspection_partner','partnership')`
+      ),
+      pool.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count
+         FROM support_requests
+         WHERE status = 'new'
+           AND request_type IN ('dealer_apply','parts_apply','inspection_partner','partnership')`
       ),
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text AS count
@@ -363,6 +371,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       liveAuctions: n(auctions.rows[0]?.live_auctions),
       unresolvedCases: n(cases.rows[0]?.unresolved_cases),
       newSupportRequests: n(supportNew.rows[0]?.count),
+      newBusinessApplications: n(businessNew.rows[0]?.count),
       openIncidents: n(openIncidents.rows[0]?.count),
       monthlyRevenueAzn: n(revenue.rows[0]?.monthly_revenue)
     };
@@ -374,6 +383,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       liveAuctions: 0,
       unresolvedCases: 0,
       newSupportRequests: 0,
+      newBusinessApplications: 0,
       openIncidents: 0,
       monthlyRevenueAzn: 0
     };

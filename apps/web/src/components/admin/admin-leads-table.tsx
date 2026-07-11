@@ -75,9 +75,8 @@ export function AdminLeadsTable({ items }: { items: AdminLeadRow[] }) {
           Seçilən sorğu: <span className="font-semibold text-slate-900">{Object.values(selected).filter(Boolean).length}</span>
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" disabled={busy} onClick={() => void bulkStage("in_progress")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu icraya keçir</button>
-          <button type="button" disabled={busy} onClick={() => void bulkStage("test_drive")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu test sürüşü</button>
-          <button type="button" disabled={busy} onClick={() => void bulkStage("won")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu uğurlu satış</button>
+          <button type="button" disabled={busy} onClick={() => void bulkStage("contacted")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu əlaqə qurulub</button>
+          <button type="button" disabled={busy} onClick={() => void bulkStage("visit_booked")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu baxış təyin et</button>
           <button type="button" disabled={busy} onClick={() => void bulkStage("closed")} className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-60">Toplu bağla</button>
         </div>
       </div>
