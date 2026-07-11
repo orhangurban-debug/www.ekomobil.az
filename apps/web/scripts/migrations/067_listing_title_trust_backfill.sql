@@ -32,7 +32,7 @@ WHERE lts.listing_id = l.id
     COALESCE(dp.verified, FALSE) = TRUE
     OR EXISTS (
       SELECT 1
-      FROM kyc_profiles kp
+      FROM user_kyc_profiles kp
       WHERE kp.status = 'approved'
         AND kp.user_id IN (l.owner_user_id, dp.owner_user_id)
     )

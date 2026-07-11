@@ -29,7 +29,7 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
         ts.mileage_flag_severity,
         COALESCE(dp.verified, FALSE) AS dealer_verified,
         EXISTS (
-          SELECT 1 FROM kyc_profiles kp
+          SELECT 1 FROM user_kyc_profiles kp
           WHERE kp.status = 'approved'
             AND kp.user_id IN (l.owner_user_id, dp.owner_user_id)
         ) AS owner_kyc_approved,
@@ -152,7 +152,7 @@ export async function resolveSellerVerifiedForPublish(input: {
       SELECT
         COALESCE(dp.verified, FALSE) AS dealer_verified,
         EXISTS (
-          SELECT 1 FROM kyc_profiles kp
+          SELECT 1 FROM user_kyc_profiles kp
           WHERE kp.status = 'approved'
             AND kp.user_id IN ($1, dp.owner_user_id)
         ) AS owner_kyc_approved,

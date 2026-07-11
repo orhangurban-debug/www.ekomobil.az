@@ -711,7 +711,7 @@ export async function getPublicSellerProfile(
         [userId]
       ),
       pool.query<{ count: string }>(
-        `SELECT COUNT(*)::text as count FROM kyc_profiles
+        `SELECT COUNT(*)::text as count FROM user_kyc_profiles
          WHERE user_id = $1 AND status = 'approved'`,
         [userId]
       ).catch(() => ({ rows: [{ count: "0" }] })),

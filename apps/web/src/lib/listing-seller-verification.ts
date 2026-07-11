@@ -31,7 +31,7 @@ export function listingSellerContextSelectSql(): string {
     (NULLIF(BTRIM(COALESCE(ou.phone, '')), '') IS NOT NULL) AS owner_phone_set,
     EXISTS (
       SELECT 1
-      FROM kyc_profiles kp
+      FROM user_kyc_profiles kp
       WHERE kp.status = 'approved'
         AND kp.user_id IN (l.owner_user_id, dp.owner_user_id)
     ) AS owner_kyc_approved,
