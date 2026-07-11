@@ -4,6 +4,7 @@ import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
 import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
 import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
+import { syncActiveDealerVerification } from "@/server/dealer-store";
 import type { SupportRequestMeta } from "@/components/admin/admin-support-types";
 
 let supportEnrichColumnsReadyCache: boolean | null = null;
@@ -114,6 +115,13 @@ export interface AdminBusinessProfileRow {
   updatedAt: string;
   subscriptionExpiresAt?: string;
   subscriptionStatus?: string;
+}
+
+export interface AdminBusinessProfileSummary {
+  dealerCount: number;
+  storeCount: number;
+  verifiedCount: number;
+  pendingDealerCount: number;
 }
 
 export interface CrmSnapshot {
@@ -694,7 +702,9 @@ export async function listAdminBusinessProfilesPaged(input: {
   q?: string;
   profileType?: "dealer" | "store";
   verified?: "yes" | "no";
-}): Promise<PaginatedResult<AdminBusinessProfileRow>> {
+}): Promise<PaginatedResult<AdminBusinessProfileRow> & { summary: AdminBusinessProfileSummary }> {
+  await syncActiveDealerVerification();
+
   const page = clampPage(input.page);
   const pageSize = clampPageSize(input.pageSize);
   const offset = (page - 1) * pageSize;
@@ -713,7 +723,7 @@ export async function listAdminBusinessProfilesPaged(input: {
   if (input.verified === "no") where.push(`dp.verified = FALSE`);
 
   const includeDealers = input.profileType !== "store";
-  const includeStores = input.profileType !== "dealer";
+  const includeStores = input.profileType !== "dealer" && input.verified !== "no";
   const pool = getPgPool();
 
   // Dealer profile WHERE clause uses different aliases
@@ -746,7 +756,6 @@ export async function listAdminBusinessProfilesPaged(input: {
           WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
             AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
         )
-        AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp2 WHERE dp2.owner_user_id = u.id)
         ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}` : ""}
       ) combined
     `,
@@ -821,7 +830,7 @@ export async function listAdminBusinessProfilesPaged(input: {
         u.email AS owner_email,
         COALESCE(up.store_name, u.email, 'Mağaza sahibi') AS name,
         COALESCE(up.city, '—') AS city,
-        FALSE AS verified,
+        TRUE AS verified,
         up.store_logo_url AS logo_url,
         up.store_cover_url AS cover_url,
         NULL AS whatsapp_phone,
@@ -855,7 +864,6 @@ export async function listAdminBusinessProfilesPaged(input: {
         WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
           AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
       )
-      AND NOT EXISTS (SELECT 1 FROM dealer_profiles dp3 WHERE dp3.owner_user_id = u.id)
       ${storeWhere ? `AND ${storeWhere.replace("WHERE ", "")}` : ""}` : ""}
       ORDER BY updated_at DESC
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
@@ -864,6 +872,73 @@ export async function listAdminBusinessProfilesPaged(input: {
   );
 
   const total = n(countResult.rows[0]?.total);
+
+  const searchValues = input.q?.trim() ? [`%${input.q.trim().toLowerCase()}%`] : [];
+  const dealerSearchClause = searchValues.length
+    ? `AND (
+        LOWER(dp.name) LIKE $1
+        OR LOWER(dp.city) LIKE $1
+        OR LOWER(COALESCE(u.email, '')) LIKE $1
+        OR LOWER(COALESCE(dp.website_url, '')) LIKE $1
+      )`
+    : "";
+  const storeSearchClause = searchValues.length
+    ? `AND (
+        LOWER(COALESCE(up.store_name, '')) LIKE $1
+        OR LOWER(COALESCE(u.email, '')) LIKE $1
+      )`
+    : "";
+
+  const summaryResult = await pool.query<{
+    dealer_count: string;
+    store_count: string;
+    verified_dealer_count: string;
+    pending_dealer_count: string;
+  }>(
+    `
+      SELECT
+        (
+          SELECT COUNT(*)::text
+          FROM dealer_profiles dp
+          LEFT JOIN users u ON u.id = dp.owner_user_id
+          WHERE TRUE ${dealerSearchClause}
+        ) AS dealer_count,
+        (
+          SELECT COUNT(*)::text
+          FROM users u
+          LEFT JOIN user_profiles up ON up.user_id = u.id
+          WHERE EXISTS (
+            SELECT 1 FROM business_plan_subscriptions s
+            WHERE s.owner_user_id = u.id AND s.business_type = 'parts_store'
+              AND s.status = 'active' AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+          )
+          ${storeSearchClause}
+        ) AS store_count,
+        (
+          SELECT COUNT(*)::text
+          FROM dealer_profiles dp
+          LEFT JOIN users u ON u.id = dp.owner_user_id
+          WHERE dp.verified = TRUE ${dealerSearchClause}
+        ) AS verified_dealer_count,
+        (
+          SELECT COUNT(*)::text
+          FROM dealer_profiles dp
+          LEFT JOIN users u ON u.id = dp.owner_user_id
+          WHERE dp.verified = FALSE ${dealerSearchClause}
+        ) AS pending_dealer_count
+    `,
+    searchValues
+  );
+  const summaryRow = summaryResult.rows[0];
+  const dealerCount = n(summaryRow?.dealer_count);
+  const storeCount = n(summaryRow?.store_count);
+  const summary: AdminBusinessProfileSummary = {
+    dealerCount,
+    storeCount,
+    verifiedCount: n(summaryRow?.verified_dealer_count) + storeCount,
+    pendingDealerCount: n(summaryRow?.pending_dealer_count)
+  };
+
   return {
     items: result.rows.map((row) => ({
       dealerId: row.dealer_id,
@@ -888,7 +963,8 @@ export async function listAdminBusinessProfilesPaged(input: {
     total,
     page,
     pageSize,
-    totalPages: Math.max(1, Math.ceil(total / pageSize))
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    summary
   };
 }
 

@@ -27,10 +27,7 @@ export default async function AdminBusinessProfilesPage({
   const verified = typeof params.verified === "string" ? (params.verified as "yes" | "no") : undefined;
 
   const data = await listAdminBusinessProfilesPaged({ page, pageSize, q, profileType, verified });
-
-  const dealers = data.items.filter((item) => item.profileType === "dealer");
-  const stores = data.items.filter((item) => item.profileType === "store");
-  const verifiedCount = data.items.filter((item) => item.verified).length;
+  const { summary } = data;
 
   const qParams = new URLSearchParams();
   if (q) qParams.set("q", q);
@@ -40,10 +37,10 @@ export default async function AdminBusinessProfilesPage({
 
   const stats = [
     { label: "Cəmi", value: data.total, href: statHref({ q }) },
-    { label: "Salon", value: dealers.length, href: statHref({ profileType: "dealer", q }) },
-    { label: "Mağaza", value: stores.length, href: statHref({ profileType: "store", q }) },
-    { label: "Təsdiqlənib", value: verifiedCount, href: statHref({ verified: "yes", q }) },
-    { label: "Gözləyir", value: data.items.filter((item) => !item.verified && item.profileType === "dealer").length, href: statHref({ verified: "no", q }) }
+    { label: "Salon", value: summary.dealerCount, href: statHref({ profileType: "dealer", q }) },
+    { label: "Mağaza", value: summary.storeCount, href: statHref({ profileType: "store", q }) },
+    { label: "Təsdiqlənib", value: summary.verifiedCount, href: statHref({ verified: "yes", q }) },
+    { label: "Gözləyir", value: summary.pendingDealerCount, href: statHref({ verified: "no", q }) }
   ];
 
   return (

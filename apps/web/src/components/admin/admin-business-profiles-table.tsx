@@ -279,7 +279,7 @@ export function AdminBusinessProfilesTable({
                             Salon
                           </span>
                         )}
-                        {item.verified && item.profileType === "dealer" && (
+                        {item.verified && (
                           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                             Təsdiqlənib
                           </span>

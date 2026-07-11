@@ -698,6 +698,29 @@ export async function getDealerProfileIdByOwner(userId: string): Promise<string 
 }
 
 /**
+ * Active salon abunəsi olan, amma verified=false qalan köhnə profilləri sinxronlaşdırır.
+ */
+export async function syncActiveDealerVerification(): Promise<number> {
+  const pool = getPgPool();
+  const result = await pool.query(
+    `
+      UPDATE dealer_profiles dp
+      SET verified = TRUE, updated_at = NOW()
+      WHERE dp.verified = FALSE
+        AND EXISTS (
+          SELECT 1 FROM business_plan_subscriptions s
+          WHERE s.owner_user_id = dp.owner_user_id
+            AND s.business_type = 'dealer'
+            AND s.status = 'active'
+            AND (s.expires_at IS NULL OR s.expires_at >= NOW())
+        )
+      RETURNING dp.id
+    `
+  );
+  return result.rowCount ?? 0;
+}
+
+/**
  * Creates a new dealer_profiles row.
  * Called during partnership approval flow.
  */
