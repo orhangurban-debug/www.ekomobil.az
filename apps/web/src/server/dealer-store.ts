@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { getPgPool } from "@/lib/postgres";
 import { LeadRecord, ListingSummary } from "@/lib/marketplace-types";
 import { ensureSeedData } from "@/server/bootstrap-seed";
-import { createListingRecord, inferPriceInsight } from "@/server/listing-store";
+import { createListingRecord, inferPriceInsight, listingMediaOrderSql } from "@/server/listing-store";
 import type { BusinessProfileEntitlements } from "@/server/business-plan-store";
 import {
   createLeadForListing,
@@ -97,6 +97,7 @@ export async function getDealerDashboard(userId: string): Promise<{
       return { dealerName: null, city: "Bakı", verified: false, inventory: [], leads: [] };
     }
 
+    const mediaOrderSql = await listingMediaOrderSql();
     const inventoryResult = await pool.query<{
       id: string;
       title: string;
@@ -127,6 +128,7 @@ export async function getDealerDashboard(userId: string): Promise<{
       part_compatibility: string | null;
       created_at: Date;
       updated_at: Date;
+      image_url: string | null;
       trust_score: number | null;
       vin_verified: boolean | null;
       seller_verified: boolean | null;
@@ -138,6 +140,13 @@ export async function getDealerDashboard(userId: string): Promise<{
           l.transmission, l.make, l.model, l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
           l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
           l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility, l.created_at, l.updated_at,
+          (
+            SELECT lm.url
+            FROM listing_media lm
+            WHERE lm.listing_id = l.id AND lm.media_type = 'image'
+            ORDER BY ${mediaOrderSql}
+            LIMIT 1
+          ) as image_url,
           ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
@@ -184,6 +193,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         partCompatibility: row.part_compatibility ?? undefined,
         createdAt: row.created_at.toISOString(),
         updatedAt: row.updated_at.toISOString(),
+        imageUrl: row.image_url ?? undefined,
         trustScore: row.trust_score ?? 50,
         vinVerified: row.vin_verified ?? false,
         sellerVerified: row.seller_verified ?? false,
@@ -419,6 +429,7 @@ export async function getPublicDealerProfile(
     const dealer = dealerResult.rows[0];
     if (!dealer) return null;
 
+    const mediaOrderSql = await listingMediaOrderSql();
     const inventoryResult = await pool.query<{
       id: string; title: string; description: string; price_azn: number;
       city: string; year: number; mileage_km: number; fuel_type: string;
@@ -430,6 +441,7 @@ export async function getPublicDealerProfile(
       part_authenticity: "original" | "oem" | "aftermarket" | null;
       part_oem_code: string | null; part_sku: string | null; part_quantity: number | null;
       part_compatibility: string | null; created_at: Date; updated_at: Date;
+      image_url: string | null;
       trust_score: number | null; vin_verified: boolean | null;
       seller_verified: boolean | null; media_complete: boolean | null;
     }>(
@@ -438,6 +450,13 @@ export async function getPublicDealerProfile(
               l.vin, l.status, l.seller_type, l.owner_user_id, l.dealer_profile_id,
               l.plan_type, l.listing_kind, l.part_category, l.part_subcategory, l.part_brand, l.part_condition, l.part_authenticity,
               l.part_oem_code, l.part_sku, l.part_quantity, l.part_compatibility, l.created_at, l.updated_at,
+              (
+                SELECT lm.url
+                FROM listing_media lm
+                WHERE lm.listing_id = l.id AND lm.media_type = 'image'
+                ORDER BY ${mediaOrderSql}
+                LIMIT 1
+              ) as image_url,
               ts.trust_score, ts.vin_verified, ts.seller_verified, ts.media_complete
        FROM listings l
        LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
@@ -470,6 +489,7 @@ export async function getPublicDealerProfile(
       vin: r.vin,
       createdAt: r.created_at.toISOString(),
       updatedAt: r.updated_at.toISOString(),
+      imageUrl: r.image_url ?? undefined,
       trustScore: r.trust_score ?? 50,
       vinVerified: r.vin_verified ?? false,
       sellerVerified: r.seller_verified ?? false,

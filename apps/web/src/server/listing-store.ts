@@ -125,7 +125,7 @@ async function hasTableColumn(tableName: string, columnName: string): Promise<bo
   }
 }
 
-async function listingMediaOrderSql(): Promise<string> {
+export async function listingMediaOrderSql(): Promise<string> {
   const hasPhotoTag = await hasTableColumn("listing_media", "photo_tag");
   return hasPhotoTag ? LISTING_MEDIA_DISPLAY_ORDER_SQL : "lm.sort_order ASC";
 }
