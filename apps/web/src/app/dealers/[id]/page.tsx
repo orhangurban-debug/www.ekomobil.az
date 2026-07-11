@@ -177,7 +177,7 @@ export default async function PublicDealerPage({
 
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">
-            Aktiv elanlar
+            Aktiv avtomobil elanları
             <span className="ml-2 rounded-full bg-white/63 px-2.5 py-0.5 text-sm font-medium text-slate-500">
               {profile.activeListingCount}
             </span>

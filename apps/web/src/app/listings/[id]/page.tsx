@@ -100,11 +100,9 @@ export default async function ListingDetailPage({
     getListingStats(id)
   ]);
   if (!listing) notFound();
-  // For auto-salon dealer listings with a dealerProfileId → link to /dealers/[id], no user profile needed.
-  // For parts-store listings (sellerType="dealer" but no dealerProfileId) → load user profile like private sellers.
-  const sellerUserId = (listing.sellerType === "dealer" && listing.dealerProfileId)
-    ? null
-    : listing.ownerUserId;
+  // Salon avtomobil elanları → /dealers/[id]; mağaza/hissə elanları → /sellers/[userId].
+  const isSalonVehicleListing = listing.listingKind !== "part" && Boolean(listing.dealerProfileId);
+  const sellerUserId = isSalonVehicleListing ? null : listing.ownerUserId;
   const [related, sellerProfile] = await Promise.all([
     getRelatedListings(listing.relatedIds),
     sellerUserId ? getPublicSellerProfile(sellerUserId).catch(() => null) : Promise.resolve(null)
@@ -437,7 +435,7 @@ export default async function ListingDetailPage({
 
           {/* Seller profile card */}
           {!isOwner && (listing.dealerProfileId || sellerProfile) && (() => {
-            const isDealer = listing.sellerType === "dealer" && listing.dealerProfileId;
+            const isDealer = isSalonVehicleListing;
             const profileHref = isDealer
               ? `/dealers/${listing.dealerProfileId}`
               : sellerProfile ? `/sellers/${sellerProfile.userId}` : null;

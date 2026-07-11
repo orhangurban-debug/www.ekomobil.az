@@ -989,6 +989,20 @@ export async function getRelatedListings(ids: string[]): Promise<ListingSummary[
   }
 }
 
+export function filterListingsForPublicSellerProfile(
+  listings: ListingSummary[],
+  profile: { isStore: boolean; isDealer: boolean }
+): ListingSummary[] {
+  const active = listings.filter((listing) => listing.status === "active");
+  if (profile.isStore) {
+    return active.filter((listing) => listing.listingKind === "part");
+  }
+  if (profile.isDealer) {
+    return active.filter((listing) => listing.listingKind === "vehicle");
+  }
+  return active;
+}
+
 export async function listListingsForUser(userId: string): Promise<ListingSummary[]> {
   try {
     await ensureSeedData();

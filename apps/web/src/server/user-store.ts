@@ -697,12 +697,7 @@ export async function getPublicSellerProfile(
     const user = userResult.rows[0];
     if (!user) return null;
 
-    const [countResult, storeResult, dealerResult, kycResult] = await Promise.all([
-      pool.query<{ count: string }>(
-        `SELECT COUNT(*)::text as count FROM listings
-         WHERE owner_user_id = $1 AND status = 'active'`,
-        [userId]
-      ),
+    const [storeResult, dealerResult, kycResult] = await Promise.all([
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text as count FROM business_plan_subscriptions
          WHERE owner_user_id = $1 AND business_type = 'parts_store' AND status = 'active'
@@ -722,10 +717,24 @@ export async function getPublicSellerProfile(
       ).catch(() => ({ rows: [{ count: "0" }] })),
     ]);
 
-    const activeListingCount = Number(countResult.rows[0]?.count ?? 0);
     const isStore            = Number(storeResult.rows[0]?.count ?? 0) > 0;
     const isDealer           = Number(dealerResult.rows[0]?.count ?? 0) > 0;
     const kycApproved        = Number(kycResult.rows[0]?.count ?? 0) > 0;
+
+    const listingCountResult = await pool.query<{ count: string }>(
+      isStore
+        ? `SELECT COUNT(*)::text as count FROM listings
+           WHERE owner_user_id = $1 AND status = 'active'
+             AND COALESCE(listing_kind, 'vehicle') = 'part'`
+        : isDealer
+          ? `SELECT COUNT(*)::text as count FROM listings
+             WHERE owner_user_id = $1 AND status = 'active'
+               AND COALESCE(listing_kind, 'vehicle') = 'vehicle'`
+          : `SELECT COUNT(*)::text as count FROM listings
+             WHERE owner_user_id = $1 AND status = 'active'`,
+      [userId]
+    );
+    const activeListingCount = Number(listingCountResult.rows[0]?.count ?? 0);
 
     return {
       userId,

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getPublicSellerProfile } from "@/server/user-store";
-import { listListingsForUser } from "@/server/listing-store";
+import { filterListingsForPublicSellerProfile, listListingsForUser } from "@/server/listing-store";
 import { ListingCard } from "@/components/listings/listing-card";
 import type { ListingSummary } from "@/lib/marketplace-types";
 import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
@@ -86,9 +86,10 @@ export default async function PublicSellerPage({
   ]);
   if (!profile) notFound();
 
-  const activeListings = Array.isArray(listingsResult)
-    ? listingsResult.filter((l) => l.status === "active")
-    : [];
+  const activeListings = filterListingsForPublicSellerProfile(
+    Array.isArray(listingsResult) ? listingsResult : [],
+    { isStore: profile.isStore, isDealer: profile.isDealer }
+  );
 
   const groups = groupByCategory(activeListings);
   const coverUrl = profile.storeCoverUrl;

@@ -274,7 +274,6 @@ async function handleCreateListing(req: Request): Promise<Response> {
       }
     }
 
-    let partDealerProfileId: string | null = null;
     let partStoreSubscriptionExpiry: Date | null = null;
     if (isDealerPartSeller) {
       const dealerPartListingCount = await countDealerListingsForUserByKind(sessionUser.id, "part");
@@ -287,9 +286,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
           { status: 409 }
         );
       }
-      // Resolve dealer_profile_id so parts listings appear in dealer inventory
-      partDealerProfileId = await getDealerProfileIdByOwner(sessionUser.id);
-      // Set plan_expires_at to subscription end so cron can auto-deactivate listings
+      // Hissə elanları mağaza profilində qalır; salon dealer_profile_id ilə bağlanmır.
       partStoreSubscriptionExpiry = await getPartsStoreSubscriptionExpiry(sessionUser.id);
     }
 
@@ -347,7 +344,7 @@ async function handleCreateListing(req: Request): Promise<Response> {
 
     const createInput = {
       ownerUserId: sessionUser?.id,
-      dealerProfileId: partDealerProfileId ?? undefined,
+      dealerProfileId: undefined,
       title: partPayload.title.trim(),
       description: partPayload.description?.trim() || "",
       make: category,

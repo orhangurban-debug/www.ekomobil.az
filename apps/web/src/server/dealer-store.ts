@@ -142,6 +142,7 @@ export async function getDealerDashboard(userId: string): Promise<{
         FROM listings l
         LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
         WHERE l.dealer_profile_id = $1
+          AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
         ORDER BY l.created_at DESC
       `,
       [dealer.id]
@@ -441,6 +442,7 @@ export async function getPublicDealerProfile(
        FROM listings l
        LEFT JOIN listing_trust_signals ts ON ts.listing_id = l.id
        WHERE l.dealer_profile_id = $1 AND l.status = 'active'
+         AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
        ORDER BY CASE COALESCE(l.plan_type,'free') WHEN 'vip' THEN 1 WHEN 'standard' THEN 2 ELSE 3 END, l.created_at DESC
        LIMIT 50`,
       [dealerId]
@@ -539,7 +541,9 @@ export async function listPublicDealers(
               dp.logo_url, dp.description,
               COUNT(l.id)::int AS active_listing_count
        FROM dealer_profiles dp
-       LEFT JOIN listings l ON l.dealer_profile_id = dp.id AND l.status = 'active'
+       LEFT JOIN listings l ON l.dealer_profile_id = dp.id
+         AND l.status = 'active'
+         AND COALESCE(l.listing_kind, 'vehicle') = 'vehicle'
        ${whereSql}
        GROUP BY dp.id
        ORDER BY dp.verified DESC, active_listing_count DESC, dp.name ASC
