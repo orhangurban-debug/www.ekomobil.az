@@ -860,7 +860,6 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                 <ListingAiAnalyzePanel
                   analysisContext="vehicle"
                   planType={isDealerPublishMode ? "free" : planType}
-                  maxImages={effectiveMaxImages}
                   externalImages={uploadedImages}
                   autoApply
                   onApplyVehicle={applyVehicleAiSuggestion}

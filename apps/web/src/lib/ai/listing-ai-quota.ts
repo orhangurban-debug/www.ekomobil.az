@@ -2,7 +2,11 @@ import type { PlanType } from "@/lib/listing-plans";
 import { getPlanById, LISTING_PLANS } from "@/lib/listing-plans";
 import type { DealerPlan } from "@/lib/dealer-plans";
 import type { PartsStorePlan } from "@/lib/parts-store-plans";
-import { getEffectiveDealerPlan, getEffectivePartsPlan } from "@/server/business-plan-store";
+import {
+  getEffectiveDealerPlan,
+  getEffectivePartsPlan,
+  hasActiveBusinessSubscription
+} from "@/server/business-plan-store";
 import { checkListingAiLimit, incrementListingAiUsage } from "@/lib/ai/analysis-limits";
 import { getServicePartnerPlanLimits } from "@/lib/ai/service-plan-limits";
 
@@ -116,17 +120,21 @@ export async function resolveListingAiQuota(input: ResolveQuotaInput): Promise<L
     if (input.planType) {
       limits = privateVehicleLimits(input.planType);
     } else {
-      const isDealer = input.userRole === "dealer" || input.userRole === "admin";
-      if (isDealer) {
-        const plan = await getEffectiveDealerPlan(input.userId!);
+      const hasSalonSubscription =
+        input.userRole === "admin" ||
+        (input.userId ? await hasActiveBusinessSubscription(input.userId, "dealer") : false);
+      if (hasSalonSubscription && input.userId) {
+        const plan = await getEffectiveDealerPlan(input.userId);
         limits = dealerVehicleLimits(plan);
       } else {
         limits = privateVehicleLimits("free");
       }
     }
   } else if (input.context === "part" || input.context === "part_bulk") {
-    const isDealer = input.userRole === "dealer" || input.userRole === "admin";
-    if (isDealer) {
+    const hasStoreSubscription =
+      input.userRole === "admin" ||
+      (input.userId ? await hasActiveBusinessSubscription(input.userId, "parts_store") : false);
+    if (hasStoreSubscription && input.userId) {
       const plan = await getEffectivePartsPlan(input.userId);
       limits = partsBusinessLimits(plan);
     } else {

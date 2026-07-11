@@ -30,16 +30,28 @@ import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 
 import { GEMINI_MODEL } from "@/lib/ai/gemini-model";
 
+function parseDataUrlBase64(imageUrl: string): { mimeType: string; data: string } | null {
+  if (!imageUrl.startsWith("data:")) return null;
+  const base64Marker = ";base64,";
+  const markerIndex = imageUrl.indexOf(base64Marker);
+  if (markerIndex < 0) return null;
+  const meta = imageUrl.slice(5, markerIndex);
+  const mimeType = meta.split(";")[0]?.trim() || "image/jpeg";
+  const base64Data = imageUrl.slice(markerIndex + base64Marker.length).replace(/\s/g, "");
+  if (!base64Data) return null;
+  return { mimeType, data: base64Data };
+}
+
 async function resolveImageBase64(imageUrl: string, appBaseUrl: string): Promise<{ mimeType: string; data: string } | null> {
   try {
     let buffer: Buffer;
     let mimeType = "image/jpeg";
 
     if (imageUrl.startsWith("data:")) {
-      const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
-      if (!match) return null;
-      mimeType = match[1];
-      buffer = Buffer.from(match[2], "base64");
+      const parsed = parseDataUrlBase64(imageUrl);
+      if (!parsed) return null;
+      mimeType = parsed.mimeType;
+      buffer = Buffer.from(parsed.data, "base64");
     } else if (imageUrl.startsWith("/api/support/uploads/file/")) {
       const relative = imageUrl.replace("/api/support/uploads/file/", "");
       const root = process.env.SUPPORT_UPLOADS_DIR || path.join(process.cwd(), ".support-uploads");
@@ -372,11 +384,11 @@ function sanitizeImageSearchAttributes(raw: Record<string, unknown>): ImageSearc
 export async function analyzeImageForSearch(input: {
   imageDataUrl: string;
 }): Promise<ImageSearchAttributes | null> {
-  const match = input.imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) return null;
+  const parsed = parseDataUrlBase64(input.imageDataUrl);
+  if (!parsed) return null;
   const raw = await callGeminiVision({
     prompt: SEARCH_PROMPT,
-    images: [{ mimeType: match[1], data: match[2] }],
+    images: [{ mimeType: parsed.mimeType, data: parsed.data }],
     maxOutputTokens: 512
   });
   if (!raw) return null;

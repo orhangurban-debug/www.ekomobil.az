@@ -95,11 +95,13 @@ export function ListingAiAnalyzePanel({
   const effectiveMaxImages = useMemo(() => {
     const quotaCap = bulkMode ? quota?.maxBulkImages || quota?.maxImages : quota?.maxImages;
     const fallback = bulkMode ? 30 : 8;
-    const candidates = [maxImagesProp, quotaCap, fallback].filter(
-      (value): value is number => typeof value === "number" && value > 0
-    );
-    return Math.min(...candidates);
-  }, [bulkMode, maxImagesProp, quota?.maxBulkImages, quota?.maxImages]);
+    const candidates = [
+      ...(managesOwnUploads && typeof maxImagesProp === "number" && maxImagesProp > 0 ? [maxImagesProp] : []),
+      quotaCap,
+      fallback
+    ].filter((value): value is number => typeof value === "number" && value > 0);
+    return candidates.length > 0 ? Math.min(...candidates) : fallback;
+  }, [bulkMode, managesOwnUploads, maxImagesProp, quota?.maxBulkImages, quota?.maxImages]);
 
   const quotaQuery = useMemo(() => {
     const params = new URLSearchParams({ context: analysisContext });
@@ -168,7 +170,18 @@ export function ListingAiAnalyzePanel({
     setResult(null);
     try {
       const capped = images.slice(0, effectiveMaxImages);
-      const imageUrls = await Promise.all(capped.map(async (img) => await fileToDataUrl(img.file)));
+      const readable = capped.filter((img) => img?.file instanceof File && img.file.size > 0);
+      if (readable.length === 0) {
+        setErrors([
+          "Şəkillər oxuna bilmədi. Əvvəlcə şəkil bölməsində foto yükləyin və ya faylı yenidən əlavə edin (JPEG, PNG, WebP)."
+        ]);
+        return;
+      }
+      const imageUrls = await Promise.all(readable.map(async (img) => await fileToDataUrl(img.file)));
+      if (imageUrls.length === 0 || imageUrls.some((url) => url.length < 32)) {
+        setErrors(["Şəkillər oxuna bilmədi. Başqa şəkil və ya format ilə yenidən cəhd edin."]);
+        return;
+      }
       const response = await fetch("/api/ai/analyze-listing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

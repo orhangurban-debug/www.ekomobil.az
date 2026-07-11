@@ -269,7 +269,7 @@ export function PartsBulkPublishForm({ storePublishContext }: { storePublishCont
       <ListingAiAnalyzePanel
         analysisContext="part_bulk"
         bulkMode
-        maxImages={isStorePublishMode ? Math.min(15, maxImages * 3) : 15}
+        maxImages={isStorePublishMode ? undefined : 15}
         autoApply
         onImagesChange={setImages}
         onApplyBulkParts={applyBulkParts}

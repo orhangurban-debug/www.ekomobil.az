@@ -358,7 +358,6 @@ export function PartsPublishForm({ storePublishContext }: { storePublishContext:
 
         <ListingAiAnalyzePanel
           analysisContext="part"
-          maxImages={maxImages}
           externalImages={uploadedImages}
           autoApply
           onApplyPart={applyPartAiSuggestion}
