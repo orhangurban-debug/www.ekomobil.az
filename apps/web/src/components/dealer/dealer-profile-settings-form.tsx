@@ -57,7 +57,12 @@ export function DealerProfileSettingsForm({
           branches
         })
       });
-      const payload = (await response.json()) as { ok: boolean; error?: string; profile?: ProfileState };
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        profile?: ProfileState;
+        pendingAdminReview?: boolean;
+      };
       if (!response.ok || !payload.ok || !payload.profile) {
         setMessage(payload.error ?? "Profil yadda saxlanmadı.");
         return;
@@ -65,7 +70,11 @@ export function DealerProfileSettingsForm({
       setProfile(payload.profile);
       setBaseDescription(stripLegacyBranchNote(payload.profile.description));
       setBranches(payload.profile.branches ?? []);
-      setMessage("Profil uğurla yeniləndi.");
+      setMessage(
+        payload.pendingAdminReview
+          ? "Dəyişikliklər yadda saxlanıldı. Admin təsdiqindən sonra salon nişanı yenilənəcək."
+          : "Profil uğurla yeniləndi."
+      );
     } catch {
       setMessage("Profil yadda saxlanmadı.");
     } finally {
@@ -75,10 +84,17 @@ export function DealerProfileSettingsForm({
 
   return (
     <div className="card p-5">
-      <h2 className="text-base font-semibold text-slate-900">Salon profil ayarları</h2>
-      <p className="mt-1 text-xs text-slate-500">
-        Bəzi sahələr planınıza görə açılır. Public profildə yalnız aktiv icazə sahələri görünür.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-slate-900">Salon profil ayarları</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Bəzi sahələr planınıza görə açılır. Dəyişiklikləri yadda saxladıqdan sonra admin təsdiqi tələb oluna bilər.
+          </p>
+        </div>
+        <button type="button" className="btn-primary shrink-0" disabled={saving} onClick={save}>
+          {saving ? "Yadda saxlanılır..." : "Dəyişiklikləri yadda saxla"}
+        </button>
+      </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
@@ -211,11 +227,13 @@ export function DealerProfileSettingsForm({
         />
       </label>
 
-      <div className="mt-4 flex items-center gap-3">
-        <button type="button" className="btn-primary" disabled={saving} onClick={save}>
-          {saving ? "Yadda saxlanılır..." : "Profili yenilə"}
-        </button>
-        {message && <span className="text-sm text-slate-600">{message}</span>}
+      <div className="sticky bottom-0 z-10 -mx-5 mt-6 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {message ? <span className="text-sm text-slate-600">{message}</span> : <span className="text-xs text-slate-500">Dəyişikliklərdən sonra yadda saxlayın.</span>}
+          <button type="button" className="btn-primary ml-auto" disabled={saving} onClick={save}>
+            {saving ? "Yadda saxlanılır..." : "Dəyişiklikləri yadda saxla"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -161,14 +161,34 @@ export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Pr
     }
   }
 
+  function SavePlansButton({ className = "" }: { className?: string }) {
+    return (
+      <button
+        type="button"
+        onClick={() => void save()}
+        disabled={busy}
+        className={`btn-primary disabled:opacity-60 ${className}`.trim()}
+      >
+        {busy ? "Saxlanılır..." : "Dəyişiklikləri yadda saxla"}
+      </button>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       {readOnly && <div className="mb-4"><AdminReadOnlyBanner /></div>}
-      <fieldset disabled={readOnly} className="border-0 p-0">
-      <h3 className="text-lg font-bold text-slate-900">Plan iqtisadiyyatı və limit idarəetməsi</h3>
-      <p className="mt-1 text-sm text-slate-500">
-        Qiymət, aktiv elan limiti, media limiti və plan mətnlərini mərkəzdən idarə edin.
-      </p>
+
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">Plan iqtisadiyyatı və limit idarəetməsi</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Qiymət, aktiv elan limiti, media limiti və plan mətnlərini mərkəzdən idarə edin.
+          </p>
+        </div>
+        {!readOnly && <SavePlansButton className="shrink-0" />}
+      </div>
+
+      <fieldset disabled={readOnly} className="mt-5 border-0 p-0">
 
       <div className="mt-5 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -390,14 +410,18 @@ export function PricingPlanConfigManager({ initialConfig, readOnly = false }: Pr
         })}
       </div>
 
-      {!readOnly && (
-      <div className="mt-5">
-        <button type="button" onClick={save} disabled={busy} className="btn-primary disabled:opacity-60">
-          {busy ? "Saxlanılır..." : "Plan ayarlarını yadda saxla"}
-        </button>
-      </div>
-      )}
       </fieldset>
+
+      {!readOnly && (
+        <div className="sticky bottom-0 z-10 -mx-5 mt-6 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              Dəyişikliklərdən sonra yadda saxlamağı unutmayın — qiymət səhifəsi və plan limitləri yenilənəcək.
+            </p>
+            <SavePlansButton />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -183,7 +183,8 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
         setError(data.error ?? "Xəta baş verdi.");
       } else {
         setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+        setError(null);
+        setTimeout(() => setSaved(false), 4000);
       }
     } catch {
       setError("Şəbəkə xətası. Yenidən cəhd edin.");
@@ -334,22 +335,30 @@ export function StoreProfileEditForm({ initialData, entitlements, publicProfileU
         <p className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
       )}
 
-      <div className="flex items-center gap-3">
-        <a
-          href={publicProfileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-[#0057FF] hover:underline"
-        >
-          İctimai profilə bax ↗
-        </a>
-        <button
-          onClick={handleSave}
-          disabled={saving || saved}
-          className="ml-auto rounded-xl bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF] disabled:opacity-60"
-        >
-          {saved ? "✓ Saxlanıldı" : saving ? "Saxlanılır..." : "Saxla"}
-        </button>
+      {saved && (
+        <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+          Dəyişikliklər yadda saxlanıldı. Əhəmiyyətli yeniliklər admin yoxlamasından keçə bilər.
+        </p>
+      )}
+
+      <div className="sticky bottom-0 z-10 -mx-5 border-t border-slate-100 bg-white/95 px-5 py-4 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={publicProfileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[#0057FF] hover:underline"
+          >
+            İctimai profilə bax ↗
+          </a>
+          <button
+            onClick={handleSave}
+            disabled={saving || saved}
+            className="ml-auto rounded-xl bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#004ADF] disabled:opacity-60"
+          >
+            {saved ? "✓ Saxlanıldı" : saving ? "Saxlanılır..." : "Dəyişiklikləri yadda saxla"}
+          </button>
+        </div>
       </div>
     </div>
   );

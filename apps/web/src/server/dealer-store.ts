@@ -649,6 +649,7 @@ export async function updateDealerProfileSettings(input: {
   showWhatsapp?: boolean;
   showWebsite?: boolean;
   entitlements: BusinessProfileEntitlements;
+  requestAdminReview?: boolean;
 }): Promise<DealerProfileSettings | null> {
   await ensureSeedData();
   const pool = getPgPool();
@@ -686,7 +687,8 @@ export async function updateDealerProfileSettings(input: {
         branches = $11::jsonb,
         working_hours = $12,
         show_whatsapp = $13,
-        show_website = $14
+        show_website = $14,
+        verified = CASE WHEN $15::boolean THEN FALSE ELSE verified END
       WHERE owner_user_id = $1
     `,
     [
@@ -703,7 +705,8 @@ export async function updateDealerProfileSettings(input: {
       nextBranches,
       nextWorkingHours,
       nextShowWhatsapp,
-      nextShowWebsite
+      nextShowWebsite,
+      Boolean(input.requestAdminReview)
     ]
   );
 

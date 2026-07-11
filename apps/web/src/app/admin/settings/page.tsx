@@ -5,7 +5,8 @@ import { getPricingPlanAdminConfig, getSystemSettings } from "@/server/system-se
 
 export default async function AdminSettingsPage() {
   const auth = await requirePageRoles(["admin", "support"]);
-  const canEdit = auth.ok && auth.user.role === "admin";
+  const canEditSystem = auth.ok && auth.user.role === "admin";
+  const canEditPlans = auth.ok;
   const [settings, pricingConfig] = await Promise.all([getSystemSettings(), getPricingPlanAdminConfig()]);
   return (
     <div className="space-y-4">
@@ -21,9 +22,9 @@ export default async function AdminSettingsPage() {
         partPenalty={settings.penaltyAmounts.part}
         vehicleBreachPenalty={settings.sellerBreachAmounts.vehicle}
         partBreachPenalty={settings.sellerBreachAmounts.part}
-        readOnly={!canEdit}
+        readOnly={!canEditSystem}
       />
-      <PricingPlanConfigManager initialConfig={pricingConfig} readOnly={!canEdit} />
+      <PricingPlanConfigManager initialConfig={pricingConfig} readOnly={!canEditPlans} />
     </div>
   );
 }

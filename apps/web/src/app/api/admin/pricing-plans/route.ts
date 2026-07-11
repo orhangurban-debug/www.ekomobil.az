@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = requireApiRoles(req, ["admin", "support"]);
   if (!auth.ok) return auth.response;
 
   const body = (await req.json()) as { config?: PricingPlanAdminConfig };

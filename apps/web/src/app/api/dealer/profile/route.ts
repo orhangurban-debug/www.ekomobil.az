@@ -40,13 +40,15 @@ export async function POST(req: Request) {
   };
 
   const entitlements = await getEffectiveBusinessProfileEntitlements(user.id);
+  const pendingAdminReview = user.role === "dealer";
   const updated = await updateDealerProfileSettings({
     ownerUserId: user.id,
     ...body,
-    entitlements
+    entitlements,
+    requestAdminReview: pendingAdminReview
   });
   if (!updated) {
     return NextResponse.json({ ok: false, error: "Dealer profile tapılmadı." }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, profile: updated, entitlements });
+  return NextResponse.json({ ok: true, profile: updated, entitlements, pendingAdminReview });
 }
