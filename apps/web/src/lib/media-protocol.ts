@@ -61,11 +61,14 @@ export function validateMediaProtocol(
   };
 }
 
+/** Hissə elanı üçün minimum şəkil sayı (avtomobil protokolundan asılı deyil). */
+export const PART_MEDIA_PROTOCOL_MIN_IMAGES = 1;
+
 /** Avtomobil hissəsi elanları üçün — tam avtomobil media protokolu tətbiq olunmur */
 export function validatePartListingMediaProtocol(input: MediaProtocolInput): MediaProtocolResult {
   const missingRequirements: string[] = [];
-  if (input.imageCount < 4) {
-    missingRequirements.push("Hissə üçün ən azı 4 şəkil tələb olunur.");
+  if (input.imageCount < PART_MEDIA_PROTOCOL_MIN_IMAGES) {
+    missingRequirements.push(`Hissə üçün ən azı ${PART_MEDIA_PROTOCOL_MIN_IMAGES} şəkil tələb olunur.`);
   }
   return {
     isComplete: missingRequirements.length === 0,
