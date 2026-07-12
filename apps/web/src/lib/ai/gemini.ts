@@ -139,17 +139,25 @@ JSON strukturu (YALNIZ bu JSON-u qaytar, heç bir izah əlavə etmə):
   "sourceNote": "string",
   "verdict": "string",
   "powertrain": {
-    "category": "ICE_PETROL",
+    "category": "ICE_PETROL" | "ICE_DIESEL" | "ICE_LPG" | "MHEV" | "HEV" | "PHEV" | "EREV" | "BEV" | "FCEV",
     "systemPowerHp": number,
     "engineCc": number,
     "fuelConsumption": {
       "city": number,
       "highway": number,
       "combined": number,
-      "unit": "L/100km",
+      "unit": "L/100km" | "kWh/100km" | "kg/100km",
       "testCycle": "WLTP"
     }
   }
+}
+
+ICE (benzin/dizel/LPG) üçün powertrain nümunəsi:
+{
+  "category": "ICE_PETROL",
+  "systemPowerHp": 180,
+  "engineCc": 2000,
+  "fuelConsumption": { "city": 9.0, "highway": 6.5, "combined": 7.5, "unit": "L/100km", "testCycle": "WLTP" }
 }
 
 HEV/PHEV üçün powertrain nümunəsi:
@@ -176,6 +184,15 @@ BEV üçün:
   "charging": { "batteryKwh": 77, "fastChargeKw": 135, "acChargeKw": 11, "charge10to80Min": 35, "electricRangeKm": 520, "connectorType": "CCS" }
 }
 
+FCEV üçün:
+{
+  "category": "FCEV",
+  "systemPowerHp": 182,
+  "fuelConsumption": { "combined": 0.8, "unit": "kg/100km", "testCycle": "WLTP" },
+  "charging": { "batteryKwh": 1.6, "electricRangeKm": 650 }
+}
+
+powertrain HƏMİŞƏ doldurulmalıdır — ən çox yayılmış mühərrik versiyası üçün.
 Bütün mətn sahələri Azərbaycan dilində. Reytinqlər beynəlxalq ortalama göstəriciləri əks etdirməlidir.`;
 
 // In-memory cache for fast repeated access within same server request cycle

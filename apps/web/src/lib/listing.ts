@@ -82,8 +82,11 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
 
   const fuelType = input?.fuelType?.trim() ?? "";
   const engineVolumeCc = input?.engineVolumeCc;
-  const isElectric = fuelType.toLowerCase().includes("elektrik");
-  if (!isElectric) {
+  const fuelLower = fuelType.toLowerCase();
+  // Elektrik və hidrogen (FCEV) — mühərrik həcmi tətbiq edilmir
+  const skipsEngineVolume =
+    fuelLower.includes("elektrik") || fuelLower.includes("hidrogen") || fuelLower.includes("fcev");
+  if (!skipsEngineVolume) {
     if (typeof engineVolumeCc !== "number" || Number.isNaN(engineVolumeCc) || engineVolumeCc <= 0) {
       errors.push("Mühərrik həcmi tələb olunur (cc).");
     }

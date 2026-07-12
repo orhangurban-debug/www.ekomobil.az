@@ -4,23 +4,24 @@
  */
 
 export const CAR_MAKES = [
-  "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Brilliance", "Bugatti",
-  "Buick", "BYD", "Cadillac", "Changan", "Chery", "Chevrolet", "Chrysler", "Citroën",
+  "Acura", "Alfa Romeo", "Aston Martin", "Audi", "BAIC", "Bentley", "BMW", "Brilliance", "Bugatti",
+  "Buick", "BYD", "Cadillac", "CFMoto", "Changan", "Chery", "Chevrolet", "Chrysler", "Citroën",
   "Cupra", "Dacia", "Daewoo", "Daihatsu", "Dodge", "Dongfeng", "DS", "Exeed",
-  "FAW", "Ferrari", "Fiat", "Fisker", "Ford", "Foton", "GAC", "Geely",
-  "Genesis", "GMC", "Great Wall", "Haval", "Honda", "Hongqi", "Horizon", "Hummer",
-  "Hyundai", "Infiniti", "Iran Khodro", "Isuzu", "JAC", "Jaguar", "Jeep", "Jetour",
-  "Jetta", "Kia", "Koenigsegg", "Lada", "Lamborghini", "Lancia", "Land Rover", "Lexus",
-  "Lifan", "Lincoln", "Lotus", "Lucid", "Lynk & Co", "Maserati", "Maybach", "Mazda",
-  "McLaren", "Mercedes-Benz", "MG", "Mini", "Mitsubishi", "Nio", "Nissan", "Opel",
+  "FAW", "Ferrari", "Fiat", "Fisker", "Ford", "Foton", "GAC", "GAZ", "Geely",
+  "Genesis", "GMC", "Great Wall", "Harley-Davidson", "Haval", "Honda", "Hongqi", "Horizon", "Hummer",
+  "Hyundai", "Infiniti", "Iran Khodro", "Isuzu", "JAC", "Jaecoo", "Jaguar", "Jeep", "Jetour",
+  "Jetta", "Kawasaki", "Kia", "Koenigsegg", "KTM", "Lada", "Lamborghini", "Lancia", "Land Rover", "Lexus",
+  "Li Auto", "Lifan", "Lincoln", "Lotus", "Lucid", "Lynk & Co", "Maserati", "Maybach", "Mazda",
+  "McLaren", "Mercedes-Benz", "MG", "Mini", "Mitsubishi", "Nio", "Nissan", "Omoda", "Opel",
   "Ora", "Pagani", "Peugeot", "Polestar", "Porsche", "Ravon", "Renault", "Rivian",
   "Rolls-Royce", "Saab", "Saipa", "Seat", "Skoda", "Smart", "SsangYong", "Subaru",
-  "Suzuki", "Tank", "Tata", "Tesla", "Toyota", "Volkswagen", "Volvo", "Zeekr"
+  "Suzuki", "Tank", "Tata", "Tesla", "Toyota", "UAZ", "Volkswagen", "Volvo", "XPeng", "Yamaha", "Zeekr"
 ] as const;
 
 export const BODY_TYPES = [
   "Sedan", "Hatchback", "Universal", "SUV", "Crossover", "Coupe", "Cabrio", "Minivan",
-  "Pickup", "Van", "Limuzin", "Roadster", "Motosiklet", "Skuter", "Moped"
+  "Pickup", "Van", "Limuzin", "Roadster", "Yük maşını", "Avtobus", "Mikroavtobus",
+  "Motosiklet", "Skuter", "Moped"
 ] as const;
 
 export const FUEL_TYPES = [
@@ -230,8 +231,20 @@ export const CAR_MODELS_BY_MAKE: Record<string, string[]> = {
   "Chery": [
     "Tiggo 2", "Tiggo 4", "Tiggo 4 Pro", "Tiggo 7",
     "Tiggo 7 Pro", "Tiggo 8", "Tiggo 8 Pro",
-    "Arrizo 5", "Arrizo 6", "Arrizo 8", "Omoda 5"
+    "Arrizo 5", "Arrizo 6", "Arrizo 8"
   ],
+  "Omoda": ["C5", "S5", "E5", "C7"],
+  "Jaecoo": ["J7", "J8", "J5"],
+  "BAIC": ["X55", "X7", "BJ40", "BJ60", "EU5", "U5"],
+  "XPeng": ["G6", "G9", "P7", "P5", "X9"],
+  "Li Auto": ["L6", "L7", "L8", "L9", "MEGA"],
+  "GAZ": ["Gazelle", "Gazelle Next", "Sobol", "Valdai", "3307"],
+  "UAZ": ["Patriot", "Hunter", "Bukhanka", "Pickup", "Profi"],
+  "Yamaha": ["YZF-R3", "YZF-R6", "MT-07", "MT-09", "XMAX", "NMAX", "Tracer 9"],
+  "Kawasaki": ["Ninja 400", "Ninja 650", "Z650", "Z900", "Versys 650", "Vulcan S"],
+  "Harley-Davidson": ["Street 750", "Iron 883", "Forty-Eight", "Sportster", "Fat Boy"],
+  "KTM": ["Duke 390", "Duke 890", "RC 390", "Adventure 390", "Adventure 890"],
+  "CFMoto": ["300NK", "450NK", "700CL-X", "800MT", "250SR"],
   "Haval": [
     "H1", "H2", "H4", "H6", "H9",
     "F5", "F7", "F7x", "Jolion", "Dargo",
@@ -345,6 +358,42 @@ export const CAR_MODELS_BY_MAKE: Record<string, string[]> = {
   "Jetour": ["X70", "X90", "X70 Plus", "Dashing", "Traveler"],
   "JAC": ["S3", "S5", "S7", "T6", "T8", "J7"],
   "Foton": ["Tunland", "Sauvana", "View"],
+  // Markalar — Azərbaycan bazarında tez-tez rast gəlinən / boş qalanlar
+  "Citroën": ["C3", "C4", "C5 Aircross", "Berlingo", "Jumpy", "Jumper"],
+  "Cupra": ["Formentor", "Leon", "Ateca", "Born", "Tavascan"],
+  "Daihatsu": ["Terios", "Sirion", "Materia", "Rocky"],
+  "Dongfeng": ["AX7", "Shine", "Rich", "Captain"],
+  "DS": ["3", "4", "7", "9"],
+  "FAW": ["Bestune T77", "Bestune T99", "B50", "V2"],
+  "GAC": ["GS3", "GS4", "GS8", "Empow", "Aion S", "Aion Y"],
+  "Great Wall": ["Poer", "Wingle", "Hover H3", "Hover H5", "Cannon"],
+  "Hongqi": ["H5", "H9", "HS5", "HS7", "E-HS9"],
+  "Iran Khodro": ["Samand", "Dena", "Runna", "Soren"],
+  "Isuzu": ["D-Max", "MU-X", "NPR", "NQR", "Elf"],
+  "Jetta": ["VS5", "VS7", "VA3", "VA7"],
+  "Lifan": ["X60", "X70", "Solano", "Myway"],
+  "Lynk & Co": ["01", "02", "03", "05", "08", "09"],
+  "Nio": ["ET5", "ET7", "ES6", "ES8", "EC6", "EC7"],
+  "Ora": ["Good Cat", "Funky Cat", "Lightning Cat"],
+  "Saipa": ["Pride", "Saina", "Quick", "Shahin"],
+  "Smart": ["ForTwo", "ForFour", "#1", "#3"],
+  "SsangYong": ["Rexton", "Korando", "Tivoli", "Musso", "Actyon"],
+  "Tank": ["300", "500", "700"],
+  "Zeekr": ["001", "007", "X", "009"],
+  "Brilliance": ["V3", "V5", "H530", "FRV"],
+  "Chrysler": ["300C", "Pacifica", "Voyager", "Town & Country"],
+  "Maybach": ["S-Class", "GLS", "EQS"],
+  "Bugatti": ["Chiron", "Veyron", "Divo"],
+  "Fisker": ["Ocean", "Karma"],
+  "Horizon": ["C8", "C9"],
+  "Koenigsegg": ["Jesko", "Gemera", "Regera"],
+  "Lancia": ["Ypsilon", "Delta", "Thema"],
+  "Lotus": ["Emira", "Eletre", "Evija"],
+  "Lucid": ["Air", "Gravity"],
+  "McLaren": ["720S", "Artura", "GT", "750S"],
+  "Pagani": ["Huayra", "Zonda", "Utopia"],
+  "Rivian": ["R1T", "R1S", "EDV"],
+  "Tata": ["Nexon", "Punch", "Harrier", "Safari"],
 };
 
 /**

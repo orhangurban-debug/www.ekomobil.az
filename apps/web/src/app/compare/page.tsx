@@ -342,14 +342,16 @@ export default async function ComparePage({
     );
   }
 
-  // Fetch insights: 1) static DB  2) AI generation  3) brand-level fallback
+  // Fetch insights: 1) static DB  2) AI fills missing powertrain / unknown models
   const insightsData: (CarModelInsights | null)[] = await Promise.all(
     items.map(async (item) => {
       const static_ = getCarInsights(item.make, item.model, item.year);
-      if (static_) return static_;
-      // Try AI generation for models not in static DB
+      if (static_?.powertrain) return static_;
       const ai = await generateCarInsightsAi(item.make, item.model, item.year);
-      return ai;
+      if (static_ && ai?.powertrain) {
+        return { ...static_, powertrain: ai.powertrain };
+      }
+      return static_ ?? ai;
     })
   );
   const brandContexts = items.map((item, i) =>

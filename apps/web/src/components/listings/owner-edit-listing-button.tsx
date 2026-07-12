@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ComboboxInput } from "@/components/ui/combobox-input";
 import {
   BODY_TYPES,
   CAR_MAKES,
@@ -224,34 +225,34 @@ export function OwnerEditListingButton(props: {
                 required
               />
               <div className="grid gap-3 sm:grid-cols-3">
-                <select
+                <ComboboxInput
                   className="input-field"
                   value={form.make}
-                  onChange={(e) =>
+                  options={CAR_MAKES}
+                  onChange={(nextMake) =>
                     setForm((prev) => {
-                      const nextMake = e.target.value;
                       const nextModels = getModelsForMake(nextMake);
                       return {
                         ...prev,
                         make: nextMake,
-                        model: nextModels.includes(prev.model) ? prev.model : nextModels[0] ?? ""
+                        model: nextModels.includes(prev.model) ? prev.model : ""
                       };
                     })
                   }
-                >
-                  {CAR_MAKES.map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
-                <select
+                  placeholder="Marka seçin və ya yazın"
+                  customEntryLabel="yeni marka kimi əlavə et"
+                  required
+                />
+                <ComboboxInput
                   className="input-field"
                   value={form.model}
-                  onChange={(e) => setForm((prev) => ({ ...prev, model: e.target.value }))}
-                >
-                  {modelOptions.map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
+                  options={modelOptions}
+                  onChange={(nextModel) => setForm((prev) => ({ ...prev, model: nextModel }))}
+                  placeholder={form.make.trim() ? "Model seçin və ya yazın" : "Əvvəl marka daxil edin"}
+                  customEntryLabel="yeni model kimi əlavə et"
+                  disabled={!form.make.trim()}
+                  required
+                />
                 <input
                   className="input-field"
                   value={form.city}

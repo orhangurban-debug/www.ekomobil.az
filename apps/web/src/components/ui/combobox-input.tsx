@@ -58,8 +58,8 @@ export function ComboboxInput({
   const exactMatch = options.some(
     (opt) => normalize(opt) === normalize(value)
   );
-  const showCustomHint =
-    value.trim().length > 0 && !exactMatch && filtered.length < options.length;
+  const trimmed = value.trim();
+  const showCustomHint = trimmed.length > 0 && !exactMatch;
 
   const selectOption = useCallback(
     (opt: string) => {
@@ -70,6 +70,14 @@ export function ComboboxInput({
     },
     [onChange]
   );
+
+  const acceptCustom = useCallback(() => {
+    if (!trimmed) return;
+    onChange(trimmed);
+    setOpen(false);
+    setHighlighted(-1);
+    inputRef.current?.blur();
+  }, [onChange, trimmed]);
 
   // Close on outside click
   useEffect(() => {
@@ -110,6 +118,8 @@ export function ComboboxInput({
     } else if (e.key === "Enter") {
       if (highlighted >= 0 && filtered[highlighted]) {
         selectOption(filtered[highlighted]);
+      } else if (showCustomHint) {
+        acceptCustom();
       } else if (value.trim()) {
         setOpen(false);
       }
@@ -232,8 +242,17 @@ export function ComboboxInput({
             </li>
           ))}
           {showCustomHint && (
-            <li className="border-t border-slate-100 px-3.5 py-2 text-xs text-slate-400">
-              <span className="font-medium text-slate-600">&ldquo;{value}&rdquo;</span> — {customEntryLabel}
+            <li
+              role="option"
+              aria-selected={false}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                acceptCustom();
+              }}
+              className="cursor-pointer border-t border-slate-100 px-3.5 py-2.5 text-sm text-slate-700 hover:bg-[#0057FF]/8"
+            >
+              <span className="font-medium text-[#0057FF]">&ldquo;{trimmed}&rdquo;</span>
+              <span className="text-slate-500"> — {customEntryLabel}</span>
             </li>
           )}
         </ul>

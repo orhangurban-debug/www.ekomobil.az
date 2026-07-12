@@ -169,7 +169,11 @@ function buildClientFieldErrors(values: {
   }
   if (values.engineVolumeCc !== "" && values.engineVolumeCc < 0) {
     mapped.engineVolumeCc = "Mühərrik həcmi mənfi ola bilməz.";
-  } else if (!values.fuelType.toLowerCase().includes("elektrik") && (values.engineVolumeCc === "" || values.engineVolumeCc <= 0)) {
+  } else if (
+    !values.fuelType.toLowerCase().includes("elektrik") &&
+    !values.fuelType.toLowerCase().includes("hidrogen") &&
+    (values.engineVolumeCc === "" || values.engineVolumeCc <= 0)
+  ) {
     mapped.engineVolumeCc = "Mühərrik həcmi (cc) tələb olunur.";
   }
   if (values.ownersCount !== "" && values.ownersCount < 1) {
@@ -414,7 +418,11 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
     }
     if (engineVolumeCc !== "" && engineVolumeCc < 0) {
       errors.push("Mühərrik həcmi mənfi ola bilməz.");
-    } else if (!fuelType.toLowerCase().includes("elektrik") && (engineVolumeCc === "" || engineVolumeCc <= 0)) {
+    } else if (
+      !fuelType.toLowerCase().includes("elektrik") &&
+      !fuelType.toLowerCase().includes("hidrogen") &&
+      (engineVolumeCc === "" || engineVolumeCc <= 0)
+    ) {
       errors.push("Mühərrik həcmi (cc) tələb olunur.");
     }
     if (ownersCount !== "" && ownersCount < 1) {
@@ -447,7 +455,8 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
   const availableModels = useMemo(() => getModelsForMake(make), [make]);
   const availableEngineTypes = useMemo(() => getCompatibleEngineTypes(fuelType), [fuelType]);
   const availableTransmissions = useMemo(() => getCompatibleTransmissions(fuelType), [fuelType]);
-  const isElectricPowertrain = fuelType === "Elektrik";
+  const skipsEngineVolume =
+    fuelType === "Elektrik" || fuelType === "Hidrogen (FCEV)";
 
   const clientFieldErrors = useMemo(
     () =>
@@ -938,6 +947,7 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                         clearFieldError("model");
                       }}
                       placeholder="Marka seçin və ya yazın"
+                      customEntryLabel="yeni marka kimi əlavə et"
                       className={fieldInputClass("make")}
                       required
                     />
@@ -953,10 +963,16 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                         clearFieldError("model");
                       }}
                       placeholder={make.trim() ? "Model seçin və ya yazın" : "Əvvəl marka daxil edin"}
+                      customEntryLabel="yeni model kimi əlavə et"
                       disabled={!make.trim()}
                       className={fieldInputClass("model")}
                       required
                     />
+                    {make.trim() && availableModels.length === 0 && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Bu marka üçün hazır model siyahısı yoxdur — modeli əl ilə yazın.
+                      </p>
+                    )}
                     {renderFieldError("model")}
                   </div>
                 </div>
@@ -1107,7 +1123,9 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                         const nextCompatibleTransmissions = getCompatibleTransmissions(nextFuelType);
                         setEngineType(nextCompatibleEngines[0] ?? "");
                         setTransmission(nextCompatibleTransmissions[0] ?? "");
-                        if (nextFuelType === "Elektrik") setEngineVolumeCc("");
+                        if (nextFuelType === "Elektrik" || nextFuelType === "Hidrogen (FCEV)") {
+                          setEngineVolumeCc("");
+                        }
                       }}
                       className="input-field"
                     >
@@ -1348,10 +1366,12 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                       className={fieldInputClass("engineVolumeCc")}
                       placeholder="məs: 2000"
                       min={0}
-                      disabled={isElectricPowertrain}
+                      disabled={skipsEngineVolume}
                     />
-                    {isElectricPowertrain && (
-                      <p className="mt-1 text-xs text-slate-400">Elektrik avtomobillərdə mühərrik həcmi tətbiq edilmir.</p>
+                    {skipsEngineVolume && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        Elektrik və hidrogen (FCEV) avtomobillərdə mühərrik həcmi tətbiq edilmir.
+                      </p>
                     )}
                     {renderFieldError("engineVolumeCc")}
                   </div>

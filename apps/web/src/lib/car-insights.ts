@@ -105,6 +105,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2018,
     ratings: { reliability: 9, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 88,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 203, engineCc: 2487,
+      fuelConsumption: { city: 8.7, highway: 6.5, combined: 7.5, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Sənaye üzrə ən yüksək etibarlılıq göstəriciləri",
       "Uzunmüddətli davamlılıq (250 000+ km sorunsuz)",
@@ -131,6 +135,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 9, comfort: 7, performance: 6, economy: 8, safety: 9 },
     ownerSatisfaction: 86,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 139, engineCc: 1798,
+      fuelConsumption: { city: 7.4, highway: 5.8, combined: 6.5, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Dünyada ən çox satılan avtomobilin etibarlılıq irsini daşıyır",
       "Aşağı yanacaq sərfiyyatı (1.8L hibrid versiya)",
@@ -157,6 +165,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 8, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 85,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 203, engineCc: 2487,
+      fuelConsumption: { city: 9.2, highway: 7.1, combined: 8.0, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kabin həcmi sinifinin ən yaxşılarından biri",
       "Hibrid versiyada 5.8 L/100 km sərfiyyat",
@@ -183,6 +195,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 9, comfort: 9, performance: 7, economy: 4, safety: 8 },
     ownerSatisfaction: 92,
+    powertrain: {
+      category: "ICE_DIESEL", systemPowerHp: 204, engineCc: 2755,
+      fuelConsumption: { city: 11.5, highway: 9.2, combined: 10.1, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Yolsuzluqda eşsiz inam verən platforma",
       "1GD/2GD dizel mühərrikin yüksək davamlılığı",
@@ -243,6 +259,10 @@ const insights: CarModelInsights[] = [
     yearTo: 2020,
     ratings: { reliability: 6, comfort: 7, performance: 6, economy: 7, safety: 8 },
     ownerSatisfaction: 72,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1598,
+      fuelConsumption: { city: 8.9, highway: 6.8, combined: 7.7, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Dizayn cəlbediciliyi",
       "Texnoloji avadanlıq (2019+)",
@@ -268,6 +288,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2021,
     ratings: { reliability: 8, comfort: 9, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 83,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1598,
+      fuelConsumption: { city: 8.9, highway: 6.8, combined: 7.7, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Müasir dizayn — seqmentin ən cazibədarı",
       "Panoramik günəş damı, ventilasiyalı oturacaqlar (Prestige)",
@@ -294,6 +318,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2021,
     ratings: { reliability: 8, comfort: 7, performance: 7, economy: 8, safety: 9 },
     ownerSatisfaction: 80,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 128, engineCc: 1591,
+      fuelConsumption: { city: 8.0, highway: 6.0, combined: 6.9, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Smartstream 1.6L mühərrikinin etibarlılığı",
       "Dizayn cəlbediciliyi (7-ci nəsil)",
@@ -320,6 +348,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 7, comfort: 9, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 78,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 180, engineCc: 2497,
+      fuelConsumption: { city: 11.0, highway: 8.2, combined: 9.4, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Ailə üçün geniş kabin (7 yerli seçim)",
       "Keyfiyyətli materiallar (Premium trim)",
@@ -349,6 +381,10 @@ const insights: CarModelInsights[] = [
     yearTo: 2021,
     ratings: { reliability: 7, comfort: 7, performance: 6, economy: 7, safety: 8 },
     ownerSatisfaction: 74,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1598,
+      fuelConsumption: { city: 8.8, highway: 6.7, combined: 7.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Cəlbedici dizayn",
       "Dəyər/avadanlıq nisbəti yaxşıdır",
@@ -374,6 +410,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2022,
     ratings: { reliability: 8, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 84,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1598,
+      fuelConsumption: { city: 8.8, highway: 6.7, combined: 7.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Smartstream 1.6T mühərrikinin etibarlılığı artıb",
       "Müasir ADAS sürücü köməkçiləri",
@@ -400,6 +440,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2021,
     ratings: { reliability: 8, comfort: 9, performance: 7, economy: 6, safety: 9 },
     ownerSatisfaction: 82,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 180, engineCc: 2497,
+      fuelConsumption: { city: 10.8, highway: 8.0, combined: 9.2, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Ailə SUV-u kimi geniş kabin",
       "2.5T mühərrikinin gücü (281 at gücü)",
@@ -426,6 +470,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2020,
     ratings: { reliability: 8, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 83,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 180, engineCc: 2497,
+      fuelConsumption: { city: 9.5, highway: 6.8, combined: 7.9, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Sürüş dinamikası seqment üzrə yüksək qiymətləndirilir",
       "1.6T mühərrikinin istifadəçi məmnuniyyəti",
@@ -454,6 +502,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 7, comfort: 8, performance: 9, economy: 7, safety: 9 },
     ownerSatisfaction: 78,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 184, engineCc: 1998,
+      fuelConsumption: { city: 8.5, highway: 5.9, combined: 7.0, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Sürüş dinamikası sedan seqmentinin etalonu",
       "B58 3.0L mühərrikinin möhkəmliyi (330i/340i)",
@@ -481,6 +533,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2017,
     ratings: { reliability: 7, comfort: 9, performance: 9, economy: 7, safety: 9 },
     ownerSatisfaction: 77,
+    powertrain: {
+      category: "ICE_DIESEL", systemPowerHp: 190, engineCc: 1995,
+      fuelConsumption: { city: 7.2, highway: 5.1, combined: 5.9, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Premium kabin keyfiyyəti",
       "3 Series-dən daha rahat uzun yol sürüşü",
@@ -508,6 +564,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 7, comfort: 9, performance: 9, economy: 6, safety: 9 },
     ownerSatisfaction: 76,
+    powertrain: {
+      category: "ICE_DIESEL", systemPowerHp: 286, engineCc: 2993,
+      fuelConsumption: { city: 9.8, highway: 7.2, combined: 8.3, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Lüks kabin — materiallar seqmentin zirvəsindədir",
       "B58 xDrive45e PHEV variantı",
@@ -535,6 +595,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2018,
     ratings: { reliability: 7, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 78,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 184, engineCc: 1998,
+      fuelConsumption: { city: 9.6, highway: 7.0, combined: 8.1, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kompakt lüks SUV-ların ən dinamiği",
       "B48/B58 mühərrik ailəsinin möhkəmliyi",
@@ -563,6 +627,10 @@ const insights: CarModelInsights[] = [
     yearTo: 2021,
     ratings: { reliability: 6, comfort: 9, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 72,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 184, engineCc: 1497,
+      fuelConsumption: { city: 8.4, highway: 5.8, combined: 6.9, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kabin keyfiyyəti, materiallar premium hiss verir",
       "Sürüş rahatı seqmentin ən yaxşılarından",
@@ -591,6 +659,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 7, comfort: 9, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 75,
+    powertrain: {
+      category: "ICE_DIESEL", systemPowerHp: 194, engineCc: 1950,
+      fuelConsumption: { city: 7.0, highway: 5.0, combined: 5.8, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Uzun yol rahatlığı sedan seqmentinin ən yaxşısi",
       "Geniş kabin, arxa sərnişinlər üçün rahatdır",
@@ -620,6 +692,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2015,
     ratings: { reliability: 7, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 74,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1395,
+      fuelConsumption: { city: 7.8, highway: 5.5, combined: 6.4, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Avropa üçün hazırlanmış yol rahatlığı",
       "DSG/S-Tronic ötürücünün effektivliyi (quru DSG)",
@@ -646,6 +722,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 7, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 75,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1395,
+      fuelConsumption: { city: 8.6, highway: 6.4, combined: 7.3, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kompakt SUV seqmentinin ən yüksək reytinqli Avropa modeli",
       "Geniş bagaj (yeddi oturacaqlı Allspace versiyası)",
@@ -673,6 +753,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2018,
     ratings: { reliability: 8, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 83,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 192, engineCc: 1498,
+      fuelConsumption: { city: 8.5, highway: 6.2, combined: 7.2, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "1.5T və 2.0T mühərriklərin sürüş xüsusiyyətləri",
       "Kabin genişliyi seqmentinin ən yaxşıları arasında",
@@ -699,6 +783,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2017,
     ratings: { reliability: 7, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 79,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 190, engineCc: 1498,
+      fuelConsumption: { city: 9.0, highway: 7.0, combined: 7.8, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Yük tutumu seqmentin ən yüksəklərindən",
       "Kabin keyfiyyəti yaxşı bitişliklidir",
@@ -727,6 +815,10 @@ const insights: CarModelInsights[] = [
     yearTo: 2021,
     ratings: { reliability: 6, comfort: 7, performance: 6, economy: 7, safety: 7 },
     ownerSatisfaction: 67,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 140, engineCc: 1332,
+      fuelConsumption: { city: 8.2, highway: 6.1, combined: 7.0, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kompakt ölçü şəhər şəraitinə uyğundur",
       "Yaxşı sürücü görüşü",
@@ -753,6 +845,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2022,
     ratings: { reliability: 7, comfort: 8, performance: 7, economy: 8, safety: 9 },
     ownerSatisfaction: 77,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 140, engineCc: 1332,
+      fuelConsumption: { city: 8.2, highway: 6.1, combined: 7.0, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "e-Power hibrid sisteminin yanacaq sərfiyyatı",
       "Tamamilə yenilənmiş kabin dizaynı",
@@ -777,6 +873,10 @@ const insights: CarModelInsights[] = [
     yearTo: 2022,
     ratings: { reliability: 6, comfort: 7, performance: 6, economy: 7, safety: 7 },
     ownerSatisfaction: 68,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 144, engineCc: 1497,
+      fuelConsumption: { city: 9.0, highway: 6.8, combined: 7.8, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Ailə üçün geniş kabin (7 yerli seçim)",
       "Praktik yük tutumu",
@@ -804,6 +904,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2019,
     ratings: { reliability: 10, comfort: 9, performance: 7, economy: 8, safety: 9 },
     ownerSatisfaction: 93,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 203, engineCc: 2487,
+      fuelConsumption: { city: 8.8, highway: 6.6, combined: 7.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Consumer Reports-un ən etibarlı otomobilləri arasında ilk sırada",
       "2.5L hibrid (300h): 5.5 L/100 km",
@@ -830,6 +934,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 9, comfort: 9, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 90,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 275, engineCc: 3456,
+      fuelConsumption: { city: 11.5, highway: 8.5, combined: 9.8, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Lüks SUV-lar arasında etibarlılıq lideri",
       "450h hibrid versiyasının yanacaq sərfiyyatı",
@@ -857,6 +965,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 7, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 76,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 150, engineCc: 1984,
+      fuelConsumption: { city: 8.0, highway: 5.6, combined: 6.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kabin keyfiyyəti seqmentinin ən yüksəklərindən",
       "Aydın, sadə dizayn",
@@ -884,6 +996,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2017,
     ratings: { reliability: 7, comfort: 9, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 77,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 204, engineCc: 1984,
+      fuelConsumption: { city: 9.4, highway: 7.0, combined: 8.0, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Premium kompakt SUV-ların ən rahat kabini",
       "Quattro AWD sistemi dağlıq ərazilərdə üstünlük verir",
@@ -911,6 +1027,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2017,
     ratings: { reliability: 9, comfort: 8, performance: 7, economy: 7, safety: 9 },
     ownerSatisfaction: 86,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 165, engineCc: 1998,
+      fuelConsumption: { city: 9.0, highway: 6.8, combined: 7.7, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Kompakt SUV-lər arasında etibarlılıq liderindən biri",
       "Sürüş dinamikası seqmentinin ən ehtiraslısı",
@@ -937,6 +1057,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2015,
     ratings: { reliability: 8, comfort: 8, performance: 8, economy: 7, safety: 9 },
     ownerSatisfaction: 82,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 165, engineCc: 1998,
+      fuelConsumption: { city: 8.4, highway: 6.2, combined: 7.1, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Sedan seqmentinin ən gözəl dizaynlarından biri",
       "SKYACTIV mühərriklərinin etibarlılığı",
@@ -964,6 +1088,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2016,
     ratings: { reliability: 5, comfort: 7, performance: 6, economy: 7, safety: 8 },
     ownerSatisfaction: 62,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 163, engineCc: 1490,
+      fuelConsumption: { city: 9.0, highway: 6.5, combined: 7.6, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Münasib qiymətə geniş kabin",
       "1.5T mühərrikinin sürüş mülayimliyi",
@@ -991,6 +1119,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2018,
     ratings: { reliability: 6, comfort: 7, performance: 6, economy: 7, safety: 8 },
     ownerSatisfaction: 65,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 170, engineCc: 1490,
+      fuelConsumption: { city: 9.8, highway: 7.2, combined: 8.3, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "Rahat yüklü kabin",
       "Yaxşı şəhər manevri",
@@ -1018,6 +1150,10 @@ const insights: CarModelInsights[] = [
     yearFrom: 2015,
     ratings: { reliability: 7, comfort: 7, performance: 6, economy: 7, safety: 9 },
     ownerSatisfaction: 80,
+    powertrain: {
+      category: "ICE_PETROL", systemPowerHp: 182, engineCc: 2498,
+      fuelConsumption: { city: 10.2, highway: 7.6, combined: 8.7, unit: "L/100km", testCycle: "WLTP" }
+    },
     strengths: [
       "AWD sistemi Subaru-nun ən güclü cəhəti",
       "Universalın yük tutumu",
