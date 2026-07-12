@@ -261,15 +261,17 @@ function ServiceRow({
       {!active && !pending && (
         <p className="mt-2 text-xs text-slate-400">Profil yarat · Admin təsdiqi tələb olunur</p>
       )}
-      {approvedListings.length > 1 && (
+      {approvedListings.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {approvedListings.map((l) => (
             <Link
               key={l.id}
               href={`/services/${l.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
             >
-              {l.name}
+              {approvedListings.length === 1 ? "İctimai profil ↗" : `${l.name} ↗`}
             </Link>
           ))}
         </div>

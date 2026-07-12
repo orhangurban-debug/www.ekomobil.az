@@ -6,12 +6,9 @@ import { getApprovedServiceListingBySlug } from "@/server/service-listing-store"
 import { ServiceInquiryForm } from "@/components/partners/service-inquiry-form";
 import { ServiceStatsTracker } from "@/components/partners/service-stats-tracker";
 import { ServiceContactActions } from "@/components/partners/service-contact-actions";
-import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
+import { buildBusinessLocations } from "@/components/business/business-branches-display";
+import { PublicProfileShell } from "@/components/seller/public-profile-shell";
 
-// Admin təsdiqləri istənilən vaxt baş verə bilər (yeni servis təsdiqlənməsi/rədd edilməsi),
-// ona görə bu səhifə Full Route Cache-ə salınmamalıdır — əks halda yeni təsdiqlənmiş profillər
-// keş təzələnənə qədər 404 qala bilər (məsələn, `dynamicParams` fallback keşləməsi ilk sorğuda
-// baş verən keçici bir xətanı belə əbədi keşləyə bilər).
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -24,8 +21,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!item) {
     return { title: "Servis profili tapılmadı | EkoMobil" };
   }
+  const kindLabel =
+    item.providerType === "inspection_company" ? "Ekspertiza" : "Servis";
   return {
-    title: `${item.name} | Servis profili · EkoMobil`,
+    title: `${item.name} | ${kindLabel} profili · EkoMobil`,
     description: `${item.name} (${item.city}) — ${item.about}`
   };
 }
@@ -35,6 +34,7 @@ export default async function ServiceProfilePage({ params }: PageProps) {
   const item = await getApprovedServiceListingBySlug(slug);
   if (!item) notFound();
 
+  const isInspection = item.providerType === "inspection_company";
   const locations = buildBusinessLocations({
     primaryCity: item.city,
     primaryLabel: item.name,
@@ -45,151 +45,111 @@ export default async function ServiceProfilePage({ params }: PageProps) {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <>
       <ServiceStatsTracker slug={slug} />
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/services" className="hover:text-slate-900">Servislər</Link>
-        <span className="mx-2">/</span>
-        <span className="text-slate-900">{item.name}</span>
-      </nav>
-
-      {/* Profil header */}
-      <div className="rounded-2xl border glass-panel border-slate-900/10 p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/63 text-2xl font-bold text-slate-400">
-              {item.name.charAt(0)}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{item.name}</h1>
-              <p className="mt-0.5 text-sm text-slate-500">
-                {SERVICE_PROVIDER_TYPE_LABELS[item.providerType]} • {item.city}
-              </p>
-            </div>
+      <PublicProfileShell
+        name={item.name}
+        profileKind={isInspection ? "inspection" : "service"}
+        verified
+        city={item.city}
+        coverUrl={null}
+        logoUrl={item.imageUrls?.[0] ?? null}
+        description={item.about}
+        workingHours={null}
+        address={item.address}
+        mapUrl={item.mapUrl}
+        locations={locations}
+        trustBadges={[]}
+        listingCount={item.reviewCount}
+        listingCountLabel={`${item.rating.toFixed(1)} ★ · rəy`}
+        metaChips={
+          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
+            {SERVICE_PROVIDER_TYPE_LABELS[item.providerType]}
+            {" · "}
+            Cavab: ~{item.responseMinutes} dəq
+          </span>
+        }
+        ctaSlot={
+          <div className="mt-3">
+            <ServiceContactActions slug={slug} phone={item.phone} whatsapp={item.whatsapp} />
           </div>
-          <div className="rounded-xl bg-emerald-500/10 px-4 py-2.5 text-center">
-            <div className="text-xl font-bold text-emerald-700">{item.rating.toFixed(1)} ★</div>
-            <div className="text-xs text-emerald-700">{item.reviewCount} rəy</div>
-          </div>
-        </div>
-
-        <p className="mt-5 text-sm leading-relaxed text-slate-700">{item.about}</p>
+        }
+      >
+        <nav className="text-sm text-slate-500">
+          <Link href="/services" className="hover:text-slate-900">
+            Servislər
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-slate-900">{item.name}</span>
+        </nav>
 
         {item.imageUrls && item.imageUrls.length > 0 && (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
-              <a key={imageUrl} href={imageUrl} target="_blank" rel="noreferrer" className="overflow-hidden rounded-2xl border border-slate-900/10 bg-white/60">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt={`${item.name} şəkil ${index + 1}`} className="h-48 w-full object-cover" />
-              </a>
-            ))}
-          </div>
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-slate-900">Qalereya</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
+                <a
+                  key={imageUrl}
+                  href={imageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imageUrl}
+                    alt={`${item.name} şəkil ${index + 1}`}
+                    className="h-44 w-full object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          </section>
         )}
 
-        <ServiceContactActions slug={slug} phone={item.phone} whatsapp={item.whatsapp} />
-      </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          <ServiceInquiryForm slug={slug} />
 
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
-        <ServiceInquiryForm slug={slug} />
+          <div className="space-y-4">
+            <section className="rounded-xl border border-slate-200 bg-white p-5">
+              <h2 className="text-sm font-semibold text-slate-900">Təqdim olunan xidmətlər</h2>
+              <ul className="mt-3 space-y-2">
+                {item.services.map((service) => (
+                  <li key={service} className="flex items-center gap-2 text-sm text-slate-600">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0057FF]" />
+                    {service}
+                  </li>
+                ))}
+              </ul>
+            </section>
 
-        {/* Detallı məlumat */}
-        <div className="space-y-4">
-        {locations.length > 0 && (
-          <div className="rounded-2xl border glass-panel border-slate-900/10 p-5">
-            <BusinessBranchesDisplay locations={locations} />
-          </div>
-        )}
-
-        {/* Xidmətlər */}
-        <div className="rounded-2xl border glass-panel border-slate-900/10 p-5">
-          <h2 className="text-sm font-semibold text-slate-900">Təqdim olunan xidmətlər</h2>
-          <ul className="mt-3 space-y-2">
-            {item.services.map((service) => (
-              <li key={service} className="flex items-center gap-2 text-sm text-slate-600">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0057FF]" />
-                {service}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Göstəricilər */}
-        <div className="rounded-2xl border glass-panel border-slate-900/10 p-5">
-          <h2 className="text-sm font-semibold text-slate-900">Məlumat</h2>
-          <dl className="mt-3 space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <dt className="text-slate-500">Şəhər</dt>
-              <dd className="font-medium text-slate-900">{item.city}</dd>
-            </div>
-            {item.address && (
-              <div className="flex items-start justify-between gap-4 text-sm">
-                <dt className="text-slate-500">Əsas ünvan</dt>
-                <dd className="text-right font-medium text-slate-900">{item.address}</dd>
-              </div>
+            {item.certifications && item.certifications.length > 0 && (
+              <section className="rounded-xl border border-slate-200 bg-white p-5">
+                <h2 className="text-sm font-semibold text-slate-900">Sertifikasiya</h2>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {item.certifications.map((cert) => (
+                    <span
+                      key={cert}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+                    >
+                      {cert}
+                    </span>
+                  ))}
+                </div>
+              </section>
             )}
-            {(item.branches?.length ?? 0) > 0 && (
-              <div className="flex items-center justify-between text-sm">
-                <dt className="text-slate-500">Filial sayı</dt>
-                <dd className="font-medium text-slate-900">{item.branches!.length}</dd>
-              </div>
-            )}
-            <div className="flex items-center justify-between text-sm">
-              <dt className="text-slate-500">Kateqoriya</dt>
-              <dd className="font-medium text-slate-900">{SERVICE_PROVIDER_TYPE_LABELS[item.providerType]}</dd>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <dt className="text-slate-500">Orta cavab</dt>
-              <dd className="font-medium text-slate-900">~{item.responseMinutes} dəqiqə</dd>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <dt className="text-slate-500">Reytinq</dt>
-              <dd className="font-medium text-emerald-700">{item.rating.toFixed(1)} ★ ({item.reviewCount} rəy)</dd>
-            </div>
-          </dl>
-          {item.mapUrl && locations.length <= 1 && (
-            <div className="mt-4">
-              <a
-                href={item.mapUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex rounded-lg border border-slate-900/10 px-3 py-2 text-sm text-[#0057FF] hover:bg-slate-900/5"
-              >
-                Xəritədə aç
-              </a>
-            </div>
-          )}
-        </div>
-        </div>
-      </div>
-
-      {/* Sertifikasiyalar */}
-      {item.certifications && item.certifications.length > 0 && (
-        <div className="mt-4 rounded-2xl border glass-panel border-slate-900/10 p-5">
-          <h2 className="text-sm font-semibold text-slate-900">Sertifikasiya və akkreditasiya</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {item.certifications.map((cert) => (
-              <span key={cert} className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                {cert}
-              </span>
-            ))}
           </div>
         </div>
-      )}
 
-      {/* Disclaimer */}
-      <div className="mt-4 rounded-xl alert-warning border p-4 text-xs leading-relaxed text-amber-700">
-        EkoMobil bu profili məlumat məqsədilə təqdim edir. Xidmət keyfiyyəti və texniki nəticə xidmət göstərənin
-        məsuliyyətindədir. Platforma hüquqi zəmanət vermir.
-      </div>
+        <p className="text-xs leading-relaxed text-slate-400">
+          EkoMobil bu profili məlumat məqsədilə təqdim edir. Xidmət keyfiyyəti və texniki nəticə xidmət
+          göstərənin məsuliyyətindədir. Platforma hüquqi zəmanət vermir.
+        </p>
 
-      {/* Geri */}
-      <div className="mt-6">
-        <Link href="/services" className="text-sm text-[#0057FF] hover:underline">
-          ← Bütün servisləre qayıt
+        <Link href="/services" className="inline-flex text-sm font-medium text-[#0057FF] hover:underline">
+          ← Bütün servislərə qayıt
         </Link>
-      </div>
-    </div>
+      </PublicProfileShell>
+    </>
   );
 }

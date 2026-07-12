@@ -26,7 +26,7 @@ export interface TrustBadge {
   weight: number;
 }
 
-export type PublicProfileKind = "store" | "dealer" | "private";
+export type PublicProfileKind = "store" | "dealer" | "private" | "service" | "inspection";
 
 const BADGE_META: Record<TrustBadgeKey, Omit<TrustBadge, "key">> = {
   phone_verified:      { label: "Telefon",           icon: "📱", description: "Telefon nömrəsi əlavə edilib",                weight: 10 },
@@ -54,6 +54,14 @@ const DEALER_VERIFIED_BY_KIND: Record<
   private: {
     label: "Təsdiqlənmiş",
     description: "EkoMobil tərəfindən təsdiqlənmiş satıcı"
+  },
+  service: {
+    label: "Təsdiqlənmiş servis",
+    description: "EkoMobil tərəfindən təsdiqlənmiş servis profili"
+  },
+  inspection: {
+    label: "Təsdiqlənmiş ekspertiza",
+    description: "EkoMobil tərəfindən təsdiqlənmiş ekspertiza profili"
   }
 };
 

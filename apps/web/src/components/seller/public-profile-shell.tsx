@@ -13,7 +13,9 @@ import { PublicTrustSummary } from "@/components/seller/trust-badges";
 const TYPE_LABEL: Record<PublicProfileKind, string> = {
   store: "Mağaza",
   dealer: "Salon",
-  private: "Fərdi satıcı"
+  private: "Fərdi satıcı",
+  service: "Servis",
+  inspection: "Ekspertiza"
 };
 
 function formatMemberSince(iso: string | null | undefined): string {
@@ -92,8 +94,12 @@ export interface PublicProfileShellProps {
   locations?: BusinessLocationCard[];
   trustBadges: TrustBadge[];
   listingCount: number;
+  /** Label under the primary stat number. Default: Aktiv elan */
+  listingCountLabel?: string;
   /** Extra chips under identity (e.g. SLA) */
   metaChips?: ReactNode;
+  /** Replaces default Call / WhatsApp / Website buttons (e.g. tracked service CTAs) */
+  ctaSlot?: ReactNode;
   /** Sibling business profile (salon ↔ store) for dual-plan owners */
   siblingProfile?: { label: string; href: string } | null;
   children: ReactNode;
@@ -120,7 +126,9 @@ export function PublicProfileShell({
   locations = [],
   trustBadges,
   listingCount,
+  listingCountLabel = "Aktiv elan",
   metaChips,
+  ctaSlot,
   siblingProfile,
   children
 }: PublicProfileShellProps) {
@@ -180,7 +188,11 @@ export function PublicProfileShell({
                         ? "bg-slate-900 text-white"
                         : profileKind === "dealer"
                           ? "bg-[#0057FF] text-white"
-                          : "bg-slate-100 text-slate-600"
+                          : profileKind === "inspection"
+                            ? "bg-emerald-700 text-white"
+                            : profileKind === "service"
+                              ? "bg-teal-700 text-white"
+                              : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {TYPE_LABEL[profileKind]}
@@ -230,51 +242,53 @@ export function PublicProfileShell({
                   </div>
                 )}
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {callPhone && (
-                    <a
-                      href={telHref(callPhone)}
-                      className="inline-flex items-center justify-center rounded-lg bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0046CC]"
-                    >
-                      Zəng et
-                    </a>
-                  )}
-                  {waPhone && (
-                    <a
-                      href={`https://wa.me/${digitsOnly(waPhone)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
-                    >
-                      WhatsApp
-                    </a>
-                  )}
-                  {showWebsite && websiteUrl && (
-                    <a
-                      href={websiteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Vebsayt
-                    </a>
-                  )}
-                  {siblingProfile && (
-                    <Link
-                      href={siblingProfile.href}
-                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                      {siblingProfile.label}
-                    </Link>
-                  )}
-                </div>
+                {ctaSlot ?? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {callPhone && (
+                      <a
+                        href={telHref(callPhone)}
+                        className="inline-flex items-center justify-center rounded-lg bg-[#0057FF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0046CC]"
+                      >
+                        Zəng et
+                      </a>
+                    )}
+                    {waPhone && (
+                      <a
+                        href={`https://wa.me/${digitsOnly(waPhone)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                      >
+                        WhatsApp
+                      </a>
+                    )}
+                    {showWebsite && websiteUrl && (
+                      <a
+                        href={websiteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                        Vebsayt
+                      </a>
+                    )}
+                    {siblingProfile && (
+                      <Link
+                        href={siblingProfile.href}
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                        {siblingProfile.label}
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-stretch gap-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 sm:min-w-[220px]">
               <div className="text-center">
                 <p className="text-2xl font-bold tabular-nums text-slate-900">{listingCount}</p>
-                <p className="text-[11px] text-slate-500">Aktiv elan</p>
+                <p className="text-[11px] text-slate-500">{listingCountLabel}</p>
               </div>
               {trustBadges.length > 0 && (
                 <div className="flex-1 border-l border-slate-200 pl-4">

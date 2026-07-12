@@ -117,6 +117,13 @@ export default async function ProfilePage({
   const storePublicUrl = isStore ? `/sellers/${user.id}` : null;
   const salonPublicUrl = hasSalon ? `/dealers/${dealerProfileId}` : null;
   const privatePublicUrl = !isStore && !hasSalon ? `/sellers/${user.id}` : null;
+  const approvedServiceProfiles = myServiceListings.filter((item) => item.status === "approved");
+  const approvedServisProfiles = approvedServiceProfiles.filter(
+    (item) => item.providerType !== "inspection_company"
+  );
+  const approvedInspectionProfiles = approvedServiceProfiles.filter(
+    (item) => item.providerType === "inspection_company"
+  );
 
   const draftListings = myListings.filter((item) => item.status === "draft");
   const draftPaymentMap = new Map<string, string | undefined>();
@@ -235,6 +242,40 @@ export default async function ProfilePage({
                 {privatePublicUrl && (
                   <Link href={privatePublicUrl} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                     İctimai profil ↗
+                  </Link>
+                )}
+                {approvedServisProfiles.length === 1 && (
+                  <Link
+                    href={`/services/${approvedServisProfiles[0].slug}`}
+                    target="_blank"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    Servis profili ↗
+                  </Link>
+                )}
+                {approvedServisProfiles.length > 1 && (
+                  <Link
+                    href="/partners/my-services"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    Servis profilləri ({approvedServisProfiles.length})
+                  </Link>
+                )}
+                {approvedInspectionProfiles.length === 1 && (
+                  <Link
+                    href={`/services/${approvedInspectionProfiles[0].slug}`}
+                    target="_blank"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    Ekspertiza profili ↗
+                  </Link>
+                )}
+                {approvedInspectionProfiles.length > 1 && (
+                  <Link
+                    href="/partners/my-services"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  >
+                    Ekspertiza profilləri ({approvedInspectionProfiles.length})
                   </Link>
                 )}
                 {invoiceCount > 0 && (
