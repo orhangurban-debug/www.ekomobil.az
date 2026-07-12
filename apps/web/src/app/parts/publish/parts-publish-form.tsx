@@ -428,9 +428,10 @@ export function PartsPublishForm({ storePublishContext }: { storePublishContext:
           <div>
             <label className="label">OEM kodu</label>
             <input className="input-field" value={partOemCode} onChange={(e) => setPartOemCode(e.target.value)} placeholder="Məs: 90915-YZZE1" />
+            <p className="mt-1 text-xs text-slate-500">OEM və ya SKU — ən azı biri mütləqdir</p>
           </div>
           <div>
-            <label className="label">SKU</label>
+            <label className="label">SKU (mağaza kodu)</label>
             <input className="input-field" value={partSku} onChange={(e) => setPartSku(e.target.value)} placeholder="Məs: FLT-TOY-001" />
           </div>
         </div>

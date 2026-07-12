@@ -64,3 +64,18 @@ export function estimateTrustScore(signals: TrustSignals): number {
 
   return Math.max(0, Math.min(100, score));
 }
+
+/** Part listings: OEM/SKU identity replaces VIN; no mileage penalties. */
+export function estimatePartTrustScore(input: {
+  hasOemOrSku: boolean;
+  hasAuthenticity: boolean;
+  sellerVerified: boolean;
+  mediaComplete: boolean;
+}): number {
+  let score = 50;
+  if (input.hasOemOrSku) score += 20;
+  if (input.hasAuthenticity) score += 10;
+  if (input.sellerVerified) score += 10;
+  if (input.mediaComplete) score += 10;
+  return Math.max(0, Math.min(100, score));
+}

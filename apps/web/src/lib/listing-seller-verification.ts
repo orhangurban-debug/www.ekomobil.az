@@ -1,4 +1,4 @@
-import { estimateTrustScore } from "@/lib/trust-score";
+import { estimatePartTrustScore, estimateTrustScore } from "@/lib/trust-score";
 import type { ListingSummary } from "@/lib/marketplace-types";
 
 export interface ListingSellerVerificationContext {
@@ -52,6 +52,9 @@ export interface ListingTrustRowContext extends ListingSellerVerificationContext
   vinVerified?: boolean | null;
   mediaComplete?: boolean | null;
   mileageFlagSeverity?: ListingSummary["mileageFlagSeverity"] | string | null;
+  partOemCode?: string | null;
+  partSku?: string | null;
+  partAuthenticity?: string | null;
 }
 
 export function resolveListingTrustSignals(row: ListingTrustRowContext): {
@@ -69,22 +72,30 @@ export function resolveListingTrustSignals(row: ListingTrustRowContext): {
     hasStorePlan: row.ownerHasStorePlan
   });
 
-  const trustScore = estimateTrustScore({
-    vinVerification: {
-      status: row.vinVerified ? "verified" : "pending",
-      sourceType: "user_submitted"
-    },
-    sellerVerified,
-    mediaComplete: row.mediaComplete ?? false,
-    mileageFlag:
-      row.mileageFlagSeverity === "warning" || row.mileageFlagSeverity === "high_risk"
-        ? {
-            severity: row.mileageFlagSeverity,
-            reasonCode: "MILEAGE_FLAG",
-            message: ""
-          }
-        : undefined
-  });
+  const trustScore =
+    row.listingKind === "part"
+      ? estimatePartTrustScore({
+          hasOemOrSku: Boolean(row.partOemCode?.trim() || row.partSku?.trim()),
+          hasAuthenticity: Boolean(row.partAuthenticity?.trim()),
+          sellerVerified,
+          mediaComplete: row.mediaComplete ?? false
+        })
+      : estimateTrustScore({
+          vinVerification: {
+            status: row.vinVerified ? "verified" : "pending",
+            sourceType: "user_submitted"
+          },
+          sellerVerified,
+          mediaComplete: row.mediaComplete ?? false,
+          mileageFlag:
+            row.mileageFlagSeverity === "warning" || row.mileageFlagSeverity === "high_risk"
+              ? {
+                  severity: row.mileageFlagSeverity,
+                  reasonCode: "MILEAGE_FLAG",
+                  message: ""
+                }
+              : undefined
+        });
 
   return { sellerVerified, trustScore };
 }

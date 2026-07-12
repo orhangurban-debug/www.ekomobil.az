@@ -65,7 +65,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
   const title = `${listing.title} — ${listing.priceAzn.toLocaleString("az-AZ")} ₼`;
-  const description = `${listing.year} il, ${listing.city}, ${listing.mileageKm.toLocaleString("az-AZ")} km. EkoMobil-də elan detalı və satıcı əlaqə məlumatları.`;
+  const description =
+    listing.listingKind === "part"
+      ? [
+          listing.partBrand,
+          listing.partOemCode ? `OEM ${listing.partOemCode}` : null,
+          listing.city,
+          listing.partCondition === "new" ? "Yeni" : listing.partCondition === "used" ? "İşlənmiş" : null
+        ]
+          .filter(Boolean)
+          .join(", ") + ". EkoMobil mağaza elanı."
+      : `${listing.year} il, ${listing.city}, ${listing.mileageKm.toLocaleString("az-AZ")} km. EkoMobil-də elan detalı və satıcı əlaqə məlumatları.`;
   const canonicalPath = `/listings/${listing.id}`;
   return {
     title,
@@ -131,8 +141,19 @@ export default async function ListingDetailPage({
   const showcaseSpecs = isPart
     ? [
         { value: listing.partQuantity !== undefined ? String(listing.partQuantity) : "—", unit: "ƏD", label: "Stok" },
-        { value: listing.partCondition === "new" ? "Yeni" : listing.partCondition === "used" ? "İşlənmiş" : "—", unit: "", label: "Vəziyyət" },
-        { value: listing.year ? String(listing.year) : "—", unit: "", label: "İl" }
+        { value: listing.partCondition === "new" ? "Yeni" : listing.partCondition === "used" ? "İşlənmiş" : listing.partCondition === "refurbished" ? "Bərpa" : "—", unit: "", label: "Vəziyyət" },
+        {
+          value:
+            listing.partAuthenticity === "original"
+              ? "OE"
+              : listing.partAuthenticity === "oem"
+                ? "OEM"
+                : listing.partAuthenticity === "aftermarket"
+                  ? "AM"
+                  : "—",
+          unit: "",
+          label: "Orijinallıq"
+        }
       ]
     : [
         {
@@ -310,7 +331,13 @@ export default async function ListingDetailPage({
                 </span>
               </div>
             )}
-            <p className="mt-1 text-sm text-slate-500">{listing.city} • {listing.year}</p>
+            <p className="mt-1 text-sm text-slate-500">
+              {isPart
+                ? [listing.city, listing.partBrand, listing.partOemCode ? `OEM ${listing.partOemCode}` : null]
+                    .filter(Boolean)
+                    .join(" • ")
+                : `${listing.city} • ${listing.year}`}
+            </p>
 
             <div className="mt-5 space-y-2">
               {telPhone ? (
@@ -354,48 +381,91 @@ export default async function ListingDetailPage({
             </div>
 
             <div className="space-y-3">
-              {[
-                {
-                  label: "VIN Nömrəsi",
-                  ok: hasVinEntered,
-                  okText: "Daxil edilib",
-                  failText: "Daxil edilməyib"
-                },
-                {
-                  label: sellerVerificationLabel,
-                  ok: listing.sellerVerified,
-                  okText: isSalonVehicleListing ? "Təsdiqlənmiş salon" : "Doğrulandı",
-                  failText: isSalonVehicleListing ? "Admin yoxlaması gözlənilir" : "Doğrulanmayıb"
-                },
-                {
-                  label: "Media Protokolu",
-                  ok: listing.mediaComplete,
-                  okText: "Tam",
-                  failText: "Çatışmır"
-                },
-                {
-                  label: "Servis Tarixçəsi",
-                  ok: Boolean(listing.serviceHistorySummary),
-                  okText: listing.serviceHistorySummary || "Mövcuddur",
-                  failText: "Satıcıdan soruşun"
-                }
-              ].map((item) => (
+              {(isPart
+                ? [
+                    {
+                      label: "OEM kodu",
+                      ok: Boolean(listing.partOemCode?.trim()),
+                      okText: listing.partOemCode?.trim() || "Daxil edilib",
+                      failText: "Daxil edilməyib"
+                    },
+                    {
+                      label: "SKU",
+                      ok: Boolean(listing.partSku?.trim()),
+                      okText: listing.partSku?.trim() || "Daxil edilib",
+                      failText: "Opsional"
+                    },
+                    {
+                      label: "Orijinallıq",
+                      ok: Boolean(listing.partAuthenticity),
+                      okText:
+                        listing.partAuthenticity === "original"
+                          ? "Orijinal (OE)"
+                          : listing.partAuthenticity === "oem"
+                            ? "OEM/Firma"
+                            : listing.partAuthenticity === "aftermarket"
+                              ? "Aftermarket"
+                              : "Göstərilib",
+                      failText: "Seçilməyib"
+                    },
+                    {
+                      label: sellerVerificationLabel,
+                      ok: listing.sellerVerified,
+                      okText: "Doğrulandı",
+                      failText: "Doğrulanmayıb"
+                    },
+                    {
+                      label: "Media",
+                      ok: listing.mediaComplete,
+                      okText: "Tam",
+                      failText: "Çatışmır"
+                    }
+                  ]
+                : [
+                    {
+                      label: "VIN Nömrəsi",
+                      ok: hasVinEntered,
+                      okText: "Daxil edilib",
+                      failText: "Daxil edilməyib"
+                    },
+                    {
+                      label: sellerVerificationLabel,
+                      ok: listing.sellerVerified,
+                      okText: isSalonVehicleListing ? "Təsdiqlənmiş salon" : "Doğrulandı",
+                      failText: isSalonVehicleListing ? "Admin yoxlaması gözlənilir" : "Doğrulanmayıb"
+                    },
+                    {
+                      label: "Media Protokolu",
+                      ok: listing.mediaComplete,
+                      okText: "Tam",
+                      failText: "Çatışmır"
+                    },
+                    {
+                      label: "Servis Tarixçəsi",
+                      ok: Boolean(listing.serviceHistorySummary),
+                      okText: listing.serviceHistorySummary || "Mövcuddur",
+                      failText: "Satıcıdan soruşun"
+                    }
+                  ]
+              ).map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">{item.label}</span>
                   {item.ok ? (
                     <span className="badge-verified">{item.okText}</span>
                   ) : (
-                    <span className="badge-warning">{item.failText}</span>
+                    <span className={item.label === "SKU" && !item.ok ? "text-xs text-slate-400" : "badge-warning"}>
+                      {item.failText}
+                    </span>
                   )}
                 </div>
               ))}
 
-              {listing.mileageFlagSeverity === "warning" && (
+              {!isPart && listing.mileageFlagSeverity === "warning" && (
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
                   {listing.mileageFlagMessage || "Yürüşdə kiçik uyğunsuzluq aşkar edilib. Almazdan əvvəl servis tarixçəsini yoxlayın."}
                 </div>
               )}
-              {listing.mileageFlagSeverity === "high_risk" && (
+              {!isPart && listing.mileageFlagSeverity === "high_risk" && (
                 <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-700">
                   {listing.mileageFlagMessage || "Yürüşdə yüksək uyğunsuzluq aşkar edilib. Diqqətli olun."}
                 </div>
@@ -405,7 +475,7 @@ export default async function ListingDetailPage({
                   <strong>Risk xülasəsi:</strong> {listing.riskSummary}
                 </div>
               )}
-              {(listing.vinInfoUrl || listing.vinDocumentRef) && (
+              {!isPart && (listing.vinInfoUrl || listing.vinDocumentRef) && (
                 <div className="rounded-xl border border-slate-900/10 bg-white/60 p-3 text-xs text-slate-600">
                   <strong>VIN hesabatı:</strong>{" "}
                   {listing.vinInfoUrl ? (

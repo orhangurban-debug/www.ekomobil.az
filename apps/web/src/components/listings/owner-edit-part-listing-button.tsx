@@ -56,8 +56,12 @@ export function OwnerEditPartListingButton(props: {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    setBusy(true);
     setError(null);
+    if (!form.partOemCode.trim() && !form.partSku.trim()) {
+      setError("OEM kodu və ya SKU daxil edilməlidir.");
+      return;
+    }
+    setBusy(true);
     try {
       const response = await fetch(`/api/listings/${props.listingId}`, {
         method: "PATCH",
@@ -74,8 +78,8 @@ export function OwnerEditPartListingButton(props: {
           partBrand: form.partBrand || undefined,
           partCondition: form.partCondition,
           partAuthenticity: form.partAuthenticity,
-          partOemCode: form.partOemCode.trim() || undefined,
-          partSku: form.partSku.trim() || undefined,
+          partOemCode: form.partOemCode.trim(),
+          partSku: form.partSku.trim(),
           partQuantity: Number(form.partQuantity),
           partCompatibility: form.partCompatibility.trim() || undefined
         })
@@ -226,7 +230,7 @@ export function OwnerEditPartListingButton(props: {
                   className="input-field"
                   value={form.partOemCode}
                   onChange={(e) => setForm((prev) => ({ ...prev, partOemCode: e.target.value }))}
-                  placeholder="OEM kodu"
+                  placeholder="OEM kodu (və ya SKU)"
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">

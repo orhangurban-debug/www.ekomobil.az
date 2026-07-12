@@ -260,7 +260,10 @@ function mapRowToSummary(row: ListingRow): ListingSummary {
     ownerHasStorePlan: row.owner_has_store_plan,
     vinVerified: row.vin_verified,
     mediaComplete: row.media_complete,
-    mileageFlagSeverity: row.mileage_flag_severity as ListingSummary["mileageFlagSeverity"]
+    mileageFlagSeverity: row.mileage_flag_severity as ListingSummary["mileageFlagSeverity"],
+    partOemCode: row.part_oem_code,
+    partSku: row.part_sku,
+    partAuthenticity: row.part_authenticity
   });
 
   return {
@@ -1723,6 +1726,11 @@ export async function updatePartListingForOwner(
   }
   if (partQuantity !== undefined && (!Number.isFinite(partQuantity) || partQuantity < 0)) {
     return { ok: false, error: "Say məlumatı düzgün deyil." };
+  }
+  if (input.partOemCode !== undefined && input.partSku !== undefined) {
+    if (!partOemCode && !partSku) {
+      return { ok: false, error: "OEM kodu və ya SKU daxil edilməlidir." };
+    }
   }
 
   try {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildTrustSignals, estimateTrustScore } from "@/lib/trust-score";
+import { buildTrustSignals, estimatePartTrustScore, estimateTrustScore } from "@/lib/trust-score";
 import { ListingInput, validateListingInput, validatePartListingInput, type PartListingPublishInput } from "@/lib/listing";
 import { getServerSessionUser } from "@/lib/auth";
 import { getUserAccountStatus, isActiveAccountStatus } from "@/server/user-store";
@@ -22,7 +22,6 @@ import {
 import { getDealerProfileIdByOwner, resolveDealerListingContact } from "@/server/dealer-store";
 import { resolveSellerVerifiedForPublish } from "@/server/listing-trust-sync";
 import { resolveVehicleListingTitle } from "@/lib/listing-title";
-import type { VehicleIdentity } from "@/lib/vehicle";
 import type { ListingKind } from "@/lib/marketplace-types";
 
 const SUSPICIOUS_TEXT_PATTERNS: RegExp[] = [
@@ -328,26 +327,20 @@ async function handleCreateListing(req: Request): Promise<Response> {
         { status: 409 }
       );
     }
-    const dummyVehicle: VehicleIdentity = {
-      vin: "PARTS-NOVIN",
-      make: category,
-      model: partLine,
-      year: new Date().getFullYear(),
-      declaredMileageKm: 0
-    };
-
     const resolvedPartSellerVerified = await resolveSellerVerifiedForPublish({
       ownerUserId: sessionUser.id,
       listingKind: "part"
     });
 
-    const trustSignals = buildTrustSignals({
-      vehicle: dummyVehicle,
-      vinVerified: false,
+    const partOem = partPayload.partOemCode?.trim() || undefined;
+    const partSku = partPayload.partSku?.trim() || undefined;
+    const partAuthenticity = partPayload.partAuthenticity || undefined;
+    const trustScore = estimatePartTrustScore({
+      hasOemOrSku: Boolean(partOem || partSku),
+      hasAuthenticity: Boolean(partAuthenticity),
       sellerVerified: resolvedPartSellerVerified,
       mediaComplete: validation.mediaComplete
     });
-    const trustScore = estimateTrustScore(trustSignals);
 
     const createInput = {
       ownerUserId: sessionUser?.id,
@@ -376,21 +369,21 @@ async function handleCreateListing(req: Request): Promise<Response> {
       partSubcategory: partPayload.partSubcategory?.trim() || undefined,
       partBrand: partPayload.partBrand?.trim() || undefined,
       partCondition: partPayload.partCondition || undefined,
-      partAuthenticity: partPayload.partAuthenticity || undefined,
-      partOemCode: partPayload.partOemCode?.trim() || undefined,
-      partSku: partPayload.partSku?.trim() || undefined,
+      partAuthenticity,
+      partOemCode: partOem,
+      partSku,
       partQuantity: partPayload.partQuantity ?? 0,
       partCompatibility: partPayload.partCompatibility?.trim() || undefined,
       imageUrls: partPayload.imageUrls,
       trust: {
         trustScore,
         vinVerified: false,
-        sellerVerified: trustSignals.sellerVerified,
-        mediaComplete: trustSignals.mediaComplete,
-        mileageFlagSeverity: trustSignals.mileageFlag?.severity,
-        mileageFlagMessage: trustSignals.mileageFlag?.message,
-        serviceHistorySummary: "Hissə elanı — VIN tətbiq olunmur",
-        riskSummary: "Media və satıcı siqnalları yoxlanıb"
+        sellerVerified: resolvedPartSellerVerified,
+        mediaComplete: validation.mediaComplete,
+        serviceHistorySummary: undefined,
+        riskSummary: partOem
+          ? "OEM kodu, media və satıcı siqnalları yoxlanıb"
+          : "Media və satıcı siqnalları yoxlanıb"
       }
     };
 

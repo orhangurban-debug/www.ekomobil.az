@@ -1,6 +1,6 @@
 import { getPgPool } from "@/lib/postgres";
 import { resolveListingSellerVerified } from "@/lib/listing-seller-verification";
-import { estimateTrustScore } from "@/lib/trust-score";
+import { estimatePartTrustScore, estimateTrustScore } from "@/lib/trust-score";
 
 async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
   if (listingIds.length === 0) return;
@@ -19,6 +19,9 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
     seller_type: string;
     listing_kind: string | null;
     owner_has_store_plan: boolean;
+    part_oem_code: string | null;
+    part_sku: string | null;
+    part_authenticity: string | null;
   }>(
     `
       SELECT
@@ -37,6 +40,9 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
         (NULLIF(BTRIM(COALESCE(ou.phone, '')), '') IS NOT NULL) AS owner_phone_set,
         l.seller_type,
         l.listing_kind,
+        l.part_oem_code,
+        l.part_sku,
+        l.part_authenticity,
         EXISTS (
           SELECT 1 FROM business_plan_subscriptions bps
           WHERE bps.owner_user_id = l.owner_user_id
@@ -54,6 +60,7 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
   );
 
   for (const row of rows.rows) {
+    const isPart = row.listing_kind === "part";
     const sellerVerified = resolveListingSellerVerified({
       storedSellerVerified: row.seller_verified,
       dealerProfileVerified: row.dealer_verified,
@@ -61,26 +68,33 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
       ownerEmailVerified: row.owner_email_verified,
       ownerPhoneSet: row.owner_phone_set,
       sellerType: row.seller_type,
-      listingKind: row.listing_kind === "part" ? "part" : "vehicle",
+      listingKind: isPart ? "part" : "vehicle",
       hasStorePlan: row.owner_has_store_plan
     });
 
-    const trustScore = estimateTrustScore({
-      vinVerification: {
-        status: row.vin_verified ? "verified" : "pending",
-        sourceType: "user_submitted"
-      },
-      sellerVerified,
-      mediaComplete: row.media_complete ?? false,
-      mileageFlag:
-        row.mileage_flag_severity === "warning" || row.mileage_flag_severity === "high_risk"
-          ? {
-              severity: row.mileage_flag_severity as "warning" | "high_risk",
-              reasonCode: "MILEAGE_FLAG",
-              message: ""
-            }
-          : undefined
-    });
+    const trustScore = isPart
+      ? estimatePartTrustScore({
+          hasOemOrSku: Boolean(row.part_oem_code?.trim() || row.part_sku?.trim()),
+          hasAuthenticity: Boolean(row.part_authenticity?.trim()),
+          sellerVerified,
+          mediaComplete: row.media_complete ?? false
+        })
+      : estimateTrustScore({
+          vinVerification: {
+            status: row.vin_verified ? "verified" : "pending",
+            sourceType: "user_submitted"
+          },
+          sellerVerified,
+          mediaComplete: row.media_complete ?? false,
+          mileageFlag:
+            row.mileage_flag_severity === "warning" || row.mileage_flag_severity === "high_risk"
+              ? {
+                  severity: row.mileage_flag_severity as "warning" | "high_risk",
+                  reasonCode: "MILEAGE_FLAG",
+                  message: ""
+                }
+              : undefined
+        });
 
     await pool.query(
       `
@@ -99,10 +113,10 @@ async function syncTrustForListingIds(listingIds: string[]): Promise<void> {
       [
         row.listing_id,
         trustScore,
-        row.vin_verified,
+        isPart ? false : row.vin_verified,
         sellerVerified,
         row.media_complete,
-        row.mileage_flag_severity
+        isPart ? null : row.mileage_flag_severity
       ]
     );
   }
