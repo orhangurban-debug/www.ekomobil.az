@@ -4,8 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useConfirm } from "@/components/ui/confirm-dialog-provider";
 import { useToast } from "@/components/ui/toast-provider";
+import { AdminStaffGrantModal } from "@/components/admin/admin-staff-grant-modal";
+import {
+  ADMIN_STAFF_TYPE_LABELS,
+  type AdminCapability,
+  type AdminStaffType
+} from "@/lib/admin-permissions";
+import type { UserRole } from "@/lib/auth";
 
-type UserRole = "admin" | "support" | "dealer" | "viewer";
 type UserStatus = "active" | "suspended" | "review";
 
 interface UserData {
@@ -17,6 +23,8 @@ interface UserData {
   fullName?: string;
   city?: string;
   phone?: string;
+  staffType?: AdminStaffType | null;
+  permissions?: AdminCapability[];
 }
 
 export function AdminUserEditPanel({
@@ -32,16 +40,19 @@ export function AdminUserEditPanel({
   const toast = useToast();
   const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
+  const [grantOpen, setGrantOpen] = useState(false);
   const [form, setForm] = useState({
     fullName: user.fullName ?? "",
     city: user.city ?? "",
     phone: user.phone ?? "",
     role: user.role,
+    staffType: user.staffType ?? null,
+    permissions: user.permissions ?? [],
     userAccountStatus: user.userAccountStatus as UserStatus,
     penaltyBalanceAzn: user.penaltyBalanceAzn
   });
 
-  async function save() {
+  async function saveProfileOnly() {
     setBusy(true);
     try {
       const response = await fetch(`/api/admin/users/${user.id}`, {
@@ -51,7 +62,6 @@ export function AdminUserEditPanel({
           fullName: form.fullName.trim() || null,
           city: form.city.trim() || null,
           phone: form.phone.trim() || null,
-          role: canEditRoles ? form.role : undefined,
           userAccountStatus: form.userAccountStatus,
           penaltyBalanceAzn: canEditRoles ? form.penaltyBalanceAzn : undefined
         })
@@ -62,6 +72,70 @@ export function AdminUserEditPanel({
         return;
       }
       toast.success("İstifadəçi məlumatları yeniləndi.");
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applyStaffGrant(input: {
+    staffType: AdminStaffType;
+    permissions: AdminCapability[];
+    role: "admin" | "support";
+  }) {
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: input.role,
+          staffType: input.staffType,
+          permissions: input.permissions,
+          confirm: true
+        })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        toast.error(payload.error ?? "Rol yenilənmədi.");
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        role: input.role,
+        staffType: input.staffType,
+        permissions: input.permissions
+      }));
+      setGrantOpen(false);
+      toast.success("Admin/staff təyinatı tətbiq olundu.");
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function demoteRole(nextRole: Extract<UserRole, "viewer" | "dealer">) {
+    const ok = await confirm({
+      title: "Rolu dəyiş",
+      message: "Admin səlahiyyətləri silinəcək. Davam edilsin?",
+      confirmLabel: "Təsdiq et",
+      danger: true
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: nextRole, confirm: true })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) {
+        toast.error(payload.error ?? "Rol yenilənmədi.");
+        return;
+      }
+      setForm((f) => ({ ...f, role: nextRole, staffType: null, permissions: [] }));
+      toast.success("Rol yeniləndi.");
       router.refresh();
     } finally {
       setBusy(false);
@@ -102,7 +176,9 @@ export function AdminUserEditPanel({
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h3 className="font-semibold text-slate-900">İstifadəçini redaktə et</h3>
-          <p className="mt-1 text-xs text-slate-500">Profil, rol və status dəyişiklikləri dərhal tətbiq olunur.</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Admin təyinatı ayrıca təsdiq tələb edir. Digər profil dəyişiklikləri saxla ilə tətbiq olunur.
+          </p>
         </div>
         {canDelete && (
           <button
@@ -145,20 +221,57 @@ export function AdminUserEditPanel({
           <span className="text-xs font-medium text-slate-600">E-poçt (dəyişdirilmir)</span>
           <input className="input-field bg-slate-50" value={user.email} disabled />
         </label>
-        <label className="space-y-1">
-          <span className="text-xs font-medium text-slate-600">Rol</span>
-          <select
-            className="input-field"
-            value={form.role}
-            disabled={!canEditRoles}
-            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as UserRole }))}
-          >
-            <option value="viewer">Fərdi istifadəçi</option>
-            <option value="dealer">Salon</option>
-            <option value="support">Dəstək</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
+        <div className="space-y-2">
+          <span className="text-xs font-medium text-slate-600">Rol / admin növü</span>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+            <p className="font-semibold text-slate-900">
+              {form.role === "admin"
+                ? "Admin"
+                : form.role === "support"
+                  ? "Dəstək"
+                  : form.role === "dealer"
+                    ? "Salon"
+                    : "Fərdi istifadəçi"}
+            </p>
+            {form.staffType && (
+              <p className="mt-0.5 text-xs text-slate-500">
+                {ADMIN_STAFF_TYPE_LABELS[form.staffType]} · {form.permissions.length} səlahiyyət
+              </p>
+            )}
+          </div>
+          {canEditRoles && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setGrantOpen(true)}
+                className="rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-3 py-1.5 text-xs font-semibold text-[#0057FF] hover:bg-[#0057FF]/10 disabled:opacity-60"
+              >
+                Admin/staff təyin et
+              </button>
+              {(form.role === "admin" || form.role === "support") && (
+                <>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void demoteRole("viewer")}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    İzləyici et
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void demoteRole("dealer")}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    Salon et
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         <label className="space-y-1">
           <span className="text-xs font-medium text-slate-600">Hesab statusu</span>
           <select
@@ -186,10 +299,25 @@ export function AdminUserEditPanel({
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <button type="button" onClick={() => void save()} disabled={busy} className="btn-primary px-5 py-2 text-sm disabled:opacity-60">
+        <button
+          type="button"
+          onClick={() => void saveProfileOnly()}
+          disabled={busy}
+          className="btn-primary px-5 py-2 text-sm disabled:opacity-60"
+        >
           {busy ? "Saxlanılır..." : "Dəyişiklikləri saxla"}
         </button>
       </div>
+
+      <AdminStaffGrantModal
+        open={grantOpen}
+        userLabel={user.fullName || user.email}
+        initialStaffType={form.staffType ?? (form.role === "support" ? "support" : "moderation")}
+        initialPermissions={form.permissions}
+        busy={busy}
+        onClose={() => setGrantOpen(false)}
+        onConfirm={(input) => void applyStaffGrant(input)}
+      />
     </section>
   );
 }

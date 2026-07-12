@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { requirePageRoles } from "@/lib/rbac";
+import { redirect } from "next/navigation";
+import { requirePageAdminCapability } from "@/lib/rbac";
 import { AdminLegalRequestsPanel } from "@/components/admin/admin-legal-requests-panel";
 import { listLegalDataRequests } from "@/server/legal-request-store";
 
@@ -9,7 +10,8 @@ export const metadata = {
 };
 
 export default async function AdminLegalRequestsPage() {
-  await requirePageRoles(["admin"]);
+  const auth = await requirePageAdminCapability("legal.manage");
+  if (!auth.ok) redirect(auth.reason === "unauthenticated" ? "/login?next=/admin/legal-requests" : "/admin");
   const requests = await listLegalDataRequests(100);
 
   return (

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { BrandSettings } from "@/lib/brand-settings";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability, requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { getBrandSettings, updateBrandSettings } from "@/server/system-settings-store";
 
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "settings.manage");
   if (!auth.ok) return auth.response;
   const body = (await req.json()) as Partial<BrandSettings>;
   try {

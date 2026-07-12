@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability } from "@/lib/rbac";
 import { updateLegalDataRequestStatus } from "@/server/legal-request-store";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { legalDataRequestStatusSchema, parseOrThrow, ValidationError } from "@/lib/validate";
@@ -7,7 +7,7 @@ import { legalDataRequestStatusSchema, parseOrThrow, ValidationError } from "@/l
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, ctx: RouteContext) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "legal.manage");
   if (!auth.ok) return auth.response;
 
   const { id } = await ctx.params;

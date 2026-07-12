@@ -1,8 +1,10 @@
+import { redirect } from "next/navigation";
 import { TaxReportsPanel } from "@/components/admin/tax-reports-panel";
-import { requirePageRoles } from "@/lib/rbac";
+import { requirePageAdminCapability } from "@/lib/rbac";
 
 export default async function AdminTaxReportsPage() {
-  await requirePageRoles(["admin"]);
+  const auth = await requirePageAdminCapability("finance.manage");
+  if (!auth.ok) redirect(auth.reason === "unauthenticated" ? "/login?next=/admin/tax-reports" : "/admin");
   return (
     <div className="space-y-6">
       <div>

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminUserEditPanel } from "@/components/admin/admin-user-edit-panel";
 import { REQUEST_TYPE_LABELS, STATUS_LABELS } from "@/lib/support-contact";
+import { hasCapability, resolveEffectivePermissions } from "@/lib/admin-permissions";
 import { getServerSessionUser } from "@/lib/auth";
-import { getAdminUserMembershipProfile } from "@/server/admin-store";
+import { getAdminGrantForUser, getAdminUserMembershipProfile } from "@/server/admin-store";
 
 const ROLE_LABELS: Record<string, string> = {
   viewer: "Fərdi istifadəçi",
@@ -55,8 +56,18 @@ export default async function AdminUserMembershipPage({
   if (!profile) notFound();
 
   const sessionUser = await getServerSessionUser();
-  const canEditRoles = sessionUser?.role === "admin";
-  const canDelete = sessionUser?.role === "admin" && !profile.user.email.includes("@anonymized.ekomobil.local");
+  const actorGrant = sessionUser ? await getAdminGrantForUser(sessionUser.id) : null;
+  const actorPermissions = sessionUser
+    ? resolveEffectivePermissions({
+        role: sessionUser.role,
+        staffType: actorGrant?.staffType ?? null,
+        permissions: actorGrant?.permissions ?? null
+      })
+    : [];
+  const canEditRoles = hasCapability(actorPermissions, "users.assign_staff");
+  const canDelete =
+    hasCapability(actorPermissions, "users.delete") &&
+    !profile.user.email.includes("@anonymized.ekomobil.local");
 
   const displayName = profile.user.fullName?.trim() || profile.user.email;
   const membershipLabel =
@@ -134,7 +145,9 @@ export default async function AdminUserMembershipPage({
           penaltyBalanceAzn: profile.user.penaltyBalanceAzn,
           fullName: profile.user.fullName,
           city: profile.user.city,
-          phone: profile.user.phone
+          phone: profile.user.phone,
+          staffType: profile.user.staffType,
+          permissions: profile.user.permissions
         }}
         canEditRoles={canEditRoles}
         canDelete={canDelete}

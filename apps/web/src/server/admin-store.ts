@@ -3,6 +3,12 @@ import type { PoolClient } from "pg";
 import { REQUEST_TYPE_GROUPS } from "@/lib/support-admin";
 import { SUPPORT_ARCHIVE_AFTER_DAYS } from "@/lib/support-retention";
 import type { UserRole } from "@/lib/auth";
+import {
+  type AdminCapability,
+  type AdminStaffType,
+  isAdminStaffType,
+  sanitizeCapabilities
+} from "@/lib/admin-permissions";
 import { getDealerPlanCatalog, getPartsPlanCatalog } from "@/server/business-plan-store";
 import { syncActiveDealerVerification } from "@/server/dealer-store";
 import type { SupportRequestMeta } from "@/components/admin/admin-support-types";
@@ -76,6 +82,8 @@ export interface AdminUserRow {
   createdAt: string;
   fullName?: string;
   city?: string;
+  staffType?: AdminStaffType | null;
+  permissions?: AdminCapability[];
 }
 
 export interface FinanceSnapshot {
@@ -434,6 +442,99 @@ export async function updateAdminUserRole(userId: string, role: UserRole): Promi
   await pool.query(`UPDATE users SET role = $2 WHERE id = $1`, [userId, role]);
 }
 
+export async function getAdminGrantForUser(userId: string): Promise<{
+  staffType: AdminStaffType;
+  permissions: AdminCapability[];
+} | null> {
+  try {
+    const pool = getPgPool();
+    const result = await pool.query<{
+      staff_type: string;
+      permissions: string[] | null;
+    }>(
+      `SELECT staff_type, permissions FROM user_admin_grants WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    if (!isAdminStaffType(row.staff_type)) return null;
+    return {
+      staffType: row.staff_type,
+      permissions: sanitizeCapabilities(row.permissions ?? [])
+    };
+  } catch {
+    // Table may not exist yet before migration 068
+    return null;
+  }
+}
+
+export async function upsertAdminGrant(input: {
+  userId: string;
+  staffType: AdminStaffType;
+  permissions: AdminCapability[];
+  grantedBy: string;
+}): Promise<void> {
+  const pool = getPgPool();
+  await pool.query(
+    `INSERT INTO user_admin_grants (user_id, staff_type, permissions, granted_by, updated_at)
+     VALUES ($1, $2, $3::text[], $4, NOW())
+     ON CONFLICT (user_id) DO UPDATE SET
+       staff_type = EXCLUDED.staff_type,
+       permissions = EXCLUDED.permissions,
+       granted_by = EXCLUDED.granted_by,
+       updated_at = NOW()`,
+    [input.userId, input.staffType, input.permissions, input.grantedBy]
+  );
+}
+
+export async function deleteAdminGrant(userId: string): Promise<void> {
+  try {
+    const pool = getPgPool();
+    await pool.query(`DELETE FROM user_admin_grants WHERE user_id = $1`, [userId]);
+  } catch {
+    // ignore missing table
+  }
+}
+
+export async function assignAdminStaffRole(input: {
+  userId: string;
+  role: UserRole;
+  staffType?: AdminStaffType | null;
+  permissions?: AdminCapability[] | null;
+  grantedBy: string;
+}): Promise<void> {
+  const pool = getPgPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(`UPDATE users SET role = $2 WHERE id = $1`, [input.userId, input.role]);
+
+    if (input.role === "admin" || input.role === "support") {
+      const staffType = input.staffType ?? (input.role === "support" ? "support" : "custom");
+      const permissions = input.permissions ?? [];
+      await client.query(
+        `INSERT INTO user_admin_grants (user_id, staff_type, permissions, granted_by, updated_at)
+         VALUES ($1, $2, $3::text[], $4, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET
+           staff_type = EXCLUDED.staff_type,
+           permissions = EXCLUDED.permissions,
+           granted_by = EXCLUDED.granted_by,
+           updated_at = NOW()`,
+        [input.userId, staffType, permissions, input.grantedBy]
+      );
+    } else {
+      await client.query(`DELETE FROM user_admin_grants WHERE user_id = $1`, [input.userId]);
+    }
+
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function updateAdminUserStatus(userId: string, status: string): Promise<void> {
   const pool = getPgPool();
   await pool.query(`UPDATE users SET user_account_status = $2 WHERE id = $1`, [userId, status]);
@@ -486,6 +587,7 @@ export async function anonymizeAdminUser(userId: string): Promise<void> {
      WHERE id = $1`,
     [userId, anonEmail]
   );
+  await pool.query(`DELETE FROM user_admin_grants WHERE user_id = $1`, [userId]).catch(() => undefined);
   await pool.query(
     `UPDATE user_profiles SET
        full_name = 'Silinmiş istifadəçi',
@@ -1813,46 +1915,96 @@ export async function listAdminUsersPaged(input: {
      ${whereSql}`,
     values
   );
-  values.push(pageSize, offset);
-  const result = await pool.query<{
-    id: string;
-    email: string;
-    role: string;
-    user_account_status: string;
-    penalty_balance_azn: number;
-    email_verified: boolean;
-    created_at: Date;
-    full_name: string | null;
-    city: string | null;
-  }>(
-    `SELECT
-      u.id, u.email, u.role, u.user_account_status, u.penalty_balance_azn, u.email_verified, u.created_at,
-      up.full_name, up.city
-    FROM users u
-    LEFT JOIN user_profiles up ON up.user_id = u.id
-    ${whereSql}
-    ORDER BY ${sortBy} ${sortDir}
-    LIMIT $${values.length - 1} OFFSET $${values.length}`,
-    values
-  );
   const total = n(countResult.rows[0]?.total);
-  return {
-    items: result.rows.map((row) => ({
-      id: row.id,
-      email: row.email,
-      role: row.role as UserRole,
-      userAccountStatus: row.user_account_status,
-      penaltyBalanceAzn: row.penalty_balance_azn,
-      emailVerified: row.email_verified,
-      createdAt: row.created_at.toISOString(),
-      fullName: row.full_name ?? undefined,
-      city: row.city ?? undefined
-    })),
-    total,
-    page,
-    pageSize,
-    totalPages: Math.max(1, Math.ceil(total / pageSize))
-  };
+  try {
+    values.push(pageSize, offset);
+    const result = await pool.query<{
+      id: string;
+      email: string;
+      role: string;
+      user_account_status: string;
+      penalty_balance_azn: number;
+      email_verified: boolean;
+      created_at: Date;
+      full_name: string | null;
+      city: string | null;
+      staff_type: string | null;
+      permissions: string[] | null;
+    }>(
+      `SELECT
+        u.id, u.email, u.role, u.user_account_status, u.penalty_balance_azn, u.email_verified, u.created_at,
+        up.full_name, up.city,
+        g.staff_type, g.permissions
+      FROM users u
+      LEFT JOIN user_profiles up ON up.user_id = u.id
+      LEFT JOIN user_admin_grants g ON g.user_id = u.id
+      ${whereSql}
+      ORDER BY ${sortBy} ${sortDir}
+      LIMIT $${values.length - 1} OFFSET $${values.length}`,
+      values
+    );
+    return {
+      items: result.rows.map((row) => ({
+        id: row.id,
+        email: row.email,
+        role: row.role as UserRole,
+        userAccountStatus: row.user_account_status,
+        penaltyBalanceAzn: row.penalty_balance_azn,
+        emailVerified: row.email_verified,
+        createdAt: row.created_at.toISOString(),
+        fullName: row.full_name ?? undefined,
+        city: row.city ?? undefined,
+        staffType: row.staff_type && isAdminStaffType(row.staff_type) ? row.staff_type : null,
+        permissions: sanitizeCapabilities(row.permissions ?? [])
+      })),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize))
+    };
+  } catch {
+    // Migration 068 not applied yet — fall back without grants
+    const legacyValues = values.slice(0, -2);
+    legacyValues.push(pageSize, offset);
+    const result = await pool.query<{
+      id: string;
+      email: string;
+      role: string;
+      user_account_status: string;
+      penalty_balance_azn: number;
+      email_verified: boolean;
+      created_at: Date;
+      full_name: string | null;
+      city: string | null;
+    }>(
+      `SELECT
+        u.id, u.email, u.role, u.user_account_status, u.penalty_balance_azn, u.email_verified, u.created_at,
+        up.full_name, up.city
+      FROM users u
+      LEFT JOIN user_profiles up ON up.user_id = u.id
+      ${whereSql}
+      ORDER BY ${sortBy} ${sortDir}
+      LIMIT $${legacyValues.length - 1} OFFSET $${legacyValues.length}`,
+      legacyValues
+    );
+    return {
+      items: result.rows.map((row) => ({
+        id: row.id,
+        email: row.email,
+        role: row.role as UserRole,
+        userAccountStatus: row.user_account_status,
+        penaltyBalanceAzn: row.penalty_balance_azn,
+        emailVerified: row.email_verified,
+        createdAt: row.created_at.toISOString(),
+        fullName: row.full_name ?? undefined,
+        city: row.city ?? undefined
+      })),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize))
+    };
+  }
 }
 
 export async function bulkUpdateAdminUserStatus(userIds: string[], status: string): Promise<number> {
@@ -2477,6 +2629,8 @@ export async function getAdminUserMembershipProfile(userId: string): Promise<Adm
     )
   ]);
 
+  const grant = await getAdminGrantForUser(userId);
+
   const listings = listingsRes.rows.map((row) => ({
     id: row.id,
     title: row.title,
@@ -2502,7 +2656,9 @@ export async function getAdminUserMembershipProfile(userId: string): Promise<Adm
       fullName: userRow.full_name ?? undefined,
       city: userRow.city ?? undefined,
       phone: userRow.phone ?? undefined,
-      isIdentityVerified: userRow.is_identity_verified
+      isIdentityVerified: userRow.is_identity_verified,
+      staffType: grant?.staffType ?? null,
+      permissions: grant?.permissions ?? []
     },
     dealerProfile: dealerRes.rows[0]
       ? {

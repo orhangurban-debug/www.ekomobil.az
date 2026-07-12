@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import type { AuctionPaymentMode } from "@/lib/auction-system-settings";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { updateSystemSettings } from "@/server/system-settings-store";
 
 export async function POST(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "settings.manage");
   if (!auth.ok) return auth.response;
 
   const body = (await req.json()) as {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability } from "@/lib/rbac";
 import type { TaxExportFormat } from "@/lib/tax-reporting";
 import { buildTaxReportCsv, getTaxReportSummary } from "@/server/tax-report-store";
 
@@ -11,7 +11,7 @@ function parseDateParam(value: string | null): string | null {
 }
 
 export async function GET(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "finance.manage");
   if (!auth.ok) return auth.response;
 
   const url = new URL(req.url);

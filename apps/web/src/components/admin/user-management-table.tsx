@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useConfirm } from "@/components/ui/confirm-dialog-provider";
 import { useToast } from "@/components/ui/toast-provider";
+import { AdminStaffGrantModal } from "@/components/admin/admin-staff-grant-modal";
+import {
+  ADMIN_STAFF_TYPE_LABELS,
+  type AdminCapability,
+  type AdminStaffType
+} from "@/lib/admin-permissions";
+import type { UserRole } from "@/lib/auth";
 
-type UserRole = "admin" | "support" | "dealer" | "viewer";
 type UserStatus = "active" | "suspended" | "review";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -32,6 +38,8 @@ interface AdminUserRow {
   createdAt: string;
   fullName?: string;
   city?: string;
+  staffType?: AdminStaffType | null;
+  permissions?: AdminCapability[];
 }
 
 interface Props {
@@ -52,6 +60,7 @@ export function UserManagementTable({
   const [rows, setRows] = useState(users);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [grantTarget, setGrantTarget] = useState<AdminUserRow | null>(null);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -61,24 +70,98 @@ export function UserManagementTable({
     setRows(users);
   }, [users]);
 
-  async function updateRole(userId: string, role: UserRole) {
+  async function applyStaffGrant(input: {
+    userId: string;
+    staffType: AdminStaffType;
+    permissions: AdminCapability[];
+    role: "admin" | "support";
+  }) {
+    setBusyId(input.userId);
+    const prev = rows;
+    setRows((current) =>
+      current.map((u) =>
+        u.id === input.userId
+          ? {
+              ...u,
+              role: input.role,
+              staffType: input.staffType,
+              permissions: input.permissions
+            }
+          : u
+      )
+    );
+    try {
+      const response = await fetch(`/api/admin/users/${input.userId}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: input.role,
+          staffType: input.staffType,
+          permissions: input.permissions,
+          confirm: true
+        })
+      });
+      const payload = (await response.json()) as { ok: boolean; error?: string };
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Rol yenilənmədi");
+      toast.success("Admin/staff təyinatı tətbiq olundu.");
+      setGrantTarget(null);
+      router.refresh();
+    } catch (error) {
+      setRows(prev);
+      toast.error(error instanceof Error ? error.message : "Rol yenilənmədi");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function demoteToNonStaff(userId: string, role: Extract<UserRole, "viewer" | "dealer">) {
+    const ok = await confirm({
+      title: "Rolu dəyiş",
+      message: `İstifadəçi ${ROLE_LABELS[role]} ediləcək və admin səlahiyyətləri silinəcək. Davam edilsin?`,
+      confirmLabel: "Təsdiq et",
+      danger: true
+    });
+    if (!ok) return;
+
     setBusyId(userId);
     const prev = rows;
-    setRows((current) => current.map((u) => (u.id === userId ? { ...u, role } : u)));
+    setRows((current) =>
+      current.map((u) =>
+        u.id === userId ? { ...u, role, staffType: null, permissions: [] } : u
+      )
+    );
     try {
       const response = await fetch(`/api/admin/users/${userId}/role`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role })
+        body: JSON.stringify({ role, confirm: true })
       });
       const payload = (await response.json()) as { ok: boolean; error?: string };
-      if (!payload.ok) throw new Error(payload.error || "Rol yenilənmədi");
-    } catch {
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Rol yenilənmədi");
+      toast.success("Rol yeniləndi.");
+      router.refresh();
+    } catch (error) {
       setRows(prev);
-      toast.error("Rol yenilənmədi");
+      toast.error(error instanceof Error ? error.message : "Rol yenilənmədi");
     } finally {
       setBusyId(null);
     }
+  }
+
+  function onRoleSelect(user: AdminUserRow, nextRole: UserRole) {
+    if (nextRole === user.role && (nextRole === "admin" || nextRole === "support")) {
+      setGrantTarget(user);
+      return;
+    }
+    if (nextRole === "admin" || nextRole === "support") {
+      setGrantTarget({
+        ...user,
+        role: nextRole,
+        staffType: nextRole === "support" ? "support" : user.staffType ?? "moderation"
+      });
+      return;
+    }
+    void demoteToNonStaff(user.id, nextRole);
   }
 
   async function updateStatus(userId: string, status: UserStatus) {
@@ -285,17 +368,33 @@ export function UserManagementTable({
                 </Link>
               </td>
               <td className="px-4 py-3">
-                <select
-                  value={user.role}
-                  onChange={(e) => void updateRole(user.id, e.target.value as UserRole)}
-                  disabled={busyId === user.id || !canEditRoles}
-                  className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
-                >
-                  <option value="viewer">{ROLE_LABELS.viewer}</option>
-                  <option value="dealer">{ROLE_LABELS.dealer}</option>
-                  <option value="support">{ROLE_LABELS.support}</option>
-                  <option value="admin">{ROLE_LABELS.admin}</option>
-                </select>
+                <div className="space-y-1.5">
+                  <select
+                    value={user.role}
+                    onChange={(e) => onRoleSelect(user, e.target.value as UserRole)}
+                    disabled={busyId === user.id || !canEditRoles || isSelf}
+                    className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  >
+                    <option value="viewer">{ROLE_LABELS.viewer}</option>
+                    <option value="dealer">{ROLE_LABELS.dealer}</option>
+                    <option value="support">{ROLE_LABELS.support}</option>
+                    <option value="admin">{ROLE_LABELS.admin}</option>
+                  </select>
+                  {(user.role === "admin" || user.role === "support") && user.staffType && (
+                    <span className="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                      {ADMIN_STAFF_TYPE_LABELS[user.staffType]}
+                    </span>
+                  )}
+                  {canEditRoles && (user.role === "admin" || user.role === "support") && !isSelf && (
+                    <button
+                      type="button"
+                      className="block text-[11px] font-semibold text-[#0057FF] hover:underline"
+                      onClick={() => setGrantTarget(user)}
+                    >
+                      Səlahiyyətləri düzəlt
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3">
                 <select
@@ -342,6 +441,27 @@ export function UserManagementTable({
           );})}
         </tbody>
       </table>
+
+      <AdminStaffGrantModal
+        open={Boolean(grantTarget)}
+        userLabel={grantTarget ? grantTarget.fullName || grantTarget.email : ""}
+        initialStaffType={
+          grantTarget?.staffType ??
+          (grantTarget?.role === "support" ? "support" : "moderation")
+        }
+        initialPermissions={grantTarget?.permissions}
+        busy={Boolean(grantTarget && busyId === grantTarget.id)}
+        onClose={() => setGrantTarget(null)}
+        onConfirm={(input) => {
+          if (!grantTarget) return;
+          void applyStaffGrant({
+            userId: grantTarget.id,
+            staffType: input.staffType,
+            permissions: input.permissions,
+            role: input.role
+          });
+        }}
+      />
     </div>
   );
 }

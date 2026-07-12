@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireApiRoles } from "@/lib/rbac";
-import type { UserRole } from "@/lib/auth";
+import { requireAdminCapability, requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { deleteAdminUserPermanently, getAdminUserMembershipProfile, updateAdminUserProfile } from "@/server/admin-store";
 
-const ALLOWED_ROLES = new Set<UserRole>(["admin", "support", "dealer", "viewer"]);
 const ALLOWED_STATUS = new Set(["active", "suspended", "review"]);
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
@@ -28,28 +26,29 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     fullName?: string | null;
     city?: string | null;
     phone?: string | null;
-    role?: UserRole;
+    role?: string;
     userAccountStatus?: string;
     penaltyBalanceAzn?: number;
   };
 
-  if (body.role && auth.user.role !== "admin") {
-    return NextResponse.json({ ok: false, error: "Rol dəyişikliyi yalnız admin üçündür." }, { status: 403 });
-  }
-  if (body.role && !ALLOWED_ROLES.has(body.role)) {
-    return NextResponse.json({ ok: false, error: "Rol dəyəri yanlışdır." }, { status: 400 });
+  if (body.role) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Rol dəyişikliyi üçün /role endpoint-indən təsdiqli admin təyinatı istifadə edin."
+      },
+      { status: 400 }
+    );
   }
   if (body.userAccountStatus && !ALLOWED_STATUS.has(body.userAccountStatus)) {
     return NextResponse.json({ ok: false, error: "Status dəyəri yanlışdır." }, { status: 400 });
   }
-  if (body.penaltyBalanceAzn !== undefined && auth.user.role !== "admin") {
-    return NextResponse.json({ ok: false, error: "Cərimə balansı yalnız admin tərəfindən dəyişdirilə bilər." }, { status: 403 });
-  }
-  if (id === auth.user.id && body.role && body.role !== auth.user.role) {
-    return NextResponse.json({ ok: false, error: "Öz rolunuzu dəyişə bilməzsiniz." }, { status: 400 });
-  }
   if (id === auth.user.id && body.userAccountStatus === "suspended") {
     return NextResponse.json({ ok: false, error: "Öz hesabınızı dayandıra bilməzsiniz." }, { status: 400 });
+  }
+  if (body.penaltyBalanceAzn !== undefined) {
+    const writeAuth = await requireAdminCapability(req, "users.write");
+    if (!writeAuth.ok) return writeAuth.response;
   }
 
   try {
@@ -58,7 +57,6 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
       fullName: body.fullName,
       city: body.city,
       phone: body.phone,
-      role: body.role,
       userAccountStatus: body.userAccountStatus,
       penaltyBalanceAzn: body.penaltyBalanceAzn
     });
@@ -79,7 +77,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 }
 
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "users.delete");
   if (!auth.ok) return auth.response;
 
   const { id } = await context.params;

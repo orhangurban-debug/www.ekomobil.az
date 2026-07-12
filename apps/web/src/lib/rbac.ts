@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser, UserRole, verifySessionToken } from "@/lib/auth";
+import {
+  type AdminCapability,
+  hasCapability,
+  resolveEffectivePermissions
+} from "@/lib/admin-permissions";
+import { getAdminGrantForUser } from "@/server/admin-store";
 
 export async function requirePageRoles(roles: UserRole[]) {
   const user = await getServerSessionUser();
@@ -41,4 +47,48 @@ export function requireApiRoles(req: Request, roles: UserRole[]) {
   }
 
   return { ok: true as const, user };
+}
+
+/** Coarse role gate + fine-grained capability from user_admin_grants. */
+export async function requireAdminCapability(req: Request, capability: AdminCapability) {
+  const auth = requireApiRoles(req, ["admin", "support"]);
+  if (!auth.ok) return auth;
+
+  const grant = await getAdminGrantForUser(auth.user.id);
+  const permissions = resolveEffectivePermissions({
+    role: auth.user.role,
+    staffType: grant?.staffType ?? null,
+    permissions: grant?.permissions ?? null
+  });
+
+  if (!hasCapability(permissions, capability)) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { ok: false, error: "Bu əməliyyat üçün səlahiyyətiniz yoxdur." },
+        { status: 403 }
+      ),
+      user: auth.user
+    };
+  }
+
+  return { ok: true as const, user: auth.user, permissions, grant };
+}
+
+export async function requirePageAdminCapability(capability: AdminCapability) {
+  const auth = await requirePageRoles(["admin", "support"]);
+  if (!auth.ok) return auth;
+
+  const grant = await getAdminGrantForUser(auth.user.id);
+  const permissions = resolveEffectivePermissions({
+    role: auth.user.role,
+    staffType: grant?.staffType ?? null,
+    permissions: grant?.permissions ?? null
+  });
+
+  if (!hasCapability(permissions, capability)) {
+    return { ok: false as const, reason: "forbidden" as const, user: auth.user };
+  }
+
+  return { ok: true as const, user: auth.user, permissions, grant };
 }

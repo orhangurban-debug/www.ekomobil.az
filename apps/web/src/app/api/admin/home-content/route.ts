@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import type { HomeContentConfig } from "@/lib/home-content";
 import { parseHomeContentConfig } from "@/lib/home-content";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability, requireApiRoles } from "@/lib/rbac";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { getHomeContentConfig, updateHomeContentConfig } from "@/server/system-settings-store";
 
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "settings.manage");
   if (!auth.ok) return auth.response;
   const body = (await req.json()) as Partial<HomeContentConfig>;
   try {

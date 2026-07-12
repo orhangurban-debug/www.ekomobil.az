@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireApiRoles } from "@/lib/rbac";
+import { requireAdminCapability } from "@/lib/rbac";
 import { createLegalDataRequest, listLegalDataRequests } from "@/server/legal-request-store";
 import { createAdminAuditLog } from "@/server/admin-audit-store";
 import { legalDataRequestSchema, parseOrThrow, ValidationError } from "@/lib/validate";
 
 export async function GET(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "legal.manage");
   if (!auth.ok) return auth.response;
 
   const requests = await listLegalDataRequests(100);
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = requireApiRoles(req, ["admin"]);
+  const auth = await requireAdminCapability(req, "legal.manage");
   if (!auth.ok) return auth.response;
 
   let body: unknown;

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { UserManagementTable } from "@/components/admin/user-management-table";
+import { hasCapability, resolveEffectivePermissions } from "@/lib/admin-permissions";
 import { getServerSessionUser } from "@/lib/auth";
-import { listAdminUsersPaged } from "@/server/admin-store";
+import { getAdminGrantForUser, listAdminUsersPaged } from "@/server/admin-store";
 
 export default async function AdminUsersPage({
   searchParams
@@ -33,15 +34,24 @@ export default async function AdminUsersPage({
   if (role) qParams.set("role", role);
   if (status) qParams.set("status", status);
   qParams.set("pageSize", String(pageSize));
-  const canEditRoles = user?.role === "admin";
-  const canDelete = user?.role === "admin";
+
+  const actorGrant = user ? await getAdminGrantForUser(user.id) : null;
+  const actorPermissions = user
+    ? resolveEffectivePermissions({
+        role: user.role,
+        staffType: actorGrant?.staffType ?? null,
+        permissions: actorGrant?.permissions ?? null
+      })
+    : [];
+  const canEditRoles = hasCapability(actorPermissions, "users.assign_staff");
+  const canDelete = hasCapability(actorPermissions, "users.delete");
 
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-bold text-slate-900">İstifadəçilərin idarə olunması</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Rolların və hesab statuslarının canlı dəyişdirilməsi. Dəyişikliklər dərhal tətbiq olunur.
+          Admin təyinatı növ və səlahiyyət seçimi ilə təsdiq tələb edir. Status dəyişiklikləri dərhal tətbiq olunur.
         </p>
       </div>
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-5">
