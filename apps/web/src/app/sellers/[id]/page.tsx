@@ -1,57 +1,17 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { getPublicSellerProfile } from "@/server/user-store";
 import { filterListingsForPublicSellerProfile, listListingsForUser } from "@/server/listing-store";
 import { ListingCard } from "@/components/listings/listing-card";
 import type { ListingSummary } from "@/lib/marketplace-types";
-import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
 import { computeTrustBadges } from "@/lib/seller-trust";
-import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
-
-function formatMemberSince(iso: string | null): string {
-  if (!iso) return "Məlum deyil";
-  return new Date(iso).toLocaleDateString("az-AZ", { year: "numeric", month: "long" });
-}
-
-function SellerAvatar({
-  name,
-  avatarUrl,
-  logoUrl,
-  size = "lg"
-}: {
-  name: string;
-  avatarUrl?: string | null;
-  logoUrl?: string | null;
-  size?: "sm" | "lg";
-}) {
-  const imgUrl = logoUrl ?? avatarUrl;
-  const dim = size === "lg" ? "h-20 w-20 text-2xl" : "h-14 w-14 text-xl";
-  const initials = name
-    .split(" ")
-    .map((w) => w[0] ?? "")
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  if (imgUrl) {
-    return (
-      <div className={`relative shrink-0 overflow-hidden rounded-2xl ${dim} ring-4 ring-white shadow-lg`}>
-        <Image src={imgUrl} alt={name} fill className="object-cover" sizes="80px" />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`flex shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0057FF] to-[#0046CC] font-bold text-white shadow-lg ring-4 ring-white ${dim}`}>
-      {initials || "EK"}
-    </div>
-  );
-}
+import { buildBusinessLocations } from "@/components/business/business-branches-display";
+import { PublicProfileShell } from "@/components/seller/public-profile-shell";
 
 function groupByCategory(listings: ListingSummary[]): { category: string; items: ListingSummary[] }[] {
   const parts = listings.filter((l) => l.listingKind === "part");
-  const cars  = listings.filter((l) => l.listingKind !== "part");
+  const cars = listings.filter((l) => l.listingKind !== "part");
 
   const groups: { category: string; items: ListingSummary[] }[] = [];
 
@@ -74,6 +34,26 @@ function groupByCategory(listings: ListingSummary[]): { category: string; items:
   return groups;
 }
 
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const profile = await getPublicSellerProfile(id).catch(() => null);
+  if (!profile) return { title: "Satıcı profili" };
+
+  const kindLabel = profile.isStore ? "Mağaza" : "Satıcı";
+  const city = profile.city ? ` — ${profile.city}` : "";
+  return {
+    title: `${profile.displayName} | ${kindLabel}${city}`,
+    description:
+      profile.storeDescription?.trim() ||
+      profile.bio?.trim() ||
+      `${profile.displayName} — EkoMobil ${kindLabel.toLowerCase()} profili`
+  };
+}
+
 export default async function PublicSellerPage({
   params
 }: {
@@ -92,7 +72,7 @@ export default async function PublicSellerPage({
   );
 
   const groups = groupByCategory(activeListings);
-  const coverUrl = profile.storeCoverUrl;
+  const profileKind = profile.isStore ? "store" : "private";
 
   const storeLocations = profile.isStore
     ? buildBusinessLocations({
@@ -100,192 +80,89 @@ export default async function PublicSellerPage({
         primaryLabel: profile.storeName ?? profile.displayName,
         primaryAddress: profile.storeAddress ?? undefined,
         primaryMapUrl: profile.storeMapUrl ?? undefined,
-        primaryPhone: profile.showStoreWhatsapp ? profile.storeWhatsappPhone ?? profile.phone ?? undefined : profile.phone ?? undefined,
+        primaryPhone: profile.phone ?? profile.storeWhatsappPhone ?? undefined,
         primaryWorkingHours: profile.storeWorkingHours ?? undefined,
         branches: profile.storeBranches
       })
     : [];
 
+  // Never map email_verified → dealerVerified (that showed "Rəsmi salon" on stores).
   const trustBadges = computeTrustBadges({
-    phoneSet:           !!profile.phone,
-    emailVerified:      !!profile.emailVerified,
-    kycApproved:        profile.kycApproved,
-    dealerVerified:     !!profile.sellerVerified,
-    hasAvatar:          !!profile.avatarUrl || !!profile.storeLogoUrl,
-    hasCity:            !!profile.city,
-    hasName:            !!profile.displayName,
-    memberSince:        profile.memberSince ?? undefined,
+    phoneSet: !!profile.phone,
+    emailVerified: !!profile.emailVerified,
+    kycApproved: profile.kycApproved,
+    dealerVerified: false,
+    hasAvatar: !!profile.avatarUrl || !!profile.storeLogoUrl,
+    hasCity: !!profile.city,
+    hasName: !!profile.displayName,
+    memberSince: profile.memberSince ?? undefined,
     activeListingCount: activeListings.length,
-    hasSalonPlan:       profile.isDealer,
-    hasStorePlan:       profile.isStore,
+    hasSalonPlan: profile.isDealer,
+    hasStorePlan: profile.isStore,
+    profileKind
   });
 
+  const contactPhone = profile.phone ?? profile.storeWhatsappPhone;
+  const whatsappPhone = profile.storeWhatsappPhone ?? profile.phone;
+
   return (
-    <div className="min-h-screen bg-slate-50/60">
-      {/* ── Cover band ──────────────────────────────────────────────────────── */}
-      {coverUrl ? (
-        <div className="relative h-44 w-full overflow-hidden sm:h-56">
-          <Image src={coverUrl} alt="Cover" fill className="object-cover object-center" sizes="100vw" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+    <PublicProfileShell
+      name={profile.displayName}
+      profileKind={profileKind}
+      verified={Boolean(profile.sellerVerified || profile.kycApproved)}
+      city={profile.city}
+      memberSince={profile.memberSince}
+      coverUrl={profile.storeCoverUrl}
+      logoUrl={profile.storeLogoUrl}
+      avatarUrl={profile.avatarUrl}
+      description={profile.storeDescription ?? profile.bio}
+      phone={contactPhone}
+      whatsappPhone={whatsappPhone}
+      websiteUrl={profile.storeWebsiteUrl}
+      showWhatsapp={profile.isStore && profile.showStoreWhatsapp}
+      showWebsite={profile.isStore && profile.showStoreWebsite}
+      workingHours={profile.isStore ? profile.storeWorkingHours : null}
+      address={profile.isStore ? profile.storeAddress : null}
+      mapUrl={profile.isStore ? profile.storeMapUrl : null}
+      locations={storeLocations}
+      trustBadges={trustBadges}
+      listingCount={activeListings.length}
+    >
+      <p className="text-xs text-slate-400">
+        EkoMobil platforması satıcı haqqında yalnız sistemdə mövcud olan məlumatları göstərir.
+        Elan məzmununun düzgünlüyü satıcının məsuliyyətindədir.
+      </p>
+
+      {activeListings.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white py-16 text-center">
+          <p className="text-slate-400">Bu satıcının aktiv elanı yoxdur</p>
+          <Link href="/listings" className="mt-4 inline-flex btn-secondary text-sm">
+            Bütün elanlara bax
+          </Link>
         </div>
       ) : (
-        <div className={`relative h-36 w-full overflow-hidden ${profile.isStore ? "bg-gradient-to-r from-violet-700 to-violet-500" : "bg-gradient-to-r from-[#0057FF] to-[#00C4FF]"}`}>
-          <div className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }}
-          />
-        </div>
-      )}
-
-      {/* ── Profile header card ─────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            {/* Avatar floats up over cover */}
-            <div className="-mt-10 flex items-end gap-4 sm:-mt-12">
-              <SellerAvatar
-                name={profile.displayName}
-                avatarUrl={profile.avatarUrl}
-                logoUrl={profile.storeLogoUrl}
-                size="lg"
-              />
-              <div className="pb-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
-                    {profile.displayName}
-                  </h1>
-                  {profile.isStore ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
-                      📦 Mağaza
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                      Fərdi satıcı
-                    </span>
-                  )}
-                  {profile.sellerVerified && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Təsdiqlənmiş
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  {profile.city && (
-                    <span className="flex items-center gap-1">
-                      <svg className="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                      </svg>
-                      {profile.city}
-                    </span>
-                  )}
-                  <span className="text-slate-400">Üzv: {formatMemberSince(profile.memberSince)}</span>
-                </div>
-                {trustBadges.length > 0 && (
-                  <div className="mt-2">
-                    <TrustBadgeRow badges={trustBadges} max={5} />
-                  </div>
-                )}
+        <div className="space-y-8">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold text-slate-900">Aktiv elanlar</h2>
+            <span className="text-sm text-slate-500">{activeListings.length}</span>
+          </div>
+          {groups.map(({ category, items }) => (
+            <div key={category}>
+              <div className="mb-4 flex items-center gap-3">
+                <h3 className="text-sm font-semibold text-slate-800">{category}</h3>
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                  {items.length}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
               </div>
             </div>
-
-            {/* Stats */}
-            <div className="flex items-center gap-5 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
-                <p className="text-xs text-slate-400">Aktiv elan</p>
-              </div>
-              {trustBadges.length > 0 && (
-                <div className="w-36 border-l border-slate-200 pl-5">
-                  <TrustScoreBar badges={trustBadges} />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── About / Bio ─────────────────────────────────────────────────────── */}
-      {(profile.bio ?? profile.storeDescription) && (
-        <div className="mx-auto max-w-5xl px-4 pt-5 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm leading-relaxed text-slate-600 shadow-sm">
-            {profile.storeDescription ?? profile.bio}
-          </div>
+          ))}
         </div>
       )}
-
-      {storeLocations.length > 0 && (
-        <div className="mx-auto max-w-5xl px-4 pt-5 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <BusinessBranchesDisplay locations={storeLocations} />
-          </div>
-        </div>
-      )}
-
-      {profile.isStore && (profile.showStoreWhatsapp || profile.showStoreWebsite) && (
-        <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-2">
-            {profile.showStoreWhatsapp && profile.storeWhatsappPhone && (
-              <a
-                href={`https://wa.me/${profile.storeWhatsappPhone.replace(/[^\d]/g, "")}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
-              >
-                WhatsApp ilə yaz
-              </a>
-            )}
-            {profile.showStoreWebsite && profile.storeWebsiteUrl && (
-              <a
-                href={profile.storeWebsiteUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Vebsayt
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Listings ─────────────────────────────────────────────────────────── */}
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Disclaimer */}
-        <div className="mb-5 rounded-xl border border-slate-100 bg-white/70 px-4 py-2.5 text-xs text-slate-400">
-          EkoMobil platforması satıcı haqqında yalnız sistemdə mövcud olan məlumatları göstərir.
-          Elan məzmununun düzgünlüyü satıcının məsuliyyətindədir.
-        </div>
-
-        {activeListings.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
-            <p className="text-slate-400">Bu satıcının aktiv elanı yoxdur</p>
-            <Link href="/listings" className="mt-4 inline-flex btn-secondary text-sm">
-              Bütün elanlara bax
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {groups.map(({ category, items }) => (
-              <div key={category}>
-                <div className="mb-4 flex items-center gap-3">
-                  <h2 className="text-base font-semibold text-slate-900">{category}</h2>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-sm font-medium text-slate-500">
-                    {items.length}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    </PublicProfileShell>
   );
 }

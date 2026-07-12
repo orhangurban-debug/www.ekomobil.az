@@ -1,33 +1,27 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPublicDealerProfile } from "@/server/dealer-store";
 import { ListingCard } from "@/components/listings/listing-card";
-import { TrustBadgeRow, TrustScoreBar } from "@/components/seller/trust-badges";
 import { computeTrustBadges } from "@/lib/seller-trust";
-import { BusinessBranchesDisplay, buildBusinessLocations } from "@/components/business/business-branches-display";
+import { buildBusinessLocations } from "@/components/business/business-branches-display";
+import { PublicProfileShell } from "@/components/seller/public-profile-shell";
 
-function VerifiedBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-500/25">
-      <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-      </svg>
-      Təsdiqlənmiş salon
-    </span>
-  );
-}
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const profile = await getPublicDealerProfile(id).catch(() => null);
+  if (!profile) return { title: "Salon profili" };
 
-function SlaLabel({ minutes }: { minutes: number }) {
-  if (minutes <= 15)
-    return <span className="rounded-full bg-emerald-500/10 text-emerald-700 px-2 py-0.5 text-xs font-medium border border-emerald-500/25">Cavab: ≤{minutes} dəq</span>;
-  if (minutes <= 60)
-    return <span className="rounded-full bg-amber-500/15 text-amber-700 px-2 py-0.5 text-xs font-medium border border-amber-200">Cavab: ≤{minutes} dəq</span>;
-  return <span className="rounded-full bg-white/63 text-slate-600 px-2 py-0.5 text-xs font-medium">Cavab: ≤{minutes} dəq</span>;
-}
-
-function formatYear(iso: string | null): string {
-  if (!iso) return "Məlum deyil";
-  return new Date(iso).getFullYear().toString();
+  return {
+    title: `${profile.name} | Salon — ${profile.city}`,
+    description:
+      profile.description?.trim() ||
+      `${profile.name} — EkoMobil təsdiqlənmiş avtosalon, ${profile.city}`
+  };
 }
 
 export default async function PublicDealerPage({
@@ -40,14 +34,16 @@ export default async function PublicDealerPage({
   if (!profile) notFound();
 
   const trustBadges = computeTrustBadges({
-    dealerVerified:     profile.verified,
-    dealerVoen:         profile.voen,
-    hasSalonPlan:       true,
-    hasAvatar:          !!profile.logoUrl,
-    hasCity:            !!profile.city,
-    hasName:            !!profile.name,
-    memberSince:        profile.memberSince ?? undefined,
+    dealerVerified: profile.verified,
+    dealerVoen: profile.voen,
+    hasSalonPlan: true,
+    hasAvatar: !!profile.logoUrl,
+    hasCity: !!profile.city,
+    hasName: !!profile.name,
+    memberSince: profile.memberSince ?? undefined,
     activeListingCount: profile.activeListingCount,
+    phoneSet: !!profile.whatsappPhone,
+    profileKind: "dealer"
   });
 
   const locations = buildBusinessLocations({
@@ -60,145 +56,66 @@ export default async function PublicDealerPage({
     branches: profile.branches
   });
 
+  const slaMinutes = profile.responseSlaMinutes;
+
   return (
-    <div className="min-h-screen bg-white/60">
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="border-b glass-panel border-slate-900/10">
-        {profile.coverUrl && (
-          <div className="h-40 w-full overflow-hidden bg-white/63 sm:h-52">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={profile.coverUrl} alt={`${profile.name} cover`} className="h-full w-full object-cover" />
-          </div>
-        )}
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-center gap-5">
-              {/* Avatar — brand initials */}
-              {profile.logoUrl ? (
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border glass-panel border-slate-900/10 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={profile.logoUrl} alt={`${profile.name} logo`} className="h-full w-full object-cover" />
-                </div>
-              ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#0057FF] text-2xl font-bold text-white shadow-sm">
-                  {profile.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                  {profile.name}
-                </h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {profile.verified && <VerifiedBadge />}
-                  <span className="flex items-center gap-1 text-sm text-slate-500">
-                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
-                    {profile.city}
-                  </span>
-                  <SlaLabel minutes={profile.responseSlaMinutes} />
-                </div>
-                {trustBadges.length > 0 && (
-                  <div className="mt-3">
-                    <TrustBadgeRow badges={trustBadges} max={5} />
-                  </div>
-                )}
-                {profile.description && (
-                  <p className="mt-3 max-w-2xl text-sm text-slate-600">{profile.description}</p>
-                )}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {profile.showWhatsapp && profile.whatsappPhone && (
-                    <a
-                      href={`https://wa.me/${profile.whatsappPhone.replace(/[^\d]/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/20"
-                    >
-                      WhatsApp ilə yaz
-                    </a>
-                  )}
-                  {profile.showWebsite && profile.websiteUrl && (
-                    <a
-                      href={profile.websiteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-full border border-slate-900/10 bg-white/63 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-900/10"
-                    >
-                      Website
-                    </a>
-                  )}
-                  {profile.address && (
-                    <span className="rounded-full border border-slate-900/10 bg-white/60 px-3 py-1 text-xs text-slate-600">{profile.address}</span>
-                  )}
-                  {profile.workingHours && (
-                    <span className="rounded-full border border-slate-900/10 bg-white/60 px-3 py-1 text-xs text-slate-600">{profile.workingHours}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Stats strip */}
-            <div className="flex flex-wrap gap-4 rounded-2xl border border-slate-900/10 bg-white/60 px-6 py-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{profile.activeListingCount}</p>
-                <p className="text-xs text-slate-400">Aktiv elan</p>
-              </div>
-              <div className="border-l border-slate-900/10" />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{formatYear(profile.memberSince)}</p>
-                <p className="text-xs text-slate-400">Üzv oldu</p>
-              </div>
-              <div className="border-l border-slate-900/10" />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#0057FF]">≤{profile.responseSlaMinutes}</p>
-                <p className="text-xs text-slate-400">Cavab (dəq)</p>
-              </div>
-              {trustBadges.length > 0 && (
-                <>
-                  <div className="border-l border-slate-900/10" />
-                  <div className="flex min-w-[120px] flex-col justify-center gap-1">
-                    <TrustScoreBar badges={trustBadges} />
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+    <PublicProfileShell
+      name={profile.name}
+      profileKind="dealer"
+      verified={profile.verified}
+      city={profile.city}
+      memberSince={profile.memberSince}
+      coverUrl={profile.coverUrl}
+      logoUrl={profile.logoUrl}
+      description={profile.description}
+      phone={profile.whatsappPhone}
+      whatsappPhone={profile.whatsappPhone}
+      websiteUrl={profile.websiteUrl}
+      showWhatsapp={profile.showWhatsapp}
+      showWebsite={profile.showWebsite}
+      workingHours={profile.workingHours}
+      address={profile.address}
+      mapUrl={profile.mapUrl}
+      locations={locations}
+      trustBadges={trustBadges}
+      listingCount={profile.activeListingCount}
+      metaChips={
+        <span
+          className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${
+            slaMinutes <= 15
+              ? "bg-emerald-50 text-emerald-700"
+              : slaMinutes <= 60
+                ? "bg-amber-50 text-amber-700"
+                : "bg-slate-100 text-slate-600"
+          }`}
+        >
+          Cavab: ≤{slaMinutes} dəq
+        </span>
+      }
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Aktiv avtomobil elanları
+          <span className="ml-2 text-sm font-medium text-slate-500">
+            {profile.activeListingCount}
+          </span>
+        </h2>
+        <Link href="/listings?sellerType=dealer" className="text-sm font-medium text-[#0057FF] hover:underline">
+          Bütün salon elanları
+        </Link>
       </div>
 
-      {/* ── Inventory ────────────────────────────────────────────────────── */}
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        {locations.length > 0 && (
-          <div className="mb-8">
-            <BusinessBranchesDisplay locations={locations} />
-          </div>
-        )}
-
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Aktiv avtomobil elanları
-            <span className="ml-2 rounded-full bg-white/63 px-2.5 py-0.5 text-sm font-medium text-slate-500">
-              {profile.activeListingCount}
-            </span>
-          </h2>
-          <Link href={`/listings?sellerType=dealer`} className="text-sm text-[#0057FF] hover:underline">
-            Bütün salon elanları →
-          </Link>
+      {profile.inventory.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white py-16 text-center">
+          <p className="text-slate-400">Aktiv elan yoxdur</p>
         </div>
-
-        {profile.inventory.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-900/10 py-16 text-center">
-            <p className="text-slate-400">Aktiv elan yoxdur</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {profile.inventory.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {profile.inventory.map((listing) => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </div>
+      )}
+    </PublicProfileShell>
   );
 }

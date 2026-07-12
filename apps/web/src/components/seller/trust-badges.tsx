@@ -1,5 +1,5 @@
 import type { TrustBadge } from "@/lib/seller-trust";
-import { computeTrustScore, trustTierLabel } from "@/lib/seller-trust";
+import { computeTrustScore, filterPublicTrustBadges, trustTierLabel } from "@/lib/seller-trust";
 
 const COLOR_MAP = {
   emerald: { bar: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
@@ -20,9 +20,8 @@ export function TrustBadgeRow({ badges, max = 4 }: { badges: TrustBadge[]; max?:
         <span
           key={b.key}
           title={b.description}
-          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-700 shadow-sm"
+          className="inline-flex items-center gap-1 rounded-md border border-slate-200/80 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600"
         >
-          <span className="text-sm leading-none">{b.icon}</span>
           {b.label}
         </span>
       ))}
@@ -53,6 +52,19 @@ export function TrustScoreBar({ badges }: { badges: TrustBadge[] }) {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Public profile: full score + only high-value badges (not phone/email checklist). */
+export function PublicTrustSummary({ badges }: { badges: TrustBadge[] }) {
+  if (badges.length === 0) return null;
+  const highlight = filterPublicTrustBadges(badges, 3);
+
+  return (
+    <div className="flex flex-col gap-2 sm:min-w-[9.5rem]">
+      <TrustScoreBar badges={badges} />
+      {highlight.length > 0 && <TrustBadgeRow badges={highlight} max={3} />}
     </div>
   );
 }

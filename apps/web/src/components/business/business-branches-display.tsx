@@ -49,6 +49,12 @@ export function buildBusinessLocations(input: {
   return locations;
 }
 
+function telHref(phone: string): string {
+  const digits = phone.replace(/[^\d]/g, "");
+  if (!digits) return `tel:${phone}`;
+  return phone.trim().startsWith("+") ? `tel:+${digits}` : `tel:${digits}`;
+}
+
 export function BusinessBranchesDisplay({
   locations,
   className = ""
@@ -65,35 +71,40 @@ export function BusinessBranchesDisplay({
         {locations.map((location) => (
           <div
             key={`${location.isPrimary ? "primary" : "branch"}-${location.city}-${location.title}`}
-            className="rounded-xl border border-slate-200 bg-white/80 p-4"
+            className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3"
           >
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-medium text-slate-900">{location.title}</p>
               {location.isPrimary && (
-                <span className="rounded-full bg-[#0057FF]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#0057FF]">
+                <span className="rounded bg-[#0057FF]/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#0057FF]">
                   Əsas
                 </span>
               )}
               <span className="text-xs text-slate-500">{location.city}</span>
             </div>
 
-            {location.address && <p className="mt-2 text-sm text-slate-600">{location.address}</p>}
-
-            <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
-              {location.phone && <span>📞 {location.phone}</span>}
-              {location.workingHours && <span>🕒 {location.workingHours}</span>}
-            </div>
-
-            {location.mapUrl && isShareableMapUrl(location.mapUrl) && (
-              <a
-                href={location.mapUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-flex rounded-lg border border-[#0057FF]/20 bg-[#0057FF]/5 px-3 py-1.5 text-xs font-semibold text-[#0057FF] hover:bg-[#0057FF]/10"
-              >
-                Xəritədə aç / paylaş
-              </a>
+            {location.address && (
+              <p className="mt-1.5 text-sm text-slate-600">{location.address}</p>
             )}
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+              {location.phone && (
+                <a href={telHref(location.phone)} className="font-medium text-slate-800 hover:text-[#0057FF]">
+                  {location.phone}
+                </a>
+              )}
+              {location.workingHours && <span>{location.workingHours}</span>}
+              {location.mapUrl && isShareableMapUrl(location.mapUrl) && (
+                <a
+                  href={location.mapUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-[#0057FF] hover:underline"
+                >
+                  Xəritədə aç
+                </a>
+              )}
+            </div>
           </div>
         ))}
       </div>
