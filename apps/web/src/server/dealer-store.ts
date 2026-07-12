@@ -404,6 +404,9 @@ export interface PublicDealerProfile {
   responseSlaMinutes: number;
   activeListingCount: number;
   memberSince: string | null;
+  ownerUserId: string | null;
+  /** Owner also has an active parts_store plan — link to /sellers/{ownerUserId}. */
+  hasStorePlan: boolean;
   logoUrl?: string;
   coverUrl?: string;
   description?: string;
@@ -429,13 +432,14 @@ export async function getPublicDealerProfile(
     const dealerResult = await pool.query<{
       id: string; name: string; city: string; verified: boolean;
       response_sla_minutes: number; created_at: Date | null;
+      owner_user_id: string | null;
       logo_url: string | null; cover_url: string | null; description: string | null;
       whatsapp_phone: string | null; website_url: string | null;
       address: string | null; map_url: string | null; branches: unknown; working_hours: string | null;
       show_whatsapp: boolean | null; show_website: boolean | null;
       voen: string | null;
     }>(
-      `SELECT id, name, city, verified, response_sla_minutes, created_at,
+      `SELECT id, name, city, verified, response_sla_minutes, created_at, owner_user_id,
               logo_url, cover_url, description, whatsapp_phone, website_url,
               address, map_url, branches, working_hours, show_whatsapp, show_website, voen
        FROM dealer_profiles WHERE id = $1 LIMIT 1`,
@@ -443,6 +447,16 @@ export async function getPublicDealerProfile(
     );
     const dealer = dealerResult.rows[0];
     if (!dealer) return null;
+
+    const storePlanResult = dealer.owner_user_id
+      ? await pool.query<{ count: string }>(
+          `SELECT COUNT(*)::text as count FROM business_plan_subscriptions
+           WHERE owner_user_id = $1 AND business_type = 'parts_store' AND status = 'active'
+             AND (expires_at IS NULL OR expires_at > NOW())`,
+          [dealer.owner_user_id]
+        ).catch(() => ({ rows: [{ count: "0" }] }))
+      : { rows: [{ count: "0" }] };
+    const hasStorePlan = Number(storePlanResult.rows[0]?.count ?? 0) > 0;
 
     const mediaOrderSql = await listingMediaOrderSql();
     const inventoryResult = await pool.query<{
@@ -540,6 +554,8 @@ export async function getPublicDealerProfile(
       verified: dealer.verified, responseSlaMinutes: dealer.response_sla_minutes,
       activeListingCount: inventory.length,
       memberSince: dealer.created_at?.toISOString() ?? null,
+      ownerUserId: dealer.owner_user_id,
+      hasStorePlan,
       logoUrl: dealer.logo_url ?? undefined,
       coverUrl: dealer.cover_url ?? undefined,
       description: stripLegacyBranchNote(dealer.description) || undefined,

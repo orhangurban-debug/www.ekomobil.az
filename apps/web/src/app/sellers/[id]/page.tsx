@@ -73,6 +73,10 @@ export default async function PublicSellerPage({
 
   const groups = groupByCategory(activeListings);
   const profileKind = profile.isStore ? "store" : "private";
+  const siblingProfile =
+    profile.isDealer && profile.dealerProfileId
+      ? { label: "Salon profili →", href: `/dealers/${profile.dealerProfileId}` }
+      : null;
 
   const storeLocations = profile.isStore
     ? buildBusinessLocations({
@@ -127,6 +131,7 @@ export default async function PublicSellerPage({
       locations={storeLocations}
       trustBadges={trustBadges}
       listingCount={activeListings.length}
+      siblingProfile={siblingProfile}
     >
       <p className="text-xs text-slate-400">
         EkoMobil platforması satıcı haqqında yalnız sistemdə mövcud olan məlumatları göstərir.

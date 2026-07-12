@@ -17,6 +17,7 @@ import { INVOICE_PAYMENT_TYPE_LABELS } from "@/lib/invoice-labels";
 import { loadBusinessAccountSnapshot } from "@/server/business-access";
 import { formatAccountTypeLabel } from "@/lib/business-account";
 import { hasActiveBusinessSubscription } from "@/server/business-plan-store";
+import { getDealerProfileIdByOwner } from "@/server/dealer-store";
 import { BusinessAccountStatus } from "@/components/business/business-account-status";
 import { FirstListingBanner } from "@/components/business/first-listing-banner";
 import { MyListingsSection } from "@/components/user/my-listings-section";
@@ -95,7 +96,7 @@ export default async function ProfilePage({
   const params = await searchParams;
   const welcome = params.welcome;
 
-  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot, isStore, myServiceListings] =
+  const [profile, favorites, savedSearches, myListings, deepKyc, auctionNotifications, invoices, invoiceCount, pendingReports, businessSnapshot, isStore, myServiceListings, dealerProfileId] =
     await Promise.all([
       getUserProfile(user.id),
       listUserFavorites(user.id),
@@ -108,8 +109,14 @@ export default async function ProfilePage({
       listPendingDefenseReportsForUser(user.id),
       loadBusinessAccountSnapshot(user),
       hasActiveBusinessSubscription(user.id, "parts_store"),
-      listServiceListingsForUser(user.id)
+      listServiceListingsForUser(user.id),
+      getDealerProfileIdByOwner(user.id)
     ]);
+
+  const hasSalon = !!businessSnapshot?.salonSubscriptionActive && !!dealerProfileId;
+  const storePublicUrl = isStore ? `/sellers/${user.id}` : null;
+  const salonPublicUrl = hasSalon ? `/dealers/${dealerProfileId}` : null;
+  const privatePublicUrl = !isStore && !hasSalon ? `/sellers/${user.id}` : null;
 
   const draftListings = myListings.filter((item) => item.status === "draft");
   const draftPaymentMap = new Map<string, string | undefined>();
@@ -215,9 +222,21 @@ export default async function ProfilePage({
                 <Link href="/favorites" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                   Favorilər
                 </Link>
-                <Link href={`/sellers/${user.id}`} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                  İctimai profil ↗
-                </Link>
+                {salonPublicUrl && (
+                  <Link href={salonPublicUrl} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    Salon profili ↗
+                  </Link>
+                )}
+                {storePublicUrl && (
+                  <Link href={storePublicUrl} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    Mağaza profili ↗
+                  </Link>
+                )}
+                {privatePublicUrl && (
+                  <Link href={privatePublicUrl} target="_blank" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    İctimai profil ↗
+                  </Link>
+                )}
                 {invoiceCount > 0 && (
                   <Link href="/me/payments" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
                     {invoiceCount} İnvoys
@@ -310,7 +329,7 @@ export default async function ProfilePage({
                   }}
                   userId={user.id}
                   isStore={isStore}
-                  publicProfileUrl={`/sellers/${user.id}`}
+                  publicProfileUrl={storePublicUrl ?? privatePublicUrl ?? `/sellers/${user.id}`}
                 />
 
                 {/* Account info pills */}
@@ -387,7 +406,13 @@ export default async function ProfilePage({
                 <h2 className="font-semibold text-slate-900">Biznes hesabları</h2>
               </div>
               <div className="p-5">
-                <BusinessAccountStatus snapshot={businessSnapshot} sidebar serviceListings={myServiceListings} />
+                <BusinessAccountStatus
+                  snapshot={businessSnapshot}
+                  sidebar
+                  serviceListings={myServiceListings}
+                  salonPublicUrl={salonPublicUrl}
+                  storePublicUrl={storePublicUrl}
+                />
               </div>
 
             </section>

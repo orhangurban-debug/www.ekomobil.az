@@ -35,13 +35,17 @@ export function BusinessAccountStatus({
   snapshot,
   compact = false,
   sidebar = false,
-  serviceListings = []
+  serviceListings = [],
+  salonPublicUrl = null,
+  storePublicUrl = null
 }: {
   snapshot: BusinessAccountSnapshot;
   compact?: boolean;
   /** sidebar=true: iki item şaquli sıralanır — dar kontekst üçün */
   sidebar?: boolean;
   serviceListings?: ServiceListingRecord[];
+  salonPublicUrl?: string | null;
+  storePublicUrl?: string | null;
 }) {
   const salonActive = snapshot.salonRoleApproved && snapshot.salonSubscriptionActive;
   const salonPending = !salonActive && snapshot.salonPendingApplication;
@@ -93,6 +97,8 @@ export function BusinessAccountStatus({
           primaryHref={salonActive ? "/dealer" : "/dealer/apply"}
           primaryLabel={salonActive ? "Salon paneli" : salonPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#dealer"
+          publicHref={salonActive ? salonPublicUrl : null}
+          publicLabel="İctimai salon"
           expiresAt={snapshot.salonSubscriptionExpiresAt}
           isTrial={snapshot.salonIsTrial}
         />
@@ -105,6 +111,8 @@ export function BusinessAccountStatus({
           primaryHref={magazaActive ? "/parts/store" : "/parts/apply"}
           primaryLabel={magazaActive ? "Mağaza paneli" : magazaPending ? "Gözləyir" : "Yarat"}
           secondaryHref="/pricing#parts-store"
+          publicHref={magazaActive ? storePublicUrl : null}
+          publicLabel="İctimai mağaza"
           expiresAt={snapshot.magazaSubscriptionExpiresAt}
           isTrial={snapshot.magazaIsTrial}
         />
@@ -279,6 +287,8 @@ function SidebarRow({
   primaryHref,
   primaryLabel,
   secondaryHref,
+  publicHref = null,
+  publicLabel = "İctimai profil",
   expiresAt,
   isTrial
 }: {
@@ -290,6 +300,8 @@ function SidebarRow({
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
+  publicHref?: string | null;
+  publicLabel?: string;
   expiresAt?: string;
   isTrial?: boolean;
 }) {
@@ -333,6 +345,16 @@ function SidebarRow({
           {primaryLabel}
         </Link>
       </div>
+      {active && publicHref && (
+        <Link
+          href={publicHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex text-xs font-semibold text-[#0057FF] hover:underline"
+        >
+          {publicLabel} ↗
+        </Link>
+      )}
       {active && expiresAt && (
         <ExpiryBadge expiresAt={expiresAt} isTrial={isTrial} />
       )}

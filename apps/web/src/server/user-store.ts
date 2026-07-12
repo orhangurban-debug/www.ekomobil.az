@@ -641,6 +641,8 @@ export interface PublicSellerProfile {
   // Store (mağaza) fields — populated when user has parts_store subscription
   isStore: boolean;
   isDealer: boolean;
+  /** Present when owner also has a dealer_profiles row (salon public URL). */
+  dealerProfileId: string | null;
   storeName: string | null;
   storeLogoUrl: string | null;
   storeCoverUrl: string | null;
@@ -697,7 +699,7 @@ export async function getPublicSellerProfile(
     const user = userResult.rows[0];
     if (!user) return null;
 
-    const [storeResult, dealerResult, kycResult] = await Promise.all([
+    const [storeResult, dealerResult, dealerProfileResult, kycResult] = await Promise.all([
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text as count FROM business_plan_subscriptions
          WHERE owner_user_id = $1 AND business_type = 'parts_store' AND status = 'active'
@@ -710,6 +712,10 @@ export async function getPublicSellerProfile(
            AND (expires_at IS NULL OR expires_at > NOW())`,
         [userId]
       ),
+      pool.query<{ id: string }>(
+        `SELECT id FROM dealer_profiles WHERE owner_user_id = $1 LIMIT 1`,
+        [userId]
+      ).catch(() => ({ rows: [] as Array<{ id: string }> })),
       pool.query<{ count: string }>(
         `SELECT COUNT(*)::text as count FROM user_kyc_profiles
          WHERE user_id = $1 AND status = 'approved'`,
@@ -719,6 +725,7 @@ export async function getPublicSellerProfile(
 
     const isStore            = Number(storeResult.rows[0]?.count ?? 0) > 0;
     const isDealer           = Number(dealerResult.rows[0]?.count ?? 0) > 0;
+    const dealerProfileId    = dealerProfileResult.rows[0]?.id ?? null;
     const kycApproved        = Number(kycResult.rows[0]?.count ?? 0) > 0;
 
     const listingCountResult = await pool.query<{ count: string }>(
@@ -750,6 +757,7 @@ export async function getPublicSellerProfile(
       bio: user.bio,
       isStore,
       isDealer,
+      dealerProfileId,
       storeName: user.store_name,
       storeLogoUrl: user.store_logo_url,
       storeCoverUrl: user.store_cover_url,

@@ -79,6 +79,11 @@ export default async function PublicDealerPage({
       locations={locations}
       trustBadges={trustBadges}
       listingCount={profile.activeListingCount}
+      siblingProfile={
+        profile.hasStorePlan && profile.ownerUserId
+          ? { label: "Mağaza profili →", href: `/sellers/${profile.ownerUserId}` }
+          : null
+      }
       metaChips={
         <span
           className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${

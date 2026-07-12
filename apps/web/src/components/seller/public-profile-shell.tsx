@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { TrustBadge } from "@/lib/seller-trust";
 import type { PublicProfileKind } from "@/lib/seller-trust";
@@ -93,6 +94,8 @@ export interface PublicProfileShellProps {
   listingCount: number;
   /** Extra chips under identity (e.g. SLA) */
   metaChips?: ReactNode;
+  /** Sibling business profile (salon ↔ store) for dual-plan owners */
+  siblingProfile?: { label: string; href: string } | null;
   children: ReactNode;
 }
 
@@ -118,6 +121,7 @@ export function PublicProfileShell({
   trustBadges,
   listingCount,
   metaChips,
+  siblingProfile,
   children
 }: PublicProfileShellProps) {
   const callPhone = phone?.trim() || (showWhatsapp ? whatsappPhone?.trim() : "") || "";
@@ -254,6 +258,14 @@ export function PublicProfileShell({
                     >
                       Vebsayt
                     </a>
+                  )}
+                  {siblingProfile && (
+                    <Link
+                      href={siblingProfile.href}
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      {siblingProfile.label}
+                    </Link>
                   )}
                 </div>
               </div>
