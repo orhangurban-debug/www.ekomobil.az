@@ -358,7 +358,6 @@ export default function AuctionPage() {
                       {activeLot.depositRequired && <span className="badge-warning">Depozit tələb olunur</span>}
                     </div>
                     <h2 className="mt-2 text-2xl font-bold text-slate-900">{activeLot.titleSnapshot}</h2>
-                    <p className="text-sm text-slate-500">Status: {activeLot.status}</p>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-slate-400">Minimum satış qiyməti</div>

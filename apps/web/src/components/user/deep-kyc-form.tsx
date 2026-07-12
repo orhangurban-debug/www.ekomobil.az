@@ -45,23 +45,32 @@ export function DeepKycForm(props: Props) {
     setSubmitting(false);
   }
 
+  const statusLabel =
+    status === "approved"
+      ? "Təsdiqlənib"
+      : status === "rejected"
+        ? "Rədd edilib"
+        : status === "submitted"
+          ? "Yoxlamada"
+          : null;
+
   return (
     <div className="space-y-4 rounded-2xl border border-slate-900/10 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-slate-900">Dərin identifikasiya müraciəti</h2>
-        <span
-          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-            status === "approved"
-              ? "bg-emerald-100 text-emerald-700"
-              : status === "rejected"
-                ? "bg-rose-100 text-rose-700"
-                : status === "submitted"
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-white/65 text-slate-700"
-          }`}
-        >
-          {status}
-        </span>
+        {statusLabel && (
+          <span
+            className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
+              status === "approved"
+                ? "bg-emerald-100 text-emerald-700"
+                : status === "rejected"
+                  ? "bg-rose-100 text-rose-700"
+                  : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            {statusLabel}
+          </span>
+        )}
       </div>
 
       <p className="text-sm text-slate-600">

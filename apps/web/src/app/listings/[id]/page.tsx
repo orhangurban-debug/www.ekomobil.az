@@ -554,11 +554,6 @@ export default async function ListingDetailPage({
             </div>
           )}
 
-          {/* Safety notice */}
-          <div className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/10 p-4 text-xs leading-relaxed text-[#93c5fd]">
-            <strong>EkoMobil təhlükəsizlik qaydaları:</strong> Heç vaxt ödənişi görmədən etməyin. Fiziki görüşdə avtomobili yoxlayın.
-          </div>
-
           <div className="card sticky bottom-4 p-4 shadow-card">
             <div className="mb-2 text-sm font-semibold text-slate-900">Sürətli əməliyyat</div>
             <div className="grid gap-2">

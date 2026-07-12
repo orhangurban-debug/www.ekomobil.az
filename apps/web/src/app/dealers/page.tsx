@@ -10,10 +10,6 @@ function DealerJoinBanner() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold text-slate-900">Siz salon sahibisinizsə — platforma üzərindən satın</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Turbo.az-da olduğu kimi: şirkət profili, bütün elanlar bir yerdə, doğrulanmış satıcı etiketi.
-            Müraciət 1-2 iş günü ərzində nəzərdən keçirilir.
-          </p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
             <span>✓ Salon profil səhifəsi</span>
             <span>✓ Bütün elanlar bir yerdə</span>
