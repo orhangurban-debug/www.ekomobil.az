@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSessionUser } from "@/lib/auth";
-import { updateListingForOwner, updatePartListingForOwner } from "@/server/listing-store";
+import {
+  setListingLifecycleForOwner,
+  updateListingForOwner,
+  updatePartListingForOwner,
+  type OwnerListingLifecycleAction
+} from "@/server/listing-store";
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+const LIFECYCLE_ACTIONS: OwnerListingLifecycleAction[] = ["hide", "unhide", "delete"];
 
 export async function PATCH(req: Request, ctx: RouteContext) {
   const user = await getServerSessionUser();
@@ -19,6 +26,7 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   }
 
   const payload = (body ?? {}) as {
+    action?: OwnerListingLifecycleAction;
     listingKind?: "vehicle" | "part";
     title?: string;
     description?: string;
@@ -65,6 +73,14 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     partQuantity?: number;
     partCompatibility?: string;
   };
+
+  if (payload.action && LIFECYCLE_ACTIONS.includes(payload.action)) {
+    const result = await setListingLifecycleForOwner(id, user.id, payload.action);
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error ?? "Əməliyyat uğursuz oldu." }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true, status: result.status });
+  }
 
   if (payload.listingKind === "part") {
     const result = await updatePartListingForOwner(id, user.id, {
@@ -124,7 +140,8 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     vinInfoUrl: typeof payload.vinInfoUrl === "string" ? payload.vinInfoUrl : undefined,
     vinDocumentRef: typeof payload.vinDocumentRef === "string" ? payload.vinDocumentRef : undefined,
     serviceHistoryUrl: typeof payload.serviceHistoryUrl === "string" ? payload.serviceHistoryUrl : undefined,
-    serviceHistoryDocumentRef: typeof payload.serviceHistoryDocumentRef === "string" ? payload.serviceHistoryDocumentRef : undefined
+    serviceHistoryDocumentRef:
+      typeof payload.serviceHistoryDocumentRef === "string" ? payload.serviceHistoryDocumentRef : undefined
   });
 
   if (!result.ok) {

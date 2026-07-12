@@ -15,6 +15,7 @@ import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-exp
 import { ListingSpecShowcase } from "@/components/listings/listing-spec-showcase";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
+import { OwnerListingLifecycleActions } from "@/components/listings/owner-listing-lifecycle-actions";
 import { ReportListingButton } from "@/components/listings/report-listing-button";
 import { AdminListingActions } from "@/components/admin/admin-listing-actions";
 import { getServerSessionUser } from "@/lib/auth";
@@ -690,6 +691,11 @@ export default async function ListingDetailPage({
                     listingId={listing.id}
                     currentPlan={listing.planType ?? "free"}
                     listingPriceAzn={listing.priceAzn}
+                  />
+                  <OwnerListingLifecycleActions
+                    listingId={listing.id}
+                    status={listing.status}
+                    variant="stack"
                   />
                 </div>
               )}

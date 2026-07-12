@@ -5,7 +5,7 @@ import type { ServiceListingRecord, ServiceProviderType } from "@/lib/services-m
 import { branchesFromLegacyCities, parseBranchesFromDb, sanitizeBusinessBranches } from "@/lib/business-branches";
 import type { BusinessProfileBranch } from "@/lib/business-branches";
 
-export type ServiceListingStatus = "pending" | "approved" | "rejected";
+export type ServiceListingStatus = "pending" | "approved" | "rejected" | "paused" | "archived";
 
 export interface AdminServiceListingRecord extends ServiceListingRecord {
   id: string;
@@ -74,7 +74,7 @@ async function ensureServiceListingsTable(): Promise<void> {
         status TEXT NOT NULL DEFAULT 'pending',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT service_listings_status_check CHECK (status IN ('pending', 'approved', 'rejected'))
+        CONSTRAINT service_listings_status_check CHECK (status IN ('pending', 'approved', 'rejected', 'paused', 'archived'))
       );
       CREATE INDEX IF NOT EXISTS idx_service_listings_status ON service_listings (status);
       CREATE INDEX IF NOT EXISTS idx_service_listings_provider_type ON service_listings (provider_type);
@@ -403,6 +403,8 @@ export interface ServiceListingStatusCounts {
   pending: number;
   approved: number;
   rejected: number;
+  paused: number;
+  archived: number;
   total: number;
 }
 
@@ -417,6 +419,8 @@ export async function getServiceListingStatusCounts(): Promise<ServiceListingSta
       pending: 0,
       approved: 0,
       rejected: 0,
+      paused: 0,
+      archived: 0,
       total: 0
     };
     for (const row of result.rows) {
@@ -425,11 +429,13 @@ export async function getServiceListingStatusCounts(): Promise<ServiceListingSta
       if (row.status === "pending") counts.pending = count;
       if (row.status === "approved") counts.approved = count;
       if (row.status === "rejected") counts.rejected = count;
+      if (row.status === "paused") counts.paused = count;
+      if (row.status === "archived") counts.archived = count;
     }
     return counts;
   } catch (error) {
     console.error("getServiceListingStatusCounts failed:", error);
-    return { pending: 0, approved: 0, rejected: 0, total: 0 };
+    return { pending: 0, approved: 0, rejected: 0, paused: 0, archived: 0, total: 0 };
   }
 }
 
@@ -512,5 +518,145 @@ export async function approveServiceListingsBySupportRequestId(
     return { ok: true, approvedCount: result.rowCount ?? 0 };
   } catch {
     return { ok: false, approvedCount: 0 };
+  }
+}
+
+export async function getServiceListingForOwner(
+  listingId: string,
+  userId: string
+): Promise<AdminServiceListingRecord | null> {
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    const result = await pool.query<ServiceListingRow & { owner_user_id?: string; branch_cities?: string[] }>(
+      `SELECT * FROM service_listings WHERE id = $1 AND owner_user_id = $2 LIMIT 1`,
+      [listingId, userId]
+    );
+    const row = result.rows[0];
+    return row ? mapRow(row) : null;
+  } catch {
+    return null;
+  }
+}
+
+export type OwnerServiceLifecycleAction = "hide" | "unhide" | "delete";
+
+export async function setServiceListingLifecycleForOwner(
+  listingId: string,
+  userId: string,
+  action: OwnerServiceLifecycleAction
+): Promise<{ ok: boolean; error?: string; status?: ServiceListingStatus }> {
+  const existing = await getServiceListingForOwner(listingId, userId);
+  if (!existing) return { ok: false, error: "Servis profili tapılmadı və ya icazəniz yoxdur." };
+
+  let next: ServiceListingStatus;
+  if (action === "hide") {
+    if (existing.status !== "approved") {
+      return { ok: false, error: "Yalnız aktiv profili gizlətmək olar." };
+    }
+    next = "paused";
+  } else if (action === "unhide") {
+    if (existing.status !== "paused") {
+      return { ok: false, error: "Yalnız gizli profili yenidən aça bilərsiniz." };
+    }
+    // Resume without re-approval — content unchanged
+    next = "approved";
+  } else if (action === "delete") {
+    if (existing.status === "archived") {
+      return { ok: false, error: "Profil artıq silinib." };
+    }
+    next = "archived";
+  } else {
+    return { ok: false, error: "Naməlum əməliyyat." };
+  }
+
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    await pool.query(
+      `UPDATE service_listings SET status = $2, updated_at = NOW() WHERE id = $1 AND owner_user_id = $3`,
+      [listingId, next, userId]
+    );
+    return { ok: true, status: next };
+  } catch {
+    return { ok: false, error: "Status yenilənərkən xəta baş verdi." };
+  }
+}
+
+export async function updateServiceListingForOwner(
+  listingId: string,
+  userId: string,
+  input: {
+    name?: string;
+    city?: string;
+    address?: string | null;
+    mapUrl?: string | null;
+    about?: string;
+    services?: string[];
+    phone?: string;
+    whatsapp?: string | null;
+  }
+): Promise<{ ok: boolean; error?: string }> {
+  const existing = await getServiceListingForOwner(listingId, userId);
+  if (!existing) return { ok: false, error: "Servis profili tapılmadı və ya icazəniz yoxdur." };
+  if (existing.status === "archived") {
+    return { ok: false, error: "Silinmiş profili redaktə etmək olmaz." };
+  }
+
+  const name = input.name?.trim();
+  const city = input.city?.trim();
+  const about = input.about?.trim();
+  const phone = input.phone?.trim();
+  if (name !== undefined && !name) return { ok: false, error: "Ad boş ola bilməz." };
+  if (city !== undefined && !city) return { ok: false, error: "Şəhər boş ola bilməz." };
+  if (about !== undefined && !about) return { ok: false, error: "Haqqında mətni boş ola bilməz." };
+  if (phone !== undefined && !phone) return { ok: false, error: "Telefon boş ola bilməz." };
+  if (input.services !== undefined && input.services.filter((s) => s.trim()).length === 0) {
+    return { ok: false, error: "Ən azı bir xidmət qeyd edin." };
+  }
+
+  try {
+    await ensureServiceListingsTable();
+    const pool = getPgPool();
+    // Material edits of approved profiles go back to pending review.
+    const nextStatus =
+      existing.status === "approved" || existing.status === "paused" ? "pending" : existing.status;
+
+    await pool.query(
+      `
+        UPDATE service_listings
+        SET
+          name = COALESCE($1, name),
+          city = COALESCE($2, city),
+          address = CASE WHEN $3::boolean THEN $4 ELSE address END,
+          map_url = CASE WHEN $5::boolean THEN $6 ELSE map_url END,
+          about = COALESCE($7, about),
+          services = COALESCE($8::text[], services),
+          phone = COALESCE($9, phone),
+          whatsapp = CASE WHEN $10::boolean THEN $11 ELSE whatsapp END,
+          status = $12,
+          updated_at = NOW()
+        WHERE id = $13 AND owner_user_id = $14
+      `,
+      [
+        name ?? null,
+        city ?? null,
+        input.address !== undefined,
+        input.address?.trim() || null,
+        input.mapUrl !== undefined,
+        input.mapUrl?.trim() || null,
+        about ?? null,
+        input.services ? input.services.map((s) => s.trim()).filter(Boolean) : null,
+        phone ?? null,
+        input.whatsapp !== undefined,
+        input.whatsapp?.trim() || null,
+        nextStatus,
+        listingId,
+        userId
+      ]
+    );
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Profil yenilənərkən xəta baş verdi." };
   }
 }

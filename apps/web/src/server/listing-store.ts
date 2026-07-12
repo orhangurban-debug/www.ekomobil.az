@@ -1782,3 +1782,58 @@ export async function updatePartListingForOwner(
     return { ok: false, error: "Elan yenilənərkən xəta baş verdi" };
   }
 }
+
+export type OwnerListingLifecycleAction = "hide" | "unhide" | "delete";
+
+/**
+ * Owner self-service lifecycle:
+ * - hide: active → inactive
+ * - unhide: inactive → pending_review
+ * - delete: soft archive
+ */
+export async function setListingLifecycleForOwner(
+  listingId: string,
+  userId: string,
+  action: OwnerListingLifecycleAction
+): Promise<{ ok: boolean; error?: string; status?: ListingStatus }> {
+  const ownership = await validateListingOwnership(listingId, userId);
+  if (!ownership.ok) return ownership;
+
+  const current = ownership.status;
+  if (!current) return { ok: false, error: "Elan tapılmadı." };
+
+  let next: ListingStatus;
+  if (action === "hide") {
+    if (current !== "active") {
+      return { ok: false, error: "Yalnız aktiv elanı gizlətmək olar." };
+    }
+    next = "inactive";
+  } else if (action === "unhide") {
+    if (current !== "inactive") {
+      return { ok: false, error: "Yalnız gizli elanı yenidən aça bilərsiniz." };
+    }
+    next = "pending_review";
+  } else if (action === "delete") {
+    if (current === "archived") {
+      return { ok: false, error: "Elan artıq silinib." };
+    }
+    next = "archived";
+  } else {
+    return { ok: false, error: "Naməlum əməliyyat." };
+  }
+
+  try {
+    await ensureSeedData();
+    const pool = getPgPool();
+    const result = await pool.query(
+      `UPDATE listings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id`,
+      [listingId, next]
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return { ok: false, error: "Elan yenilənə bilmədi." };
+    }
+    return { ok: true, status: next };
+  } catch {
+    return { ok: false, error: "Status yenilənərkən xəta baş verdi." };
+  }
+}

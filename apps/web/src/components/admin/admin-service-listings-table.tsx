@@ -19,20 +19,26 @@ interface ServiceListingItem {
   services: string[];
   certifications?: string[];
   imageUrls?: string[];
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "paused" | "archived";
   createdAt: string;
 }
+
+type AdminActionStatus = "pending" | "approved" | "rejected";
 
 const STATUS_LABELS: Record<ServiceListingItem["status"], string> = {
   pending: "Gözləyir",
   approved: "Təsdiqlənib",
-  rejected: "Rədd edilib"
+  rejected: "Rədd edilib",
+  paused: "Gizli",
+  archived: "Silinib"
 };
 
 const STATUS_STYLES: Record<ServiceListingItem["status"], string> = {
   pending: "bg-amber-50 text-amber-700 ring-amber-200",
   approved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  rejected: "bg-red-50 text-red-700 ring-red-200"
+  rejected: "bg-red-50 text-red-700 ring-red-200",
+  paused: "bg-slate-50 text-slate-600 ring-slate-200",
+  archived: "bg-slate-50 text-slate-500 ring-slate-200"
 };
 
 export function AdminServiceListingsTable({
@@ -50,7 +56,7 @@ export function AdminServiceListingsTable({
   const [busyId, setBusyId] = useState<string | null>(null);
   const toast = useToast();
 
-  async function setStatus(id: string, status: ServiceListingItem["status"]) {
+  async function setStatus(id: string, status: AdminActionStatus) {
     setBusyId(id);
     try {
       const response = await fetch("/api/admin/service-listings", {

@@ -11,6 +11,8 @@ const STATUS_TABS: Array<{ value: ServiceListingStatus | "all"; label: string }>
   { value: "pending", label: "Gözləyir" },
   { value: "approved", label: "Təsdiqlənib" },
   { value: "rejected", label: "Rədd edilib" },
+  { value: "paused", label: "Gizli" },
+  { value: "archived", label: "Silinib" },
   { value: "all", label: "Hamısı" }
 ];
 
@@ -34,7 +36,9 @@ export default async function AdminServiceListingsPage({
     rawStatus === "all" ||
     rawStatus === "pending" ||
     rawStatus === "approved" ||
-    rawStatus === "rejected"
+    rawStatus === "rejected" ||
+    rawStatus === "paused" ||
+    rawStatus === "archived"
       ? rawStatus
       : counts.pending > 0
         ? "pending"

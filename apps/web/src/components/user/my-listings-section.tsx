@@ -8,6 +8,7 @@ import { DraftListingActions } from "@/components/listings/draft-listing-actions
 import { ListingPlanExpiryCounter } from "@/components/listings/listing-plan-expiry-counter";
 import { OwnerEditListingButton } from "@/components/listings/owner-edit-listing-button";
 import { OwnerEditPartListingButton } from "@/components/listings/owner-edit-part-listing-button";
+import { OwnerListingLifecycleActions } from "@/components/listings/owner-listing-lifecycle-actions";
 import type { ListingSummary } from "@/lib/marketplace-types";
 import type { PlanType } from "@/lib/listing-plans";
 
@@ -17,8 +18,8 @@ const STATUS_META: Record<string, { label: string; dot: string; cls: string }> =
   draft:          { label: "Qaralama",    dot: "bg-slate-400",   cls: "bg-slate-50 text-slate-600 border-slate-200" },
   sold:           { label: "Satılıb",     dot: "bg-[#0057FF]",   cls: "bg-blue-50 text-[#0057FF] border-blue-200" },
   rejected:       { label: "Rədd edilib", dot: "bg-red-500",     cls: "bg-red-50 text-red-700 border-red-200" },
-  archived:       { label: "Arxiv",       dot: "bg-slate-300",   cls: "bg-slate-50 text-slate-500 border-slate-200" },
-  inactive:       { label: "Deaktiv",     dot: "bg-slate-300",   cls: "bg-slate-50 text-slate-500 border-slate-200" }
+  archived:       { label: "Silinib",     dot: "bg-slate-300",   cls: "bg-slate-50 text-slate-500 border-slate-200" },
+  inactive:       { label: "Gizli",       dot: "bg-slate-400",   cls: "bg-slate-50 text-slate-600 border-slate-200" }
 };
 
 type TabKey = "all" | "car" | "part";
@@ -252,6 +253,8 @@ export function MyListingsSection({ listings, draftPaymentMap, hasStore, hasSalo
                       serviceHistoryDocumentRef={item.serviceHistoryDocumentRef}
                     />
                   )}
+                  <span className="text-slate-200">|</span>
+                  <OwnerListingLifecycleActions listingId={item.id} status={item.status} />
                 </div>
               </div>
             );

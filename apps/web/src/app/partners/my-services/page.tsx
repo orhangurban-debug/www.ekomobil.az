@@ -7,10 +7,19 @@ import { listServiceInquiriesForOwner } from "@/server/service-inquiry-store";
 import { getServiceStatsForOwner } from "@/server/service-stats-store";
 import { SERVICE_PROVIDER_TYPE_LABELS } from "@/lib/services-marketplace";
 import { ServiceInquiriesInbox } from "@/components/partners/service-inquiries-inbox";
+import { OwnerServiceActions } from "@/components/partners/owner-service-actions";
 
 export const metadata: Metadata = {
   title: "Servis profillərim | EkoMobil",
 };
+
+function statusLabel(status: string): { text: string; cls: string } {
+  if (status === "approved") return { text: "Aktiv", cls: "bg-emerald-100 text-emerald-700" };
+  if (status === "rejected") return { text: "Rədd edilib", cls: "bg-red-100 text-red-700" };
+  if (status === "paused") return { text: "Gizli", cls: "bg-slate-100 text-slate-600" };
+  if (status === "archived") return { text: "Silinib", cls: "bg-slate-100 text-slate-500" };
+  return { text: "Yoxlamada", cls: "bg-amber-100 text-amber-700" };
+}
 
 export default async function MyServicesPage() {
   const user = await getServerSessionUser();
@@ -28,7 +37,7 @@ export default async function MyServicesPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Servis profillərim</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Yaratdığınız servis və ekspertiza profilləri
+            Yaratdığınız servis və ekspertiza profilləri — redaktə, gizlətmə və silmə
           </p>
         </div>
         <Link
@@ -74,6 +83,7 @@ export default async function MyServicesPage() {
         <div className="mt-6 space-y-4">
           {listings.map((item) => {
             const listingStats = stats.byListing.find((row) => row.id === item.id);
+            const status = statusLabel(item.status);
             return (
               <div
                 key={item.id}
@@ -81,6 +91,7 @@ export default async function MyServicesPage() {
               >
                 <div className="flex items-start gap-4 p-5">
                   {item.imageUrls?.[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.imageUrls[0]}
                       alt={item.name}
@@ -90,21 +101,15 @@ export default async function MyServicesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="font-semibold text-slate-900">{item.name}</h2>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          item.status === "approved"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : item.status === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {item.status === "approved" ? "Aktiv" : item.status === "rejected" ? "Rədd edilib" : "Gözləmədə"}
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.cls}`}>
+                        {status.text}
                       </span>
                     </div>
                     <p className="mt-0.5 text-sm text-slate-500">
-                      {SERVICE_PROVIDER_TYPE_LABELS[item.providerType as keyof typeof SERVICE_PROVIDER_TYPE_LABELS] ?? item.providerType}
-                      {" · "}{item.city}
+                      {SERVICE_PROVIDER_TYPE_LABELS[item.providerType as keyof typeof SERVICE_PROVIDER_TYPE_LABELS] ??
+                        item.providerType}
+                      {" · "}
+                      {item.city}
                     </p>
                     {item.about && (
                       <p className="mt-1 line-clamp-2 text-xs text-slate-400">{item.about}</p>
@@ -116,21 +121,22 @@ export default async function MyServicesPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2 border-t border-slate-100 px-5 py-3">
-                  {item.status === "approved" && (
-                    <Link
-                      href={`/services/${item.slug}`}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
-                    >
-                      İctimai profilə bax →
-                    </Link>
-                  )}
-                  <Link
-                    href={`/partners/inspection?edit=${item.id}`}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
-                  >
-                    Redaktə et
-                  </Link>
+                <div className="border-t border-slate-100 px-5 py-3">
+                  <OwnerServiceActions
+                    listing={{
+                      id: item.id,
+                      name: item.name,
+                      city: item.city,
+                      address: item.address,
+                      mapUrl: item.mapUrl,
+                      about: item.about,
+                      services: item.services,
+                      phone: item.phone,
+                      whatsapp: item.whatsapp,
+                      status: item.status,
+                      slug: item.slug
+                    }}
+                  />
                 </div>
               </div>
             );
