@@ -128,8 +128,8 @@ export function PublicProfileShell({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Cover */}
-      <div className="relative h-36 w-full overflow-hidden sm:h-44">
+      {/* Cover stays behind overlapping avatar */}
+      <div className="relative z-0 h-36 w-full overflow-hidden sm:h-44">
         {coverUrl ? (
           <>
             <Image
@@ -157,13 +157,15 @@ export function PublicProfileShell({
         )}
       </div>
 
-      {/* Identity + CTAs */}
-      <div className="border-b border-slate-200 bg-white">
+      {/* Identity + CTAs — above cover; only avatar overlaps the banner */}
+      <div className="relative z-10 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="-mt-10 flex flex-col gap-5 pb-6 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-5 pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-4">
-              <ProfileAvatar name={name} logoUrl={logoUrl} avatarUrl={avatarUrl} />
-              <div className="min-w-0 pb-0.5">
+              <div className="relative z-10 -mt-10 shrink-0 sm:-mt-12">
+                <ProfileAvatar name={name} logoUrl={logoUrl} avatarUrl={avatarUrl} />
+              </div>
+              <div className="min-w-0 pt-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                     {name}
