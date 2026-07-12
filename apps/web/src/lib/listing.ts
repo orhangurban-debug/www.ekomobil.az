@@ -4,6 +4,7 @@ import {
   validatePartListingMediaProtocol
 } from "@/lib/media-protocol";
 import { VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES } from "@/lib/vehicle-media-constants";
+import { coverPhotoMissingMessage, isCoverPhotoTag } from "@/lib/vehicle-media-angles";
 import { MileageEvent, VehicleIdentity } from "@/lib/vehicle";
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -43,6 +44,8 @@ export interface ListingInput {
   mediaProtocol: MediaProtocolInput;
   contactPhone?: string;
   whatsappPhone?: string;
+  /** Elan şəkillərinin rakurs tag-ləri — [0] ana şəkil */
+  imagePhotoTags?: Array<string | null>;
 }
 
 export interface ListingValidationResult {
@@ -103,10 +106,16 @@ export function validateListingInput(input: ListingInput): ListingValidationResu
   );
   errors.push(...mediaResult.missingRequirements);
 
+  if (Array.isArray(input?.imagePhotoTags)) {
+    if (!isCoverPhotoTag(input.imagePhotoTags[0] ?? null)) {
+      errors.push(coverPhotoMissingMessage());
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     errors,
-    mediaComplete: mediaResult.isComplete
+    mediaComplete: mediaResult.isRecommendedComplete
   };
 }
 

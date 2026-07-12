@@ -1,4 +1,7 @@
-import { VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES } from "@/lib/vehicle-media-constants";
+import {
+  VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES,
+  VEHICLE_MEDIA_RECOMMENDED_PROTOCOL_ANGLES
+} from "@/lib/vehicle-media-constants";
 
 export interface MediaProtocolInput {
   imageCount: number;
@@ -14,14 +17,34 @@ export interface MediaProtocolInput {
 }
 
 export interface MediaProtocolResult {
+  /** Publish gate — yalnız zəruri şərtlər */
   isComplete: boolean;
   missingRequirements: string[];
+  /** Trust / auksion keyfiyyəti — tövsiyə olunan rakurslar */
+  isRecommendedComplete: boolean;
+  missingRecommendations: string[];
+  recommendedCompletedCount: number;
+  recommendedTotalCount: number;
 }
 
 interface ValidateMediaProtocolOptions {
   minimumImageCount?: number;
   requireVideo?: boolean;
 }
+
+const RECOMMENDATION_CHECKS: Array<{
+  key: keyof MediaProtocolInput;
+  message: string;
+}> = [
+  { key: "hasFrontAngle", message: "Ön tərəf (tövsiyə)" },
+  { key: "hasRearAngle", message: "Arxa tərəf (tövsiyə)" },
+  { key: "hasLeftSide", message: "Sol profil (tövsiyə)" },
+  { key: "hasRightSide", message: "Sağ profil (tövsiyə)" },
+  { key: "hasDashboard", message: "Sükan paneli (tövsiyə)" },
+  { key: "hasInterior", message: "Salon (tövsiyə)" },
+  { key: "hasOdometer", message: "Yürüş sayğacı (tövsiyə)" },
+  { key: "hasTrunk", message: "Baqaj (tövsiyə)" }
+];
 
 export function validateMediaProtocol(
   input: MediaProtocolInput,
@@ -42,22 +65,22 @@ export function validateMediaProtocol(
     missingRequirements.push("Mühərrik videosu 15-30 saniyə aralığında olmalıdır.");
   }
 
-  if (!input.hasFrontAngle) missingRequirements.push("Ön tərəfin şəkli seçilməyib.");
-  if (!input.hasRearAngle) missingRequirements.push("Arxa tərəfin şəkli seçilməyib.");
-  if (!input.hasLeftSide) missingRequirements.push("Sol tərəfin şəkli seçilməyib.");
-  if (!input.hasRightSide) missingRequirements.push("Sağ tərəfin şəkli seçilməyib.");
-  if (!input.hasDashboard) {
-    missingRequirements.push("Sükan və cihazlar panelinin şəkli seçilməyib.");
+  const missingRecommendations: string[] = [];
+  for (const item of RECOMMENDATION_CHECKS) {
+    if (!input[item.key]) missingRecommendations.push(item.message);
   }
-  if (!input.hasInterior) {
-    missingRequirements.push("Salon şəkli seçilməyib (ön oturacaq, arxa oturacaq və ya tavan).");
-  }
-  if (!input.hasOdometer) missingRequirements.push("Yürüş sayğacının şəkli seçilməyib.");
-  if (!input.hasTrunk) missingRequirements.push("Baqajın şəkli seçilməyib.");
+
+  const recommendedCompletedCount =
+    VEHICLE_MEDIA_RECOMMENDED_PROTOCOL_ANGLES - missingRecommendations.length;
 
   return {
     isComplete: missingRequirements.length === 0,
-    missingRequirements
+    missingRequirements,
+    isRecommendedComplete:
+      missingRequirements.length === 0 && missingRecommendations.length === 0,
+    missingRecommendations,
+    recommendedCompletedCount,
+    recommendedTotalCount: VEHICLE_MEDIA_RECOMMENDED_PROTOCOL_ANGLES
   };
 }
 
@@ -72,6 +95,10 @@ export function validatePartListingMediaProtocol(input: MediaProtocolInput): Med
   }
   return {
     isComplete: missingRequirements.length === 0,
-    missingRequirements
+    missingRequirements,
+    isRecommendedComplete: missingRequirements.length === 0,
+    missingRecommendations: [],
+    recommendedCompletedCount: 0,
+    recommendedTotalCount: 0
   };
 }

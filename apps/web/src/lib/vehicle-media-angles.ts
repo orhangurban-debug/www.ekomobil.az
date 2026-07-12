@@ -187,7 +187,7 @@ export const IMAGE_PHOTO_TAG_OPTIONS: PhotoTagOption[] = [
   }
 ];
 
-/** Media protokolunun 8 əsas tələbi — irəliləyiş göstəricisi üçün */
+/** Media protokolunun 8 tövsiyə olunan rakursu — soft checklist / trust üçün */
 export const PROTOCOL_REQUIREMENT_OPTIONS: {
   key: VehicleMediaAngleKey;
   shortLabel: string;
@@ -211,7 +211,27 @@ export const PROTOCOL_REQUIREMENT_OPTIONS: {
   { key: "hasTrunk", shortLabel: "Baqaj", hint: "Baqajın şəkli" }
 ];
 
-/** @see VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES — protokol rakurs sayı ilə uyğun olmalıdır */
+/** Ana şəkil (üz qabığı) üçün icazə verilən xarici istiqamətlər */
+export const COVER_PHOTO_TAGS: ImagePhotoTag[] = [
+  "exterior_front_left",
+  "exterior_front",
+  "exterior_front_right",
+  "exterior_left",
+  "exterior_right",
+  "exterior_rear_left",
+  "exterior_rear_right",
+  "exterior_rear"
+];
+
+export const DEFAULT_COVER_PHOTO_TAG: ImagePhotoTag = "exterior_front_left";
+
+export function isCoverPhotoTag(tag: string | null | undefined): tag is ImagePhotoTag {
+  return Boolean(tag && (COVER_PHOTO_TAGS as string[]).includes(tag));
+}
+
+export function coverPhotoMissingMessage(): string {
+  return "Ana şəkil üçün istiqamət seçin (ön, yan və ya arxa rakurs).";
+}
 
 /** @deprecated Köhnə API uyğunluğu — yeni kod IMAGE_PHOTO_TAG_OPTIONS istifadə etsin */
 export const VEHICLE_MEDIA_ANGLE_OPTIONS = PROTOCOL_REQUIREMENT_OPTIONS.map((item) => ({
@@ -373,19 +393,33 @@ export function reorderListingImageArrays(
   imageHashes: string[],
   tags: Array<ImagePhotoTag | null | undefined>
 ): { imageUrls: string[]; imageHashes: string[]; photoTags: Array<ImagePhotoTag | null> } {
-  const items = imageUrls.map((url, index) => ({
-    url,
-    hash: imageHashes[index] ?? "",
-    tag: tags[index] ?? null,
-    index
-  }));
-  items.sort(
-    (a, b) =>
-      listingPhotoTagSortRank(a.tag) - listingPhotoTagSortRank(b.tag) || a.index - b.index
+  if (imageUrls.length === 0) {
+    return { imageUrls: [], imageHashes: [], photoTags: [] };
+  }
+
+  // Ana şəkil (ilk yüklənən) həmişə üzlükdə qalır — digərləri rakurs sırası ilə düzülür.
+  const cover = {
+    url: imageUrls[0],
+    hash: imageHashes[0] ?? "",
+    tag: (tags[0] ?? null) as ImagePhotoTag | null
+  };
+  const rest = imageUrls.slice(1).map((url, offset) => {
+    const index = offset + 1;
+    return {
+      url,
+      hash: imageHashes[index] ?? "",
+      tag: (tags[index] ?? null) as ImagePhotoTag | null,
+      index
+    };
+  });
+  rest.sort(
+    (a, b) => listingPhotoTagSortRank(a.tag) - listingPhotoTagSortRank(b.tag) || a.index - b.index
   );
+
+  const ordered = [cover, ...rest];
   return {
-    imageUrls: items.map((item) => item.url),
-    imageHashes: items.map((item) => item.hash),
-    photoTags: items.map((item) => item.tag)
+    imageUrls: ordered.map((item) => item.url),
+    imageHashes: ordered.map((item) => item.hash),
+    photoTags: ordered.map((item) => item.tag)
   };
 }

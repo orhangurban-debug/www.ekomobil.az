@@ -35,6 +35,8 @@ import {
 } from "@/lib/vehicle-photo-guide";
 import {
   buildMediaAnglesFromTags,
+  coverPhotoMissingMessage,
+  isCoverPhotoTag,
   reorderListingImageArrays,
   type ImagePhotoTag
 } from "@/lib/vehicle-media-angles";
@@ -55,7 +57,7 @@ interface PublishErrorGuide {
 
 function resolvePublishErrorStep(messages: string[]): Step {
   const text = messages.join(" ").toLocaleLowerCase("az");
-  if (/şəkil|rakurs|tərəf|panel|salon|baqaj|video|odometr|sayğac|cihazlar|ən azı \d+ şəkil/.test(text)) {
+  if (/şəkil|rakurs|tərəf|panel|salon|baqaj|video|odometr|sayğac|cihazlar|ən azı \d+ şəkil|ana şəkil|istiqamət|üz qabığı/.test(text)) {
     return "Şəkillər";
   }
   if (/plan limiti|pulsuz plan|ödəniş|checkout|payment/.test(text)) {
@@ -388,6 +390,13 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
     () => validateMediaProtocol(resolvedMedia, { minimumImageCount: minimumRequiredImages, requireVideo: false }),
     [resolvedMedia, minimumRequiredImages]
   );
+  const coverAngleMissing = uploadedImages.length > 0 && !isCoverPhotoTag(imageAngleTags[0] ?? null);
+  const mediaGateErrors = useMemo(() => {
+    const errors = [...mediaCheck.missingRequirements];
+    if (coverAngleMissing) errors.push(coverPhotoMissingMessage());
+    return errors;
+  }, [coverAngleMissing, mediaCheck.missingRequirements]);
+  const mediaGateComplete = mediaCheck.isComplete && !coverAngleMissing;
   const vehicleStepErrors = useMemo(() => {
     const errors: string[] = [];
     if (!title.trim()) errors.push("Elan başlığını daxil edin.");
@@ -545,7 +554,7 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
 
   function handleMediaNext() {
     setMediaValidationVisible(true);
-    if (!mediaCheck.isComplete) return;
+    if (!mediaGateComplete) return;
     setReviewErrors([]);
     goToStep("Məlumatlar");
   }
@@ -652,8 +661,8 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
     setVehicleValidationVisible(true);
     setMediaValidationVisible(true);
 
-    if (!mediaCheck.isComplete) {
-      showPublishErrors(mediaCheck.missingRequirements);
+    if (!mediaGateComplete) {
+      showPublishErrors(mediaGateErrors);
       return;
     }
 
@@ -695,7 +704,8 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
         vehicle: { vin, make, model, year, declaredMileageKm },
         vinVerified,
         sellerVerified,
-        mediaProtocol: resolvedMedia
+        mediaProtocol: resolvedMedia,
+        imagePhotoTags: imageAngleTags
       })
     });
 
@@ -1462,17 +1472,30 @@ export function VehiclePublishForm({ dealerPublishContext }: { dealerPublishCont
                   </div>
                 )}
 
-                {mediaValidationVisible && !mediaCheck.isComplete && (
+                {mediaValidationVisible && !mediaGateComplete && (
                   <div className="rounded-xl alert-warning border p-4">
                     <p className="text-sm font-medium text-amber-700 mb-2">Çatışmayan tələblər:</p>
                     <ul className="space-y-1">
-                      {mediaCheck.missingRequirements.map((req) => (
+                      {mediaGateErrors.map((req) => (
                         <li key={req} className="text-sm text-amber-700 flex items-center gap-2">
                           <span className="h-1 w-1 rounded-full bg-amber-500/100 shrink-0" />
                           {req}
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {uploadedImages.length >= minimumRequiredImages &&
+                  coverAngleMissing === false &&
+                  !mediaCheck.isRecommendedComplete && (
+                  <div className="rounded-xl border border-[#0057FF]/20 bg-[#0057FF]/5 p-4">
+                    <p className="text-sm font-medium text-[#0057FF] mb-1">
+                      Tövsiyə: {mediaCheck.recommendedCompletedCount}/{mediaCheck.recommendedTotalCount} rakurs
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Tamamlamaq məcburi deyil. Əlavə rakurslar etibar balını və auksion uyğunluğunu artırır.
+                    </p>
                   </div>
                 )}
 

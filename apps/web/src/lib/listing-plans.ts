@@ -16,7 +16,7 @@
  * SALON (dealer) — ayrıca DEALER_PLANS abunəliyi var:
  *   • Aylıq sabit abunə → N aktiv elan hüququ (slot).
  *   • Elan başına şəkil limiti abunə paketindən gəlir (Əsas 15, Peşəkar 20, Korporativ 25).
- *   • Minimum 8 məcburi rakurs media protokolu tələb olunur.
+ *   • Minimum 3 şəkil + ana şəkil istiqaməti; digər rakurslar tövsiyədir.
  *   → bax: src/lib/dealer-plans.ts
  *
  * MAĞAZA (ehtiyat hissəsi) — ayrıca PARTS_STORE_PLANS abunəliyi var:

@@ -1,8 +1,12 @@
 /**
- * Avtomobil elanı media protokolu — şəkil sayı sabitləri.
- * PROTOCOL_REQUIREMENT_OPTIONS (vehicle-media-angles.ts) 8 rakurs tələb edir.
+ * Avtomobil elanı media qaydaları.
+ * Zəruri: az sayda şəkil + ana şəkil istiqaməti.
+ * Tövsiyə: tam rakurs seti (trust / auksion keyfiyyəti).
  */
-export const VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES = 8;
+export const VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES = 3;
 
-/** Məcburi rakurslar + mühərrik, təkər, detal/zədə və ehtiyat */
-export const VEHICLE_MEDIA_RECOMMENDED_IMAGES = VEHICLE_MEDIA_PROTOCOL_MIN_IMAGES + 4;
+/** Tam tövsiyə olunan rakurs sayı (PROTOCOL_REQUIREMENT_OPTIONS ilə uyğun) */
+export const VEHICLE_MEDIA_RECOMMENDED_PROTOCOL_ANGLES = 8;
+
+/** Daha zəngin qalereya üçün tövsiyə olunan ümumi şəkil sayı */
+export const VEHICLE_MEDIA_RECOMMENDED_IMAGES = 12;
